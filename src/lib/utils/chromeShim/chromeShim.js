@@ -38,8 +38,17 @@ function defer(cb, value) {
 // Build a fresh shim object backed by a store hydrated from `window.localStorage`.
 // Exported for unit tests; production code goes through installChromeShim().
 export function createChromeShim() {
+  // Hydrate from EVERY localStorage entry, not just KNOWN_KEYS. Each URL object
+  // lives under a dynamic `url-<url>` key that isn't in KNOWN_KEYS, so a
+  // known-keys-only loop would drop the seeded per-URL data and every tab would
+  // render blank. In the codeyam iframe localStorage is cleared + seeded per
+  // scenario, so scanning all keys is exactly the seeded set. KNOWN_KEYS remains
+  // the source for the Chrome abstraction's default-hydration lists, not the
+  // shim's boot scope.
   const store = {};
-  for (const key of KNOWN_KEYS) {
+  for (let i = 0; i < window.localStorage.length; i++) {
+    const key = window.localStorage.key(i);
+    if (key == null) continue;
     const raw = window.localStorage.getItem(key);
     if (raw == null) continue;
     try {

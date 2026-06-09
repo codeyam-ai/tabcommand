@@ -1,0 +1,27 @@
+{
+  "name": "Home - Auto-Closed and History",
+  "id": "1fa0088f-cce2-4646-88cf-14c18f7c5f0e",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://react.dev/learn\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://vitejs.dev/guide\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://stackoverflow.com/questions/tagged/react\",\"url-https://en.wikipedia.org/wiki/Web_browser\"]",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "autoClosed": "{\"url-https://www.figma.com/file/tabcommand\":32503680000000,\"url-https://www.notion.so/codeyam/Roadmap\":32503680001000}",
+      "labels": "{}",
+      "url-https://en.wikipedia.org/wiki/Web_browser": "{\"title\":\"Web browser - Wikipedia\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://stackoverflow.com/questions/tagged/react": "{\"title\":\"Newest react Questions - Stack Overflow\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://vitejs.dev/guide": "{\"title\":\"Getting Started | Vite\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

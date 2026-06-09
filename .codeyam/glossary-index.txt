@@ -1,6 +1,12 @@
-# regenerated from glossary.json on 2026-06-09T16:26:27Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-09T18:47:15Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
+ComingSoon :: src/lib/pages/App/App.jsx :: tags= :: test=src/lib/pages/App/App.test.jsx
+Labels :: src/lib/components/Labels/Labels.jsx :: tags=
+LoadMeter :: src/lib/components/LoadMeter/LoadMeter.jsx :: tags=
+Search :: src/lib/components/Search/Search.jsx :: tags=
+Tabs :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
+Url :: src/lib/components/Url/Url.jsx :: tags= :: test=src/lib/components/Url/Url.test.jsx
 associateProcess :: service_worker.js :: tags=worker,ported-verbatim,processes,tabs :: test=service_worker.test.js
 central :: service_worker.js :: tags=worker,ported-verbatim,debug :: test=service_worker.test.js
 closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
@@ -19,6 +25,7 @@ loadActiveTabs :: popup/popup.js :: tags=popup,ported-verbatim :: test=popup/pop
 newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
+simpleProcessStats :: src/lib/components/Url/Url.jsx :: tags= :: test=src/lib/components/Url/Url.test.jsx
 tabUpdates :: service_worker.js :: tags=worker,ported-verbatim,tabs :: test=service_worker.test.js
 trackGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js
 truncateString :: popup/popup.js :: tags=popup,ported-verbatim,util :: test=popup/popup.test.js

@@ -1,0 +1,19 @@
+{
+  "name": "Home - Empty",
+  "id": "f0e4df4b-01e2-4f1d-8569-4ba27e23001b",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "allUrls": "[]",
+      "activeTabs": "[]",
+      "autoClosed": "{}",
+      "labels": "{}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

@@ -1,0 +1,145 @@
+.Url {
+  cursor: pointer;
+  margin-bottom: 6px;
+  border-radius: 18px;
+  padding: 9px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.Url:last-child {
+  margin-bottom: 0;
+}
+
+.Url.Url-hover {
+  background-color: #d5d5d5;
+  border-right-color: #d5d5d5;
+}
+
+.Url img {
+  height: 18px;
+  width: 18px;
+  vertical-align: bottom;
+  margin-right: 3px;
+}
+
+.Url .Url-title {
+  width: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  /* text-overflow: ellipsis; */
+  background-image: linear-gradient(to right, black 80%, transparent 98%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.Url-actions,
+.Url-stats {
+  float: right;
+  white-space: nowrap;
+}
+
+.Url-actions .Url-action {
+  display: inline-block;
+  padding: 3px 6px;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.Url-actions .Url-action:hover,
+.Url-actions .Url-action.Url-pinned {
+  color: #333;
+}
+
+.Url-actions .Url-action .Url-action-icon {
+  font-size: 1rem;
+}
+
+.Url-tabCommandPinned {
+  float: right;
+  font-size: 15px;
+  margin-top: 3px;
+  color: #333;
+}
+
+.Url-stats {
+  font-size: 10px;
+  text-align: center;
+  padding-left: 6px;
+}
+
+.Url-loadIndicatorContainer {
+  border-radius: 12px;
+  background-color: #aaaaaa;
+  height: 6px;
+  width: 60px;
+}
+
+.Url-loadIndicator {
+  height: 100%;
+  border-radius: 12px;
+}
+
+.Url-load-hidden {
+  display: none;
+}
+
+.Url-load-low .Url-loadIndicator {
+  background-color: green;
+}
+
+.Url-load-medium .Url-loadIndicator {
+  background-color: yellow;
+}
+
+.Url-load-high .Url-loadIndicator {
+  background-color: orange;
+}
+
+.Url-load-excessive .Url-loadIndicator {
+  background-color: red;
+}
+
+.Url.Url-encourageDrag {
+  margin-top: 12px;
+  background-color: #d5d5d5;
+  border-right-color: #d5d5d5;
+}
+
+.Url.Url-encourageDrag::before {
+  position: absolute;
+  bottom: 6px;
+  height: 0;
+  width: 0;
+  left: -19px;
+  border: 11px solid transparent;
+  border-right-color: inherit;
+  content: "";
+  transform: translateZ(-10px);
+}
+
+.Url-actions .Url-action[data-tool-tip] {
+  position: relative;
+}
+
+.Url-actions .Url-action[data-tool-tip]::after {
+  content: attr(data-tool-tip);
+  display: block;
+  position: absolute;
+  background-color: #333;
+  padding: 0.5em;
+  color: white;
+  border-radius: 5px;
+  font-size: 0.8em;
+  bottom: 0;
+  right: 0;
+  white-space: nowrap;
+  transform: scale(0);
+  transition: transform ease-out 150ms, bottom ease-out 150ms;
+}
+
+.Url-actions .Url-action[data-tool-tip]:hover::after {
+  transform: scale(1);
+  bottom: 100%;
+}

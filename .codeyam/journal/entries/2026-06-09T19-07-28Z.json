@@ -1,0 +1,131 @@
+{
+  "timestamp": "2026-06-09T19:07:28Z",
+  "title": "Home shell + Active Tabs (Tabs + Url)",
+  "type": "feature",
+  "userRequest": "A Chrome extension for managing browser tabs and browser history",
+  "description": "Built the Home screen's tab list — the app's most prominent surface — plus the real App page-navigation that replaces the temporary seed diagnostic, and rendered real seeded data in feature UI for the first time. Deliverables: (1) Tabs (src/lib/components/Tabs/Tabs.jsx, full port of the reference) — three sections (Active Tabs, Automatically Closed, collapsible History) read from chrome.storage via Chrome.get + onChanged; activeTabUrls = activeTabs minus browser-pinned; autoClosed filtered by Date.now()-ts<MaxAutoClosedTime and sorted ascending; label grouping (urlKey->label title) splits each section into grouped headings vs an Ungrouped remainder; History caps slice(0,500)/(0,250). (2) Url (src/lib/components/Url/Url.jsx, full port) — a tab row: favicon (defaultFavicon fallback) + title (derived from urlKey via replace(/^url-/,'') when untitled), a process-load indicator whose level (low/medium/high/excessive) and bar width come from averaged CPU/memory (simpleProcessStats: cpu/100/samples, privateMemory/1064000/samples), and a hover action row (pin/keep-open, edit->uxSettings.page, delete, close) wired to chrome.tabs (shim no-ops) and Chrome.set/remove. (3) App (src/lib/pages/App/App.jsx) — real uxSettings.page navigation: page state seeded from storage, an onChanged listener calls setPage, changePage writes uxSettings.page; HOME renders DragDropContext -> Tabs + Labels, while URL/IMPORTEXPORT/LOAD render a ComingSoon placeholder until their own plans. The reference's Closer/KeyDown/sinon-chrome global hack and full handleDrag were dropped; onDragEnd is a minimal no-op (real grouping/reordering lands in labels-and-dnd). (4) Constants.jsx (Pages/ItemTypes/Colors/AutoCloseMinutes/MaxAutoClosedTime), defaultFavicon.png, a components barrel, and inert stubs for Search/LoadMeter/Labels (each marked for its future plan). KEY FIX (load-bearing): chromeShim.createChromeShim() now hydrates EVERY window.localStorage entry instead of only KNOWN_KEYS, so the dynamic url-<url> per-URL objects load and tab rows render real titles/favicons/load — without this every row was blank. Proven by a new shim test (a seeded url-_url_ dynamic key is returned by get) and by four captured app scenarios. KEY DECISIONS (user-confirmed): PropTypes were dropped from the ports (React 19 deprecated them; eslint's react/prop-types is already off; no TypeScript) and prop-types was NOT added — recorded to project memory; react-beautiful-dnd was swapped for the maintained drop-in @hello-pangea/dnd (Droppable/Draggable/DragDropContext). Scenarios seed via the editor's localStorage field (pre-stringified JSON), with auto-closed entries using far-future timestamps so they never expire (and no maxTime key that sortAutoClosed would mis-read as a urlKey). Coverage for the chrome-extension-react stack (isolate unsupported) is satisfied via testFile glossary satisfiers (Tabs/Url/ComingSoon) and trivial-wrapper classifications (Search/LoadMeter/Labels). Acceptance met: 73/73 tests pass (Tabs, Url incl. all four load levels + hidden, App-navigation, shim dynamic-key), ESLint clean, / renders with no chrome errors, the four Home scenarios capture populated styled rows, and the temporary diagnostic is gone. session-finalize green across all 5 phases. Out of scope (later plans): Labels/LabelCollection/LabelForm + real drag-to-group (labels-and-dnd), Search (search), LoadMeter widget + Load page (load-meter), UrlDetails (url-details), ImportExport (import-export); service_worker.js modernization; the crxjs popup build gap.",
+  "modifiedFiles": [
+    {
+      "path": "src/Constants.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/images/defaultFavicon.png",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Url/Url.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Url/Url.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Url/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Url/Url.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Tabs/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Search/Search.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Search/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Labels/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "package.json",
+      "status": "modified"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Active Tabs",
+      "screenshotPath": "home-active-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Auto-Closed and History",
+      "screenshotPath": "home-auto-closed-and-history--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 73,
+    "passed": 73,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 73,
+        "passed": 73
+      }
+    ]
+  }
+}

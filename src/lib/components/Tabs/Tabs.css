@@ -1,0 +1,103 @@
+.Tabs {
+  float: right;
+  width: 20%;
+  height: 100%;
+  overflow-y: scroll;
+  background-color: white;
+  background-color: #f3f3f3;
+  -webkit-box-shadow: -2px 2px 4px 0px rgb(0 0 0 / 10%);
+  box-shadow: -2px 2px 4px 0px rgb(0 0 0 / 10%);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+@media only screen and (max-width: 1275px) {
+  .Tabs {
+    width: 28%;
+  }
+}
+
+@media only screen and (max-width: 1100px) {
+  .Tabs {
+    width: 32%;
+  }
+}
+
+@media only screen and (max-width: 950px) {
+  .Tabs {
+    width: 43%;
+  }
+}
+
+.Tabs-section {
+  flex: 5;
+  overflow: hidden;
+}
+
+.Tabs.Tabs-archive .Tabs-section:last-child {
+  overflow: visible;
+}
+
+.Tabs-section:last-child > h3.Tabs-section-title {
+  cursor: pointer;
+}
+
+.Tabs-section.Tabs-section-collapsed {
+  margin-top: auto;
+  flex: none;
+}
+
+.Tabs-section > h3.Tabs-section-title {
+  background-color: #4c4c4c;
+  color: white;
+  padding: 12px;
+  margin: 0;
+}
+
+.Tabs-section > h3.Tabs-section-title .anticon {
+  margin-right: 6px;
+}
+
+.Tabs-section .Tabs-section-labelTitle {
+  margin: 12px 0 0 0;
+  color: #9e9e9e;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.Tabs-section .Tabs-section-grouped {
+  margin-top: 24px;
+}
+
+.Tabs-section-explainer {
+  text-align: center;
+  padding: 45px 12px;
+  color: #666;
+}
+
+.Tabs-active {
+  background-color: white;
+}
+
+.Tabs-autoClosed {
+  background-color: #ececec;
+}
+
+.Tabs-closed {
+  background-color: #e4e4e4;
+}
+
+.Tabs-closed.Tabs-section-collapsed .Tabs-section-urls {
+  display: none;
+}
+
+.Tabs .Tabs-section-urls {
+  padding: 0 12px 10% 18px;
+  overflow-y: scroll;
+  height: 90%;
+}
+
+.Tabs .Url {
+  position: relative;
+}

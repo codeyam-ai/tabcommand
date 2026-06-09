@@ -1,0 +1,26 @@
+{
+  "name": "Home - Grouped",
+  "id": "704974da-9c37-406c-b115-450cfe2f886e",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://mail.google.com/mail/u/0\",\"url-https://news.ycombinator.com\"]",
+      "autoClosed": "{}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\":\"Inbox (1,284) - hello@codeyam.com - Gmail\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":737280,\"cpu\":48000,\"privateMemory\":7660800000,\"jsMemoryAllocated\":6128640000,\"jsMemoryUsed\":4596480000}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-201\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-202\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.notion.so/codeyam/Roadmap\",\"tabKey\":\"tab-203\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-204\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"tabKey\":\"tab-205\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://mail.google.com/mail/u/0\",\"tabKey\":\"tab-206\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-207\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"color\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"color\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\"]}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

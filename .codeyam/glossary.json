@@ -26,6 +26,51 @@
     "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
+    "description": "Layout-only placeholder for the URL/ImportExport/Load pages until their own plans land; renders a title and Coming soon copy. Exercised by the App navigation test that asserts the Import/Export placeholder.",
+    "filePath": "src/lib/pages/App/App.jsx",
+    "name": "ComingSoon",
+    "testFile": "src/lib/pages/App/App.test.jsx"
+  },
+  {
+    "description": "Stub: empty container giving the Home DragDropContext its second child; LabelCollection/LabelForm and drag-to-group land in labels-and-dnd.",
+    "filePath": "src/lib/components/Labels/Labels.jsx",
+    "name": "Labels",
+    "untestabilityReason": {
+      "justification": "Layout-only stub — renders an empty div with id, no props or logic.",
+      "kind": "trivial-wrapper"
+    }
+  },
+  {
+    "description": "Stub: inert sidebar placeholder for the load gauge; the widget + Load page are built in the load-meter plan.",
+    "filePath": "src/lib/components/LoadMeter/LoadMeter.jsx",
+    "name": "LoadMeter",
+    "untestabilityReason": {
+      "justification": "Layout-only stub — renders an empty div, no props or logic.",
+      "kind": "trivial-wrapper"
+    }
+  },
+  {
+    "description": "Stub: inert sidebar placeholder for the search box; behavior is built in the search plan.",
+    "filePath": "src/lib/components/Search/Search.jsx",
+    "name": "Search",
+    "untestabilityReason": {
+      "justification": "Layout-only stub — renders an empty div, no props or logic.",
+      "kind": "trivial-wrapper"
+    }
+  },
+  {
+    "description": "Home tab list: renders Active Tabs, Automatically Closed, and collapsible History sections from chrome.storage; splits tabs into label groups vs an ungrouped remainder; filters browser-pinned tabs and expired auto-closed entries. Each row is a draggable Url.",
+    "filePath": "src/lib/components/Tabs/Tabs.jsx",
+    "name": "Tabs",
+    "testFile": "src/lib/components/Tabs/Tabs.test.jsx"
+  },
+  {
+    "description": "A single tab/url row: shows favicon + title (derived from urlKey when untitled), a process-load indicator (level + bar width from averaged CPU/memory), and a hover action row (pin/keep-open, edit, delete, close) wired to chrome.tabs and Chrome storage.",
+    "filePath": "src/lib/components/Url/Url.jsx",
+    "name": "Url",
+    "testFile": "src/lib/components/Url/Url.test.jsx"
+  },
+  {
     "description": "Maps a process's task tab ids back to tabs (chrome.tabs.get) and merges per-url process metrics into the updates object.",
     "filePath": "service_worker.js",
     "name": "associateProcess",
@@ -227,6 +272,12 @@
       "metrics"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Pure helper: averages a process-stats sample into {cpu, mem} (cpu/100/samples, privateMemory/1064000/samples) for the Url load indicator. Exercised via the Url excessive-load test.",
+    "filePath": "src/lib/components/Url/Url.jsx",
+    "name": "simpleProcessStats",
+    "testFile": "src/lib/components/Url/Url.test.jsx"
   },
   {
     "description": "Builds the per-url update record for a tab — resolving an empty object for invalid tabs and otherwise merging the stored url with fresh tab/process metadata via urlUpdates.",

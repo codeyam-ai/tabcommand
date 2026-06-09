@@ -19,6 +19,39 @@ body {
 
 .App-sidebar .App-logo {
   height: 48px;
+  cursor: pointer;
+}
+
+.App-sidebar .App-tagline {
+  font-size: 0.8em;
+  color: white;
+  text-align: center;
+}
+
+.App-sidebar-footer {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 60px;
+  color: white;
+  width: 100%;
+  text-align: center;
+}
+
+.App-sidebar-footer .App-sidebar-link {
+  cursor: pointer;
+  padding: 6px;
+}
+
+#backgroundOverlay {
+  background-color: transparent;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: block;
+  z-index: 2;
 }
 
 .App-content {
@@ -26,8 +59,7 @@ body {
   overflow: hidden;
 }
 
-.App-content .App-placeholder {
-  padding: 24px;
+.App-content .App-comingSoon {
+  padding: 48px;
   color: #0b1a42;
-  font-size: 1.1em;
 }

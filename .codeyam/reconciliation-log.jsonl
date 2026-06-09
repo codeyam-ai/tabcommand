@@ -34,3 +34,34 @@
 {"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › set mirrors to localStorage and fires onChanged with areaName local`: added from runner `tests` output"}
 {"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › get supports string, array, and all forms`: added from runner `tests` output"}
 {"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `Chrome › strips timestamp and drops falsy previousLabels entries`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"deferred","message":"registry `App › renders the logo and zero seed counts when storage is empty`: deferred — runner does not emit but plausible rename candidate(s) exist"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"deferred","message":"registry `App › shows non-zero counts when storage is seeded`: deferred — runner does not emit but plausible rename candidate(s) exist"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Url › reveals the action row on hover`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Tabs › renders a row for each seeded active tab`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Url › renders nothing meaningful without a urlKey`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Tabs › shows the empty-state explainer when there are no active tabs`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `chromeShim › hydrates dynamic url-<url> keys that are not in KNOWN_KEYS`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `App › changePage writes uxSettings.page when a sidebar link is clicked`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Tabs › toggles the History section open when its title is clicked`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Url › derives the display url from urlKey when there is no title`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Tabs › groups labeled tabs under headings and leaves the rest ungrouped`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Tabs › excludes browser-pinned tabs from the active list`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:33:36Z","kind":"registry-add","message":"registry `Url › shows the excessive load indicator for heavy process stats`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"batch-decisions-applied","message":"consumed 2 batched decision(s): Registry `App › renders the logo and zero seed counts when storage is empty` → `App › renders the sidebar and the Home page by default`; Registry `App › shows non-zero counts when storage is seeded` deleted"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-rename","message":"registry `App › renders the logo and zero seed counts when storage is empty` → `App › renders the sidebar and the Home page by default`: agent-decided"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-delete","message":"registry `App › shows non-zero counts when storage is seeded` deleted: agent-decided"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `App › renders the page named by uxSettings.page`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `chromeShim › hydrates dynamic url-<url> keys that are not in KNOWN_KEYS`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Url › reveals the action row on hover`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `App › changePage writes uxSettings.page when a sidebar link is clicked`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Tabs › excludes browser-pinned tabs from the active list`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Url › renders the title and favicon for a seeded url`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Url › shows the excessive load indicator for heavy process stats`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Url › derives the display url from urlKey when there is no title`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Tabs › renders a row for each seeded active tab`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `App › navigates when uxSettings changes in storage`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Url › renders nothing meaningful without a urlKey`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Tabs › toggles the History section open when its title is clicked`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `App › renders the sidebar and the Home page by default`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Tabs › groups labeled tabs under headings and leaves the rest ungrouped`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Tabs › shows the empty-state explainer when there are no active tabs`: added from runner `tests` output"}

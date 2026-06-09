@@ -1,8 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { installChromeShim } from '../../utils/chromeShim';
 import App from './App';
+
+const get = (keys) => new Promise((resolve) => chrome.storage.local.get(keys, resolve));
 
 describe('App', () => {
   beforeEach(() => {
@@ -11,31 +14,59 @@ describe('App', () => {
   });
 
   afterEach(() => {
-    delete globalThis.chrome;
+    // Leave globalThis.chrome in place: React flushes the effect-cleanup
+    // (chrome.storage.onChanged.removeListener) on unmount during teardown.
+    // beforeEach deletes + reinstalls a fresh shim for the next test.
     window.localStorage.clear();
   });
 
-  // renders the logo and the temporary diagnostic's empty-state counts
-  it('renders the logo and zero seed counts when storage is empty', async () => {
+  // the sidebar logo always renders and the Home page (Tabs sections) shows by default
+  it('renders the sidebar and the Home page by default', async () => {
     installChromeShim();
     render(<App />);
 
     expect(screen.getByAltText('TabCommand')).toBeInTheDocument();
-    expect(
-      await screen.findByText(/seeded: 0 labels · 0 active tabs · 0 urls/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Active Tabs')).toBeInTheDocument();
+    expect(screen.getByText('Automatically Closed')).toBeInTheDocument();
   });
 
-  // reflects seeded storage counts read through the shim + Chrome.get path
-  it('shows non-zero counts when storage is seeded', async () => {
-    window.localStorage.setItem('labels', JSON.stringify({ work: {}, personal: {} }));
-    window.localStorage.setItem('activeTabs', JSON.stringify([{ id: 1 }, { id: 2 }, { id: 3 }]));
-    window.localStorage.setItem('allUrls', JSON.stringify(['https://a.com', 'https://b.com']));
+  // uxSettings.page selects which page renders — a non-HOME page shows its placeholder
+  it('renders the page named by uxSettings.page', async () => {
+    window.localStorage.setItem(
+      'uxSettings',
+      JSON.stringify({ page: { name: 'ImportExport' } })
+    );
     installChromeShim();
     render(<App />);
 
-    expect(
-      await screen.findByText(/seeded: 2 labels · 3 active tabs · 2 urls/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Import / Export')).toBeInTheDocument();
+    expect(screen.queryByText('Active Tabs')).not.toBeInTheDocument();
+  });
+
+  // clicking a sidebar destination writes uxSettings.page through Chrome.set
+  it('changePage writes uxSettings.page when a sidebar link is clicked', async () => {
+    installChromeShim();
+    render(<App />);
+
+    await userEvent.click(await screen.findByText('Import/Export'));
+
+    await waitFor(async () => {
+      const { uxSettings } = await get('uxSettings');
+      expect(uxSettings.page).toEqual({ name: 'ImportExport' });
+    });
+  });
+
+  // an external uxSettings change navigates the page (onChanged listener)
+  it('navigates when uxSettings changes in storage', async () => {
+    installChromeShim();
+    render(<App />);
+    expect(await screen.findByText('Active Tabs')).toBeInTheDocument();
+
+    await new Promise((resolve) =>
+      chrome.storage.local.set({ uxSettings: { page: { name: 'Load' } } }, resolve)
+    );
+
+    expect(await screen.findByText('Load')).toBeInTheDocument();
+    expect(screen.queryByText('Active Tabs')).not.toBeInTheDocument();
   });
 });

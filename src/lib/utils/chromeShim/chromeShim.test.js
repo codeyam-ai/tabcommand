@@ -25,6 +25,15 @@ describe('chromeShim', () => {
     });
   });
 
+  // dynamic per-URL keys (not in KNOWN_KEYS) hydrate too — without this, every
+  // tab would render blank because the url-_url_ objects would never load
+  it('hydrates dynamic url-_url_ keys that are not in KNOWN_KEYS', async () => {
+    const urlKey = 'url-https://x.com';
+    window.localStorage.setItem(urlKey, JSON.stringify({ title: 'X', favicon: '' }));
+    installChromeShim();
+    expect(await get(urlKey)).toEqual({ [urlKey]: { title: 'X', favicon: '' } });
+  });
+
   // get accepts the string, array, and null (all) key forms
   it('get supports string, array, and all forms', async () => {
     window.localStorage.setItem('labels', JSON.stringify({ a: 1 }));
