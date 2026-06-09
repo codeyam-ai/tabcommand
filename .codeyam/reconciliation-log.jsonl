@@ -1,1 +1,36 @@
 {"timestamp":"2026-06-09T13:45:39Z","kind":"registry-add","message":"registry `App › renders the logo and the rebuild placeholder`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"deferred","message":"registry `App › renders the logo and the rebuild placeholder`: deferred — runner does not emit but plausible rename candidate(s) exist"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `Chrome › supports a single string key`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `chromeShim › shares the known TabCommand storage keys`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `Chrome › passes through requested keys that are present`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `chromeShim › exposes callable no-op action stubs`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `Chrome › hydrates activeTabs/allUrls/previousLabels to [] when absent`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `chromeShim › is inert when a real chrome.storage.local is present`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `Chrome › strips timestamp and drops falsy previousLabels entries`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `Chrome › remove delegates to chrome.storage.local.remove`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `chromeShim › set mirrors to localStorage and fires onChanged with areaName local`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `Chrome › set delegates to chrome.storage.local.set`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `chromeShim › removeListener stops delivering change events`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `chromeShim › remove clears the key and fires onChanged with the old value`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `chromeShim › hydrates the store from seeded localStorage`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `Chrome › hydrates labels/uxSettings/autoClosed to {} when absent`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:09Z","kind":"registry-add","message":"registry `chromeShim › get supports string, array, and all forms`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-rename","message":"registry `App › renders the logo and the rebuild placeholder` → `App › renders the logo and zero seed counts when storage is empty`: agent-decided"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `Chrome › remove delegates to chrome.storage.local.remove`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `Chrome › set delegates to chrome.storage.local.set`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › remove clears the key and fires onChanged with the old value`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › shares the known TabCommand storage keys`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › hydrates the store from seeded localStorage`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `Chrome › passes through requested keys that are present`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › is inert when a real chrome.storage.local is present`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `Chrome › hydrates labels/uxSettings/autoClosed to {} when absent`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `Chrome › supports a single string key`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `App › renders the logo and zero seed counts when storage is empty`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › removeListener stops delivering change events`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › exposes callable no-op action stubs`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › ignores malformed seed values`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `Chrome › hydrates activeTabs/allUrls/previousLabels to [] when absent`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `App › shows non-zero counts when storage is seeded`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › set mirrors to localStorage and fires onChanged with areaName local`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `chromeShim › get supports string, array, and all forms`: added from runner `tests` output"}
+{"timestamp":"2026-06-09T16:05:23Z","kind":"registry-add","message":"registry `Chrome › strips timestamp and drops falsy previousLabels entries`: added from runner `tests` output"}

@@ -1,26 +1,34 @@
 {
   "files": {
-    "src/lib/pages/App/App.jsx": {
-      "imports": [
-        "src/lib/pages/App/App.css",
-        "src/images/logo.svg"
-      ],
-      "importedBy": [
-        "src/lib/pages/App/index.js",
-        "src/lib/pages/App/App.test.jsx"
-      ]
-    },
-    "src/setupTests.js": {
+    "popup/popup.test.js": {
       "imports": [],
       "importedBy": []
     },
-    "src/index.css": {
+    ".claude/hooks/_step_metadata.py": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/lib/pages/index.js": {
+      "imports": [
+        "src/lib/pages/App"
+      ],
+      "importedBy": []
+    },
+    "service_worker.js": {
+      "imports": [],
+      "importedBy": []
+    },
+    "eslint.config.mjs": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/lib/pages": {
       "imports": [],
       "importedBy": [
         "src/index.jsx"
       ]
     },
-    "popup/popup.js": {
+    ".claude/skills/review-session/scripts/extract-session.mjs": {
       "imports": [],
       "importedBy": []
     },
@@ -30,13 +38,14 @@
         ".claude/skills/review-session/scripts/find-last-session.mjs"
       ]
     },
-    "src/lib/pages/App/App.css": {
+    "src/lib/utils/chromeShim": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/App/App.jsx"
+        "src/lib/pages/App/App.test.jsx",
+        "src/index.jsx"
       ]
     },
-    "src/lib/pages/App/App.test.jsx": {
+    "src/lib/pages/App/index.js": {
       "imports": [
         "src/lib/pages/App/App.jsx"
       ],
@@ -48,62 +57,20 @@
       ],
       "importedBy": []
     },
-    "src/lib/pages/App/index.js": {
-      "imports": [
-        "src/lib/pages/App/App.jsx"
-      ],
-      "importedBy": []
-    },
-    "src/lib/pages/index.js": {
-      "imports": [
-        "src/lib/pages/App"
-      ],
-      "importedBy": []
-    },
-    ".claude/hooks/editor-step-hook.py": {
+    ".claude/hooks/editor-pretool-hook.py": {
       "imports": [],
       "importedBy": []
     },
-    ".claude/hooks/_step_metadata.py": {
-      "imports": [],
-      "importedBy": []
-    },
-    "service_worker.js": {
-      "imports": [],
-      "importedBy": []
-    },
-    ".claude/skills/review-session/scripts/find-last-session.mjs": {
-      "imports": [
-        ".claude/skills/review-session/scripts/find-last-session-helpers.mjs"
-      ],
-      "importedBy": []
-    },
-    ".claude/skills/review-session/scripts/extract-session.mjs": {
-      "imports": [],
-      "importedBy": []
-    },
-    "eslint.config.mjs": {
-      "imports": [],
-      "importedBy": []
-    },
-    ".claude/skills/review-session/scripts/extract-session-helpers.mjs": {
-      "imports": [],
-      "importedBy": []
-    },
-    "manifest.json": {
+    "src/lib/utils/Chrome": {
       "imports": [],
       "importedBy": [
-        "vite.config.mjs"
+        "src/lib/pages/App/App.jsx"
       ]
     },
-    "popup/popup.test.js": {
-      "imports": [],
-      "importedBy": []
-    },
-    "src/lib/pages/App": {
+    "src/lib/utils/chromeShim/chromeShim.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js"
+        "src/lib/utils/chromeShim/index.js"
       ]
     },
     "src/images/logo.svg": {
@@ -112,78 +79,126 @@
         "src/lib/pages/App/App.jsx"
       ]
     },
+    ".claude/skills/review-session/scripts/find-last-session.mjs": {
+      "imports": [
+        ".claude/skills/review-session/scripts/find-last-session-helpers.mjs"
+      ],
+      "importedBy": []
+    },
+    "src/lib/pages/App": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/index.js"
+      ]
+    },
+    "popup/popup.js": {
+      "imports": [],
+      "importedBy": []
+    },
     "src/index.jsx": {
       "imports": [
+        "src/lib/utils/chromeShim",
         "src/index.css",
         "src/lib/pages"
       ],
       "importedBy": []
     },
-    "src/lib/pages": {
+    "build/service-worker-loader.js": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/lib/utils/chromeShim/chromeShim.test.js": {
+      "imports": [
+        "src/lib/utils/chromeShim/index.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/Chrome/Chrome.js": {
       "imports": [],
       "importedBy": [
-        "src/index.jsx"
+        "src/lib/utils/Chrome/index.js"
       ]
     },
-    ".claude/hooks/editor-pretool-hook.py": {
+    "src/lib/pages/App/App.css": {
       "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.jsx"
+      ]
+    },
+    "manifest.json": {
+      "imports": [],
+      "importedBy": [
+        "vite.config.mjs"
+      ]
+    },
+    "src/lib/pages/App/App.test.jsx": {
+      "imports": [
+        "src/lib/utils/chromeShim",
+        "src/lib/pages/App/App.jsx"
+      ],
+      "importedBy": []
+    },
+    ".claude/hooks/editor-step-hook.py": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/lib/utils/chromeShim/index.js": {
+      "imports": [
+        "src/lib/utils/chromeShim/chromeShim.js"
+      ],
+      "importedBy": [
+        "src/lib/utils/chromeShim/chromeShim.test.js"
+      ]
+    },
+    "src/lib/utils/Chrome/index.js": {
+      "imports": [
+        "src/lib/utils/Chrome/Chrome.js"
+      ],
+      "importedBy": [
+        "src/lib/utils/Chrome/Chrome.test.js"
+      ]
+    },
+    ".claude/skills/review-session/scripts/extract-session-helpers.mjs": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/lib/utils/Chrome/Chrome.test.js": {
+      "imports": [
+        "src/lib/utils/Chrome/index.js"
+      ],
       "importedBy": []
     },
     "service_worker.test.js": {
       "imports": [],
       "importedBy": []
+    },
+    "src/setupTests.js": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/index.css": {
+      "imports": [],
+      "importedBy": [
+        "src/index.jsx"
+      ]
+    },
+    "build/assets/loading-page-8ee009a4.js": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/lib/pages/App/App.jsx": {
+      "imports": [
+        "src/lib/pages/App/App.css",
+        "src/images/logo.svg",
+        "src/lib/utils/Chrome"
+      ],
+      "importedBy": [
+        "src/lib/pages/App/index.js",
+        "src/lib/pages/App/App.test.jsx"
+      ]
     }
   },
   "entities": {
-    "src/lib/pages/App/App.jsx::App": {
-      "filePath": "src/lib/pages/App/App.jsx",
-      "name": "App",
-      "imports": [],
-      "importedBy": [
-        "src/lib/pages/App/App.test.jsx::__file_root__"
-      ]
-    },
-    "src/lib/pages/App/App.css::__file_root__": {
-      "filePath": "src/lib/pages/App/App.css",
-      "name": "__file_root__",
-      "imports": [],
-      "importedBy": [
-        "src/lib/pages/App/App.jsx::__file_root__"
-      ]
-    },
-    "manifest.json::__file_root__": {
-      "filePath": "manifest.json",
-      "name": "__file_root__",
-      "imports": [],
-      "importedBy": [
-        "vite.config.mjs::__file_root__"
-      ]
-    },
-    "src/lib/pages/App/App.test.jsx::__file_root__": {
-      "filePath": "src/lib/pages/App/App.test.jsx",
-      "name": "__file_root__",
-      "imports": [
-        "src/lib/pages/App/App.jsx::App"
-      ],
-      "importedBy": []
-    },
-    "src/lib/pages/App::__file_root__": {
-      "filePath": "src/lib/pages/App",
-      "name": "__file_root__",
-      "imports": [],
-      "importedBy": [
-        "src/lib/pages/index.js::__file_root__"
-      ]
-    },
-    "src/index.jsx::__file_root__": {
-      "filePath": "src/index.jsx",
-      "name": "__file_root__",
-      "imports": [
-        "src/index.css::__file_root__",
-        "src/lib/pages::__file_root__"
-      ],
-      "importedBy": []
-    },
     "src/images/logo.svg::__file_root__": {
       "filePath": "src/images/logo.svg",
       "name": "__file_root__",
@@ -192,11 +207,28 @@
         "src/lib/pages/App/App.jsx::__file_root__"
       ]
     },
+    "src/lib/utils/Chrome/Chrome.test.js::__file_root__": {
+      "filePath": "src/lib/utils/Chrome/Chrome.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/Chrome/index.js::__file_root__"
+      ],
+      "importedBy": []
+    },
     "src/lib/pages/App/index.js::__file_root__": {
       "filePath": "src/lib/pages/App/index.js",
       "name": "__file_root__",
       "imports": [
         "src/lib/pages/App/App.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/pages/App/App.test.jsx::__file_root__": {
+      "filePath": "src/lib/pages/App/App.test.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/chromeShim::__file_root__",
+        "src/lib/pages/App/App.jsx::App"
       ],
       "importedBy": []
     },
@@ -208,12 +240,28 @@
       ],
       "importedBy": []
     },
-    "src/index.css::__file_root__": {
-      "filePath": "src/index.css",
+    "src/lib/pages/index.js::__file_root__": {
+      "filePath": "src/lib/pages/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/pages/App::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "manifest.json::__file_root__": {
+      "filePath": "manifest.json",
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/index.jsx::__file_root__"
+        "vite.config.mjs::__file_root__"
+      ]
+    },
+    "src/lib/pages/App::__file_root__": {
+      "filePath": "src/lib/pages/App",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/index.js::__file_root__"
       ]
     },
     "src/lib/pages/App/App.jsx::__file_root__": {
@@ -221,15 +269,41 @@
       "name": "__file_root__",
       "imports": [
         "src/lib/pages/App/App.css::__file_root__",
-        "src/images/logo.svg::__file_root__"
+        "src/images/logo.svg::__file_root__",
+        "src/lib/utils/Chrome::__file_root__"
       ],
       "importedBy": []
+    },
+    "src/lib/pages/App/App.jsx::App": {
+      "filePath": "src/lib/pages/App/App.jsx",
+      "name": "App",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.test.jsx::__file_root__"
+      ]
+    },
+    "src/lib/utils/Chrome::__file_root__": {
+      "filePath": "src/lib/utils/Chrome",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.jsx::__file_root__"
+      ]
     },
     "src/lib/pages::__file_root__": {
       "filePath": "src/lib/pages",
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
+        "src/index.jsx::__file_root__"
+      ]
+    },
+    "src/lib/utils/chromeShim::__file_root__": {
+      "filePath": "src/lib/utils/chromeShim",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.test.jsx::__file_root__",
         "src/index.jsx::__file_root__"
       ]
     },
@@ -241,14 +315,58 @@
       ],
       "importedBy": []
     },
-    "src/lib/pages/index.js::__file_root__": {
-      "filePath": "src/lib/pages/index.js",
+    "src/lib/utils/Chrome/index.js::__file_root__": {
+      "filePath": "src/lib/utils/Chrome/index.js",
       "name": "__file_root__",
       "imports": [
-        "src/lib/pages/App::__file_root__"
+        "src/lib/utils/Chrome/Chrome.js::__file_root__"
+      ],
+      "importedBy": [
+        "src/lib/utils/Chrome/Chrome.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/chromeShim/index.js::__file_root__": {
+      "filePath": "src/lib/utils/chromeShim/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/chromeShim/chromeShim.js::__file_root__"
       ],
       "importedBy": []
+    },
+    "src/lib/pages/App/App.css::__file_root__": {
+      "filePath": "src/lib/pages/App/App.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.jsx::__file_root__"
+      ]
+    },
+    "src/lib/utils/chromeShim/chromeShim.test.js::__file_root__": {
+      "filePath": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/chromeShim/index.js::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/index.jsx::__file_root__": {
+      "filePath": "src/index.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/chromeShim::__file_root__",
+        "src/index.css::__file_root__",
+        "src/lib/pages::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/index.css::__file_root__": {
+      "filePath": "src/index.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/index.jsx::__file_root__"
+      ]
     }
   },
-  "lastUpdated": "2026-06-09T14:05:32Z"
+  "lastUpdated": "2026-06-09T16:40:40Z"
 }

@@ -1,10 +1,11 @@
 [
   {
-    "description": "Root React component and entry-point page of the TabCommand extension UI, mounted at / via React 18 createRoot. In the foundation build it renders an empty shell — the navy sidebar with the TabCommand logo and a content-area placeholder reading \"TabCommand — modern rebuild in progress\". Real features (Tabs, Labels, Search, LoadMeter, page routing, and chrome.storage wiring) arrive in later plans.",
+    "description": "Root React component and entry-point page of the TabCommand extension UI, mounted at / via React 18 createRoot. In this storage-spine build it reads seeded storage through the Chrome abstraction (Chrome.get on labels/activeTabs/allUrls) and renders a TEMPORARY on-screen diagnostic in App-content showing the counts (\"seeded: N labels · N active tabs · N urls\") beside the navy sidebar with the TabCommand logo. The diagnostic is removed by the home-and-tabs plan, which renders the real seeded UI. Real features (Tabs, Labels, Search, LoadMeter, page routing) arrive in later plans.",
     "filePath": "src/lib/pages/App/App.jsx",
     "name": "App",
     "scenarios": [
-      "app-shell-empty-foundation"
+      "app-shell-empty-foundation",
+      "seeded-storage-smoke"
     ],
     "tags": [
       "component",
@@ -12,6 +13,17 @@
       "entry-point"
     ],
     "testFile": "src/lib/pages/App/App.test.jsx"
+  },
+  {
+    "description": "Callback-based storage abstraction faithfully ported from the reference TabCommand. Wraps chrome.storage.local with get(from, keys, callback) / set(from, updates) / remove(from, keys), preserving the leading `from` debug-label arg. On get it applies default-hydration (labels/uxSettings/autoClosed -> {}, activeTabs/allUrls/previousLabels -> []) and strips each previousLabels entry's timestamp while dropping falsy entries. The storage contract every feature plan's reads build on.",
+    "filePath": "src/lib/utils/Chrome/Chrome.js",
+    "name": "Chrome",
+    "tags": [
+      "utility",
+      "storage",
+      "ported-verbatim"
+    ],
+    "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
     "description": "Maps a process's task tab ids back to tabs (chrome.tabs.get) and merges per-url process metrics into the updates object.",
@@ -46,6 +58,29 @@
       "storage"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Builds the chrome shim object backed by an in-memory store hydrated from window.localStorage (codeyam's seed inlet) over the shared KNOWN_KEYS. Serves storage.local get/set/remove/clear with localStorage mirroring (JSON string boundary kept inside the shim) and onChanged dispatch (areaName 'local'), plus callable no-op tabs/tabGroups/processes/runtime action stubs so interactive preview scenarios never throw on missing chrome APIs.",
+    "filePath": "src/lib/utils/chromeShim/chromeShim.js",
+    "name": "createChromeShim",
+    "tags": [
+      "utility",
+      "storage",
+      "shim"
+    ],
+    "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
+  },
+  {
+    "description": "Internal shim helper: invokes a callback asynchronously on a microtask (Promise.resolve().then) with an optional value, matching Chrome's async callback contract so consumers never depend on synchronous delivery. No-ops when no callback is supplied.",
+    "filePath": "src/lib/utils/chromeShim/chromeShim.js",
+    "name": "defer",
+    "tags": [
+      "utility",
+      "storage",
+      "shim",
+      "helper"
+    ],
+    "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
   },
   {
     "description": "Promise/callback hybrid wrapper around chrome.storage.local.get: invokes the callback when supplied, otherwise resolves with the result.",
@@ -114,6 +149,29 @@
       "launcher"
     ],
     "testFile": "popup/popup.test.js"
+  },
+  {
+    "description": "Installs the in-app chrome shim on globalThis only when the real extension chrome.storage.local is absent (inert in a packaged extension, so production behavior is unchanged). Replaces the reference App.jsx's sinon-chrome fallback; called once at src/index.jsx before the first render. Returns true when it installed the shim, false when a real chrome was present.",
+    "filePath": "src/lib/utils/chromeShim/chromeShim.js",
+    "name": "installChromeShim",
+    "tags": [
+      "utility",
+      "storage",
+      "shim"
+    ],
+    "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
+  },
+  {
+    "description": "Internal shim helper: resolves the callback argument from a variadic action-stub call by returning the last argument when it is a function, else undefined. Lets the no-op tabs/tabGroups stubs accept Chrome's varying (props, cb?) / (id, props, cb?) arities.",
+    "filePath": "src/lib/utils/chromeShim/chromeShim.js",
+    "name": "lastCallback",
+    "tags": [
+      "utility",
+      "storage",
+      "shim",
+      "helper"
+    ],
+    "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
   },
   {
     "description": "Subscribes processProcesses to chrome.processes.onUpdatedWithMemory, guarded by try/catch so a missing processes API (non-Chrome / no permission) degrades quietly.",

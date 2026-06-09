@@ -48,6 +48,22 @@ function handleConsoleMessage(message) {
     return null;
   }
 
+  // Ignore the browser's blocked-script warning for sandboxed mockup-preview
+  // frames. Mockup previews render untrusted AI-generated HTML inside a
+  // `sandbox=""` iframe; the HTML-injection proxy injects an error-capture
+  // <script> tag, which the browser then refuses to run, emitting
+  // "Blocked script execution ... because the frame is sandboxed". That block
+  // is the capture's own injected script being denied — benign for capture
+  // purposes. Match narrowly on BOTH the block phrase and the "sandboxed"
+  // signature so a genuine non-sandbox CSP block ("Blocked script execution"
+  // without "sandboxed") still surfaces as a real issue.
+  if (
+    text.includes("Blocked script execution") &&
+    text.includes("sandboxed")
+  ) {
+    return null;
+  }
+
   return createIssue("console", text);
 }
 

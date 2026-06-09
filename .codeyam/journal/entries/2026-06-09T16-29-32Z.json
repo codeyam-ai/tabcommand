@@ -1,0 +1,99 @@
+{
+  "timestamp": "2026-06-09T16:29:32Z",
+  "title": "Chrome storage layer + codeyam seeding spine",
+  "type": "feature",
+  "userRequest": "A Chrome extension for managing browser tabs and browser history",
+  "description": "Built the data spine every later TabCommand feature reads from, wired to codeyam seeding so scenarios can drive the app into any state. Three deliverables: (1) A faithful port of the reference Chrome storage abstraction at src/lib/utils/Chrome/Chrome.js — the callback API get(from, keys, cb) / set(from, updates) / remove(from, keys) with default-hydration (labels/uxSettings/autoClosed -> {}, activeTabs/allUrls/previousLabels -> []) and previousLabels timestamp-stripping + falsy-drop, kept byte-for-byte so 14+ future components port with minimal risk. (2) A purpose-built in-app chrome shim at src/lib/utils/chromeShim/chromeShim.js: installChromeShim() installs on globalThis ONLY when the real extension chrome.storage.local is absent (inert in a packaged extension), backed by an in-memory store hydrated from window.localStorage (codeyam's seed inlet) over the shared KNOWN_KEYS. It serves storage.local get/set/remove/clear with localStorage mirroring (JSON string boundary kept entirely inside the shim), dispatches onChanged with areaName 'local', and exposes callable no-op tabs/tabGroups/processes/runtime action stubs so interactive preview scenarios never throw on missing chrome APIs. Installed once at src/index.jsx before first render, replacing the reference App.jsx's sinon-chrome hack (sinon-chrome stays a dev-only test dep). (3) The codeyam localStorage seed adapter installed at .codeyam/seed-adapter.ts (runnable + unit-verified) and a proof-of-pipeline: App.jsx now renders a clearly-TEMPORARY diagnostic (removed by the home-and-tabs plan) that reads via Chrome.get and shows counts. The seeded-storage-smoke scenario captures 'seeded: 3 labels - 5 active tabs - 8 urls', proving seed -> localStorage -> shim -> Chrome.get -> React end-to-end; app-shell-empty-foundation was recaptured to its new empty state ('seeded: 0 ...'). KEY DECISION (user-confirmed): scenarios seed chrome.storage via the editor's `localStorage` scenario field (pre-stringified JSON), NOT the seed->adapter path, because the editor canonicalizes `seed` into array-per-table rows before the adapter runs and TabCommand's object-valued keys (labels/uxSettings/autoClosed) can't pass that validation; the localStorage field carries object + array values uniformly. Recorded to project memory. Glossary gained Chrome, installChromeShim, createChromeShim, and the defer/lastCallback shim helpers; App's entry was refreshed. Out of scope (later plans): real feature UI (Tabs/Labels/Search/Load/UrlDetails/ImportExport), per-key data semantics, modernizing service_worker.js, the popup-launcher crxjs build gap. Acceptance met: 57/57 tests pass, ESLint clean, / renders with no chrome-is-undefined errors, the seeded scenario shows non-zero counts, and the adapter emits { localStorage: {...} } JSON. session-finalize green across all 5 phases.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/plans/chrome-storage-layer.md\t.codeyam/plans/completed/chrome-storage-layer.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/seed-adapter.ts",
+      "status": "added"
+    },
+    {
+      "path": "src/index.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/Chrome/Chrome.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/Chrome/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/Chrome/Chrome.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/seeded-storage-smoke.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/seeded-storage-smoke--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/app-shell-empty-foundation.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/app-shell-empty-foundation--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Seeded Storage Smoke",
+      "screenshotPath": "seeded-storage-smoke--desktop.png"
+    },
+    {
+      "name": "App Shell - Empty Foundation",
+      "screenshotPath": "app-shell-empty-foundation--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 57,
+    "passed": 57,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 57,
+        "passed": 57
+      }
+    ]
+  }
+}

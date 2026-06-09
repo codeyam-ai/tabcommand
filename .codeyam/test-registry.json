@@ -4,9 +4,162 @@
       "description": "renders the empty shell with the TabCommand logo and the placeholder content",
       "file": "src/lib/pages/App/App.test.jsx",
       "format": "vitest",
-      "key": "App › renders the logo and the rebuild placeholder",
-      "line": 8,
+      "key": "App › renders the logo and zero seed counts when storage is empty",
+      "line": 19,
       "registeredAt": "2026-06-09T13:45:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "reflects seeded storage counts read through the shim + Chrome.get path",
+      "file": "src/lib/pages/App/App.test.jsx",
+      "format": "vitest",
+      "key": "App › shows non-zero counts when storage is seeded",
+      "line": 30,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "array-typed keys hydrate to [] when storage has no value",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › hydrates activeTabs/allUrls/previousLabels to [] when absent",
+      "line": 30,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "hash-typed keys hydrate to {} when storage has no value",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › hydrates labels/uxSettings/autoClosed to {} when absent",
+      "line": 20,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "present values are passed through untouched (no default applied)",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › passes through requested keys that are present",
+      "line": 48,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "remove delegates straight to chrome.storage.local.remove",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › remove delegates to chrome.storage.local.remove",
+      "line": 73,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "set delegates straight to chrome.storage.local.set",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › set delegates to chrome.storage.local.set",
+      "line": 67,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "previousLabels drops falsy entries and strips each entry's timestamp",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › strips timestamp and drops falsy previousLabels entries",
+      "line": 57,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the single-string key form is supported and still hydrates its default",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › supports a single string key",
+      "line": 40,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "action stubs are callable and no-op (resolve callbacks / empty queries)",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › exposes callable no-op action stubs",
+      "line": 82,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "get accepts the string, array, and null (all) key forms",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › get supports string, array, and all forms",
+      "line": 29,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "seeded localStorage hydrates the in-memory store on install",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › hydrates the store from seeded localStorage",
+      "line": 18,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a malformed seed value is ignored rather than crashing the boot",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › ignores malformed seed values",
+      "line": 39,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "install is inert when a real extension chrome.storage.local already exists",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › is inert when a real chrome.storage.local is present",
+      "line": 94,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "remove clears the key from both the store and localStorage and fires onChanged",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › remove clears the key and fires onChanged with the old value",
+      "line": 59,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "removeListener detaches a previously-added listener",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › removeListener stops delivering change events",
+      "line": 71,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "set merges into the store, mirrors to localStorage, and fires onChanged",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › set mirrors to localStorage and fires onChanged with areaName local",
+      "line": 46,
+      "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the known-keys list is the shared TabCommand storage contract",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › shares the known TabCommand storage keys",
+      "line": 102,
+      "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
     {

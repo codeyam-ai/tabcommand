@@ -1,14 +1,19 @@
-# regenerated from glossary.json on 2026-06-09T14:03:17Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-09T16:26:27Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
+Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 associateProcess :: service_worker.js :: tags=worker,ported-verbatim,processes,tabs :: test=service_worker.test.js
 central :: service_worker.js :: tags=worker,ported-verbatim,debug :: test=service_worker.test.js
 closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
+createChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
+defer :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
 getLocalStorage :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 getTabGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js
 getUrlKey :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 groupTabs :: service_worker.js :: tags=worker,ported-verbatim,tab-groups,labels :: test=service_worker.test.js
 handleActiveTabsGroupChanges :: service_worker.js :: tags=worker,ported-verbatim,tab-groups,labels :: test=service_worker.test.js
 init :: popup/popup.js :: tags=popup,ported-verbatim,launcher :: test=popup/popup.test.js
+installChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
+lastCallback :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
 listenToProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes :: test=service_worker.test.js
 loadActiveTabs :: popup/popup.js :: tags=popup,ported-verbatim :: test=popup/popup.test.js
 newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
