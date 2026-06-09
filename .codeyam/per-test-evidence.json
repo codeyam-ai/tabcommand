@@ -1,0 +1,242 @@
+{
+  "App › renders the logo and the rebuild placeholder": {
+    "file": "src/lib/pages/App/App.test.jsx",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › init › activates an existing TabCommand tab": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › init › creates a pinned tab when none exists": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › loadActiveTabs › renders a div per active tab": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › truncateString › leaves short strings unchanged": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › truncateString › returns \"\" for empty/undefined input": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › truncateString › truncates long strings with an ellipsis": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › urlHTML › renders an averaged stats block when there are samples": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › urlHTML › renders title + favicon and no stats when samples is 0": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "popup.js › urlHTML › truncates long titles via truncateString": {
+    "file": "popup/popup.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › associateProcess › fetches each task tab and merges its url updates": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › central › is a no-op": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › getLocalStorage › invokes the callback with the storage result": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › getLocalStorage › resolves with the result when no callback is passed": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › getTabGroup › resolves null for id -1 or null": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › getTabGroup › resolves the group for a real id": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › getUrlKey › prefixes with url- and strips the fragment": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › groupTabs › ignores pinned tabs": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › groupTabs › ungroups an unlabeled grouped tab": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › listenToProcesses › does not throw when the processes API throws": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › listenToProcesses › registers the processes listener": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › loads and registers chrome event listeners on import": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › newUrl › prepends an unseen url key to allUrls": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › newUrl › returns early without tabId/url": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › parseTabId › parses the numeric id from a tabKey": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › processProcesses › bumps samples and persists process totals": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › tabUpdates › resolves {} for an invalid tab": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › trackGroup › stores the group title by id": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › update › persists updates to chrome.storage.local": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › updateTotals › defaults missing metrics to 0": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › updateTotals › sums process metrics into processTotals": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › urlUpdates › accumulates process stats when a process is supplied": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › urlUpdates › uses the url as title when title is missing": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › validTab › accepts http and https tabs": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "service_worker.js › validTab › rejects empty and internal-scheme tabs": {
+    "file": "service_worker.test.js",
+    "lastRunAt": "2026-06-09T14:05:28.968071+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  }
+}

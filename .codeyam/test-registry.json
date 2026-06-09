@@ -1,0 +1,365 @@
+{
+  "tests": [
+    {
+      "description": "renders the empty shell with the TabCommand logo and the placeholder content",
+      "file": "src/lib/pages/App/App.test.jsx",
+      "format": "vitest",
+      "key": "App › renders the logo and the rebuild placeholder",
+      "line": 8,
+      "registeredAt": "2026-06-09T13:45:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "focuses the existing TabCommand tab when one is already open",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › init › activates an existing TabCommand tab",
+      "line": 108,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "opens a new pinned TabCommand tab when none exists",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › init › creates a pinned tab when none exists",
+      "line": 121,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "renders a row per stored active tab into the #active container",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › loadActiveTabs › renders a div per active tab",
+      "line": 135,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "leaves strings at or under the limit unchanged",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › truncateString › leaves short strings unchanged",
+      "line": 55,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "returns empty string for falsy input",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › truncateString › returns \"\" for empty/undefined input",
+      "line": 49,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "truncates longer strings and appends an ellipsis",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › truncateString › truncates long strings with an ellipsis",
+      "line": 61,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "includes an averaged stats block when there is at least one sample",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › urlHTML › renders an averaged stats block when there are samples",
+      "line": 80,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "renders the title heading and favicon, omitting stats when no samples",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › urlHTML › renders title + favicon and no stats when samples is 0",
+      "line": 68,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "truncates an over-long title inside the heading",
+      "file": "popup/popup.test.js",
+      "format": "vitest",
+      "key": "popup.js › urlHTML › truncates long titles via truncateString",
+      "line": 99,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "merges per-tab url updates for each task tab id in the process",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
+      "line": 298,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a deliberately empty trace hook — returns undefined and never throws",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › central › is a no-op",
+      "line": 95,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "moves the closed url to the front of allUrls and runs the callback",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback",
+      "line": 245,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "invokes the callback form with the chrome result",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › getLocalStorage › invokes the callback with the storage result",
+      "line": 190,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "resolves a promise with the result when no callback is given",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › getLocalStorage › resolves with the result when no callback is passed",
+      "line": 198,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "short-circuits to null for absent / sentinel ids",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › getTabGroup › resolves null for id -1 or null",
+      "line": 206,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "resolves the chrome.tabGroups.get result for a real id",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › getTabGroup › resolves the group for a real id",
+      "line": 212,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "builds a url- prefixed key, stripping any hash fragment",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › getUrlKey › prefixes with url- and strips the fragment",
+      "line": 102,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "skips pinned tabs entirely",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › groupTabs › ignores pinned tabs",
+      "line": 343,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "ungroups a tab that no longer matches any label",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
+      "line": 336,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "returns early when there is no previous value to diff against",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
+      "line": 326,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "swallows the error when the processes API is unavailable",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › listenToProcesses › does not throw when the processes API throws",
+      "line": 235,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "subscribes processProcesses to the memory-update event",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › listenToProcesses › registers the processes listener",
+      "line": 228,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "registers chrome listeners at load without throwing",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › loads and registers chrome event listeners on import",
+      "line": 86,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "adds a brand-new url key to the front of allUrls",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › prepends an unseen url key to allUrls",
+      "line": 262,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "returns undefined when called without a tab id or url",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › returns early without tabId/url",
+      "line": 256,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "extracts the integer tab id from a \"tab-<n>\" key",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › parseTabId › parses the numeric id from a tabKey",
+      "line": 125,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "increments the sample counter and writes accumulated totals",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
+      "line": 288,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "resolves keyed url updates for a valid tab",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
+      "line": 317,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "resolves an empty object for tabs that fail the validity check",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
+      "line": 312,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "records the group title keyed by its integer id",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › trackGroup › stores the group title by id",
+      "line": 220,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "writes the supplied object straight to chrome.storage.local",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › update › persists updates to chrome.storage.local",
+      "line": 182,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "queries normal-window tabs and writes the rebuilt activeTabs list",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
+      "line": 271,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "treats missing metrics as zero",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › updateTotals › defaults missing metrics to 0",
+      "line": 142,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "accumulates each process metric into the running totals",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › updateTotals › sums process metrics into processTotals",
+      "line": 132,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "accumulates process stats and bumps the sample counter",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › urlUpdates › accumulates process stats when a process is supplied",
+      "line": 163,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "initializes a processes bucket and copies tab metadata",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId",
+      "line": 151,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "falls back to the url as the title when the tab has none",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › urlUpdates › uses the url as title when title is missing",
+      "line": 174,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "accepts ordinary web URLs",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › validTab › accepts http and https tabs",
+      "line": 110,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "rejects empty and browser-internal schemes",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › validTab › rejects empty and internal-scheme tabs",
+      "line": 115,
+      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    }
+  ],
+  "version": 2
+}

@@ -1,0 +1,254 @@
+{
+  "files": {
+    "src/lib/pages/App/App.jsx": {
+      "imports": [
+        "src/lib/pages/App/App.css",
+        "src/images/logo.svg"
+      ],
+      "importedBy": [
+        "src/lib/pages/App/index.js",
+        "src/lib/pages/App/App.test.jsx"
+      ]
+    },
+    "src/setupTests.js": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/index.css": {
+      "imports": [],
+      "importedBy": [
+        "src/index.jsx"
+      ]
+    },
+    "popup/popup.js": {
+      "imports": [],
+      "importedBy": []
+    },
+    ".claude/skills/review-session/scripts/find-last-session-helpers.mjs": {
+      "imports": [],
+      "importedBy": [
+        ".claude/skills/review-session/scripts/find-last-session.mjs"
+      ]
+    },
+    "src/lib/pages/App/App.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.jsx"
+      ]
+    },
+    "src/lib/pages/App/App.test.jsx": {
+      "imports": [
+        "src/lib/pages/App/App.jsx"
+      ],
+      "importedBy": []
+    },
+    "vite.config.mjs": {
+      "imports": [
+        "manifest.json"
+      ],
+      "importedBy": []
+    },
+    "src/lib/pages/App/index.js": {
+      "imports": [
+        "src/lib/pages/App/App.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/pages/index.js": {
+      "imports": [
+        "src/lib/pages/App"
+      ],
+      "importedBy": []
+    },
+    ".claude/hooks/editor-step-hook.py": {
+      "imports": [],
+      "importedBy": []
+    },
+    ".claude/hooks/_step_metadata.py": {
+      "imports": [],
+      "importedBy": []
+    },
+    "service_worker.js": {
+      "imports": [],
+      "importedBy": []
+    },
+    ".claude/skills/review-session/scripts/find-last-session.mjs": {
+      "imports": [
+        ".claude/skills/review-session/scripts/find-last-session-helpers.mjs"
+      ],
+      "importedBy": []
+    },
+    ".claude/skills/review-session/scripts/extract-session.mjs": {
+      "imports": [],
+      "importedBy": []
+    },
+    "eslint.config.mjs": {
+      "imports": [],
+      "importedBy": []
+    },
+    ".claude/skills/review-session/scripts/extract-session-helpers.mjs": {
+      "imports": [],
+      "importedBy": []
+    },
+    "manifest.json": {
+      "imports": [],
+      "importedBy": [
+        "vite.config.mjs"
+      ]
+    },
+    "popup/popup.test.js": {
+      "imports": [],
+      "importedBy": []
+    },
+    "src/lib/pages/App": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/index.js"
+      ]
+    },
+    "src/images/logo.svg": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.jsx"
+      ]
+    },
+    "src/index.jsx": {
+      "imports": [
+        "src/index.css",
+        "src/lib/pages"
+      ],
+      "importedBy": []
+    },
+    "src/lib/pages": {
+      "imports": [],
+      "importedBy": [
+        "src/index.jsx"
+      ]
+    },
+    ".claude/hooks/editor-pretool-hook.py": {
+      "imports": [],
+      "importedBy": []
+    },
+    "service_worker.test.js": {
+      "imports": [],
+      "importedBy": []
+    }
+  },
+  "entities": {
+    "src/lib/pages/App/App.jsx::App": {
+      "filePath": "src/lib/pages/App/App.jsx",
+      "name": "App",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.test.jsx::__file_root__"
+      ]
+    },
+    "src/lib/pages/App/App.css::__file_root__": {
+      "filePath": "src/lib/pages/App/App.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.jsx::__file_root__"
+      ]
+    },
+    "manifest.json::__file_root__": {
+      "filePath": "manifest.json",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "vite.config.mjs::__file_root__"
+      ]
+    },
+    "src/lib/pages/App/App.test.jsx::__file_root__": {
+      "filePath": "src/lib/pages/App/App.test.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/pages/App/App.jsx::App"
+      ],
+      "importedBy": []
+    },
+    "src/lib/pages/App::__file_root__": {
+      "filePath": "src/lib/pages/App",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/index.js::__file_root__"
+      ]
+    },
+    "src/index.jsx::__file_root__": {
+      "filePath": "src/index.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/index.css::__file_root__",
+        "src/lib/pages::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/images/logo.svg::__file_root__": {
+      "filePath": "src/images/logo.svg",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.jsx::__file_root__"
+      ]
+    },
+    "src/lib/pages/App/index.js::__file_root__": {
+      "filePath": "src/lib/pages/App/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/pages/App/App.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "vite.config.mjs::__file_root__": {
+      "filePath": "vite.config.mjs",
+      "name": "__file_root__",
+      "imports": [
+        "manifest.json::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/index.css::__file_root__": {
+      "filePath": "src/index.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/index.jsx::__file_root__"
+      ]
+    },
+    "src/lib/pages/App/App.jsx::__file_root__": {
+      "filePath": "src/lib/pages/App/App.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/pages/App/App.css::__file_root__",
+        "src/images/logo.svg::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/pages::__file_root__": {
+      "filePath": "src/lib/pages",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/index.jsx::__file_root__"
+      ]
+    },
+    ".claude/skills/review-session/scripts/find-last-session.mjs::__file_root__": {
+      "filePath": ".claude/skills/review-session/scripts/find-last-session.mjs",
+      "name": "__file_root__",
+      "imports": [
+        ".claude/skills/review-session/scripts/find-last-session-helpers.mjs::claudeProjectHashFromPath"
+      ],
+      "importedBy": []
+    },
+    "src/lib/pages/index.js::__file_root__": {
+      "filePath": "src/lib/pages/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/pages/App::__file_root__"
+      ],
+      "importedBy": []
+    }
+  },
+  "lastUpdated": "2026-06-09T14:05:32Z"
+}

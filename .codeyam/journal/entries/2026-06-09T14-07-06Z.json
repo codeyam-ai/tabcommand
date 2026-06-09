@@ -1,0 +1,315 @@
+{
+  "timestamp": "2026-06-09T14:07:06Z",
+  "title": "Foundation: Vite + React 18 + MV3 extension shell",
+  "type": "feature",
+  "userRequest": "A Chrome extension for managing browser tabs and browser history",
+  "description": "Stood up a clean modern foundation for the TabCommand MV3 extension, replacing the 2022 Create-React-App/React-17 build (kept read-only on main at ../tabcommand as the reference spec). Build now uses Vite 5 + @vitejs/plugin-react + @crxjs/vite-plugin, emitting a Chrome-loadable bundle to build/ with no --openssl-legacy-provider hack. The React entry mounts via React 18 createRoot (StrictMode preserved) into an intentionally empty App shell (navy sidebar + TabCommand logo + a 'modern rebuild in progress' placeholder, zero chrome.* calls). manifest.json, the 667-line service_worker.js background engine, and the popup/ launcher were ported verbatim. Test stack is Vitest + React Testing Library (replacing React-18-incompatible enzyme); ESLint 9 flat-config is the lint gate. codeyam was wired to the chrome-extension-react stack: vitest runner + eslint static check, app on port 3000 (Vite honors the proxy-injected PORT on IPv4), Desktop 1440x900 capture. The full-page app index.html is registered as an explicit build input since the popup opens it dynamically. The project dropped type:module (configs renamed to .mjs) so the editor's CommonJS capture scripts run. Per the strict finalize gate, real Vitest coverage was added for all 23 logic-bearing functions in the verbatim-ported service_worker.js (19) and popup.js (4) via a sandboxed-load harness, and each was registered in the glossary. Out of scope (later plans): chrome.storage layer + in-app shim + seeding, Tabs/Labels/drag-drop/Search/Load/UrlDetails/ImportExport, modernizing the worker. Acceptance: npm run build produces a loadable build/, dev server renders the shell with no client errors, 40/40 tests pass, lint clean, session-finalize green.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/plans/foundation-vite-react18-mv3.md\t.codeyam/plans/completed/foundation-vite-react18-mv3.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/_step_metadata.py",
+      "status": "added"
+    },
+    {
+      "path": ".claude/hooks/claude-notify.sh",
+      "status": "added"
+    },
+    {
+      "path": ".claude/hooks/editor-pretool-hook.py",
+      "status": "added"
+    },
+    {
+      "path": ".claude/hooks/editor-step-hook.py",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/SKILL.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/codeyam-design/SKILL.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/codeyam-edit-plan/SKILL.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/codeyam-editor/SKILL.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/codeyam-onboard/SKILL.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/codeyam-plan/SKILL.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/review-session/SKILL.md",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/review-session/scripts/extract-session-helpers.mjs",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/review-session/scripts/extract-session.mjs",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/review-session/scripts/find-last-session-helpers.mjs",
+      "status": "added"
+    },
+    {
+      "path": ".claude/skills/review-session/scripts/find-last-session.mjs",
+      "status": "added"
+    },
+    {
+      "path": ".codex/config.toml",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/.last-reconcile.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/cache/step-metadata.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/capture.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/dev-scaffolded",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/editor.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/first-build-session.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/per-test-evidence.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/reconciliation-log.jsonl",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/runner-timing-history.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenario-handlers.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenario-interactivity.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenario-issues.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenario-metrics.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenario-mocks.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenario-playwright.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/app-shell-empty-foundation.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/app-shell-empty-foundation--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/stack.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/finalize-debt.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/all.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-run-marker.json",
+      "status": "added"
+    },
+    {
+      "path": ".gitattributes",
+      "status": "added"
+    },
+    {
+      "path": ".gitignore",
+      "status": "added"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "status": "added"
+    },
+    {
+      "path": "index.html",
+      "status": "added"
+    },
+    {
+      "path": "manifest.json",
+      "status": "added"
+    },
+    {
+      "path": "package-lock.json",
+      "status": "added"
+    },
+    {
+      "path": "package.json",
+      "status": "added"
+    },
+    {
+      "path": "popup/popup.css",
+      "status": "added"
+    },
+    {
+      "path": "popup/popup.html",
+      "status": "added"
+    },
+    {
+      "path": "popup/popup.js",
+      "status": "added"
+    },
+    {
+      "path": "popup/popup.test.js",
+      "status": "added"
+    },
+    {
+      "path": "public/assets/images/tabcommand128.png",
+      "status": "added"
+    },
+    {
+      "path": "public/assets/images/tabcommand16.png",
+      "status": "added"
+    },
+    {
+      "path": "public/assets/images/tabcommand32.png",
+      "status": "added"
+    },
+    {
+      "path": "public/assets/images/tabcommand48.png",
+      "status": "added"
+    },
+    {
+      "path": "public/favicon.ico",
+      "status": "added"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "added"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/images/logo.svg",
+      "status": "added"
+    },
+    {
+      "path": "src/index.css",
+      "status": "added"
+    },
+    {
+      "path": "src/index.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/App/App.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/App/App.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/App/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/setupTests.js",
+      "status": "added"
+    },
+    {
+      "path": "vite.config.mjs",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "App Shell - Empty Foundation",
+      "screenshotPath": "app-shell-empty-foundation--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 40,
+    "passed": 40,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 40,
+        "passed": 40
+      }
+    ]
+  }
+}

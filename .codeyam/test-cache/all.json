@@ -1,0 +1,337 @@
+{
+  "schemaVersion": 4,
+  "version": 5,
+  "partition": "all",
+  "hash": "9bc9532f64edeb3b",
+  "runners": [
+    {
+      "name": "tests",
+      "format": "vitest-json",
+      "output": "{\"numTotalTestSuites\":29,\"numPassedTestSuites\":29,\"numFailedTestSuites\":0,\"numPendingTestSuites\":0,\"numTotalTests\":40,\"numPassedTests\":40,\"numFailedTests\":0,\"numPendingTests\":0,\"numTodoTests\":0,\"snapshot\":{\"added\":0,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0,\"didUpdate\":false},\"startTime\":1781013927615,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[\"service_worker.js\"],\"fullName\":\"service_worker.js loads and registers chrome event listeners on import\",\"status\":\"passed\",\"title\":\"loads and registers chrome event listeners on import\",\"duration\":4.326584000000025,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"central\"],\"fullName\":\"service_worker.js central is a no-op\",\"status\":\"passed\",\"title\":\"is a no-op\",\"duration\":1.3058750000000146,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"getUrlKey\"],\"fullName\":\"service_worker.js getUrlKey prefixes with url- and strips the fragment\",\"status\":\"passed\",\"title\":\"prefixes with url- and strips the fragment\",\"duration\":0.7345420000000331,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"validTab\"],\"fullName\":\"service_worker.js validTab accepts http and https tabs\",\"status\":\"passed\",\"title\":\"accepts http and https tabs\",\"duration\":0.6224170000000413,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"validTab\"],\"fullName\":\"service_worker.js validTab rejects empty and internal-scheme tabs\",\"status\":\"passed\",\"title\":\"rejects empty and internal-scheme tabs\",\"duration\":0.6226249999999709,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"parseTabId\"],\"fullName\":\"service_worker.js parseTabId parses the numeric id from a tabKey\",\"status\":\"passed\",\"title\":\"parses the numeric id from a tabKey\",\"duration\":0.7904999999999518,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"updateTotals\"],\"fullName\":\"service_worker.js updateTotals sums process metrics into processTotals\",\"status\":\"passed\",\"title\":\"sums process metrics into processTotals\",\"duration\":1.0168749999999136,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"updateTotals\"],\"fullName\":\"service_worker.js updateTotals defaults missing metrics to 0\",\"status\":\"passed\",\"title\":\"defaults missing metrics to 0\",\"duration\":0.6439169999999876,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"urlUpdates\"],\"fullName\":\"service_worker.js urlUpdates initializes processes and copies title/favicon/groupId\",\"status\":\"passed\",\"title\":\"initializes processes and copies title/favicon/groupId\",\"duration\":0.8957500000000209,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"urlUpdates\"],\"fullName\":\"service_worker.js urlUpdates accumulates process stats when a process is supplied\",\"status\":\"passed\",\"title\":\"accumulates process stats when a process is supplied\",\"duration\":1.9635000000000673,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"urlUpdates\"],\"fullName\":\"service_worker.js urlUpdates uses the url as title when title is missing\",\"status\":\"passed\",\"title\":\"uses the url as title when title is missing\",\"duration\":0.4680000000000746,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"update\"],\"fullName\":\"service_worker.js update persists updates to chrome.storage.local\",\"status\":\"passed\",\"title\":\"persists updates to chrome.storage.local\",\"duration\":1.093958999999927,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"getLocalStorage\"],\"fullName\":\"service_worker.js getLocalStorage invokes the callback with the storage result\",\"status\":\"passed\",\"title\":\"invokes the callback with the storage result\",\"duration\":0.741916999999944,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"getLocalStorage\"],\"fullName\":\"service_worker.js getLocalStorage resolves with the result when no callback is passed\",\"status\":\"passed\",\"title\":\"resolves with the result when no callback is passed\",\"duration\":0.8987919999999576,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"getTabGroup\"],\"fullName\":\"service_worker.js getTabGroup resolves null for id -1 or null\",\"status\":\"passed\",\"title\":\"resolves null for id -1 or null\",\"duration\":0.703708000000006,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"getTabGroup\"],\"fullName\":\"service_worker.js getTabGroup resolves the group for a real id\",\"status\":\"passed\",\"title\":\"resolves the group for a real id\",\"duration\":0.7070420000000013,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"trackGroup\"],\"fullName\":\"service_worker.js trackGroup stores the group title by id\",\"status\":\"passed\",\"title\":\"stores the group title by id\",\"duration\":0.40762499999993906,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"listenToProcesses\"],\"fullName\":\"service_worker.js listenToProcesses registers the processes listener\",\"status\":\"passed\",\"title\":\"registers the processes listener\",\"duration\":0.5391660000000229,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"listenToProcesses\"],\"fullName\":\"service_worker.js listenToProcesses does not throw when the processes API throws\",\"status\":\"passed\",\"title\":\"does not throw when the processes API throws\",\"duration\":0.8768750000000409,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"closeUrl\"],\"fullName\":\"service_worker.js closeUrl reorders allUrls, persists, and invokes the callback\",\"status\":\"passed\",\"title\":\"reorders allUrls, persists, and invokes the callback\",\"duration\":0.5608330000000024,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"newUrl\"],\"fullName\":\"service_worker.js newUrl returns early without tabId/url\",\"status\":\"passed\",\"title\":\"returns early without tabId/url\",\"duration\":0.4819169999999531,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"newUrl\"],\"fullName\":\"service_worker.js newUrl prepends an unseen url key to allUrls\",\"status\":\"passed\",\"title\":\"prepends an unseen url key to allUrls\",\"duration\":0.4529169999999567,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"updateActiveTabs\"],\"fullName\":\"service_worker.js updateActiveTabs queries tabs and persists the rebuilt active list\",\"status\":\"passed\",\"title\":\"queries tabs and persists the rebuilt active list\",\"duration\":0.5892920000000004,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"processProcesses\"],\"fullName\":\"service_worker.js processProcesses bumps samples and persists process totals\",\"status\":\"passed\",\"title\":\"bumps samples and persists process totals\",\"duration\":0.4436670000000049,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"associateProcess\"],\"fullName\":\"service_worker.js associateProcess fetches each task tab and merges its url updates\",\"status\":\"passed\",\"title\":\"fetches each task tab and merges its url updates\",\"duration\":0.753582999999935,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"tabUpdates\"],\"fullName\":\"service_worker.js tabUpdates resolves {} for an invalid tab\",\"status\":\"passed\",\"title\":\"resolves {} for an invalid tab\",\"duration\":0.6234999999999218,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"tabUpdates\"],\"fullName\":\"service_worker.js tabUpdates resolves keyed url updates for a valid tab\",\"status\":\"passed\",\"title\":\"resolves keyed url updates for a valid tab\",\"duration\":0.5842499999999973,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"handleActiveTabsGroupChanges\"],\"fullName\":\"service_worker.js handleActiveTabsGroupChanges no-ops when oldValue is missing\",\"status\":\"passed\",\"title\":\"no-ops when oldValue is missing\",\"duration\":0.7228750000000446,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"groupTabs\"],\"fullName\":\"service_worker.js groupTabs ungroups an unlabeled grouped tab\",\"status\":\"passed\",\"title\":\"ungroups an unlabeled grouped tab\",\"duration\":0.6581670000000486,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"service_worker.js\",\"groupTabs\"],\"fullName\":\"service_worker.js groupTabs ignores pinned tabs\",\"status\":\"passed\",\"title\":\"ignores pinned tabs\",\"duration\":0.37904200000002675,\"failureMessages\":[],\"meta\":{}}],\"startTime\":1781013928634,\"endTime\":1781013928661.6582,\"status\":\"passed\",\"message\":\"\",\"name\":\"service_worker.test.js\"},{\"assertionResults\":[{\"ancestorTitles\":[\"popup.js\",\"truncateString\"],\"fullName\":\"popup.js truncateString returns \\\"\\\" for empty/undefined input\",\"status\":\"passed\",\"title\":\"returns \\\"\\\" for empty/undefined input\",\"duration\":3.013541999999916,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"popup.js\",\"truncateString\"],\"fullName\":\"popup.js truncateString leaves short strings unchanged\",\"status\":\"passed\",\"title\":\"leaves short strings unchanged\",\"duration\":0.9539999999999509,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"popup.js\",\"truncateString\"],\"fullName\":\"popup.js truncateString truncates long strings with an ellipsis\",\"status\":\"passed\",\"title\":\"truncates long strings with an ellipsis\",\"duration\":0.7301250000000437,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"popup.js\",\"urlHTML\"],\"fullName\":\"popup.js urlHTML renders title + favicon and no stats when samples is 0\",\"status\":\"passed\",\"title\":\"renders title + favicon and no stats when samples is 0\",\"duration\":0.6256250000000136,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"popup.js\",\"urlHTML\"],\"fullName\":\"popup.js urlHTML renders an averaged stats block when there are samples\",\"status\":\"passed\",\"title\":\"renders an averaged stats block when there are samples\",\"duration\":0.6842910000000302,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"popup.js\",\"urlHTML\"],\"fullName\":\"popup.js urlHTML truncates long titles via truncateString\",\"status\":\"passed\",\"title\":\"truncates long titles via truncateString\",\"duration\":0.3385000000000673,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"popup.js\",\"init\"],\"fullName\":\"popup.js init activates an existing TabCommand tab\",\"status\":\"passed\",\"title\":\"activates an existing TabCommand tab\",\"duration\":2.117166999999995,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"popup.js\",\"init\"],\"fullName\":\"popup.js init creates a pinned tab when none exists\",\"status\":\"passed\",\"title\":\"creates a pinned tab when none exists\",\"duration\":0.8285409999999729,\"failureMessages\":[],\"meta\":{}},{\"ancestorTitles\":[\"popup.js\",\"loadActiveTabs\"],\"fullName\":\"popup.js loadActiveTabs renders a div per active tab\",\"status\":\"passed\",\"title\":\"renders a div per active tab\",\"duration\":5.310165999999981,\"failureMessages\":[],\"meta\":{}}],\"startTime\":1781013928632,\"endTime\":1781013928647.31,\"status\":\"passed\",\"message\":\"\",\"name\":\"popup/popup.test.js\"},{\"assertionResults\":[{\"ancestorTitles\":[\"App\"],\"fullName\":\"App renders the logo and the rebuild placeholder\",\"status\":\"passed\",\"title\":\"renders the logo and the rebuild placeholder\",\"duration\":20.852333000000044,\"failureMessages\":[],\"meta\":{}}],\"startTime\":1781013928709,\"endTime\":1781013928729.8523,\"status\":\"passed\",\"message\":\"\",\"name\":\"src/lib/pages/App/App.test.jsx\"}]}\n",
+      "invoked_command": "npx vitest run --reporter=json",
+      "exit_code": 0,
+      "tests": [
+        {
+          "key": "service_worker.js › loads and registers chrome event listeners on import",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › central › is a no-op",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › getUrlKey › prefixes with url- and strips the fragment",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › validTab › accepts http and https tabs",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › validTab › rejects empty and internal-scheme tabs",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › parseTabId › parses the numeric id from a tabKey",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › updateTotals › sums process metrics into processTotals",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › updateTotals › defaults missing metrics to 0",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › urlUpdates › accumulates process stats when a process is supplied",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › urlUpdates › uses the url as title when title is missing",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › update › persists updates to chrome.storage.local",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › getLocalStorage › invokes the callback with the storage result",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › getLocalStorage › resolves with the result when no callback is passed",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › getTabGroup › resolves null for id -1 or null",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › getTabGroup › resolves the group for a real id",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › trackGroup › stores the group title by id",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › listenToProcesses › registers the processes listener",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › listenToProcesses › does not throw when the processes API throws",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › newUrl › returns early without tabId/url",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › newUrl › prepends an unseen url key to allUrls",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "service_worker.js › groupTabs › ignores pinned tabs",
+          "status": "passed",
+          "file": "service_worker.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › truncateString › returns \"\" for empty/undefined input",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › truncateString › leaves short strings unchanged",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › truncateString › truncates long strings with an ellipsis",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › urlHTML › renders title + favicon and no stats when samples is 0",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › urlHTML › renders an averaged stats block when there are samples",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › urlHTML › truncates long titles via truncateString",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › init › activates an existing TabCommand tab",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › init › creates a pinned tab when none exists",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "popup.js › loadActiveTabs › renders a div per active tab",
+          "status": "passed",
+          "file": "popup/popup.test.js",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        },
+        {
+          "key": "App › renders the logo and the rebuild placeholder",
+          "status": "passed",
+          "file": "src/lib/pages/App/App.test.jsx",
+          "line": null,
+          "runner": "tests",
+          "format": "vitest"
+        }
+      ]
+    }
+  ]
+}

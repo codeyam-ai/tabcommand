@@ -1,0 +1,26 @@
+# regenerated from dependency-graph.json on 2026-06-09T14:05:32Z; do not hand-edit
+src/lib/pages/App/App.jsx :: imports=2 :: imported_by=2
+.claude/skills/review-session/scripts/find-last-session-helpers.mjs :: imports=0 :: imported_by=1
+manifest.json :: imports=0 :: imported_by=1
+src/images/logo.svg :: imports=0 :: imported_by=1
+src/index.css :: imports=0 :: imported_by=1
+src/lib/pages :: imports=0 :: imported_by=1
+src/lib/pages/App :: imports=0 :: imported_by=1
+src/lib/pages/App/App.css :: imports=0 :: imported_by=1
+.claude/hooks/_step_metadata.py :: imports=0 :: imported_by=0
+.claude/hooks/editor-pretool-hook.py :: imports=0 :: imported_by=0
+.claude/hooks/editor-step-hook.py :: imports=0 :: imported_by=0
+.claude/skills/review-session/scripts/extract-session-helpers.mjs :: imports=0 :: imported_by=0
+.claude/skills/review-session/scripts/extract-session.mjs :: imports=0 :: imported_by=0
+.claude/skills/review-session/scripts/find-last-session.mjs :: imports=1 :: imported_by=0
+eslint.config.mjs :: imports=0 :: imported_by=0
+popup/popup.js :: imports=0 :: imported_by=0
+popup/popup.test.js :: imports=0 :: imported_by=0
+service_worker.js :: imports=0 :: imported_by=0
+service_worker.test.js :: imports=0 :: imported_by=0
+src/index.jsx :: imports=2 :: imported_by=0
+src/lib/pages/App/App.test.jsx :: imports=1 :: imported_by=0
+src/lib/pages/App/index.js :: imports=1 :: imported_by=0
+src/lib/pages/index.js :: imports=1 :: imported_by=0
+src/setupTests.js :: imports=0 :: imported_by=0
+vite.config.mjs :: imports=1 :: imported_by=0

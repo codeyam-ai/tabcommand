@@ -1,0 +1,33 @@
+body {
+  background-color: white;
+  height: 100%;
+  margin: 0;
+  font-family: "Roboto", sans-serif;
+}
+
+.App {
+  height: 100%;
+}
+
+.App-sidebar {
+  width: 200px;
+  height: 100%;
+  background-color: #0b1a42;
+  float: left;
+  position: relative;
+}
+
+.App-sidebar .App-logo {
+  height: 48px;
+}
+
+.App-content {
+  height: 100%;
+  overflow: hidden;
+}
+
+.App-content .App-placeholder {
+  padding: 24px;
+  color: #0b1a42;
+  font-size: 1.1em;
+}

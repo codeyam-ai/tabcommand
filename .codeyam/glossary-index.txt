@@ -1,0 +1,25 @@
+# regenerated from glossary.json on 2026-06-09T14:03:17Z; do not hand-edit
+App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
+associateProcess :: service_worker.js :: tags=worker,ported-verbatim,processes,tabs :: test=service_worker.test.js
+central :: service_worker.js :: tags=worker,ported-verbatim,debug :: test=service_worker.test.js
+closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
+getLocalStorage :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
+getTabGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js
+getUrlKey :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
+groupTabs :: service_worker.js :: tags=worker,ported-verbatim,tab-groups,labels :: test=service_worker.test.js
+handleActiveTabsGroupChanges :: service_worker.js :: tags=worker,ported-verbatim,tab-groups,labels :: test=service_worker.test.js
+init :: popup/popup.js :: tags=popup,ported-verbatim,launcher :: test=popup/popup.test.js
+listenToProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes :: test=service_worker.test.js
+loadActiveTabs :: popup/popup.js :: tags=popup,ported-verbatim :: test=popup/popup.test.js
+newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
+parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
+processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
+tabUpdates :: service_worker.js :: tags=worker,ported-verbatim,tabs :: test=service_worker.test.js
+trackGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js
+truncateString :: popup/popup.js :: tags=popup,ported-verbatim,util :: test=popup/popup.test.js
+update :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
+updateActiveTabs :: service_worker.js :: tags=worker,ported-verbatim,tabs,storage :: test=service_worker.test.js
+updateTotals :: service_worker.js :: tags=worker,ported-verbatim,metrics :: test=service_worker.test.js
+urlHTML :: popup/popup.js :: tags=popup,ported-verbatim,render :: test=popup/popup.test.js
+urlUpdates :: service_worker.js :: tags=worker,ported-verbatim,metrics :: test=service_worker.test.js
+validTab :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js

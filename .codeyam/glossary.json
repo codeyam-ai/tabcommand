@@ -1,0 +1,273 @@
+[
+  {
+    "description": "Root React component and entry-point page of the TabCommand extension UI, mounted at / via React 18 createRoot. In the foundation build it renders an empty shell — the navy sidebar with the TabCommand logo and a content-area placeholder reading \"TabCommand — modern rebuild in progress\". Real features (Tabs, Labels, Search, LoadMeter, page routing, and chrome.storage wiring) arrive in later plans.",
+    "filePath": "src/lib/pages/App/App.jsx",
+    "name": "App",
+    "scenarios": [
+      "app-shell-empty-foundation"
+    ],
+    "tags": [
+      "component",
+      "page",
+      "entry-point"
+    ],
+    "testFile": "src/lib/pages/App/App.test.jsx"
+  },
+  {
+    "description": "Maps a process's task tab ids back to tabs (chrome.tabs.get) and merges per-url process metrics into the updates object.",
+    "filePath": "service_worker.js",
+    "name": "associateProcess",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "processes",
+      "tabs"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Empty trace/debug hook called throughout the background worker as a single instrumentation point; intentionally a no-op in the shipped build.",
+    "filePath": "service_worker.js",
+    "name": "central",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "debug"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Moves a closed tab's url key to the front of `allUrls`, persists the reordered list, and invokes an optional callback.",
+    "filePath": "service_worker.js",
+    "name": "closeUrl",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "storage"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Promise/callback hybrid wrapper around chrome.storage.local.get: invokes the callback when supplied, otherwise resolves with the result.",
+    "filePath": "service_worker.js",
+    "name": "getLocalStorage",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "storage"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Promise wrapper around chrome.tabGroups.get that resolves null for absent/sentinel (-1) group ids.",
+    "filePath": "service_worker.js",
+    "name": "getTabGroup",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "tab-groups"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Derives a stable storage key for a URL by stripping the hash fragment and prefixing `url-`.",
+    "filePath": "service_worker.js",
+    "name": "getUrlKey",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "util"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Reconciles Chrome tab groups against the labels model: groups labeled tabs (creating/coloring groups as needed) and ungroups tabs that no longer belong to any label, skipping pinned tabs.",
+    "filePath": "service_worker.js",
+    "name": "groupTabs",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "tab-groups",
+      "labels"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Diffs old vs new activeTabs to reconcile label membership when a tab moves between groups, adding/removing its url key from the affected labels; no-ops without a previous value.",
+    "filePath": "service_worker.js",
+    "name": "handleActiveTabsGroupChanges",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "tab-groups",
+      "labels"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Popup entry point: focuses the existing pinned TabCommand app tab if open, otherwise creates one at index 0, then closes the popup.",
+    "filePath": "popup/popup.js",
+    "name": "init",
+    "tags": [
+      "popup",
+      "ported-verbatim",
+      "launcher"
+    ],
+    "testFile": "popup/popup.test.js"
+  },
+  {
+    "description": "Subscribes processProcesses to chrome.processes.onUpdatedWithMemory, guarded by try/catch so a missing processes API (non-Chrome / no permission) degrades quietly.",
+    "filePath": "service_worker.js",
+    "name": "listenToProcesses",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "processes"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Reads the stored activeTabs and their url records and renders a row per active tab into the popup's #active container (currently unused by init).",
+    "filePath": "popup/popup.js",
+    "name": "loadActiveTabs",
+    "tags": [
+      "popup",
+      "ported-verbatim"
+    ],
+    "testFile": "popup/popup.test.js"
+  },
+  {
+    "description": "Registers a newly-visited URL: prepends its url key to the capped (250) `allUrls` history, evicting the oldest non-labeled keys from storage, and returns the storage updates. No-ops without a tabId/url.",
+    "filePath": "service_worker.js",
+    "name": "newUrl",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "storage"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Extracts the integer Chrome tab id from a `tab-<n>` storage key.",
+    "filePath": "service_worker.js",
+    "name": "parseTabId",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "util"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "chrome.processes update handler: aggregates per-process CPU/network/memory totals and associates them with tabs, persists the result, and after ~10 samples pauses listening for 15s to throttle.",
+    "filePath": "service_worker.js",
+    "name": "processProcesses",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "processes",
+      "metrics"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Builds the per-url update record for a tab — resolving an empty object for invalid tabs and otherwise merging the stored url with fresh tab/process metadata via urlUpdates.",
+    "filePath": "service_worker.js",
+    "name": "tabUpdates",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "tabs"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Records a Chrome tab group's title keyed by its integer id in the worker's in-memory `groups` map, used to resolve a tab's label when its group changes.",
+    "filePath": "service_worker.js",
+    "name": "trackGroup",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "tab-groups"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Truncates a string to a maximum length, appending an ellipsis when it overflows; returns an empty string for falsy input.",
+    "filePath": "popup/popup.js",
+    "name": "truncateString",
+    "tags": [
+      "popup",
+      "ported-verbatim",
+      "util"
+    ],
+    "testFile": "popup/popup.test.js"
+  },
+  {
+    "description": "Thin write helper that persists an updates object to chrome.storage.local.set; the single storage-write chokepoint for the worker.",
+    "filePath": "service_worker.js",
+    "name": "update",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "storage"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Queries all normal-window tabs and rebuilds the persisted `activeTabs` list (urlKey, pinned, groupId, timestamps, auto-closed state), debounced via waitingToUpdate, then writes it to chrome.storage.local.",
+    "filePath": "service_worker.js",
+    "name": "updateActiveTabs",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "tabs",
+      "storage"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Accumulates a single process's cpu/network/privateMemory/jsMemoryAllocated/jsMemoryUsed into the running processTotals, treating missing metrics as 0.",
+    "filePath": "service_worker.js",
+    "name": "updateTotals",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "metrics"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Builds the HTML for one url row in the popup — title heading with favicon and a truncated title, plus an averaged CPU/NET/MEM stats block when the url has process samples.",
+    "filePath": "popup/popup.js",
+    "name": "urlHTML",
+    "tags": [
+      "popup",
+      "ported-verbatim",
+      "render"
+    ],
+    "testFile": "popup/popup.test.js"
+  },
+  {
+    "description": "Merges a tab's current title/favicon/groupId into a stored url record and accumulates rolling process metrics, normalizing the running averages once a sample window exceeds 100.",
+    "filePath": "service_worker.js",
+    "name": "urlUpdates",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "metrics"
+    ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Predicate that excludes empty and browser-internal tabs (chrome://, devtools://, chrome-extension://) from tracking.",
+    "filePath": "service_worker.js",
+    "name": "validTab",
+    "tags": [
+      "worker",
+      "ported-verbatim",
+      "util"
+    ],
+    "testFile": "service_worker.test.js"
+  }
+]

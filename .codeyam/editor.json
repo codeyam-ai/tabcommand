@@ -1,0 +1,240 @@
+{
+  "$comment": "Per-developer settings (port, provider, proxy ports, startCommand, etc.) belong in editor.local.json. That file is gitignored and is deep-merged on top of this one at load time. See CLAUDE.md or run `codeyam-editor editor config-show` to inspect the effective config.",
+  "apps": [
+    {
+      "dir": ".",
+      "name": "TabCommand",
+      "port": 3000,
+      "startCommand": "npm run dev",
+      "type": "web"
+    }
+  ],
+  "audit": {
+    "allowedDocumentationOnlySlugs": [
+      "post-merge-drift-sweep"
+    ],
+    "branchBaseRef": "main",
+    "cargoCoverage": {
+      "enabled": true
+    },
+    "glossarySkip": [
+      {
+        "filePath": ".claude/hooks/_step_metadata.py",
+        "name": "_empty_mode_table",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/_step_metadata.py",
+        "name": "_kv_pairs_to_int_dict",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/_step_metadata.py",
+        "name": "_string_list",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/_step_metadata.py",
+        "name": "cli_command",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/_step_metadata.py",
+        "name": "load_step_metadata",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/_step_metadata.py",
+        "name": "resolve_mode_table",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-pretool-hook.py",
+        "name": "_preview_hint",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-pretool-hook.py",
+        "name": "_slug_label",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-pretool-hook.py",
+        "name": "git_add_paths_are_plans_only",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-pretool-hook.py",
+        "name": "main",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-pretool-hook.py",
+        "name": "staged_paths_are_plans_only",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-step-hook.py",
+        "name": "_terminal_signal_missing",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-step-hook.py",
+        "name": "detect_event",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-step-hook.py",
+        "name": "label_signals_pre_commit_warning",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-step-hook.py",
+        "name": "label_signals_user_feedback_phase",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-step-hook.py",
+        "name": "log_event",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-step-hook.py",
+        "name": "main",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-step-hook.py",
+        "name": "resolve_mode",
+        "reason": "derive-generated"
+      }
+    ],
+    "itemShape": {
+      "changeWithoutVerify": "note",
+      "compound": "warning",
+      "vague": "warning"
+    },
+    "scenarioFreshnessDays": 14,
+    "stepBudget": {
+      "maxChecklistItems": 6,
+      "maxLines": 80,
+      "severity": "warning"
+    },
+    "testNamingConventions": {}
+  },
+  "catalogAutoAdd": {
+    "allow": [],
+    "deny": []
+  },
+  "cleanup": {
+    "completedPlanRetention": 20,
+    "logCompress": true,
+    "logDeleteDays": 30,
+    "logRotateDays": 7,
+    "screenshotPruneOrphans": true,
+    "tmpDeleteHours": 24
+  },
+  "coverageThresholds": {
+    "global": {
+      "minLinePercent": 90.0
+    }
+  },
+  "database": null,
+  "defaultScreenSize": "Desktop",
+  "env": {},
+  "files": {
+    "eventLogMaxBytes": null,
+    "journalShardEntries": null,
+    "logKeepRotated": null,
+    "textLogMaxBytes": null
+  },
+  "formatters": [],
+  "git": {
+    "commitQueue": {
+      "enabled": true,
+      "heartbeatIntervalSec": 15,
+      "machineAliveHookTimeoutMs": 5000,
+      "maxHookPrunePerSweep": 10,
+      "pollIntervalMs": 2000,
+      "serverHeartbeatIntervalSec": 60,
+      "waitTimeoutSec": 300
+    },
+    "planClaims": {
+      "enabled": true,
+      "fetchIntervalSec": 3
+    }
+  },
+  "hooks": {},
+  "port": 3000,
+  "projectDescription": "A Chrome extension for managing browser tabs and browser history",
+  "projectTitle": "TabCommand",
+  "provider": "claude",
+  "proxy": {
+    "controlPort": 14199,
+    "dbPort": 14101,
+    "httpPort": 14100,
+    "httpsPassthrough": []
+  },
+  "runnerTimeout": {
+    "floorSeconds": 900,
+    "headroomSeconds": 90,
+    "mode": "auto"
+  },
+  "scenarios": {
+    "dir": ".codeyam/scenarios"
+  },
+  "screenSizes": {
+    "Desktop": {
+      "height": 900,
+      "width": 1440
+    }
+  },
+  "server": {
+    "autoRestartOnStaleBinary": true
+  },
+  "silenceHookStderr": false,
+  "startCommand": "npm run dev",
+  "staticChecks": [
+    {
+      "command": "npx eslint .",
+      "description": "ESLint flat-config lint gate",
+      "excludePatterns": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**"
+      ],
+      "filePatterns": [
+        "**/*.js",
+        "**/*.jsx"
+      ],
+      "name": "eslint"
+    }
+  ],
+  "testParallelism": {
+    "loadGuard": true
+  },
+  "testPartitions": [],
+  "testRunners": [
+    {
+      "changedCommand": "npx vitest run --changed --reporter=json",
+      "command": "npx vitest run --reporter=json",
+      "excludePatterns": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**"
+      ],
+      "name": "tests",
+      "outputFormat": "vitest-json",
+      "sourceFilePatterns": [
+        "**/*.{ts,tsx,js,jsx}"
+      ],
+      "targetedCommand": "npx vitest run -t \"{test_names}\" --reporter=json",
+      "testFilePatterns": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.test.js",
+        "**/*.test.jsx"
+      ]
+    }
+  ]
+}

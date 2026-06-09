@@ -1,0 +1,26 @@
+{
+  "name": "TabCommand (Dev)",
+  "version": "0.13",
+  "description": "Command Central for your browsing experience.",
+  "permissions": ["storage", "tabs", "processes", "tabGroups"],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_title": "Process Monitor",
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/images/tabcommand16.png",
+      "32": "assets/images/tabcommand32.png",
+      "48": "assets/images/tabcommand48.png",
+      "128": "assets/images/tabcommand128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/images/tabcommand16.png",
+    "32": "assets/images/tabcommand32.png",
+    "48": "assets/images/tabcommand48.png",
+    "128": "assets/images/tabcommand128.png"
+  },
+  "manifest_version": 3
+}

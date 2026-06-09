@@ -1,0 +1,70 @@
+{
+  "capabilities": {
+    "http-mocks": "verified",
+    "interactions-click": "verified",
+    "interactions-touch-gestures": "not-applicable",
+    "layout-web": "verified",
+    "native-clipboard": "not-applicable",
+    "native-geolocation": "not-applicable",
+    "native-haptics": "not-applicable",
+    "native-network": "not-applicable",
+    "native-storage": "verified",
+    "real-device": "not-applicable",
+    "routing": "not-applicable"
+  },
+  "commands": {
+    "build": "npm run build",
+    "dev": "npm run dev",
+    "seedAdapter": "npx tsx .codeyam/seed-adapter.ts",
+    "test": "npx vitest run"
+  },
+  "components": {
+    "fileExtensions": [
+      ".tsx",
+      ".jsx"
+    ],
+    "primitives": [
+      "div",
+      "span",
+      "h1",
+      "h2",
+      "h3",
+      "p",
+      "img",
+      "ul",
+      "li",
+      "a",
+      "button",
+      "input",
+      "form"
+    ],
+    "testFilePattern": "{name}.test.{ext}"
+  },
+  "data": {
+    "importStatement": "chrome.storage.local",
+    "seedAdapterType": "localStorage",
+    "type": "chrome-storage"
+  },
+  "defaultScreenSize": "Desktop",
+  "id": "chrome-extension-react",
+  "name": "Chrome Extension + React",
+  "preview": {
+    "defaultPort": 3000,
+    "kind": "iframe"
+  },
+  "routing": {
+    "isolationRoute": "src/isolated-components",
+    "pagesDir": "src",
+    "type": "manifest"
+  },
+  "screenSizes": {
+    "Desktop": {
+      "height": 900,
+      "width": 1440
+    }
+  },
+  "styling": {
+    "tokenFile": "src/index.css",
+    "type": "css-custom-properties"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "claimStartedAt": "2026-06-09T11:50:29Z",
+  "completedAt": "2026-06-09T14:07:06Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "machine": "Jareds-Laptop.local",
+    "pid": 99980,
+    "priority": 0,
+    "selectedPlan": "foundation-vite-react18-mv3",
+    "sessionId": "",
+    "startedAt": "2026-06-09T11:50:29Z"
+  },
+  "createdAt": "2026-06-09T00:00:00Z",
+  "journalTimestamp": "2026-06-09T14:07:06Z",
+  "mode": "frontend",
+  "planFile": "completed/foundation-vite-react18-mv3.md",
+  "slug": "foundation-vite-react18-mv3",
+  "title": "Foundation: Vite + React 18 + MV3 extension shell"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "App Shell - Empty Foundation",
+  "id": "0982ac56-96a1-4c86-9280-364a30e023a2",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}
