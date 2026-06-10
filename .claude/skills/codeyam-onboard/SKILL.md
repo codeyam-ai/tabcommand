@@ -154,6 +154,10 @@ Fields to populate when missing:
 - `formatters[]` — `prettier` if configured.
 - `screen_sizes`, `default_screen_size` — carry from legacy if present; else `{Desktop: 1440x900, Mobile: 375x667}`.
 
+**Capability check (before you write `apps[]`).** Once you've detected the framework, run `codeyam-editor-dev editor stack-support --framework <detected> --format json` (add `--app-type backend|cli` for non-web projects). Relay the verdict to the user before writing editor.json:
+- `supported` / `fallback` — proceed; visual preview and scenario capture will work (fallback adapts the query-param isolation strategy).
+- `unsupported` — state plainly which codeyam features are off (isolation scaffold, visual preview, scenario capture) and that editor.json + the test workflow still work, so the user decides with eyes open instead of hitting a dead end at isolate-time. Don't run `editor isolate` for an unsupported stack.
+
 Write the changes via Edit on `.codeyam/editor.json`. Do **not** overwrite the whole file — preserve fields written by `editor init`.
 
 ## Phase 4b — Index the code (all branches)

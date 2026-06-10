@@ -1,439 +1,535 @@
 {
   "App › changePage writes uxSettings.page when a sidebar link is clicked": {
     "file": "src/lib/pages/App/App.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "App › navigates when uxSettings changes in storage": {
     "file": "src/lib/pages/App/App.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "App › renders the page named by uxSettings.page": {
     "file": "src/lib/pages/App/App.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "App › renders the sidebar and the Home page by default": {
     "file": "src/lib/pages/App/App.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Chrome › hydrates activeTabs/allUrls/previousLabels to [] when absent": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Chrome › hydrates labels/uxSettings/autoClosed to {} when absent": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Chrome › passes through requested keys that are present": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Chrome › remove delegates to chrome.storage.local.remove": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Chrome › set delegates to chrome.storage.local.set": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Chrome › strips timestamp and drops falsy previousLabels entries": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Chrome › supports a single string key": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "LabelCollection › removeUrl removes the url from the group urlKeys": {
+    "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "LabelCollection › renders the group title and its member urls": {
+    "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "LabelCollection › splits members into active and inactive sections": {
+    "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "LabelForm › renames an existing label, deleting the old key": {
+    "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "LabelForm › writes a new label with derived backgroundColor and position": {
+    "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "LabelFormContainer › expands to reveal the LabelForm when clicked": {
+    "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "LabelFormContainer › renders expanded when the expand prop is set": {
+    "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "LabelFormContainer › shows the Add Group affordance and hides the form when collapsed": {
+    "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "Labels › pins the selected label above the grid": {
+    "file": "src/lib/components/Labels/Labels.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "Labels › renders a group for each label": {
+    "file": "src/lib/components/Labels/Labels.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "Labels › shows the empty-state CTA when there are no labels": {
+    "file": "src/lib/components/Labels/Labels.test.jsx",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Tabs › excludes browser-pinned tabs from the active list": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Tabs › groups labeled tabs under headings and leaves the rest ungrouped": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Tabs › renders a row for each seeded active tab": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Tabs › shows the empty-state explainer when there are no active tabs": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Tabs › toggles the History section open when its title is clicked": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Url › derives the display url from urlKey when there is no title": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Url › hides the load indicator when there are no process samples": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Url › renders nothing meaningful without a urlKey": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Url › renders the title and favicon for a seeded url": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Url › reveals the action row on hover": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Url › shows the excessive load indicator for heavy process stats": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Url › shows the low load indicator for light process stats": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "Url › shows the medium load indicator for moderate process stats": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "applyDrag › does not report an ungroup when the moved url has no active tab": {
+    "file": "src/lib/utils/dragReducer.test.js",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "applyDrag › inserts a url dropped from the sidebar into the destination label": {
+    "file": "src/lib/utils/dragReducer.test.js",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "applyDrag › moves a url between groups and reports the tab to ungroup": {
+    "file": "src/lib/utils/dragReducer.test.js",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "applyDrag › returns null when there is no destination": {
+    "file": "src/lib/utils/dragReducer.test.js",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full"
+  },
+  "applyDrag › rewrites positions when a group is reordered": {
+    "file": "src/lib/utils/dragReducer.test.js",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › exposes callable no-op action stubs": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › get supports string, array, and all forms": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › hydrates dynamic url-_url_ keys that are not in KNOWN_KEYS": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › hydrates the store from seeded localStorage": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › ignores malformed seed values": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › is inert when a real chrome.storage.local is present": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › remove clears the key and fires onChanged with the old value": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › removeListener stops delivering change events": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › set mirrors to localStorage and fires onChanged with areaName local": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "chromeShim › shares the known TabCommand storage keys": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › init › activates an existing TabCommand tab": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › init › creates a pinned tab when none exists": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › loadActiveTabs › renders a div per active tab": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › truncateString › leaves short strings unchanged": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › truncateString › returns \"\" for empty/undefined input": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › truncateString › truncates long strings with an ellipsis": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › urlHTML › renders an averaged stats block when there are samples": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › urlHTML › renders title + favicon and no stats when samples is 0": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "popup.js › urlHTML › truncates long titles via truncateString": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › associateProcess › fetches each task tab and merges its url updates": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › central › is a no-op": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › getLocalStorage › invokes the callback with the storage result": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › getLocalStorage › resolves with the result when no callback is passed": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › getTabGroup › resolves null for id -1 or null": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › getTabGroup › resolves the group for a real id": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › getUrlKey › prefixes with url- and strips the fragment": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › groupTabs › ignores pinned tabs": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › groupTabs › ungroups an unlabeled grouped tab": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › listenToProcesses › does not throw when the processes API throws": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › listenToProcesses › registers the processes listener": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › loads and registers chrome event listeners on import": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › newUrl › prepends an unseen url key to allUrls": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › newUrl › returns early without tabId/url": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › parseTabId › parses the numeric id from a tabKey": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › processProcesses › bumps samples and persists process totals": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › tabUpdates › resolves {} for an invalid tab": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › trackGroup › stores the group title by id": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › update › persists updates to chrome.storage.local": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › updateTotals › defaults missing metrics to 0": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › updateTotals › sums process metrics into processTotals": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › urlUpdates › accumulates process stats when a process is supplied": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › urlUpdates › uses the url as title when title is missing": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › validTab › accepts http and https tabs": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   },
   "service_worker.js › validTab › rejects empty and internal-scheme tabs": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-09T18:54:13.272963+00:00",
+    "lastRunAt": "2026-06-10T21:06:07.099094+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full"
   }

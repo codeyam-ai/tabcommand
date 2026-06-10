@@ -1,6 +1,6 @@
 {
   "name": "Home - Active Tabs",
-  "id": "0ec0353a-c880-445e-a421-1781e73dd0ec",
+  "id": "7a77f6ed-7256-4db5-9e9f-03b017237fce",
   "url": "/",
   "dimensions": [
     "Desktop"
@@ -8,16 +8,16 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-101\",\"pinned\":false,\"tabCommandPinned\":true},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-102\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.chrome.com/docs/extensions/mv3\",\"tabKey\":\"tab-103\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://mail.google.com/mail/u/0\",\"tabKey\":\"tab-104\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.youtube.com/watch?v=demo\",\"tabKey\":\"tab-105\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-106\",\"pinned\":false,\"tabCommandPinned\":false}]",
-      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://mail.google.com/mail/u/0": "{\"title\":\"Inbox (1,284) - hello@codeyam.com - Gmail\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":737280,\"cpu\":48000,\"privateMemory\":7660800000,\"jsMemoryAllocated\":6128640000,\"jsMemoryUsed\":4596480000}}",
-      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
-      "url-https://developer.chrome.com/docs/extensions/mv3": "{\"title\":\"Manifest V3 – Chrome Extensions\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "labels": "{}",
       "url-https://www.youtube.com/watch?v=demo": "{\"title\":\"Building Chrome Extensions - YouTube\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":133120,\"cpu\":8000,\"privateMemory\":1383200000,\"jsMemoryAllocated\":1106560000,\"jsMemoryUsed\":829920000}}",
       "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://react.dev/learn\",\"url-https://developer.chrome.com/docs/extensions/mv3\",\"url-https://mail.google.com/mail/u/0\",\"url-https://www.youtube.com/watch?v=demo\",\"url-https://news.ycombinator.com\"]",
-      "autoClosed": "{}"
+      "url-https://mail.google.com/mail/u/0": "{\"title\":\"Inbox (1,284) - hello@codeyam.com - Gmail\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":737280,\"cpu\":48000,\"privateMemory\":7660800000,\"jsMemoryAllocated\":6128640000,\"jsMemoryUsed\":4596480000}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-101\",\"pinned\":false,\"tabCommandPinned\":true},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-102\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.chrome.com/docs/extensions/mv3\",\"tabKey\":\"tab-103\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://mail.google.com/mail/u/0\",\"tabKey\":\"tab-104\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.youtube.com/watch?v=demo\",\"tabKey\":\"tab-105\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-106\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "autoClosed": "{}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "labels": "{}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "url-https://developer.chrome.com/docs/extensions/mv3": "{\"title\":\"Manifest V3 – Chrome Extensions\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
     }
   },
   "scenarioType": "application",

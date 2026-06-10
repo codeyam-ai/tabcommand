@@ -32,9 +32,28 @@
     "testFile": "src/lib/pages/App/App.test.jsx"
   },
   {
-    "description": "Stub: empty container giving the Home DragDropContext its second child; LabelCollection/LabelForm and drag-to-group land in labels-and-dnd.",
+    "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a menu (edit LabelForm + share + delete), and a vertical Droppable of Url rows split into active (have an open tab) above inactive. Supports removeUrl and is itself draggable for reordering.",
+    "filePath": "src/lib/components/LabelCollection/LabelCollection.jsx",
+    "name": "LabelCollection",
+    "testFile": "src/lib/components/LabelCollection/LabelCollection.test.jsx"
+  },
+  {
+    "description": "Create/edit form for a label (group): a title input and a swatch picker from Colors. On submit writes the label into the labels map keyed by title — deriving backgroundColor (Colors[title.length % len]) and position when absent, and deleting the old key on a rename.",
+    "filePath": "src/lib/components/LabelForm/LabelForm.jsx",
+    "name": "LabelForm",
+    "testFile": "src/lib/components/LabelForm/LabelForm.test.jsx"
+  },
+  {
+    "description": "The collapsible \"+ Add Group\" affordance at the top of the Labels grid. Toggles an expanded wrapper (with a click-catching #BackgroundOverlay) that hosts a LabelForm for creating a new group.",
+    "filePath": "src/lib/components/LabelFormContainer/LabelFormContainer.jsx",
+    "name": "LabelFormContainer",
+    "testFile": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx"
+  },
+  {
+    "description": "The groups area filling the Home center: reads the labels map + uxSettings from chrome.storage, sorts groups by title then position, pins the selected label expanded above the grid, and chunks the rest into responsive horizontal Droppable rows of LabelCollection. Shows the Add Group CTA when empty.",
     "filePath": "src/lib/components/Labels/Labels.jsx",
     "name": "Labels",
+    "testFile": "src/lib/components/Labels/Labels.test.jsx",
     "untestabilityReason": {
       "justification": "Layout-only stub — renders an empty div with id, no props or logic.",
       "kind": "trivial-wrapper"
@@ -69,6 +88,12 @@
     "filePath": "src/lib/components/Url/Url.jsx",
     "name": "Url",
     "testFile": "src/lib/components/Url/Url.test.jsx"
+  },
+  {
+    "description": "Pure reducer behind App's onDragEnd: for URL drops moves a urlKey out of the source label and into the destination label at the drop index (reporting active tab ids to ungroup); for LABEL_COLLECTION drops reorders groups by rewriting each label's position. Returns null when there is no destination.",
+    "filePath": "src/lib/utils/dragReducer.js",
+    "name": "applyDrag",
+    "testFile": "src/lib/utils/dragReducer.test.js"
   },
   {
     "description": "Maps a process's task tab ids back to tabs (chrome.tabs.get) and merges per-url process metrics into the updates object.",

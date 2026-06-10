@@ -95,9 +95,46 @@ function buildErrorContextSnippet(text, pattern) {
   return `${prefix}${slice}${suffix}`;
 }
 
+// Build the non-blocking "this page looks client-fetched" advisory from the two
+// settle signals the capture already computes: `stableOutcome` from
+// waitForStablePage (did the page settle, and was a loading marker still up at
+// the cap?) and `networkOutcome` from waitForNetworkQuiet (did in-flight network
+// go quiet, or did the bounded wait cap out?). Captures settle within a bounded
+// window so a never-idle stream can't hang them — which means a slower
+// client-side fetch lands AFTER the window and the screenshot catches the
+// loading/initial state instead of the populated one. When either signal fires,
+// name the cause and the two reliable fixes (server-render the data, or drive a
+// props-driven isolated component scenario) so the agent reaches for those up
+// front instead of rediscovering the constraint by trial and error. Returns the
+// advisory string, or null when the page settled cleanly (the SSR / props-driven
+// happy path — no advisory, so a healthy capture stays noise-free).
+function buildSettleAdvisory(stableOutcome, networkOutcome) {
+  const causes = [];
+  if (
+    stableOutcome &&
+    stableOutcome.stabilized === false &&
+    stableOutcome.hadLoadingMarkers === true
+  ) {
+    causes.push("a loading marker was still on the page");
+  }
+  if (networkOutcome && networkOutcome.quiet === false) {
+    causes.push("network requests were still in flight");
+  }
+  if (causes.length === 0) return null;
+  return (
+    `When this page was captured, ${causes.join(" and ")} — it likely fetches ` +
+    `its data on the client. Captures settle within a bounded window, so data ` +
+    `that arrives via a client-side fetch after that window renders as the ` +
+    `loading/initial state, not the populated state. To capture a populated ` +
+    `state, server-render the data (SSR/RSC) or drive a props-driven isolated ` +
+    `component scenario.`
+  );
+}
+
 module.exports = {
   hasLoadingMarkers,
   hasRenderableContent,
+  buildSettleAdvisory,
   describeBlankReason,
   shouldStopWaitingForImages,
   hasErrorPatterns,

@@ -60,6 +60,7 @@ const {
   findErrorPattern,
   buildErrorContextSnippet,
   hasRenderableContent,
+  buildSettleAdvisory,
   describeBlankReason,
 } = require("./scenario-metrics");
 
@@ -71,6 +72,7 @@ const {
 
 const {
   attachHttpMocks,
+  isDeclaredErrorMock,
 } = require("./scenario-mocks");
 
 const {
@@ -82,6 +84,8 @@ const {
   waitForNetworkQuiet,
   collectContentState,
   performInteraction,
+  waitForPredicate,
+  performInteractionSequence,
 } = require("./scenario-playwright");
 
 const {
@@ -235,6 +239,37 @@ async function applyBrowserState(context, config) {
       },
     );
   }
+
+  // Seed the scenario's `browserState.localStorage` / `.sessionStorage` into
+  // the page before any app JS runs. Storage-gated UI (first-run banners,
+  // dismissed-prompt flags, persisted view state) is otherwise
+  // uncontrollable at capture time. Playwright serializes the function and
+  // its arg into the page context, so the function body must not close over
+  // outer variables. Only registered when the scenario actually carries
+  // storage, preserving the pre-storage capture context for everyone else.
+  const localStorageSeed = state.localStorage || {};
+  const sessionStorageSeed = state.sessionStorage || {};
+  if (
+    Object.keys(localStorageSeed).length > 0 ||
+    Object.keys(sessionStorageSeed).length > 0
+  ) {
+    await context.addInitScript(
+      (storage) => {
+        try {
+          for (const [key, value] of Object.entries(storage.local)) {
+            window.localStorage.setItem(key, value);
+          }
+          for (const [key, value] of Object.entries(storage.session)) {
+            window.sessionStorage.setItem(key, value);
+          }
+        } catch (_) {
+          // Storage unavailable (sandboxed/opaque origin) — the seed is
+          // best-effort; never fail the capture over it.
+        }
+      },
+      { local: localStorageSeed, session: sessionStorageSeed },
+    );
+  }
 }
 
 // Emit a `redirect-mismatch` issue when the final iframe URL's path
@@ -345,6 +380,75 @@ async function dumpPageState(frame, selector) {
   }, selector || null);
 }
 
+// Drive an ordered list of flow steps against ONE already-loaded browser
+// session so a scripted multi-step demo (`editor preview-flow`) is captured as
+// the real round-trip — click state and client transients persist across
+// steps, which N independent fresh-load captures could never reproduce. Each
+// step is one of:
+//   - navigate: re-load a route (resolved relative to the initial url) using
+//     the same loader strategy as the initial load, then re-settle. Returns
+//     the new content frame so subsequent steps target the navigated page.
+//   - click / fill / press: a `performInteraction` against the current frame,
+//     then re-settle.
+//   - waitFor: hold until a visible-text / selector predicate (bounded).
+//   - capture: write a numbered filmstrip frame to the step's `outputPath`.
+// A failing step THROWS with its 1-based index and action, so the outer catch
+// in `runScenarioCheck` reports exactly which step broke (and, for waitFor,
+// the predicate that never appeared) instead of a silent blank capture.
+// Returns the frame the flow ended on, so the caller's final screenshot and
+// result URL reflect the last navigated route.
+async function runFlowSteps(page, initialFrame, steps, ctx) {
+  const { url, loadingMarkers, navigation, iframeBackground, preflight } = ctx;
+  let frame = initialFrame;
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i] || {};
+    const n = i + 1;
+    try {
+      switch (step.action) {
+        case "navigate": {
+          const target = new URL(step.path, url).href;
+          const loadResult =
+            navigation === "topLevel"
+              ? await loadScenarioTopLevel(page, target, { preflight })
+              : await loadScenarioInIframe(page, target, {
+                  background: iframeBackground,
+                  preflight,
+                });
+          frame = loadResult.frame;
+          await waitForStablePage(page, frame, 10000, loadingMarkers);
+          break;
+        }
+        case "click":
+        case "fill":
+        case "press":
+          await performInteraction(frame, step);
+          await waitForStablePage(page, frame, 5000, loadingMarkers);
+          break;
+        case "waitFor":
+          await waitForPredicate(frame, step);
+          break;
+        case "capture":
+          if (step.outputPath) {
+            fs.mkdirSync(path.dirname(step.outputPath), { recursive: true });
+            await page.screenshot({ path: step.outputPath, fullPage: false });
+          }
+          break;
+        default:
+          throw new Error(
+            `unknown step action "${step.action}" (expected navigate | click | fill | press | waitFor | capture)`,
+          );
+      }
+    } catch (error) {
+      throw new Error(
+        `flow step ${n} (${step.action}) failed: ${error.message || String(error)}`,
+      );
+    }
+  }
+
+  return frame;
+}
+
 // `preflight` is injectable (defaulting to the real app-port reachability
 // check) so unit tests that mock the browser can stay network-free.
 async function runScenarioCheck(config, { preflight = assertAppPortReachable } = {}) {
@@ -389,9 +493,14 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
 
   page.on("console", (message) => {
     const issue = handleConsoleMessage(message);
-    if (issue) {
-      pushIssue(issues, issue);
-    }
+    if (!issue) return;
+    // Console errors produced by the scenario's OWN declared error mocks
+    // (status >= 400) are the intended behavior of an error-state scenario,
+    // not a capture problem — skip them so "History - Load Error"-style
+    // scenarios can screenshot the failure UI they exist to demonstrate.
+    const sourceUrl = message.location && message.location().url;
+    if (sourceUrl && isDeclaredErrorMock(httpMocks, sourceUrl)) return;
+    pushIssue(issues, issue);
   });
 
   page.on("requestfailed", (request) => {
@@ -410,13 +519,17 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
     // iframe harness for its background/sizing control. The backend signals
     // the choice via `config.navigation` ("topLevel"); absent (the default)
     // means the iframe harness, so existing callers are unchanged.
-    const { frame, response } =
+    const loadResult =
       config.navigation === "topLevel"
         ? await loadScenarioTopLevel(page, url, { preflight })
         : await loadScenarioInIframe(page, url, {
             background: config.iframeBackground,
             preflight,
           });
+    // `frame` is `let` so a `navigate` flow step (below) can re-point it at the
+    // freshly-loaded route's content frame; `response` is the initial load only.
+    let frame = loadResult.frame;
+    const response = loadResult.response;
     loaded = true;
 
     if (response && response.status() >= 400) {
@@ -437,14 +550,25 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
     const loadingMarkers = Array.isArray(config.loadingMarkers)
       ? config.loadingMarkers
       : readStackLoadingMarkers();
-    await waitForStablePage(page, frame, 10000, loadingMarkers);
+    const stableOutcome = await waitForStablePage(
+      page,
+      frame,
+      10000,
+      loadingMarkers,
+    );
 
     // DOM-stable does not mean done: a client-side data fetch can still be in
     // flight (the loading skeleton cleared but its replacement content hasn't
     // landed). Wait for the network to go quiet — bounded, so a streaming /
     // long-poll endpoint that never idles caps out and captures anyway rather
     // than hanging.
-    await waitForNetworkQuiet(networkTracker);
+    const networkOutcome = await waitForNetworkQuiet(networkTracker);
+
+    // If the page never settled (a loading marker outlasted the wait) or the
+    // network never went quiet, the screenshot likely caught a client-fetched
+    // page mid-load. Compute the non-blocking advisory now, while both settle
+    // signals are in hand, and surface it on the capture-state report below.
+    const settleAdvisory = buildSettleAdvisory(stableOutcome, networkOutcome);
 
     const rejectionMessages = await frame.evaluate(
       () => window.__codeyamUnhandledRejections || [],
@@ -515,14 +639,43 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
       pushIssue(issues, hydrationIssue);
     }
 
-    // Drive the requested interaction (if any) against the settled frame,
-    // then re-settle, so `preview-interact` captures the RESULT of a click /
-    // fill / press (expanded accordion, open modal) without editing app
-    // source. A no-match target throws here and is caught below as a failed
-    // capture with the candidate-labels hint — never a silent blank shot.
-    if (config.interaction) {
+    // Scripted multi-step flow (`editor preview-flow`): drive an ordered
+    // sequence of steps in THIS one browser session — so a behavioral
+    // round-trip (click → observe → click) is captured as the real flow, not N
+    // independent fresh-load snapshots. Each `capture` step writes a numbered
+    // filmstrip frame; the others advance the same page. Mutually exclusive
+    // with the single `interaction` path below. `frame` is reassigned so a
+    // `navigate` step's new content frame backs the rest of the flow and the
+    // final result URL.
+    if (Array.isArray(config.steps) && config.steps.length > 0) {
+      frame = await runFlowSteps(page, frame, config.steps, {
+        url,
+        loadingMarkers,
+        navigation: config.navigation,
+        iframeBackground: config.iframeBackground,
+        preflight,
+      });
+    } else if (config.interaction) {
+      // Drive the requested interaction (if any) against the settled frame,
+      // then re-settle, so `preview-interact` captures the RESULT of a click /
+      // fill / press (expanded accordion, open modal) without editing app
+      // source. A no-match target throws here and is caught below as a failed
+      // capture with the candidate-labels hint — never a silent blank shot.
       await performInteraction(frame, config.interaction);
       await waitForStablePage(page, frame, 5000, loadingMarkers);
+    }
+
+    // Replay the scenario's PERSISTED interaction sequence (if any) in order,
+    // settling between steps, so a declared interactive state — an expanded
+    // section, a revealed hover bar, an open modal — is reproduced on every
+    // capture and recapture, not just in a one-off `preview-interact`. A step
+    // that matches nothing throws and is caught below as a failed capture, so a
+    // sequence that didn't fully run never persists a resting-state screenshot.
+    if (Array.isArray(config.interactions) && config.interactions.length > 0) {
+      await performInteractionSequence(page, frame, config.interactions, {
+        settleMs: 5000,
+        loadingMarkers,
+      });
     }
 
     if (outputPath && loaded) {
@@ -543,6 +696,13 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
     // normal error-check capture is byte-for-byte unchanged.
     if (config.captureState) {
       result.state = await dumpPageState(frame, config.stateSelector);
+      // A populated state that renders blank is exactly when an agent reaches
+      // for capture-state, so bundle the client-fetch advisory with the dump it
+      // explains. Only when the page didn't settle cleanly — the SSR /
+      // props-driven happy path stays advisory-free.
+      if (settleAdvisory) {
+        result.state.advisories = [settleAdvisory];
+      }
     }
 
     return result;
@@ -585,6 +745,7 @@ async function main() {
 
 module.exports = {
   runScenarioCheck,
+  runFlowSteps,
   dumpPageState,
   readStackLoadingMarkers,
   applyBrowserState,

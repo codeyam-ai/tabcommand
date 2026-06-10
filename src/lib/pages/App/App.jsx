@@ -2,12 +2,13 @@ import './App.css';
 
 import React, { useEffect, useState } from 'react';
 import { Tabs, Labels, LoadMeter, Search } from '../../components';
-import { Pages } from '../../../Constants';
+import { ItemTypes, Pages } from '../../../Constants';
 
 import { DragDropContext } from '@hello-pangea/dnd';
 
 import logo from '../../../images/logo.svg';
 import { Chrome } from '../../utils/Chrome';
+import { applyDrag } from '../../utils/dragReducer';
 
 // Pages that have their own plans render a placeholder until those land:
 // URL → url-details, IMPORTEXPORT → import-export, LOAD → load-meter.
@@ -42,9 +43,34 @@ const App = () => {
     return () => chrome.storage.onChanged.removeListener(handleChange);
   }, []);
 
-  // Minimal no-op: the URL lists are drag sources only, and the drop targets
-  // (Labels) don't exist yet. Real grouping/reordering lands in labels-and-dnd.
-  const handleDrag = () => {};
+  // The heart of TabCommand: dropping a tab into a group moves its urlKey into
+  // that label, and dragging a group reorders the grid. The transform itself
+  // lives in the testable `applyDrag` reducer; here we persist the result and
+  // ungroup any real Chrome tabs that left an active label.
+  const handleDrag = (dragResult) => {
+    const labelsElement = document.getElementById('Labels');
+    if (labelsElement) labelsElement.style.overflowY = 'scroll';
+
+    if (!dragResult.destination || !dragResult.destination.droppableId) return;
+
+    Chrome.get('App3', ['labels', 'activeTabs'], ({ labels, activeTabs }) => {
+      const result = applyDrag(dragResult, { labels, activeTabs });
+      if (!result) return;
+
+      result.ungroupTabIds.forEach((tabId) => {
+        if (chrome.tabs.ungroup) chrome.tabs.ungroup(tabId);
+      });
+
+      Chrome.set('App2', { labels: result.labels });
+    });
+  };
+
+  const handleDragStart = (info) => {
+    if (info.type === ItemTypes.URL) {
+      const labelsElement = document.getElementById('Labels');
+      if (labelsElement) labelsElement.style.overflowY = 'hidden';
+    }
+  };
 
   const changePage = (pageName) => {
     Chrome.get('App2', 'uxSettings', ({ uxSettings }) => {
@@ -89,7 +115,7 @@ const App = () => {
           <ComingSoon title="Load" />
         }
         {page.name === Pages.HOME &&
-          <DragDropContext onDragEnd={handleDrag}>
+          <DragDropContext onDragEnd={handleDrag} onDragStart={handleDragStart}>
             <Tabs />
             <Labels />
           </DragDropContext>

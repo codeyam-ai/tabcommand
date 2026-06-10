@@ -1,6 +1,6 @@
 {
   "name": "Home - Empty",
-  "id": "f0e4df4b-01e2-4f1d-8569-4ba27e23001b",
+  "id": "fc0e7c91-be4e-4702-a4da-cc633d263049",
   "url": "/",
   "dimensions": [
     "Desktop"
@@ -8,10 +8,10 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "allUrls": "[]",
+      "labels": "{}",
       "activeTabs": "[]",
-      "autoClosed": "{}",
-      "labels": "{}"
+      "allUrls": "[]",
+      "autoClosed": "{}"
     }
   },
   "scenarioType": "application",

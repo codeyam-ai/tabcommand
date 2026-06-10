@@ -100,6 +100,105 @@
       "runner": "tests"
     },
     {
+      "description": "removing a url drops it from the group's urlKeys in storage",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › removeUrl removes the url from the group urlKeys",
+      "line": 68,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the group renders its title bar and a row for each member url",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › renders the group title and its member urls",
+      "line": 32,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "members split into active (have an open tab) above inactive (saved only)",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › splits members into active and inactive sections",
+      "line": 45,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "editing an existing label renames it, deleting the old map key and keeping urlKeys",
+      "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "format": "vitest",
+      "key": "LabelForm › renames an existing label, deleting the old key",
+      "line": 42,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "submitting a new title writes a label with a derived color and position",
+      "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "format": "vitest",
+      "key": "LabelForm › writes a new label with derived backgroundColor and position",
+      "line": 23,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "clicking the affordance expands the wrapper and reveals the LabelForm",
+      "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
+      "format": "vitest",
+      "key": "LabelFormContainer › expands to reveal the LabelForm when clicked",
+      "line": 28,
+      "registeredAt": "2026-06-10T20:51:13Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the expand prop renders the form open on mount",
+      "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
+      "format": "vitest",
+      "key": "LabelFormContainer › renders expanded when the expand prop is set",
+      "line": 37,
+      "registeredAt": "2026-06-10T20:51:13Z",
+      "runner": "tests"
+    },
+    {
+      "description": "collapsed by default: the Add Group affordance shows but the form does not",
+      "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
+      "format": "vitest",
+      "key": "LabelFormContainer › shows the Add Group affordance and hides the form when collapsed",
+      "line": 20,
+      "registeredAt": "2026-06-10T20:51:13Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the uxSettings-selected label is pinned in the selected section, not the grid",
+      "file": "src/lib/components/Labels/Labels.test.jsx",
+      "format": "vitest",
+      "key": "Labels › pins the selected label above the grid",
+      "line": 41,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "every label in the map renders as a group card",
+      "file": "src/lib/components/Labels/Labels.test.jsx",
+      "format": "vitest",
+      "key": "Labels › renders a group for each label",
+      "line": 28,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "with no labels the empty-state guidance and the Add Group CTA are shown",
+      "file": "src/lib/components/Labels/Labels.test.jsx",
+      "format": "vitest",
+      "key": "Labels › shows the empty-state CTA when there are no labels",
+      "line": 61,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
       "description": "Browser-pinned tabs are filtered out of the Active Tabs list.",
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
@@ -214,6 +313,51 @@
       "key": "Url › shows the medium load indicator for moderate process stats",
       "line": 66,
       "registeredAt": "2026-06-09T18:53:33.858215+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "moving a url out of a group whose member is not an open tab needs no ungroup",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › does not report an ungroup when the moved url has no active tab",
+      "line": 52,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a url dragged from the Tabs sidebar (a non-label source) is inserted into the destination label at the drop index, with nothing to ungroup",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › inserts a url dropped from the sidebar into the destination label",
+      "line": 8,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "moving a url between two groups removes it from the source group's urlKeys, inserts it into the destination at the drop index, and reports the active tab id that must be ungrouped from its Chrome tab group",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › moves a url between groups and reports the tab to ungroup",
+      "line": 29,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a drop with no valid destination is a no-op (returns null)",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › returns null when there is no destination",
+      "line": 97,
+      "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "reordering a group rewrites every label's position to its new index",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › rewrites positions when a group is reordered",
+      "line": 74,
+      "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
     {

@@ -1,12 +1,16 @@
-# regenerated from glossary.json on 2026-06-09T18:47:15Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-10T20:48:03Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 ComingSoon :: src/lib/pages/App/App.jsx :: tags= :: test=src/lib/pages/App/App.test.jsx
-Labels :: src/lib/components/Labels/Labels.jsx :: tags=
+LabelCollection :: src/lib/components/LabelCollection/LabelCollection.jsx :: tags= :: test=src/lib/components/LabelCollection/LabelCollection.test.jsx
+LabelForm :: src/lib/components/LabelForm/LabelForm.jsx :: tags= :: test=src/lib/components/LabelForm/LabelForm.test.jsx
+LabelFormContainer :: src/lib/components/LabelFormContainer/LabelFormContainer.jsx :: tags= :: test=src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx
+Labels :: src/lib/components/Labels/Labels.jsx :: tags= :: test=src/lib/components/Labels/Labels.test.jsx
 LoadMeter :: src/lib/components/LoadMeter/LoadMeter.jsx :: tags=
 Search :: src/lib/components/Search/Search.jsx :: tags=
 Tabs :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
 Url :: src/lib/components/Url/Url.jsx :: tags= :: test=src/lib/components/Url/Url.test.jsx
+applyDrag :: src/lib/utils/dragReducer.js :: tags= :: test=src/lib/utils/dragReducer.test.js
 associateProcess :: service_worker.js :: tags=worker,ported-verbatim,processes,tabs :: test=service_worker.test.js
 central :: service_worker.js :: tags=worker,ported-verbatim,debug :: test=service_worker.test.js
 closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js

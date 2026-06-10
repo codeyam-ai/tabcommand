@@ -65,3 +65,19 @@
 {"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `App › renders the sidebar and the Home page by default`: added from runner `tests` output"}
 {"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Tabs › groups labeled tabs under headings and leaves the rest ungrouped`: added from runner `tests` output"}
 {"timestamp":"2026-06-09T17:34:02Z","kind":"registry-add","message":"registry `Tabs › shows the empty-state explainer when there are no active tabs`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `LabelForm › writes a new label with derived backgroundColor and position`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `LabelCollection › splits members into active and inactive sections`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `Labels › shows the empty-state CTA when there are no labels`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `applyDrag › inserts a url dropped from the sidebar into the destination label`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `applyDrag › does not report an ungroup when the moved url has no active tab`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `applyDrag › rewrites positions when a group is reordered`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `applyDrag › returns null when there is no destination`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `LabelCollection › renders the group title and its member urls`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `LabelCollection › removeUrl removes the url from the group urlKeys`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `LabelForm › renames an existing label, deleting the old key`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `Labels › pins the selected label above the grid`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `applyDrag › moves a url between groups and reports the tab to ungroup`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:41:43Z","kind":"registry-add","message":"registry `Labels › renders a group for each label`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:51:13Z","kind":"registry-add","message":"registry `LabelFormContainer › renders expanded when the expand prop is set`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:51:13Z","kind":"registry-add","message":"registry `LabelFormContainer › expands to reveal the LabelForm when clicked`: added from runner `tests` output"}
+{"timestamp":"2026-06-10T20:51:13Z","kind":"registry-add","message":"registry `LabelFormContainer › shows the Add Group affordance and hides the form when collapsed`: added from runner `tests` output"}

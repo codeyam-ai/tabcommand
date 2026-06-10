@@ -1,0 +1,101 @@
+{
+  "timestamp": "2026-06-10T21:07:48Z",
+  "title": "Labels (groups) + drag-to-organize",
+  "type": "feature",
+  "userRequest": "A Chrome extension for managing browser tabs and browser history",
+  "description": "Filled the empty center of the Home screen with the Labels subsystem (the named groups where users save tabs) and brought drag-to-organize to life by implementing the real onDragEnd that home-and-tabs left as a no-op stub. After this lands the core TabCommand loop works: tabs on the right rail, groups in the center, drag a tab into a group to save it. Deliverables: (1) Four full ports from ../tabcommand/ replacing the Labels stub — LabelForm (title input + Colors swatches; on submit writes/renames the label in the labels map, deriving backgroundColor=Colors[title.length%len] and position when absent, deleting the old key on rename), LabelFormContainer (the collapsible '+ Add Group' affordance with a #BackgroundOverlay click-catcher), LabelCollection (one group card: colored title bar that selects via uxSettings.selectedLabel, a menu with edit/share/delete, a vertical Url Droppable split into active-above-inactive, removeUrl, itself draggable), and Labels (reads labels+uxSettings, sorts by title then position, pins the selected label expanded above the grid, chunks the rest into responsive horizontal Droppable rows, shows the Add Group CTA when empty; matchMedia chunk-length guarded for jsdom). react-beautiful-dnd imports were swapped for the maintained @hello-pangea/dnd to match the rest of the modern app. (2) The real onDragEnd, factored into a pure testable reducer at src/lib/utils/dragReducer.js (applyDrag): for ItemTypes.URL drops it moves a urlKey out of the source label's urlKeys (when the source is a label collection) and into the destination label at the drop index, reporting active-tab ids to ungroup; for ItemTypes.LABEL_COLLECTION drops it reorders by rewriting each label's position. App.jsx's handleDrag calls applyDrag, persists via Chrome.set({labels}), and calls chrome.tabs.ungroup (guarded) for each reported id; the onDragStart overflow tweak was restored. The droppableId/draggableId string schemes match the reference exactly because onDragEnd parses them (a contract). Data model: labels is an object map keyed by title -> { title, backgroundColor, position, urlKeys }, with backgroundColor (not the earlier mis-seeded color); urlKeys||urls is read as a one-line legacy migration guard. TWO FAITHFUL-PORT BUG FIXES surfaced via scenarios: (a) the update() reducer resolved selectedLabel BEFORE labels were populated, so a pre-seeded uxSettings.selectedLabel filtered against an empty array and never pinned — reordered so labels populate first, then selection resolves (runtime click-to-select unaffected); (b) on a genuinely-empty labels map the same-check short-circuited and loading never cleared, hiding the empty-state helper — the initial Chrome.get now clears loading so the 'Click the Add Group icon' guidance renders for a new user. Scenarios: re-seeded home-grouped to backgroundColor/position/urlKeys (was color); added labels-populated (4 colored groups, mixed active/inactive members), labels-selected (Work pinned + expanded full-width above the grid), labels-empty (no labels + active tabs -> Add Group CTA); recaptured the three label-less Home scenarios so their centers reflect the new empty-state render. Tests: applyDrag reducer unit tests (sidebar->label insert, label->label move + ungroup report, no-ungroup-when-inactive, position rewrite on reorder, null on no-destination), plus RTL tests for LabelForm (derive/rename), LabelCollection (members, active/inactive split, removeUrl), LabelFormContainer (collapse/expand), and Labels (renders groups, pins selected, empty CTA); each it() carries a // description backfilled into the test registry. Coverage for the chrome-extension-react stack (isolate unsupported) is satisfied via testFile glossary satisfiers for all four components and applyDrag. Housekeeping: removed the stale gitignored build/ artifacts and force-rebuilt the dependency graph (both had been polluting the audit/staleness sweep since session start). Acceptance met: 89/89 tests pass, ESLint clean, verify-build green, audit passes with zero failures, the labels-populated/selected/empty captures render correctly, and session-finalize is green across all 5 phases. Out of scope (later plans): Search/SearchResults (search), LoadMeter/Load (load-meter), UrlDetails (url-details), ImportExport (import-export); the Closer auto-close engine and service_worker.js; the crxjs popup build gap.",
+  "modifiedFiles": [
+    {
+      "path": "src/lib/components/Labels/Labels.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelForm/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelFormContainer/LabelFormContainer.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelFormContainer/LabelFormContainer.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelFormContainer/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/dragReducer.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/dragReducer.test.js",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-grouped.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labels-populated.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labels-selected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labels-empty.json",
+      "status": "added"
+    }
+  ]
+}

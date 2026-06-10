@@ -1,0 +1,127 @@
+.LabelCollection {
+  width: 30%;
+  margin: 15px 0 15px 3%;
+  background-color: #ececec;
+  border-radius: 12px;
+  position: relative;
+  /* overflow-x: hidden; */
+  -webkit-box-shadow: 2px 2px 8px 0px rgb(0 0 0 / 10%);
+  box-shadow: -2px 2px 8px 0px rgb(0 0 0 / 10%);
+  display: flex;
+  flex-direction: column;
+}
+
+.LabelCollection .LabelCollection-urls {
+  height: 240px;
+  overflow-y: scroll;
+  flex-grow: 1;
+}
+
+.LabelCollection .LabelCollection-urls.UrlOver {
+  background-color: #fcfcfc;
+}
+
+.LabelCollection-urls-active {
+  background-color: #fcfcfc;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.LabelCollection-urls-inactive {
+  padding: 12px;
+  overflow: hidden;
+}
+
+.LabelCollections-selected .LabelCollection {
+  min-height: 300px;
+  width: 96%;
+}
+
+.LabelCollections-selected .LabelCollection .LabelCollection-urls {
+  min-height: 270px;
+  height: auto;
+  overflow-y: auto;
+}
+
+.LabelCollections-selected .LabelCollection .Url-stats {
+  margin-right: 15px;
+}
+
+.LabelCollection-title {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  border-bottom: 1px solid #ccc;
+  padding: 12px;
+  text-align: center;
+  color: white;
+  cursor: pointer;
+}
+
+.LabelCollection-title h3 {
+  margin: 0 0 0 24px;
+}
+
+.LabelCollection-menuButton {
+  float: right;
+  padding: 0 3px;
+  cursor: pointer;
+  color: white;
+  font-size: 18px;
+}
+
+.LabelCollection-overUrl {
+  border-radius: 12px;
+  border: 1px dashed #666;
+  height: 24px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.LabelCollection-menu {
+  position: absolute;
+  z-index: 10;
+  width: 180px;
+  background-color: white;
+  padding: 12px;
+  border-radius: 12px;
+  top: 30px;
+  right: 21px;
+  text-align: center;
+  -webkit-box-shadow: -6px 7px 15px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: -6px 7px 15px 3px rgba(0, 0, 0, 0.25);
+}
+
+.LabelCollection-menu .LabelCollection-menu-section {
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.LabelCollection-menu .LabelForm {
+  margin: 0;
+}
+
+.LabelCollection-menu-actions {
+  text-align: left;
+}
+
+.LabelCollection-menu-actions button {
+  display: block;
+  border: none;
+  background-color: inherit;
+  margin-bottom: 6px;
+}
+
+.LabelCollection-menu-actions button:last-child {
+  margin-bottom: 0;
+}
+
+.LabelCollection-menu-actions button .anticon {
+  margin-right: 3px;
+  font-size: 15px;
+}
+
+.LabelCollection-empty {
+  text-align: center;
+  padding: 45px 18px;
+  font-size: 12pt;
+}

@@ -1,0 +1,40 @@
+.LabelFormContainer {
+  position: relative;
+  padding: 6px 27px;
+  width: 120px;
+}
+
+.LabelFormContainer .LabelFormContainer-addGroup {
+  margin-left: 6px;
+  margin-bottom: 0;
+  font-weight: 400;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.LabelFormContainer .LabelFormContainer-addGroup-button {
+  padding: 2px 6px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.LabelFormContainer .LabelFormContainer-addGroup-button,
+.LabelFormContainer .LabelFormContainer-wrapper {
+  background-color: white;
+  border: 1px solid #333333;
+  border-radius: 6px;
+  text-align: center;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.LabelFormContainer .LabelFormContainer-wrapper {
+  position: absolute;
+  width: 180px;
+  top: 12px;
+  left: 27px;
+  z-index: 10;
+  padding: 6px;
+  -webkit-box-shadow: -6px 7px 15px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: -6px 7px 15px 3px rgba(0, 0, 0, 0.25);
+}

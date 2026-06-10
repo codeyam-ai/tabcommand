@@ -98,10 +98,30 @@ async function attachHttpMocks(page, httpMocks) {
   });
 }
 
+
+// True when a console "Failed to load resource" error at `url` corresponds to
+// a mock this scenario DECLARED with an error status (>= 400). An intentional
+// error-state scenario (e.g. a History tab mocking `GET /api/history` -> 500)
+// must not fail its own capture on the console noise its mock deliberately
+// produces. Console errors carry no HTTP method, so any method's mock on a
+// matching target counts.
+function isDeclaredErrorMock(httpMocks, url) {
+  const candidates = normalizeMockCandidates(url);
+  for (const [key, mock] of Object.entries(httpMocks || {})) {
+    const spaceIdx = key.indexOf(" ");
+    if (spaceIdx === -1) continue;
+    const target = key.slice(spaceIdx + 1);
+    if (!candidates.includes(target)) continue;
+    if ((mock.status || 200) >= 400) return true;
+  }
+  return false;
+}
+
 module.exports = {
   normalizeMockCandidates,
   findHttpMock,
   mockedTargets,
   requestTargetsMock,
   attachHttpMocks,
+  isDeclaredErrorMock,
 };

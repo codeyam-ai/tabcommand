@@ -1,0 +1,30 @@
+{
+  "name": "Labels - Populated",
+  "id": "c3c6f208-b079-4d84-af07-dec0fa95d597",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\"]},\"Social\":{\"title\":\"Social\",\"backgroundColor\":\"#D01882\",\"position\":3,\"urlKeys\":[\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\"]}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.notion.so/codeyam/Roadmap\",\"tabKey\":\"tab-303\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-304\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"tabKey\":\"tab-305\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://twitter.com/home\",\"tabKey\":\"tab-306\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-307\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "url-https://www.etsy.com/favorites": "{\"title\":\"Favorites – Etsy\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://twitter.com/home": "{\"title\":\"Home / X\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":204800,\"cpu\":31000,\"privateMemory\":2100000000,\"jsMemoryAllocated\":1680000000,\"jsMemoryUsed\":1260000000}}",
+      "url-https://overreacted.io": "{\"title\":\"overreacted — A blog by Dan Abramov\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.amazon.com/wishlist": "{\"title\":\"Your Wish List – Amazon\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "autoClosed": "{}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\",\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\",\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\",\"url-https://news.ycombinator.com\"]",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.reddit.com/r/programming": "{\"title\":\"r/programming\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

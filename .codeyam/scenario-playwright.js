@@ -346,7 +346,7 @@ async function waitForStablePage(page, target, timeoutMs = 10000, loadingMarkers
           outcome: "stabilized",
           elapsedMs: Date.now() - started,
         });
-        return;
+        return { stabilized: true, hadLoadingMarkers: false };
       }
     } else {
       stableCount = 0;
@@ -356,6 +356,9 @@ async function waitForStablePage(page, target, timeoutMs = 10000, loadingMarkers
   }
   // Hit the cap without stabilizing — record WHY: a persistent loading marker
   // (app stuck) vs HTML still mutating each poll (HMR / animation / re-render).
+  // The returned `hadLoadingMarkers` is the signal the capture advisory keys
+  // off: a marker still on screen at the cap means the page never finished its
+  // (likely client-side) load, so the screenshot caught its loading state.
   logCaptureTiming("stable-page", {
     outcome: "timed-out",
     elapsedMs: Date.now() - started,
@@ -363,6 +366,7 @@ async function waitForStablePage(page, target, timeoutMs = 10000, loadingMarkers
     lastHadLoadingMarkers,
     lastHtmlStillChanging: lastHtmlChanged,
   });
+  return { stabilized: false, hadLoadingMarkers: lastHadLoadingMarkers };
 }
 
 // `preflight` is injectable so unit tests that drive a mock page can stay
@@ -507,10 +511,84 @@ async function performInteraction(frame, interaction, { timeoutMs = 5000 } = {})
     case "press":
       await locator.press(value || "Enter", { timeout: timeoutMs });
       break;
+    case "hover":
+      // Reveals hover-only affordances (an action bar, a tooltip) — one of the
+      // most common ephemeral states a resting-render screenshot misses.
+      await locator.hover({ timeout: timeoutMs });
+      break;
     default:
       throw new Error(
-        `preview-interact: unknown action "${action}" (expected click | fill | press)`,
+        `preview-interact: unknown action "${action}" (expected click | fill | press | hover)`,
       );
+  }
+}
+
+// Hold until a visible-text or selector predicate becomes true, bounded by a
+// wall-clock timeout. Behavioral demos hinge on transient states (an overlay
+// appears, then a new round renders); a flow step waits for that real signal
+// instead of a fixed sleep — the same "hold to a real signal with a safety
+// bound" rule the rest of the capture pipeline follows. THROWS on timeout
+// naming the predicate and the bound, so the capture script's outer catch
+// turns a never-appearing predicate into an actionable failure rather than an
+// infinite hang. `text` is matched case-insensitively as a substring (the
+// agent reliably knows the copy it rendered); `selector` is a CSS selector.
+async function waitForPredicate(frame, predicate, { defaultTimeoutMs = 8000 } = {}) {
+  const { text, selector, timeoutMs } = predicate || {};
+  const bound =
+    typeof timeoutMs === "number" && timeoutMs > 0 ? timeoutMs : defaultTimeoutMs;
+
+  let locator;
+  let desc;
+  if (typeof text === "string" && text.length > 0) {
+    locator = frame.getByText(text, { exact: false }).first();
+    desc = `text "${text}"`;
+  } else if (typeof selector === "string" && selector.length > 0) {
+    locator = frame.locator(selector).first();
+    desc = `selector "${selector}"`;
+  } else {
+    throw new Error("waitFor: predicate requires a `text` or `selector` target");
+  }
+
+  try {
+    await locator.waitFor({ state: "visible", timeout: bound });
+  } catch (_) {
+    throw new Error(
+      `waitFor: predicate ${desc} did not become visible within ${bound}ms`,
+    );
+  }
+}
+
+// Drive an ordered sequence of interactions against the settled frame, settling
+// the page between each so a later step sees the DOM the earlier one produced.
+// This is the persisted-scenario path (`scenario.interactions`): unlike the
+// single fire-and-forget `preview-interact`, the whole sequence is replayed on
+// every capture and recapture. Any step that matches nothing throws (with the
+// candidate-labels hint from `performInteraction`), and the caller turns that
+// into a failed capture — never a silent resting-state screenshot for a
+// sequence that didn't fully run.
+// `settle` is injectable so unit tests that drive a mock frame stay
+// network-free and fast; production callers use the default real
+// `waitForStablePage` re-settle between steps.
+async function performInteractionSequence(
+  page,
+  frame,
+  interactions,
+  {
+    timeoutMs = 5000,
+    settleMs = 5000,
+    loadingMarkers,
+    settle = waitForStablePage,
+  } = {},
+) {
+  for (let i = 0; i < interactions.length; i += 1) {
+    try {
+      await performInteraction(frame, interactions[i], { timeoutMs });
+    } catch (err) {
+      // Prefix the failing step's index so a miss in a multi-step sequence is
+      // locatable, matching the model-side `interactions[i]` validator.
+      throw new Error(`interactions[${i}]: ${err.message}`);
+    }
+    await settle(page, frame, settleMs, loadingMarkers);
   }
 }
 
@@ -531,4 +609,6 @@ module.exports = {
   loadScenarioTopLevel,
   collectInteractiveLabels,
   performInteraction,
+  waitForPredicate,
+  performInteractionSequence,
 };
