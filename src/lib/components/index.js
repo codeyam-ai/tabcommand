@@ -5,4 +5,6 @@ export { LabelFormContainer } from "./LabelFormContainer";
 export { LabelCollection } from "./LabelCollection";
 export { Labels } from "./Labels";
 export { LoadMeter } from "./LoadMeter";
+export { LoadUrl } from "./LoadUrl";
+export { LoadProcesses } from "./LoadProcesses";
 export { Search } from "./Search";

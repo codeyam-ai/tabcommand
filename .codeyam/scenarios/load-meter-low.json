@@ -1,0 +1,23 @@
+{
+  "name": "Load Meter - Low",
+  "id": "e1440737-0599-4c2c-9dbc-500217575ce4",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "labels": "{\"Daily\": {\"title\": \"Daily\", \"backgroundColor\": \"#E47415\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\", \"url-https://react.dev/learn\"]}}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start – React\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-301\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://react.dev/learn\", \"tabKey\": \"tab-302\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://news.ycombinator.com\", \"tabKey\": \"tab-303\", \"pinned\": false, \"tabCommandPinned\": false}]",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "processTotals": "{\"cpu\": 24, \"privateMemory\": 650000000, \"jsMemoryUsed\": 300000000}",
+      "autoClosed": "{}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand — GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://react.dev/learn\", \"url-https://news.ycombinator.com\"]"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

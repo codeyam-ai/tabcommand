@@ -1,0 +1,96 @@
+.Load-raw {
+  width: 320px;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-left: 20px;
+  border-left: 1px solid #e3e6ec;
+  box-sizing: border-box;
+}
+
+/* No seeded/live process data -> collapse the panel so it never reserves a
+   blank column next to the URL grid. */
+.Load-raw:empty {
+  display: none;
+  border: none;
+}
+
+.Load-raw-heading {
+  margin: 0 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #858ca1;
+}
+
+.Load-raw-row {
+  padding: 12px 0 14px;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.Load-raw-row:last-child {
+  border-bottom: none;
+}
+
+.Load-raw-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #243156;
+}
+
+.Load-raw-pid {
+  font-weight: 700;
+  color: #1873E4;
+}
+
+.Load-raw-task {
+  color: #4b5563;
+}
+
+.Load-raw-task:not(:last-child)::after {
+  content: " ·";
+  color: #b6bcc8;
+}
+
+.Load-raw-metric {
+  margin-top: 8px;
+}
+
+.Load-raw-metric-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.Load-raw-metric-value {
+  font-variant-numeric: tabular-nums;
+  color: #243156;
+}
+
+.Load-raw-bar {
+  height: 6px;
+  width: 100%;
+  border-radius: 12px;
+  background-color: #eceef2;
+  overflow: hidden;
+}
+
+.Load-raw-bar-fill {
+  height: 100%;
+  border-radius: 12px;
+}
+
+.Load-raw-bar-cpu {
+  background-color: #1873E4;
+}
+
+.Load-raw-bar-memory {
+  background-color: #6f4fd8;
+}

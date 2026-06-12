@@ -1,0 +1,67 @@
+{
+  "views": {
+    "Home": {
+      "empty": {
+        "status": "covered"
+      },
+      "single": {
+        "status": "n-a",
+        "reason": "A single active tab is a thinner typical; the sidebar gauge and grid layout are unchanged."
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "covered"
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "Home reads synchronous localStorage; there is no async loading state."
+      },
+      "edge": {
+        "status": "covered"
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "No failure path renders differently on the Home view."
+      },
+      "key-interaction": {
+        "status": "n-a",
+        "reason": "This feature's Home interaction (click the LoadMeter gauge to open Load) is shown in the demo-flow filmstrip; drag-to-organize is covered by the prior Labels plan."
+      }
+    },
+    "Load": {
+      "empty": {
+        "status": "n-a",
+        "reason": "An empty Load page is just the heading with no URL cards; no dedicated empty-state UI to demonstrate (covered by the Load unit test)."
+      },
+      "single": {
+        "status": "n-a",
+        "reason": "One active tab is a thinner typical with identical card layout."
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "n-a",
+        "reason": "load-page's 7 tabs already exercise the wrapping card grid; no distinct overflow/truncation treatment."
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "The URL list reads synchronous localStorage; there is no async loading state."
+      },
+      "edge": {
+        "status": "n-a",
+        "reason": "load-page includes a long Gmail title exercising title wrap; no separate edge state needed."
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "No failure path renders differently; localStorage reads cannot fail visibly."
+      },
+      "key-interaction": {
+        "status": "n-a",
+        "reason": "Gauge to Load and Home-link back navigation is shown in the demo-flow filmstrip, not a static app scenario."
+      }
+    }
+  }
+}

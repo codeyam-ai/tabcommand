@@ -144,7 +144,16 @@ export function createChromeShim() {
     },
     processes: {
       onUpdatedWithMemory: {
-        addListener: () => {},
+        // The real chrome.processes API streams live per-process CPU/memory
+        // samples, which don't exist outside a packaged extension. For the
+        // preview / dev server we surface any seeded `processes` snapshot once,
+        // so the Load page's raw per-process table can be demonstrated. With no
+        // seed this stays a no-op (the table renders empty), exactly as before.
+        addListener: (fn) => {
+          if (typeof fn === 'function' && store.processes && Object.keys(store.processes).length > 0) {
+            defer(fn, store.processes);
+          }
+        },
         removeListener: () => {},
       },
     },

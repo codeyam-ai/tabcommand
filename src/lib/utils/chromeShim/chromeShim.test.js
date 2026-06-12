@@ -99,6 +99,28 @@ describe('chromeShim', () => {
     expect(chrome.runtime.getURL('index.html')).toBe('index.html');
   });
 
+  // a seeded `processes` snapshot is delivered once to a processes listener, so
+  // the Load page's raw per-process table can render in the preview
+  it('emits a seeded processes snapshot to onUpdatedWithMemory listeners', async () => {
+    const snapshot = { p1: { tasks: [{ title: 'Gmail', tabId: 206 }], cpu: 48, privateMemory: 1, jsMemoryUsed: 1 } };
+    window.localStorage.setItem('processes', JSON.stringify(snapshot));
+    installChromeShim();
+    const received = await new Promise((resolve) =>
+      chrome.processes.onUpdatedWithMemory.addListener(resolve)
+    );
+    expect(received).toEqual(snapshot);
+  });
+
+  // with no seeded processes the listener stays a no-op (table renders empty)
+  it('does not emit to processes listeners when nothing is seeded', async () => {
+    installChromeShim();
+    let called = false;
+    chrome.processes.onUpdatedWithMemory.addListener(() => { called = true; });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(called).toBe(false);
+  });
+
   // install is inert when a real extension chrome.storage.local already exists
   it('is inert when a real chrome.storage.local is present', () => {
     const realChrome = { storage: { local: { get() {}, set() {} } } };

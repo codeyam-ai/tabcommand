@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "ui": {
-    "total": 24,
+    "total": 25,
     "labels": [
       [
         1,
@@ -65,38 +65,42 @@
       ],
       [
         16,
-        "App Scenarios"
+        "Curate Scenarios"
       ],
       [
         17,
-        "Present"
+        "App Scenarios"
       ],
       [
         18,
-        "Reconcile"
+        "Present"
       ],
       [
         19,
-        "Finalize"
+        "Reconcile"
       ],
       [
         20,
-        "Journal"
+        "Finalize"
       ],
       [
         21,
-        "Pre-Commit Sync"
+        "Journal"
       ],
       [
         22,
-        "Commit"
+        "Pre-Commit Sync"
       ],
       [
         23,
-        "Push"
+        "Commit"
       ],
       [
         24,
+        "Push"
+      ],
+      [
+        25,
         "Feature Complete"
       ]
     ],
@@ -163,38 +167,42 @@
       ],
       [
         16,
-        "Create app-level scenarios that show full pages with realistic data."
+        "Curate the existing app-scenario set — review, consolidate, dedup, and edit in place — before registering new scenarios."
       ],
       [
         17,
-        "Final approval gate — recapture screenshots and present a summary of all work to the user."
+        "Create app-level scenarios that show full pages with realistic data."
       ],
       [
         18,
-        "Run the audit gate, reconcile any registry/glossary drift until clean."
+        "Final approval gate — recapture screenshots and present a summary of all work to the user."
       ],
       [
         19,
-        "Finalize the session — run the full suite once."
+        "Run the audit gate, reconcile any registry/glossary drift until clean."
       ],
       [
         20,
-        "Create or update the journal entry documenting what was built."
+        "Finalize the session — run the full suite once."
       ],
       [
         21,
-        "Sync local state with the remote so the next commit lands on a merged tree."
+        "Create or update the journal entry documenting what was built."
       ],
       [
         22,
-        "Commit all changes to git."
+        "Sync local state with the remote so the next commit lands on a merged tree."
       ],
       [
         23,
-        "Push the branch to the remote repository."
+        "Commit all changes to git."
       ],
       [
         24,
+        "Push the branch to the remote repository."
+      ],
+      [
+        25,
         "Fire the feature-complete modal — the cycle ends here."
       ]
     ],
@@ -261,38 +269,42 @@
       ],
       [
         16,
-        "Create app-level scenarios — do NOT set `componentName`. Do NOT modify application code."
+        "Curate the existing app-scenario set — review, consolidate, dedup, retire obsolete, edit in place. Do NOT register new scenarios in this step."
       ],
       [
         17,
-        "Mandatory approval gate. Recapture screenshots, present, AskUserQuestion. Do NOT skip — reconcile fires AFTER this gate."
+        "Create app-level scenarios — do NOT set `componentName`. Do NOT modify application code."
       ],
       [
         18,
-        "Run the audit gate in partial-run mode and reconcile drift. Do NOT pre-emptively run flag-free `refresh-tests`."
+        "Mandatory approval gate. Recapture screenshots, present, AskUserQuestion. Do NOT skip — reconcile fires AFTER this gate."
       ],
       [
         19,
-        "Finalize: pick `session-finalize` (~7 min full suite) or `session-checkpoint --defer` (~30 s). Both stamp the relevant state; do not bypass the menu."
+        "Run the audit gate in partial-run mode and reconcile drift. Do NOT pre-emptively run flag-free `refresh-tests`."
       ],
       [
         20,
-        "Create or update the journal entry. Do NOT include a timestamp — it is auto-generated. The journal entry's commit-SHA association is derived at read time from `git log --diff-filter=A` (see history-show-all-commits plan); do NOT write a `commitSha` field by hand."
+        "Finalize: pick `session-finalize` (~7 min full suite) or `session-checkpoint --defer` (~30 s). Both stamp the relevant state; do not bypass the menu."
       ],
       [
         21,
-        "Run `editor pre-commit-sync`. Do NOT skip — this is the enforced phase that catches remote drift and auto-recovers state."
+        "Create or update the journal entry. Do NOT include a timestamp — it is auto-generated. The journal entry's commit-SHA association is derived at read time from `git log --diff-filter=A` (see history-show-all-commits plan); do NOT write a `commitSha` field by hand."
       ],
       [
         22,
-        "Commit all changes. Do NOT push — that happens at the push slug."
+        "Run `editor pre-commit-sync`. Do NOT skip — this is the enforced phase that catches remote drift and auto-recovers state."
       ],
       [
         23,
-        "Check for a git remote and offer to push. WAIT for the user's answer before starting the next feature."
+        "Commit all changes. Do NOT push — that happens at the push slug."
       ],
       [
         24,
+        "Check for a git remote and offer to push. WAIT for the user's answer before starting the next feature."
+      ],
+      [
+        25,
         "Fire the feature-complete modal. WAIT for the user's choice. Do NOT start a new feature without explicit instruction."
       ]
     ],
@@ -359,38 +371,42 @@
       ],
       [
         16,
-        "ui-app-scenarios"
+        "ui-app-scenarios-curate"
       ],
       [
         17,
-        "ui-present"
+        "ui-app-scenarios"
       ],
       [
         18,
-        "reconcile"
+        "ui-present"
       ],
       [
         19,
-        "ui-journal"
+        "reconcile"
       ],
       [
         20,
-        "pre-commit-sync"
+        "ui-journal"
       ],
       [
         21,
-        "finalize"
+        "pre-commit-sync"
       ],
       [
         22,
-        "commit"
+        "finalize"
       ],
       [
         23,
-        "push"
+        "commit"
       ],
       [
         24,
+        "push"
+      ],
+      [
+        25,
         "feature-complete"
       ]
     ],
@@ -405,6 +421,7 @@
       "dependency-graph-rebuild",
       "isolation-routes",
       "ui-component-scenarios",
+      "ui-app-scenarios-curate",
       "ui-app-scenarios",
       "reconcile",
       "finalize"

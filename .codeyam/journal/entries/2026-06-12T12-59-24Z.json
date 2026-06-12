@@ -1,0 +1,283 @@
+{
+  "timestamp": "2026-06-12T12:59:24Z",
+  "title": "LoadMeter gauge + Load page",
+  "type": "feature",
+  "userRequest": "## Summary\n\nSixth plan in the modern TabCommand reproduction (reference on `main` at\n`../tabcommand/`). Builds the sidebar **LoadMeter** — the circular CPU/memory gauge —\nand the **Load** page it links to. Removes the `LoadMeter` sidebar stub and replaces\nthe `LOAD` page placeholder with the real page.\n\n## Reference map\n\n| Concern | Reference (read-only) | This plan |\n|---|---|---|\n| Circular gauge | `../tabcommand/src/lib/components/LoadMeter/LoadMeter.jsx` (+ `.css`) | Full port; remove stub |\n| Load page | `../tabcommand/src/lib/pages/Load/Load.jsx` (+ `.css`) | Full port; replace placeholder |\n| Pages barrel | `../tabcommand/src/lib/pages/index.js` | Add `Load` export |\n\n## Data model\n\n- **New storage key `processTotals`** = `{ cpu: number, privateMemory: number,\n  jsMemoryUsed: number }`. `LoadMeter` reads it and fills two arcs:\n  `cpu` against `max.cpu = 150` (base 0) and `memory = privateMemory + jsMemoryUsed`\n  against `max.memory = 5GiB` (base 500MiB). (No default needed — the shim hydrates all\n  localStorage keys after the home-and-tabs fix.)\n- The **Load page** reads `activeTabs` → per-URL objects for its URL list, and subscribes\n  to `chrome.processes.onUpdatedWithMemory` for the raw per-process table. In preview the\n  `chrome.processes` shim is a no-op, so the raw table is empty and the URL list renders\n  from seeded storage (see Key Decisions).\n\n## Key Decisions\n\n- **`gradient-path` gauge: reproduce, but verify visually via capture, not jsdom.**\n  `LoadMeter` uses `GradientPath` to render an SVG arc and then mutates per-segment\n  `fill`/`stroke` to show the filled fraction. This is real-DOM/SVG work that jsdom can't\n  meaningfully render. Port it faithfully (it's the distinctive sidebar visual), but keep\n  **unit tests on the data binding** (reads `processTotals`, computes the fill percent),\n  and rely on the **codeyam screenshot** for the visual. Guard any\n  `document.querySelector('#cpu path')` access so a missing node (jsdom) no-ops instead\n  of throwing.\n\n- **Load page's raw process table is preview-empty by design.** The per-process rows come\n  from the live `chrome.processes` API, which doesn't exist outside a packaged extension\n  and isn't storage-backed — so it can't be seeded. The page's **URL list** (from\n  `activeTabs` + per-URL objects) is seedable and is what the capture shows. Note this in\n  the scenario rather than faking process rows. (A future enhancement could let the shim's\n  `processes.onUpdatedWithMemory` emit seeded sample data; out of scope here.)\n\n- **`processTotals` is seed-only in preview.** In the real extension the service worker\n  writes it; in preview each scenario seeds it directly to drive the gauge to a chosen\n  level. This is the same pattern as the rest of the app's state.\n\n## Implementation\n\n1. **`LoadMeter`**: full port (svg gauge, `processTotals` read + `onChanged`, gradient\n   segment fill). Guard DOM lookups for jsdom. Replace stub; re-export from the barrel.\n   Wire the sidebar `<LoadMeter/>` (click → `changePage(LOAD)`, already wired in App).\n2. **`Load` page**: full port (home link → `uxSettings.page = HOME`; URL list from\n   `activeTabs`/per-URL; raw process table driven by the `chrome.processes` listener —\n   empty in preview). Add to `src/lib/pages/index.js`; render on the `LOAD` page in App\n   (replacing the placeholder).\n3. **Seeds**: `load-meter-low` and `load-meter-high` (different `processTotals` to show\n   the gauge fill differ), and a `load-page` scenario (`uxSettings.page = {name: LOAD}`\n   + seeded `activeTabs`/URLs so the page's URL list renders). Register + capture.\n4. **Tests** (Vitest + RTL):\n   - `LoadMeter.test.jsx`: reads `processTotals`; computes the expected fill percent for\n     given cpu/memory; updates on `onChanged`. (No assertion on gradient pixels.)\n   - `Load.test.jsx`: renders the URL list from seeded `activeTabs`; home link writes\n     `uxSettings.page`; tolerates the no-op `chrome.processes` listener.\n   - Each `it()` keeps its `//` description.\n\n## Verification\n\n1. `npm test` green; lint clean; `editor verify-build` green.\n2. `load-meter-low` vs `load-meter-high` captures show visibly different gauge fills in\n   the sidebar.\n3. `load-page` capture shows the Load page with its URL list (raw process table empty —\n   expected in preview).\n4. Dev server: navigating to Load via the gauge works; back-home link works. No `chrome`\n   errors (the `processes` listener no-ops cleanly).\n\n## Out of scope\n\n- `UrlDetails` (`url-details`), `ImportExport` (`import-export`). Seeding live\n  `chrome.processes` data; `service_worker.js`; the crxjs popup.js build gap.",
+  "description": "Built the sidebar LoadMeter gauge — two concentric SVG arcs (CPU inner, memory outer) whose fill reflects the new processTotals storage key, rendered via gradient-path; rebuilt as a single robust layout-effect so the async processTotals load no longer drops the gradient coloring. Built the Load page it links to: a uniform grid of per-tab URL cards showing CPU/memory load readouts (severity-colored bars via the shared summarizeProcessLoad util, deduped out of the Url component) and a raw per-process panel driven by chrome.processes — the chrome shim now emits a seeded processes snapshot so the table renders in preview. Extracted gaugeFillPercent, deriveGaugeTotals, humanReadableNumber, summarizeProcessLoad utils and LoadUrl/LoadProcesses components, each tested (129 tests).",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/.last-reconcile.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/cache/step-metadata.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/per-test-evidence.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/load-meter.md\t.codeyam/plans/completed/load-meter.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/reconciliation-log.jsonl",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/runner-timing-history.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/all.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-run-marker.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/load-meter-high.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/load-meter-low.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/load-page.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadProcesses/LoadProcesses.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadProcesses/LoadProcesses.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadProcesses/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadUrl/LoadUrl.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadUrl/LoadUrl.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadUrl/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/Load/Load.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/Load/Load.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/Load/Load.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/Load/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/deriveGaugeTotals.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/deriveGaugeTotals.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/gaugeFillPercent.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/gaugeFillPercent.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/humanReadableNumber.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/humanReadableNumber.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/processLoad.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/processLoad.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Load Page",
+      "screenshotPath": "load-page--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 129,
+    "passed": 129,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 129,
+        "passed": 129
+      }
+    ]
+  }
+}

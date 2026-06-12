@@ -1,0 +1,30 @@
+{
+  "name": "Load Meter - High",
+  "id": "73f19bed-86cd-434f-b97c-0c3ec5b5e4cf",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-401\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.figma.com/file/tabcommand\", \"tabKey\": \"tab-402\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.notion.so/codeyam/Roadmap\", \"tabKey\": \"tab-403\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://linear.app/codeyam/board\", \"tabKey\": \"tab-404\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://react.dev/learn\", \"tabKey\": \"tab-405\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"tabKey\": \"tab-406\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.typescriptlang.org/docs\", \"tabKey\": \"tab-407\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.youtube.com/watch\", \"tabKey\": \"tab-408\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://open.spotify.com/playlist\", \"tabKey\": \"tab-409\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://mail.google.com/mail/u/0\", \"tabKey\": \"tab-410\", \"pinned\": false, \"tabCommandPinned\": false}]",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\": \"Roadmap – Notion\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "labels": "{\"Work\": {\"title\": \"Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\", \"url-https://www.notion.so/codeyam/Roadmap\", \"url-https://linear.app/codeyam/board\"]}, \"Reading\": {\"title\": \"Reading\", \"backgroundColor\": \"#1F8E43\", \"position\": 1, \"urlKeys\": [\"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://www.typescriptlang.org/docs\"]}, \"Media\": {\"title\": \"Media\", \"backgroundColor\": \"#D01882\", \"position\": 2, \"urlKeys\": [\"url-https://www.youtube.com/watch\", \"url-https://open.spotify.com/playlist\"]}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand — GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\", \"url-https://www.notion.so/codeyam/Roadmap\", \"url-https://linear.app/codeyam/board\", \"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://www.typescriptlang.org/docs\", \"url-https://www.youtube.com/watch\", \"url-https://open.spotify.com/playlist\", \"url-https://mail.google.com/mail/u/0\"]",
+      "url-https://linear.app/codeyam/board": "{\"title\": \"Sprint Board – Linear\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://open.spotify.com/playlist": "{\"title\": \"Focus Flow – Spotify\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://www.typescriptlang.org/docs": "{\"title\": \"TypeScript: Documentation\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://www.youtube.com/watch": "{\"title\": \"Build Week Keynote – YouTube\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start – React\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "processTotals": "{\"cpu\": 132, \"privateMemory\": 3400000000, \"jsMemoryUsed\": 1400000000}",
+      "autoClosed": "{}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\": \"TabCommand UI – Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\": \"Inbox (1,284) - hello@codeyam.com - Gmail\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

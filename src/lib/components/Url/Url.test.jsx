@@ -6,7 +6,7 @@ import { installChromeShim } from '../../utils/chromeShim';
 import Url from './Url';
 
 const seed = (key, value) => window.localStorage.setItem(key, JSON.stringify(value));
-// Process samples chosen to land on each load level. simpleProcessStats averages:
+// Process samples chosen to land on each load level. summarizeProcessLoad averages:
 //   cpuAvg = cpu/100/samples, memAvg = privateMemory/1064000/samples
 // Levels: excessive (cpu>54||mem>600), high (>36||>400), medium (>18||>200), else low.
 const procFor = (cpuAvg, memAvg, samples = 10) => ({

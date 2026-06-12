@@ -81,3 +81,20 @@
 {"timestamp":"2026-06-10T20:51:13Z","kind":"registry-add","message":"registry `LabelFormContainer › renders expanded when the expand prop is set`: added from runner `tests` output"}
 {"timestamp":"2026-06-10T20:51:13Z","kind":"registry-add","message":"registry `LabelFormContainer › expands to reveal the LabelForm when clicked`: added from runner `tests` output"}
 {"timestamp":"2026-06-10T20:51:13Z","kind":"registry-add","message":"registry `LabelFormContainer › shows the Add Group affordance and hides the form when collapsed`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `humanReadableNumber › parses a numeric string`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `humanReadableNumber › preserves a fractional value`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `deriveGaugeTotals › reads cpu and sums private + js-used memory`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `humanReadableNumber › groups millions`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `deriveGaugeTotals › tolerates a missing record`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `humanReadableNumber › groups thousands with separators`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `gaugeFillPercent › returns 100 when value equals base`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `gaugeFillPercent › returns 0 when value reaches base + max`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `gaugeFillPercent › returns a negative percent when value exceeds base + max`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `deriveGaugeTotals › reads cpu alone with zero memory`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `gaugeFillPercent › returns 50 at the half-way point`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `gaugeFillPercent › computes the memory arc fraction with a non-zero base`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `humanReadableNumber › returns undefined for falsy values`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `deriveGaugeTotals › sums when only one memory field is present`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `deriveGaugeTotals › returns zeros for an empty record`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `gaugeFillPercent › subtracts the base before computing the fraction`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `humanReadableNumber › leaves sub-thousand numbers ungrouped`: added from runner `tests` output"}

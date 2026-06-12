@@ -66,7 +66,9 @@ describe('App', () => {
       chrome.storage.local.set({ uxSettings: { page: { name: 'Load' } } }, resolve)
     );
 
-    expect(await screen.findByText('Load')).toBeInTheDocument();
+    // The sidebar LoadMeter gauge also renders an SVG "Load" label, so target
+    // the Load page's heading specifically rather than the ambiguous text.
+    expect(await screen.findByRole('heading', { name: 'Load' })).toBeInTheDocument();
     expect(screen.queryByText('Active Tabs')).not.toBeInTheDocument();
   });
 });

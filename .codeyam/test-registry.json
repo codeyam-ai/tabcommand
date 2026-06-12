@@ -199,6 +199,141 @@
       "runner": "tests"
     },
     {
+      "description": "the Home link writes uxSettings.page back to Home through Chrome.set",
+      "file": "src/lib/pages/Load/Load.test.jsx",
+      "format": "vitest",
+      "key": "Load › navigates home when the Home link is clicked",
+      "line": 39,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the URL list renders one card per active tab, titled from the seeded url object",
+      "file": "src/lib/pages/Load/Load.test.jsx",
+      "format": "vitest",
+      "key": "Load › renders the active-tab URL list from storage",
+      "line": 21,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty activeTabs list renders the page heading with no URL cards (no throw)",
+      "file": "src/lib/pages/Load/Load.test.jsx",
+      "format": "vitest",
+      "key": "Load › renders with no URL cards when there are no active tabs",
+      "line": 52,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a processTotals storage change is handled without throwing and keeps rendering",
+      "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeter › handles a processTotals storage change",
+      "line": 41,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "mounting with seeded processTotals reads the value without throwing under jsdom (this exercises the jsdom guard around GradientPath — remove it and this fails)",
+      "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeter › reads seeded processTotals on mount without throwing",
+      "line": 31,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the gauge renders its CPU and Memory labels",
+      "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeter › renders the gauge labels",
+      "line": 22,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "memory is shown in human-readable megabytes",
+      "file": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
+      "format": "vitest",
+      "key": "LoadProcesses › formats private memory in megabytes",
+      "line": 54,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the listener detaches cleanly on unmount",
+      "file": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
+      "format": "vitest",
+      "key": "LoadProcesses › removes its listener on unmount without throwing",
+      "line": 72,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a reported process renders its task title and CPU readout",
+      "file": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
+      "format": "vitest",
+      "key": "LoadProcesses › renders a row per process when the API emits",
+      "line": 36,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "empty by design until the chrome.processes API reports data (preview state)",
+      "file": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
+      "format": "vitest",
+      "key": "LoadProcesses › renders no process rows until the API emits",
+      "line": 30,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a missing favicon falls back to the bundled default image",
+      "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
+      "format": "vitest",
+      "key": "LoadUrl › falls back to the default favicon when none is provided",
+      "line": 22,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a tab with no sampled data shows only the title (no load readout)",
+      "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
+      "format": "vitest",
+      "key": "LoadUrl › omits the load readout when there is no sampled process data",
+      "line": 41,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the card shows the tab title linked out to the derived url in a new tab",
+      "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
+      "format": "vitest",
+      "key": "LoadUrl › renders the title linked to the url",
+      "line": 8,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a tab with sampled process data shows its CPU/memory load readout + bar",
+      "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
+      "format": "vitest",
+      "key": "LoadUrl › shows the per-tab load readout when processes data is present",
+      "line": 30,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the seeded favicon is used when present",
+      "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
+      "format": "vitest",
+      "key": "LoadUrl › uses the provided favicon",
+      "line": 16,
+      "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "Browser-pinned tabs are filtered out of the Active Tabs list.",
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
@@ -361,6 +496,24 @@
       "runner": "tests"
     },
     {
+      "description": "with no seeded processes the listener stays a no-op (table renders empty)",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › does not emit to processes listeners when nothing is seeded",
+      "line": 115,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a seeded `processes` snapshot is delivered once to a processes listener, so the Load page's raw per-process table can render in the preview",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › emits a seeded processes snapshot to onUpdatedWithMemory listeners",
+      "line": 104,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "action stubs are callable and no-op (resolve callbacks / empty queries)",
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
@@ -410,7 +563,7 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › is inert when a real chrome.storage.local is present",
-      "line": 103,
+      "line": 125,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -446,8 +599,161 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › shares the known TabCommand storage keys",
-      "line": 111,
+      "line": 133,
       "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "cpu present without memory fields reads memory as zero",
+      "file": "src/lib/utils/deriveGaugeTotals.test.js",
+      "format": "vitest",
+      "key": "deriveGaugeTotals › reads cpu alone with zero memory",
+      "line": 33,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a full record maps cpu straight through and sums the two memory fields",
+      "file": "src/lib/utils/deriveGaugeTotals.test.js",
+      "format": "vitest",
+      "key": "deriveGaugeTotals › reads cpu and sums private + js-used memory",
+      "line": 6,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty record reads as a zeroed gauge, not NaN",
+      "file": "src/lib/utils/deriveGaugeTotals.test.js",
+      "format": "vitest",
+      "key": "deriveGaugeTotals › returns zeros for an empty record",
+      "line": 16,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "only one memory field present still produces a numeric sum",
+      "file": "src/lib/utils/deriveGaugeTotals.test.js",
+      "format": "vitest",
+      "key": "deriveGaugeTotals › sums when only one memory field is present",
+      "line": 27,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a null/undefined record is tolerated and reads as zero",
+      "file": "src/lib/utils/deriveGaugeTotals.test.js",
+      "format": "vitest",
+      "key": "deriveGaugeTotals › tolerates a missing record",
+      "line": 21,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "memory at base + half-max leaves half empty",
+      "file": "src/lib/utils/gaugeFillPercent.test.js",
+      "format": "vitest",
+      "key": "gaugeFillPercent › computes the memory arc fraction with a non-zero base",
+      "line": 29,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a full gauge (value at base + max) leaves 0% empty",
+      "file": "src/lib/utils/gaugeFillPercent.test.js",
+      "format": "vitest",
+      "key": "gaugeFillPercent › returns 0 when value reaches base + max",
+      "line": 11,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty gauge (value at base) leaves 100% of segments empty",
+      "file": "src/lib/utils/gaugeFillPercent.test.js",
+      "format": "vitest",
+      "key": "gaugeFillPercent › returns 100 when value equals base",
+      "line": 6,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a half-loaded gauge leaves half the segments empty",
+      "file": "src/lib/utils/gaugeFillPercent.test.js",
+      "format": "vitest",
+      "key": "gaugeFillPercent › returns 50 at the half-way point",
+      "line": 16,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "values above the ceiling go negative (un-clamped, mirrors the reference)",
+      "file": "src/lib/utils/gaugeFillPercent.test.js",
+      "format": "vitest",
+      "key": "gaugeFillPercent › returns a negative percent when value exceeds base + max",
+      "line": 36,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the base floor is subtracted before computing the fraction",
+      "file": "src/lib/utils/gaugeFillPercent.test.js",
+      "format": "vitest",
+      "key": "gaugeFillPercent › subtracts the base before computing the fraction",
+      "line": 21,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "millions group every three digits",
+      "file": "src/lib/utils/humanReadableNumber.test.js",
+      "format": "vitest",
+      "key": "humanReadableNumber › groups millions",
+      "line": 11,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "thousands get grouped with separators in the en locale",
+      "file": "src/lib/utils/humanReadableNumber.test.js",
+      "format": "vitest",
+      "key": "humanReadableNumber › groups thousands with separators",
+      "line": 6,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "small numbers below 1000 pass through ungrouped",
+      "file": "src/lib/utils/humanReadableNumber.test.js",
+      "format": "vitest",
+      "key": "humanReadableNumber › leaves sub-thousand numbers ungrouped",
+      "line": 29,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a numeric string is parsed before formatting",
+      "file": "src/lib/utils/humanReadableNumber.test.js",
+      "format": "vitest",
+      "key": "humanReadableNumber › parses a numeric string",
+      "line": 16,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a fractional value keeps its decimal part",
+      "file": "src/lib/utils/humanReadableNumber.test.js",
+      "format": "vitest",
+      "key": "humanReadableNumber › preserves a fractional value",
+      "line": 34,
+      "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a falsy value yields undefined so the caller renders nothing",
+      "file": "src/lib/utils/humanReadableNumber.test.js",
+      "format": "vitest",
+      "key": "humanReadableNumber › returns undefined for falsy values",
+      "line": 21,
+      "registeredAt": "2026-06-12T11:47:55Z",
       "runner": "tests"
     },
     {
@@ -799,6 +1105,60 @@
       "key": "service_worker.js › validTab › rejects empty and internal-scheme tabs",
       "line": 115,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "averages divide the summed cpu/memory by the sample count",
+      "file": "src/lib/utils/processLoad.test.js",
+      "format": "vitest",
+      "key": "summarizeProcessLoad › averages cpu and memory across samples",
+      "line": 14,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a heavy tab (high memory) is classified excessive",
+      "file": "src/lib/utils/processLoad.test.js",
+      "format": "vitest",
+      "key": "summarizeProcessLoad › classifies a heavy tab as excessive",
+      "line": 22,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a moderately busy tab lands at the medium level",
+      "file": "src/lib/utils/processLoad.test.js",
+      "format": "vitest",
+      "key": "summarizeProcessLoad › classifies a moderate tab as medium",
+      "line": 29,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a near-idle tab is low",
+      "file": "src/lib/utils/processLoad.test.js",
+      "format": "vitest",
+      "key": "summarizeProcessLoad › classifies a near-idle tab as low",
+      "line": 37,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the bar width is the larger of the cpu and memory fractions, as a percent",
+      "file": "src/lib/utils/processLoad.test.js",
+      "format": "vitest",
+      "key": "summarizeProcessLoad › derives the bar width from the dominant fraction",
+      "line": 44,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "no sampled data -> null so callers render nothing instead of NaN",
+      "file": "src/lib/utils/processLoad.test.js",
+      "format": "vitest",
+      "key": "summarizeProcessLoad › returns null when there are no samples",
+      "line": 6,
+      "registeredAt": "2026-06-12T12:42:15.267517+00:00",
       "runner": "tests"
     }
   ],

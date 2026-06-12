@@ -6,6 +6,7 @@ import defaultFavicon from '../../../images/defaultFavicon.png'
 import { CloseCircleOutlined, DeleteOutlined, PushpinOutlined, PushpinFilled, EditOutlined } from '@ant-design/icons';
 import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { summarizeProcessLoad } from '../../utils/processLoad';
 
 const Url = ({
   dragRef,
@@ -155,21 +156,12 @@ const Url = ({
   };
 
   let loadClassName = 'Url-load-hidden';
-  let statsLevel = 'low';
   let statsWidth = 25;
-  if (processStats && (processStats.samples || 0) > 0) {
-    const stats = simpleProcessStats(processStats);
-    titleString += `\n\nAverage CPU: ${Math.round(stats.cpu * 10) / 10}\nAverage Private Memory: ${Math.round(stats.mem * 10) / 10}M`
-    statsWidth = Math.max((stats.cpu / 72), (stats.mem / 800)) * 100;
-    if (stats.cpu > 54 || stats.mem > 600) {
-      statsLevel = 'excessive';
-    } else if (stats.cpu > 36 || stats.mem > 400) {
-      statsLevel = 'high';
-    } else if (stats.cpu > 18 || stats.mem > 200) {
-      statsLevel = 'medium';
-    }
-
-    loadClassName = `Url-load-${statsLevel}`;
+  const load = summarizeProcessLoad(processStats);
+  if (load) {
+    titleString += `\n\nAverage CPU: ${Math.round(load.cpu * 10) / 10}\nAverage Private Memory: ${Math.round(load.mem * 10) / 10}M`
+    statsWidth = load.width;
+    loadClassName = `Url-load-${load.level}`;
   }
 
   return (
@@ -244,10 +236,3 @@ const Url = ({
 }
 
 export default Url;
-
-function simpleProcessStats(processStats) {
-  return {
-    cpu: processStats.cpu / 100 / processStats.samples,
-    mem: processStats.privateMemory / 1064000 / processStats.samples
-  }
-}

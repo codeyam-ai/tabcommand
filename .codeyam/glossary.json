@@ -60,13 +60,32 @@
     }
   },
   {
-    "description": "Stub: inert sidebar placeholder for the load gauge; the widget + Load page are built in the load-meter plan.",
+    "description": "The Load page (entry point for the LOAD page in App): composes the raw process table (LoadProcesses) with a list of LoadUrl cards built from activeTabs + the per-URL storage objects, plus a Home link that writes uxSettings.page back to Home. The sidebar LoadMeter gauge links here.",
+    "filePath": "src/lib/pages/Load/Load.jsx",
+    "name": "Load",
+    "testFile": "src/lib/pages/Load/Load.test.jsx"
+  },
+  {
+    "description": "Sidebar gauge: two concentric SVG arcs (cpu inner, memory outer) whose filled fraction reflects the processTotals storage key, rendered via gradient-path per-segment fill mutation. Reads processTotals on mount and via chrome.storage.onChanged; pure logic is factored into deriveGaugeTotals + gaugeFillPercent. GradientPath calls are guarded to no-op under jsdom (no SVG geometry); the visual is verified by scenario capture. Clicking it navigates to the Load page.",
     "filePath": "src/lib/components/LoadMeter/LoadMeter.jsx",
     "name": "LoadMeter",
+    "testFile": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
     "untestabilityReason": {
       "justification": "Layout-only stub — renders an empty div, no props or logic.",
       "kind": "trivial-wrapper"
     }
+  },
+  {
+    "description": "The Load page's raw per-process table: one block per OS process showing task titles plus CPU and private-memory readouts with inline load bars, formatted via humanReadableNumber. Driven by chrome.processes.onUpdatedWithMemory — the live API in a packaged extension; in the codeyam preview the chrome shim emits any seeded `processes` snapshot so the table can be demonstrated (empty when nothing is seeded).",
+    "filePath": "src/lib/components/LoadProcesses/LoadProcesses.jsx",
+    "name": "LoadProcesses",
+    "testFile": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx"
+  },
+  {
+    "description": "A single card in the Load page's URL list: the tab's favicon (default fallback) and title linked out in a new tab, plus a per-tab load readout (average CPU + private memory with a severity-colored bar via summarizeProcessLoad) when the URL's sampled processes data is present.",
+    "filePath": "src/lib/components/LoadUrl/LoadUrl.jsx",
+    "name": "LoadUrl",
+    "testFile": "src/lib/components/LoadUrl/LoadUrl.test.jsx"
   },
   {
     "description": "Stub: inert sidebar placeholder for the search box; behavior is built in the search plan.",
@@ -153,6 +172,18 @@
     "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
   },
   {
+    "description": "Maps a stored processTotals record onto the two values the LoadMeter gauge renders: cpu (inner arc) and memory (outer arc, the sum of privateMemory + jsMemoryUsed bytes). Every field is optional so a partial or empty record reads as zero, never NaN. Factored out of LoadMeter's storage handler so the data binding is unit-testable independent of the SVG.",
+    "filePath": "src/lib/utils/deriveGaugeTotals.js",
+    "name": "deriveGaugeTotals",
+    "testFile": "src/lib/utils/deriveGaugeTotals.test.js"
+  },
+  {
+    "description": "Pure fill math for the LoadMeter gauge, factored out of the SVG-mutation effect so it is testable without a DOM. Given a measured value, the arc base floor and max ceiling, returns the percent of segments that stay EMPTY (100 - filledFraction*100); a fuller gauge returns a smaller number. Intentionally un-clamped to mirror the reference.",
+    "filePath": "src/lib/utils/gaugeFillPercent.js",
+    "name": "gaugeFillPercent",
+    "testFile": "src/lib/utils/gaugeFillPercent.test.js"
+  },
+  {
     "description": "Promise/callback hybrid wrapper around chrome.storage.local.get: invokes the callback when supplied, otherwise resolves with the result.",
     "filePath": "service_worker.js",
     "name": "getLocalStorage",
@@ -208,6 +239,12 @@
       "labels"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Formats a numeric value with locale-aware thousands separators for the Load page's raw per-process table (1284 -> '1,284'). A falsy value yields undefined so the caller renders nothing; locale defaults to the document language then 'en', overridable via the lang arg. Factored out of the Load page so the formatting is unit-testable.",
+    "filePath": "src/lib/utils/humanReadableNumber.js",
+    "name": "humanReadableNumber",
+    "testFile": "src/lib/utils/humanReadableNumber.test.js"
   },
   {
     "description": "Popup entry point: focuses the existing pinned TabCommand app tab if open, otherwise creates one at index 0, then closes the popup.",
@@ -299,10 +336,10 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Pure helper: averages a process-stats sample into {cpu, mem} (cpu/100/samples, privateMemory/1064000/samples) for the Url load indicator. Exercised via the Url excessive-load test.",
-    "filePath": "src/lib/components/Url/Url.jsx",
-    "name": "simpleProcessStats",
-    "testFile": "src/lib/components/Url/Url.test.jsx"
+    "description": "Summarizes a stored per-URL processes record into the load readout a tab shows: average CPU and private-memory, a severity level (low/medium/high/excessive), and a bar width. Returns null when there is no sampled data so callers render nothing. Shared by the Url tab rows and the Load page LoadUrl cards (extracted from the inline copy that lived in Url).",
+    "filePath": "src/lib/utils/processLoad.js",
+    "name": "summarizeProcessLoad",
+    "testFile": "src/lib/utils/processLoad.test.js"
   },
   {
     "description": "Builds the per-url update record for a tab — resolving an empty object for invalid tabs and otherwise merging the stored url with fresh tab/process metadata via urlUpdates.",

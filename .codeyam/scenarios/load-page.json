@@ -1,0 +1,28 @@
+{
+  "name": "Load Page",
+  "id": "4ad76f42-cf80-4324-b4ec-2134dd3f7723",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 0, \"cpu\": 12000, \"privateMemory\": 1596000000, \"jsMemoryAllocated\": 1276800000, \"jsMemoryUsed\": 957600000}}",
+      "uxSettings": "{\"page\": {\"name\": \"Load\"}}",
+      "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-201\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.figma.com/file/tabcommand\", \"tabKey\": \"tab-202\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.notion.so/codeyam/Roadmap\", \"tabKey\": \"tab-203\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://react.dev/learn\", \"tabKey\": \"tab-204\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"tabKey\": \"tab-205\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://mail.google.com/mail/u/0\", \"tabKey\": \"tab-206\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://news.ycombinator.com\", \"tabKey\": \"tab-207\", \"pinned\": false, \"tabCommandPinned\": false}]",
+      "processTotals": "{\"cpu\": 92, \"privateMemory\": 2400000000, \"jsMemoryUsed\": 1100000000}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\": \"Roadmap – Notion\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 0, \"cpu\": 22000, \"privateMemory\": 2660000000, \"jsMemoryAllocated\": 2128000000, \"jsMemoryUsed\": 1596000000}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\": \"TabCommand UI – Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 0, \"cpu\": 42000, \"privateMemory\": 5320000000, \"jsMemoryAllocated\": 4256000000, \"jsMemoryUsed\": 3192000000}}",
+      "autoClosed": "{}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\": \"Inbox (1,284) - hello@codeyam.com - Gmail\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 0, \"cpu\": 48000, \"privateMemory\": 7660800000, \"jsMemoryAllocated\": 6128640000, \"jsMemoryUsed\": 4596480000}}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 0, \"cpu\": 26000, \"privateMemory\": 2128000000, \"jsMemoryAllocated\": 1702400000, \"jsMemoryUsed\": 1276800000}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\", \"url-https://www.notion.so/codeyam/Roadmap\", \"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://mail.google.com/mail/u/0\", \"url-https://news.ycombinator.com\"]",
+      "processes": "{\"1024\": {\"tasks\": [{\"title\": \"Browser\"}], \"cpu\": 5, \"privateMemory\": 120000000, \"jsMemoryUsed\": 40000000, \"jsMemoryAllocated\": 60000000}, \"2048\": {\"tasks\": [{\"title\": \"GPU Process\"}], \"cpu\": 12, \"privateMemory\": 340000000, \"jsMemoryUsed\": 0, \"jsMemoryAllocated\": 0}, \"3072\": {\"tasks\": [{\"title\": \"Inbox (1,284) - Gmail\", \"tabId\": 206}], \"cpu\": 48, \"privateMemory\": 766000000, \"jsMemoryUsed\": 459000000, \"jsMemoryAllocated\": 612000000}, \"4096\": {\"tasks\": [{\"title\": \"TabCommand UI – Figma\", \"tabId\": 202}], \"cpu\": 42, \"privateMemory\": 532000000, \"jsMemoryUsed\": 300000000, \"jsMemoryAllocated\": 400000000}, \"5120\": {\"tasks\": [{\"title\": \"Roadmap – Notion\", \"tabId\": 203}], \"cpu\": 22, \"privateMemory\": 266000000, \"jsMemoryUsed\": 120000000, \"jsMemoryAllocated\": 180000000}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand — GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 0, \"cpu\": 8000, \"privateMemory\": 266000000, \"jsMemoryAllocated\": 212800000, \"jsMemoryUsed\": 159600000}}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start – React\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 0, \"cpu\": 5000, \"privateMemory\": 1064000000, \"jsMemoryAllocated\": 851200000, \"jsMemoryUsed\": 638400000}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/Load/Load.jsx"
+}

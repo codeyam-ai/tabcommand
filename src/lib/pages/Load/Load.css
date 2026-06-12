@@ -1,0 +1,43 @@
+.Load {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 28px 32px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.Load-main {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.Load-homeLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #1873E4;
+  cursor: pointer;
+}
+
+.Load-homeLink:hover {
+  text-decoration: underline;
+}
+
+.Load-title {
+  margin: 8px 0 20px;
+  font-size: 26px;
+  color: #243156;
+}
+
+.Load-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  align-items: start;
+}

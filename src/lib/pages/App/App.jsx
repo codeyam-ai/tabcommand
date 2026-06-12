@@ -2,6 +2,7 @@ import './App.css';
 
 import React, { useEffect, useState } from 'react';
 import { Tabs, Labels, LoadMeter, Search } from '../../components';
+import { Load } from '../Load';
 import { ItemTypes, Pages } from '../../../Constants';
 
 import { DragDropContext } from '@hello-pangea/dnd';
@@ -112,7 +113,7 @@ const App = () => {
           <ComingSoon title="Import / Export" />
         }
         {page.name === Pages.LOAD &&
-          <ComingSoon title="Load" />
+          <Load />
         }
         {page.name === Pages.HOME &&
           <DragDropContext onDragEnd={handleDrag} onDragStart={handleDragStart}>

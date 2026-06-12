@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-10T20:48:03Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-12T12:43:30Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 ComingSoon :: src/lib/pages/App/App.jsx :: tags= :: test=src/lib/pages/App/App.test.jsx
@@ -6,7 +6,10 @@ LabelCollection :: src/lib/components/LabelCollection/LabelCollection.jsx :: tag
 LabelForm :: src/lib/components/LabelForm/LabelForm.jsx :: tags= :: test=src/lib/components/LabelForm/LabelForm.test.jsx
 LabelFormContainer :: src/lib/components/LabelFormContainer/LabelFormContainer.jsx :: tags= :: test=src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx
 Labels :: src/lib/components/Labels/Labels.jsx :: tags= :: test=src/lib/components/Labels/Labels.test.jsx
-LoadMeter :: src/lib/components/LoadMeter/LoadMeter.jsx :: tags=
+Load :: src/lib/pages/Load/Load.jsx :: tags= :: test=src/lib/pages/Load/Load.test.jsx
+LoadMeter :: src/lib/components/LoadMeter/LoadMeter.jsx :: tags= :: test=src/lib/components/LoadMeter/LoadMeter.test.jsx
+LoadProcesses :: src/lib/components/LoadProcesses/LoadProcesses.jsx :: tags= :: test=src/lib/components/LoadProcesses/LoadProcesses.test.jsx
+LoadUrl :: src/lib/components/LoadUrl/LoadUrl.jsx :: tags= :: test=src/lib/components/LoadUrl/LoadUrl.test.jsx
 Search :: src/lib/components/Search/Search.jsx :: tags=
 Tabs :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
 Url :: src/lib/components/Url/Url.jsx :: tags= :: test=src/lib/components/Url/Url.test.jsx
@@ -16,11 +19,14 @@ central :: service_worker.js :: tags=worker,ported-verbatim,debug :: test=servic
 closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 createChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
 defer :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
+deriveGaugeTotals :: src/lib/utils/deriveGaugeTotals.js :: tags= :: test=src/lib/utils/deriveGaugeTotals.test.js
+gaugeFillPercent :: src/lib/utils/gaugeFillPercent.js :: tags= :: test=src/lib/utils/gaugeFillPercent.test.js
 getLocalStorage :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 getTabGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js
 getUrlKey :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 groupTabs :: service_worker.js :: tags=worker,ported-verbatim,tab-groups,labels :: test=service_worker.test.js
 handleActiveTabsGroupChanges :: service_worker.js :: tags=worker,ported-verbatim,tab-groups,labels :: test=service_worker.test.js
+humanReadableNumber :: src/lib/utils/humanReadableNumber.js :: tags= :: test=src/lib/utils/humanReadableNumber.test.js
 init :: popup/popup.js :: tags=popup,ported-verbatim,launcher :: test=popup/popup.test.js
 installChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
 lastCallback :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
@@ -29,7 +35,7 @@ loadActiveTabs :: popup/popup.js :: tags=popup,ported-verbatim :: test=popup/pop
 newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
-simpleProcessStats :: src/lib/components/Url/Url.jsx :: tags= :: test=src/lib/components/Url/Url.test.jsx
+summarizeProcessLoad :: src/lib/utils/processLoad.js :: tags= :: test=src/lib/utils/processLoad.test.js
 tabUpdates :: service_worker.js :: tags=worker,ported-verbatim,tabs :: test=service_worker.test.js
 trackGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js
 truncateString :: popup/popup.js :: tags=popup,ported-verbatim,util :: test=popup/popup.test.js
