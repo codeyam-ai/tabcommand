@@ -1,7 +1,8 @@
-# regenerated from glossary.json on 2026-06-12T12:43:30Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-12T17:28:55Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 ComingSoon :: src/lib/pages/App/App.jsx :: tags= :: test=src/lib/pages/App/App.test.jsx
+KeyDown :: src/lib/utils/KeyDown.js :: tags= :: test=src/lib/utils/KeyDown.test.js
 LabelCollection :: src/lib/components/LabelCollection/LabelCollection.jsx :: tags= :: test=src/lib/components/LabelCollection/LabelCollection.test.jsx
 LabelForm :: src/lib/components/LabelForm/LabelForm.jsx :: tags= :: test=src/lib/components/LabelForm/LabelForm.test.jsx
 LabelFormContainer :: src/lib/components/LabelFormContainer/LabelFormContainer.jsx :: tags= :: test=src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx
@@ -10,16 +11,20 @@ Load :: src/lib/pages/Load/Load.jsx :: tags= :: test=src/lib/pages/Load/Load.tes
 LoadMeter :: src/lib/components/LoadMeter/LoadMeter.jsx :: tags= :: test=src/lib/components/LoadMeter/LoadMeter.test.jsx
 LoadProcesses :: src/lib/components/LoadProcesses/LoadProcesses.jsx :: tags= :: test=src/lib/components/LoadProcesses/LoadProcesses.test.jsx
 LoadUrl :: src/lib/components/LoadUrl/LoadUrl.jsx :: tags= :: test=src/lib/components/LoadUrl/LoadUrl.test.jsx
-Search :: src/lib/components/Search/Search.jsx :: tags=
+Search :: src/lib/components/Search/Search.jsx :: tags= :: test=src/lib/components/Search/Search.test.jsx
+SearchResults :: src/lib/components/SearchResults/SearchResults.jsx :: tags= :: test=src/lib/components/SearchResults/SearchResults.test.jsx
 Tabs :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
 Url :: src/lib/components/Url/Url.jsx :: tags= :: test=src/lib/components/Url/Url.test.jsx
 applyDrag :: src/lib/utils/dragReducer.js :: tags= :: test=src/lib/utils/dragReducer.test.js
 associateProcess :: service_worker.js :: tags=worker,ported-verbatim,processes,tabs :: test=service_worker.test.js
+buildSearchDocuments :: src/lib/utils/buildSearchDocuments.js :: tags= :: test=src/lib/utils/buildSearchDocuments.test.js
+buildUrlDocuments :: src/lib/utils/buildSearchDocuments.js :: tags= :: test=src/lib/utils/buildSearchDocuments.test.js
 central :: service_worker.js :: tags=worker,ported-verbatim,debug :: test=service_worker.test.js
 closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 createChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
 defer :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
 deriveGaugeTotals :: src/lib/utils/deriveGaugeTotals.js :: tags= :: test=src/lib/utils/deriveGaugeTotals.test.js
+event :: src/lib/utils/event.js :: tags=
 gaugeFillPercent :: src/lib/utils/gaugeFillPercent.js :: tags= :: test=src/lib/utils/gaugeFillPercent.test.js
 getLocalStorage :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 getTabGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js
@@ -35,6 +40,8 @@ loadActiveTabs :: popup/popup.js :: tags=popup,ported-verbatim :: test=popup/pop
 newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
+searchNotesSnippet :: src/lib/utils/searchNotesSnippet.js :: tags= :: test=src/lib/utils/searchNotesSnippet.test.js
+segmentSearchResults :: src/lib/utils/segmentSearchResults.js :: tags= :: test=src/lib/utils/segmentSearchResults.test.js
 summarizeProcessLoad :: src/lib/utils/processLoad.js :: tags= :: test=src/lib/utils/processLoad.test.js
 tabUpdates :: service_worker.js :: tags=worker,ported-verbatim,tabs :: test=service_worker.test.js
 trackGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js

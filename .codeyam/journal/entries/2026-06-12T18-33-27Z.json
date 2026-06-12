@@ -1,0 +1,245 @@
+{
+  "timestamp": "2026-06-12T18:33:27Z",
+  "title": "Search + SearchResults (minisearch)",
+  "type": "feature",
+  "userRequest": "## Summary\n\nFifth plan in the modern TabCommand reproduction (reference on `main` at\n`../tabcommand/`). Builds the sidebar **Search** box and its **SearchResults**\noverlay — full-text search over labels and labeled URLs via `minisearch`, with\nkeyboard navigation. Removes the `Search` sidebar stub.\n\nAlso ports the two small input utilities Search depends on — `KeyDown` and `event`\n— which aren't in the modern tree yet.\n\n## Reference map\n\n| Concern | Reference (read-only) | This plan |\n|---|---|---|\n| Search box + indexing | `../tabcommand/src/lib/components/Search/Search.jsx` (+ `.css`) | Full port; remove stub |\n| Results overlay | `../tabcommand/src/lib/components/SearchResults/SearchResults.jsx` (+ `.css`) | Full port |\n| Key handling | `../tabcommand/src/lib/utils/KeyDown.js`, `event.js` (+ barrel `utils/index.js`) | Port |\n\n## How Search works (reproduce)\n\n- Builds a `minisearch` index (`fields: labelTitle, urlTitle, url, notes`;\n  `storeFields` incl. `color`, `favicon`, `urlLabelTitle`; boosts labelTitle/urlTitle/notes).\n- Index source: `labels` map → one doc per label (`id: \"label-<title>\"`,\n  `color: label.backgroundColor`) + one doc per URL in each label's `urlKeys`\n  (fetched as per-URL storage objects → `urlTitle`, `url`, `favicon`, `notes`).\n- Re-indexes on `onChanged` for `labels`, and when a labeled URL's `notes` change.\n- Typing runs `search(query, {prefix:true})`, segmented into `labels` vs `urls`\n  (urls capped at 10). The `SearchResults` overlay renders **Groups**, **Grouped URLs**\n  (favicon + title, with a notes snippet when the match is in notes), and an **Archived\n  URLs** search affordance (an `alert` stub in the reference — keep).\n- Keyboard: `Cmd/Ctrl+F` focuses the box; `Escape` closes; `ArrowUp/Down` move the\n  selection; `Enter` activates. Activate → label: set `uxSettings.selectedLabel` + go\n  Home; url: activate the matching `activeTabs` tab (`chrome.tabs.update`) or open a new\n  one (`chrome.tabs.create`) — shim no-ops in preview. Edit (pencil) → `uxSettings.page =\n  {name: URL, urlKey}`.\n\n## Key Decisions\n\n- **Port `KeyDown` + `event` utils now.** Search (and the reference App's Escape-to-Home)\n  use a tiny `KeyDown` pub/sub over a global keydown listener, plus an `event()` helper\n  that builds synthetic key events for `KeyDown.trigger`. Port both into\n  `src/lib/utils/` and extend the `utils/index.js` barrel. Keep the API identical so\n  `SearchResults`' arrow/enter handling and `Cmd+F` focus reproduce exactly.\n\n- **Search index reads through the shim like everything else.** No new storage keys;\n  Search consumes `labels` + the per-URL objects already seeded for the Home plans. This\n  means a scenario that seeds labeled URLs (from `labels-and-dnd`) makes Search\n  immediately functional.\n\n- **Capturing \"results visible\" is an interaction, not seedable state.** The query lives\n  in component state, not storage — so a populated results overlay can't be produced by\n  seeding alone. If the editor's scenario interaction support can run a pre-capture\n  action (focus `#Search-Input`, type a query), author a `search-active` scenario that\n  does so. If not, capture the resting search box and rely on the unit tests for the\n  results/keyboard behavior; document the limitation in the scenario notes rather than\n  faking a results DOM.\n\n- **`alert`-based \"Archived URLs\" search stays a stub.** The reference's archived-search\n  is an `alert` placeholder; reproduce it verbatim (with the `no-alert` disable). A real\n  archived search is not part of TabCommand's shipped behavior.\n\n## Implementation\n\n1. **Utils**: port `src/lib/utils/KeyDown.js` + `event.js`; add to `utils/index.js`.\n2. **`SearchResults`**: full port (sections, keyboard nav via `KeyDown`, click/edit\n   handlers, notes-snippet highlighting). `PropTypes` retained.\n3. **`Search`**: full port (minisearch index build + `onChanged` re-index, input box,\n   overlay + `#BackgroundOverlay` close). Replace the stub; re-export from the barrel.\n4. **Wire into App sidebar** (already references `<Search/>`).\n5. **Seeds**: ensure a scenario seeds labeled URLs (reuse `labels-populated`); optionally\n   `search-active` (interaction) per the decision above.\n6. **Tests** (Vitest + RTL):\n   - `Search.test.jsx`: indexes seeded labels/urls; a query returns segmented\n     labels/urls; re-index on `labels` change.\n   - `SearchResults.test.jsx`: renders Groups / Grouped URLs / Archived sections; \"No\n     Results\" empty state; Arrow/Enter selection moves and activates; edit navigates.\n   - `KeyDown.test.js`: add/remove/trigger dispatch; `Cmd+F` path.\n   - Each `it()` keeps its `//` description.\n\n## Verification\n\n1. `npm test` green; lint clean; `editor verify-build` green.\n2. Dev server: typing in the search box shows the overlay with matching groups/urls;\n   Escape closes; arrows move selection. No `chrome` errors.\n3. `search-active` capture (if interaction-supported) shows the populated overlay;\n   otherwise the resting box captures cleanly and the behavior is unit-tested.\n\n## Out of scope\n\n- `LoadMeter`/`Load` (`load-meter`), `UrlDetails` (`url-details`), `ImportExport`\n  (`import-export`). `Closer`/`service_worker.js`; the crxjs popup.js build gap.",
+  "description": "Built the sidebar Search box and its SearchResults overlay, replacing the inert Search stub. Search builds a minisearch index over labels and their labeled URLs (boosted labelTitle/urlTitle/notes), rebuilds it on chrome.storage onChanged, and runs a prefix search that is deduped and segmented into the overlay (Groups, Grouped URLs with favicon + highlighted notes snippet, and an Archived URLs affordance) with Arrow/Enter keyboard navigation and Cmd/Ctrl+F focus. Ported the KeyDown pub/sub and synthetic-event utils it depends on, extracted three pure-logic utils (segmentSearchResults, buildSearchDocuments/buildUrlDocuments, searchNotesSnippet) with unit tests, and added React-18 hardening (effect cleanup + a rebuild token + result dedupe-by-id) that fixed a duplicate-key crash from overlapping seed-time index rebuilds.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/skills/codeyam-design/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/.last-reconcile.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/cache/step-metadata.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/per-test-evidence.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/search.md\t.codeyam/plans/completed/search.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/reconciliation-log.jsonl",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/runner-timing-history.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/provider-auth-verdict.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/all.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-run-marker.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Search/Search.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/mocks/catalog.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/search-active-results.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Search/Search.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Search/Search.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SearchResults/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/KeyDown.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/KeyDown.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/buildSearchDocuments.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/buildSearchDocuments.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/event.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/searchNotesSnippet.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/searchNotesSnippet.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/segmentSearchResults.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/segmentSearchResults.test.js",
+      "status": "added"
+    },
+    {
+      "path": "ui/src/helpers/stepLabels.generated.ts",
+      "status": "added"
+    }
+  ],
+  "testResults": {
+    "total": 169,
+    "passed": 169,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 169,
+        "passed": 169
+      }
+    ]
+  }
+}

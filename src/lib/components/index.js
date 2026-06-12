@@ -8,3 +8,4 @@ export { LoadMeter } from "./LoadMeter";
 export { LoadUrl } from "./LoadUrl";
 export { LoadProcesses } from "./LoadProcesses";
 export { Search } from "./Search";
+export { SearchResults } from "./SearchResults";

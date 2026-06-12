@@ -1,5 +1,33 @@
 {
   "views": {
+    "App": {
+      "empty": {
+        "status": "covered"
+      },
+      "single": {
+        "status": "covered"
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "covered"
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "storage reads go through the synchronous chrome shim; this view has no async loading state"
+      },
+      "edge": {
+        "status": "covered"
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "local storage reads have no failure path; this view renders no error UI"
+      },
+      "key-interaction": {
+        "status": "added"
+      }
+    },
     "Home": {
       "empty": {
         "status": "covered"

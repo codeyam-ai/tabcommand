@@ -81,15 +81,15 @@
       ],
       [
         20,
-        "Finalize"
-      ],
-      [
-        21,
         "Journal"
       ],
       [
-        22,
+        21,
         "Pre-Commit Sync"
+      ],
+      [
+        22,
+        "Finalize"
       ],
       [
         23,
@@ -183,15 +183,15 @@
       ],
       [
         20,
-        "Finalize the session — run the full suite once."
-      ],
-      [
-        21,
         "Create or update the journal entry documenting what was built."
       ],
       [
-        22,
+        21,
         "Sync local state with the remote so the next commit lands on a merged tree."
+      ],
+      [
+        22,
+        "Finalize the session — run the full suite once."
       ],
       [
         23,
@@ -285,15 +285,15 @@
       ],
       [
         20,
-        "Finalize: pick `session-finalize` (~7 min full suite) or `session-checkpoint --defer` (~30 s). Both stamp the relevant state; do not bypass the menu."
-      ],
-      [
-        21,
         "Create or update the journal entry. Do NOT include a timestamp — it is auto-generated. The journal entry's commit-SHA association is derived at read time from `git log --diff-filter=A` (see history-show-all-commits plan); do NOT write a `commitSha` field by hand."
       ],
       [
-        22,
+        21,
         "Run `editor pre-commit-sync`. Do NOT skip — this is the enforced phase that catches remote drift and auto-recovers state."
+      ],
+      [
+        22,
+        "Finalize: pick `session-finalize` (~7 min full suite) or `session-checkpoint --defer` (~30 s). Both stamp the relevant state; do not bypass the menu."
       ],
       [
         23,
@@ -494,15 +494,15 @@
       ],
       [
         14,
-        "Finalize"
-      ],
-      [
-        15,
         "Journal"
       ],
       [
-        16,
+        15,
         "Pre-Commit Sync"
+      ],
+      [
+        16,
+        "Finalize"
       ],
       [
         17,
@@ -572,15 +572,15 @@
       ],
       [
         14,
-        "Finalize the session — run the full suite once."
-      ],
-      [
-        15,
         "Author the session narrative against post-Verify code, then create the journal entry."
       ],
       [
-        16,
+        15,
         "Sync local state with the remote so the next commit lands on a merged tree."
+      ],
+      [
+        16,
+        "Finalize the session — run the full suite once."
       ],
       [
         17,
@@ -650,15 +650,15 @@
       ],
       [
         14,
-        "Finalize: pick `session-finalize` (~7 min full suite) or `session-checkpoint --defer` (~30 s). Both stamp the relevant state; do not bypass the menu."
-      ],
-      [
-        15,
         "Author the journal narrative against post-Verify code. The journal entry's commit-SHA association is derived at read time from `git log --diff-filter=A` (see history-show-all-commits plan); do NOT write a `commitSha` field by hand."
       ],
       [
-        16,
+        15,
         "Run `editor pre-commit-sync`. Do NOT skip — this is the enforced phase that catches remote drift and auto-recovers state."
+      ],
+      [
+        16,
+        "Finalize: pick `session-finalize` (~7 min full suite) or `session-checkpoint --defer` (~30 s). Both stamp the relevant state; do not bypass the menu."
       ],
       [
         17,

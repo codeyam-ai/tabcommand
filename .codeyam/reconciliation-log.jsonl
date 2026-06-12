@@ -98,3 +98,29 @@
 {"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `deriveGaugeTotals › returns zeros for an empty record`: added from runner `tests` output"}
 {"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `gaugeFillPercent › subtracts the base before computing the fraction`: added from runner `tests` output"}
 {"timestamp":"2026-06-12T11:47:55Z","kind":"registry-add","message":"registry `humanReadableNumber › leaves sub-thousand numbers ungrouped`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildSearchDocuments › builds one label document per label`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `segmentSearchResults › dedupes by id, keeping the first occurrence`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildUrlDocuments › skips urls with no backing record`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `searchNotesSnippet › matches case-insensitively but preserves the original case`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildUrlDocuments › falls back to the url when the title is missing`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `segmentSearchResults › dedupes a label and a url independently`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `segmentSearchResults › returns empty arrays for no results`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `searchNotesSnippet › trims a long prefix ahead of the term`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `KeyDown › tolerates removing an unknown function`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildSearchDocuments › tolerates a label with missing urlKeys`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `searchNotesSnippet › returns before, match, and after around the term`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `searchNotesSnippet › returns null when the term is absent`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildUrlDocuments › builds one document per labeled url`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `segmentSearchResults › tolerates a missing results list`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `KeyDown › dispatches a real document keydown to subscribers`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `searchNotesSnippet › returns null for missing notes or term`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `KeyDown › invokes an added subscriber with the event`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `segmentSearchResults › splits hits into labels and urls`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildSearchDocuments › builds a labelMap of urlKey to label title`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `KeyDown › invokes all subscribers`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildSearchDocuments › returns empty outputs for no labels`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `KeyDown › forwards a Cmd+F event to subscribers`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `KeyDown › stops invoking a removed subscriber`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildUrlDocuments › returns no documents for an empty labelMap`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `searchNotesSnippet › trims a long suffix after the term`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `segmentSearchResults › treats a falsy labelTitle as a url`: added from runner `tests` output"}

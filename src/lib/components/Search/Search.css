@@ -1,0 +1,16 @@
+.Search {
+  text-align: center;
+  position: relative;
+}
+
+.Search input {
+  font-size: 15px;
+  border-radius: 12px;
+  padding: 6px;
+  margin: 30px 0;
+  background-color: #3d4767;
+  color: white;
+  border: none;
+  width: 80%;
+  outline: none;
+}

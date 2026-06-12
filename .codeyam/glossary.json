@@ -32,6 +32,12 @@
     "testFile": "src/lib/pages/App/App.test.jsx"
   },
   {
+    "description": "Global keydown pub/sub over a single document.onkeydown listener: add/remove subscribers and trigger fans an event (real or synthetic) to all of them. Powers Search's Cmd/Ctrl+F focus + Escape close and SearchResults' arrow/enter navigation.",
+    "filePath": "src/lib/utils/KeyDown.js",
+    "name": "KeyDown",
+    "testFile": "src/lib/utils/KeyDown.test.js"
+  },
+  {
     "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a menu (edit LabelForm + share + delete), and a vertical Droppable of Url rows split into active (have an open tab) above inactive. Supports removeUrl and is itself draggable for reordering.",
     "filePath": "src/lib/components/LabelCollection/LabelCollection.jsx",
     "name": "LabelCollection",
@@ -88,13 +94,20 @@
     "testFile": "src/lib/components/LoadUrl/LoadUrl.test.jsx"
   },
   {
-    "description": "Stub: inert sidebar placeholder for the search box; behavior is built in the search plan.",
+    "description": "Sidebar search box: builds a minisearch index over labels and their labeled URLs (fields labelTitle/urlTitle/url/notes with boosts), rebuilds it on chrome.storage onChanged (labels change, or a labeled URL notes change), and renders #Search-Input. Typing runs a prefix search; results are deduped + segmented (segmentSearchResults) into the SearchResults overlay (labels, urls capped at 10). Cmd/Ctrl+F focuses, Escape/#BackgroundOverlay closes. A build-token guards overlapping async rebuilds. Index document shaping is factored into buildSearchDocuments/buildUrlDocuments.",
     "filePath": "src/lib/components/Search/Search.jsx",
     "name": "Search",
+    "testFile": "src/lib/components/Search/Search.test.jsx",
     "untestabilityReason": {
       "justification": "Layout-only stub — renders an empty div, no props or logic.",
       "kind": "trivial-wrapper"
     }
+  },
+  {
+    "description": "The search overlay rendered by Search: sections for Groups (label hits, colored icon), Grouped URLs (favicon + title, with a highlighted notes snippet via searchNotesSnippet when the match is in notes), and an Archived URLs affordance, plus a No Results empty state. Keyboard navigation (Arrow up/down + Enter via the KeyDown pub/sub) and mouse hover move the selection; activating a label selects it and routes Home, activating a url focuses/opens its tab, and the edit pencil routes to the URL detail page.",
+    "filePath": "src/lib/components/SearchResults/SearchResults.jsx",
+    "name": "SearchResults",
+    "testFile": "src/lib/components/SearchResults/SearchResults.test.jsx"
   },
   {
     "description": "Home tab list: renders Active Tabs, Automatically Closed, and collapsible History sections from chrome.storage; splits tabs into label groups vs an ungrouped remainder; filters browser-pinned tabs and expired auto-closed entries. Each row is a draggable Url.",
@@ -125,6 +138,18 @@
       "tabs"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Turns the stored labels map into the synchronous half of the Search index: one minisearch document per label (id 'label-<title>' with color) plus a labelMap of every labeled urlKey to its label title. Pure, so index shaping is testable independent of minisearch/Chrome.",
+    "filePath": "src/lib/utils/buildSearchDocuments.js",
+    "name": "buildSearchDocuments",
+    "testFile": "src/lib/utils/buildSearchDocuments.test.js"
+  },
+  {
+    "description": "Builds one minisearch document per labeled URL from a labelMap and the per-URL storage records (urlTitle falling back to url; tagged with its label title). URLs with no backing record are skipped so a partially-seeded store never throws.",
+    "filePath": "src/lib/utils/buildSearchDocuments.js",
+    "name": "buildUrlDocuments",
+    "testFile": "src/lib/utils/buildSearchDocuments.test.js"
   },
   {
     "description": "Empty trace/debug hook called throughout the background worker as a single instrumentation point; intentionally a no-op in the shipped build.",
@@ -176,6 +201,15 @@
     "filePath": "src/lib/utils/deriveGaugeTotals.js",
     "name": "deriveGaugeTotals",
     "testFile": "src/lib/utils/deriveGaugeTotals.test.js"
+  },
+  {
+    "description": "Synthetic event factory: returns an event-shaped object with no-op stopPropagation/preventDefault spread with the given attributes, so code can feed a synthetic key into KeyDown.trigger (e.g. SearchResults triggering Escape after a click).",
+    "filePath": "src/lib/utils/event.js",
+    "name": "event",
+    "untestabilityReason": {
+      "justification": "synthetic event factory — object literal spread with no branching",
+      "kind": "trivial-wrapper"
+    }
   },
   {
     "description": "Pure fill math for the LoadMeter gauge, factored out of the SVG-mutation effect so it is testable without a DOM. Given a measured value, the arc base floor and max ceiling, returns the percent of segments that stay EMPTY (100 - filledFraction*100); a fuller gauge returns a smaller number. Intentionally un-clamped to mirror the reference.",
@@ -334,6 +368,18 @@
       "metrics"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Computes the truncated, highlighted notes snippet under a URL search result whose match landed in its notes: finds the term case-insensitively, captures the original-cased match, windows ~18 chars before / ~24 after, and returns { before, match, after } (or null when there's nothing to highlight).",
+    "filePath": "src/lib/utils/searchNotesSnippet.js",
+    "name": "searchNotesSnippet",
+    "testFile": "src/lib/utils/searchNotesSnippet.test.js"
+  },
+  {
+    "description": "Shapes raw minisearch hits for the SearchResults overlay: dedupes hits by document id (guarding the duplicate-React-key crash from overlapping index rebuilds), then splits them into { labels, urls } — a hit is a label when it carries labelTitle, otherwise a labeled URL.",
+    "filePath": "src/lib/utils/segmentSearchResults.js",
+    "name": "segmentSearchResults",
+    "testFile": "src/lib/utils/segmentSearchResults.test.js"
   },
   {
     "description": "Summarizes a stored per-URL processes record into the load readout a tab shows: average CPU and private-memory, a severity level (low/medium/high/excessive), and a bar width. Returns null when there is no sampled data so callers render nothing. Shared by the Url tab rows and the Load page LoadUrl cards (extracted from the inline copy that lived in Url).",

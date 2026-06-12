@@ -100,6 +100,60 @@
       "runner": "tests"
     },
     {
+      "description": "add wires document.onkeydown so a real keydown dispatches through trigger",
+      "file": "src/lib/utils/KeyDown.test.js",
+      "format": "vitest",
+      "key": "KeyDown › dispatches a real document keydown to subscribers",
+      "line": 48,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the Cmd+F focus path: the metaKey + key event is forwarded intact",
+      "file": "src/lib/utils/KeyDown.test.js",
+      "format": "vitest",
+      "key": "KeyDown › forwards a Cmd+F event to subscribers",
+      "line": 57,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "every subscriber fires on a single trigger",
+      "file": "src/lib/utils/KeyDown.test.js",
+      "format": "vitest",
+      "key": "KeyDown › invokes all subscribers",
+      "line": 21,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "trigger fans the event out to a subscriber added via add",
+      "file": "src/lib/utils/KeyDown.test.js",
+      "format": "vitest",
+      "key": "KeyDown › invokes an added subscriber with the event",
+      "line": 13,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "remove unsubscribes a handler so later triggers skip it",
+      "file": "src/lib/utils/KeyDown.test.js",
+      "format": "vitest",
+      "key": "KeyDown › stops invoking a removed subscriber",
+      "line": 32,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "removing a function that was never added is a harmless no-op",
+      "file": "src/lib/utils/KeyDown.test.js",
+      "format": "vitest",
+      "key": "KeyDown › tolerates removing an unknown function",
+      "line": 41,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
       "description": "removing a url drops it from the group's urlKeys in storage",
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
@@ -334,6 +388,132 @@
       "runner": "tests"
     },
     {
+      "description": "clearing the query closes the overlay",
+      "file": "src/lib/components/Search/Search.test.jsx",
+      "format": "vitest",
+      "key": "Search › hides the overlay when the query is cleared",
+      "line": 77,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "re-indexes when the labels storage key changes, surfacing the new label",
+      "file": "src/lib/components/Search/Search.test.jsx",
+      "format": "vitest",
+      "key": "Search › re-indexes when labels change",
+      "line": 90,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the resting search box renders its input",
+      "file": "src/lib/components/Search/Search.test.jsx",
+      "format": "vitest",
+      "key": "Search › renders the search input",
+      "line": 35,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a query with no matches still opens the overlay in its No Results state",
+      "file": "src/lib/components/Search/Search.test.jsx",
+      "format": "vitest",
+      "key": "Search › shows No Results for an unmatched query",
+      "line": 66,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a label-matching query surfaces the label under Groups",
+      "file": "src/lib/components/Search/Search.test.jsx",
+      "format": "vitest",
+      "key": "Search › shows a matching label in the results",
+      "line": 42,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a url-matching query surfaces the labeled url under Grouped URLs",
+      "file": "src/lib/components/Search/Search.test.jsx",
+      "format": "vitest",
+      "key": "Search › shows a matching labeled url in the results",
+      "line": 54,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Enter on the selected label activates it: selects the label and routes Home",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › activates a label on Enter",
+      "line": 78,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the Archived URLs affordance is always present, even with results",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › always renders the Archived URLs section",
+      "line": 64,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "ArrowDown moves the selection from the first item to the next",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › moves the selection down on ArrowDown",
+      "line": 70,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the edit pencil routes to the URL detail page for that url",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › navigates to the URL page from the edit affordance",
+      "line": 92,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "with no labels and no urls the overlay shows a No Results state",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › renders No Results when there are no matches",
+      "line": 35,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a match landing in notes renders the highlighted snippet",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › renders a highlighted notes snippet when the match is in notes",
+      "line": 55,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "label hits render under the Groups section",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › renders label hits under Groups",
+      "line": 41,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "url hits render under the Grouped URLs section with their title",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › renders url hits under Grouped URLs",
+      "line": 48,
+      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "Browser-pinned tabs are filtered out of the Active Tabs list.",
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
@@ -493,6 +673,78 @@
       "key": "applyDrag › rewrites positions when a group is reordered",
       "line": 74,
       "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "every labeled urlKey maps back to its label title",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildSearchDocuments › builds a labelMap of urlKey to label title",
+      "line": 20,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "one document per label, carrying the prefixed id, title, and color",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildSearchDocuments › builds one label document per label",
+      "line": 11,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty or missing labels map yields empty outputs, never throws",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildSearchDocuments › returns empty outputs for no labels",
+      "line": 35,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a label with no urlKeys is tolerated and contributes no map entries",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildSearchDocuments › tolerates a label with missing urlKeys",
+      "line": 26,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "each labeled url becomes a document tagged with its label title",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildUrlDocuments › builds one document per labeled url",
+      "line": 49,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a missing title falls back to the url as the searchable/display title",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildUrlDocuments › falls back to the url when the title is missing",
+      "line": 58,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty labelMap yields no documents",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildUrlDocuments › returns no documents for an empty labelMap",
+      "line": 70,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a url with no backing record is skipped rather than throwing",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildUrlDocuments › skips urls with no backing record",
+      "line": 64,
+      "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
     {
@@ -835,6 +1087,114 @@
       "key": "popup.js › urlHTML › truncates long titles via truncateString",
       "line": 99,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the match keeps the notes' original casing even when the term is lowercase",
+      "file": "src/lib/utils/searchNotesSnippet.test.js",
+      "format": "vitest",
+      "key": "searchNotesSnippet › matches case-insensitively but preserves the original case",
+      "line": 12,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "splits short notes into the parts around the matched term",
+      "file": "src/lib/utils/searchNotesSnippet.test.js",
+      "format": "vitest",
+      "key": "searchNotesSnippet › returns before, match, and after around the term",
+      "line": 6,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "nothing to highlight when notes or term are missing",
+      "file": "src/lib/utils/searchNotesSnippet.test.js",
+      "format": "vitest",
+      "key": "searchNotesSnippet › returns null for missing notes or term",
+      "line": 33,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "returns null when the term does not appear in the notes",
+      "file": "src/lib/utils/searchNotesSnippet.test.js",
+      "format": "vitest",
+      "key": "searchNotesSnippet › returns null when the term is absent",
+      "line": 40,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a long prefix before the term is trimmed out of the window",
+      "file": "src/lib/utils/searchNotesSnippet.test.js",
+      "format": "vitest",
+      "key": "searchNotesSnippet › trims a long prefix ahead of the term",
+      "line": 18,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a long suffix after the term is trimmed down",
+      "file": "src/lib/utils/searchNotesSnippet.test.js",
+      "format": "vitest",
+      "key": "searchNotesSnippet › trims a long suffix after the term",
+      "line": 26,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "dedupe spans both segments, not just within one",
+      "file": "src/lib/utils/segmentSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentSearchResults › dedupes a label and a url independently",
+      "line": 27,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a duplicate id is collapsed to a single result, keeping the first hit",
+      "file": "src/lib/utils/segmentSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentSearchResults › dedupes by id, keeping the first occurrence",
+      "line": 17,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "no hits yields empty arrays, never undefined",
+      "file": "src/lib/utils/segmentSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentSearchResults › returns empty arrays for no results",
+      "line": 38,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "hits carrying labelTitle are labels; the rest are urls",
+      "file": "src/lib/utils/segmentSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentSearchResults › splits hits into labels and urls",
+      "line": 6,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a null/undefined input is tolerated",
+      "file": "src/lib/utils/segmentSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentSearchResults › tolerates a missing results list",
+      "line": 43,
+      "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty-string labelTitle is treated as a url, matching the truthy filter",
+      "file": "src/lib/utils/segmentSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentSearchResults › treats a falsy labelTitle as a url",
+      "line": 49,
+      "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
     {
