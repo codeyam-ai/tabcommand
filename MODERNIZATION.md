@@ -103,9 +103,9 @@ cites the reference files in `../tabcommand/` it reproduces.
 1. `foundation-vite-react18-mv3` — Vite+React18+crxjs MV3 shell, Vitest+RTL, empty App shell. ✅
 2. `chrome-storage-layer` — `Chrome` abstraction + chrome shim + localStorage seed adapter; seed pipeline proven. ✅
 3. `home-and-tabs` — `Tabs` (Active/Auto-Closed/History) + `Url` row, real App navigation, `@hello-pangea/dnd` context; stubbed Search/LoadMeter/Labels. ✅ (Home tab rail renders real seeded data.)
+4. `labels-and-dnd` — `Labels`/`LabelCollection`/`LabelForm`/`LabelFormContainer` + the real `onDragEnd` (URL move between groups, label reorder). Removed the Labels stub; fills the Home center. Label scenarios seed `backgroundColor`/`position`/`urlKeys`. ✅ (Home center renders real groups; `search`/`load-meter` remain stubs.)
 
-**Queued (the Home-completion batch):**
-4. `labels-and-dnd` — `Labels`/`LabelCollection`/`LabelForm`/`LabelFormContainer` + the real `onDragEnd` (URL move between groups, label reorder). Removes the Labels stub; fills the Home center. Re-seeds label scenarios with `backgroundColor`/`position`/`urlKeys`.
+**Queued (remaining Home-completion batch):**
 5. `search` — `Search` + `SearchResults` (minisearch) + ports `KeyDown`/`event` utils.
 6. `load-meter` — `LoadMeter` gradient gauge + `Load` page; new `processTotals` key.
 
@@ -114,6 +114,25 @@ cites the reference files in `../tabcommand/` it reproduces.
 8. `import-export` — the `ImportExport` page.
 9. `scenarios-and-seeding` — capstone: round out the scenario catalog so every notable
    app state is captured; tidy/normalize seed data.
+
+### Scenario catalog (current)
+
+Consolidated 2026-06-12 from 7 → 5 Home/Labels scenarios. The prior set had **four**
+scenarios painting the identical empty "Click the Add Group icon…" placeholder across
+the whole (largest) center region, differing only in the right rail. The curation
+principle: **each scenario varies the main (center) content**; keep at most one
+intentionally-empty center.
+
+- `home-empty` — **First Run.** Everything empty; the canonical onboarding state (empty-state copy in every region).
+- `home-unorganized` — **Unorganized.** Loaded rail (6 ungrouped active tabs w/ load bars + 2 auto-closed + collapsed history), no groups yet → the realistic "organize me" state. *(Merged the old `home-active-tabs` + `home-auto-closed-and-history` + `labels-empty`.)*
+- `home-grouped` — **Grouped.** 2 groups (Work, Reading); first-organized state.
+- `labels-populated` — **Fully Organized.** 4 colorful groups (Work/Reading/Shopping/Social).
+- `labels-selected` — **Group Selected.** 4 groups, one expanded with pin/edit/delete row actions (`uxSettings.selectedLabel`).
+
+Re-author scenarios via `codeyam-editor editor register @<file>` with a top-level
+`localStorage` map of **pre-stringified** values (the localStorage stack — a `seed:{}`
+block hits the DB "array of row objects" validator and rejects map-shaped keys like
+`labels`/`autoClosed`). `delete <slug>` removes a scenario + its screenshot.
 
 ## Conventions for this rebuild
 

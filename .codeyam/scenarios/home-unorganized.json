@@ -1,0 +1,31 @@
+{
+  "name": "Home - Unorganized",
+  "id": "51d08f75-0f4b-4697-b4bf-0ea98983373f",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://vitejs.dev/guide": "{\"title\":\"Getting Started | Vite\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.youtube.com/watch?v=demo": "{\"title\":\"Building Chrome Extensions - YouTube\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":133120,\"cpu\":8000,\"privateMemory\":1383200000,\"jsMemoryAllocated\":1106560000,\"jsMemoryUsed\":829920000}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "autoClosed": "{\"url-https://www.figma.com/file/tabcommand\":32503680000000,\"url-https://www.notion.so/codeyam/Roadmap\":32503680001000}",
+      "url-https://developer.chrome.com/docs/extensions/mv3": "{\"title\":\"Manifest V3 – Chrome Extensions\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\":\"Inbox (1,284) - hello@codeyam.com - Gmail\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":737280,\"cpu\":48000,\"privateMemory\":7660800000,\"jsMemoryAllocated\":6128640000,\"jsMemoryUsed\":4596480000}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://stackoverflow.com/questions/tagged/react": "{\"title\":\"Newest react Questions - Stack Overflow\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://react.dev/learn\",\"url-https://developer.chrome.com/docs/extensions/mv3\",\"url-https://mail.google.com/mail/u/0\",\"url-https://www.youtube.com/watch?v=demo\",\"url-https://news.ycombinator.com\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://vitejs.dev/guide\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://stackoverflow.com/questions/tagged/react\",\"url-https://en.wikipedia.org/wiki/Web_browser\"]",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-101\",\"pinned\":false,\"tabCommandPinned\":true},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-102\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.chrome.com/docs/extensions/mv3\",\"tabKey\":\"tab-103\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://mail.google.com/mail/u/0\",\"tabKey\":\"tab-104\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.youtube.com/watch?v=demo\",\"tabKey\":\"tab-105\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-106\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "labels": "{}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://en.wikipedia.org/wiki/Web_browser": "{\"title\":\"Web browser - Wikipedia\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}
