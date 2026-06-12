@@ -121,6 +121,8 @@ For `N = 2` you write `01-…` and `02-…`; for `N = 8` you go to `08-…`. Alw
 
 **Render every element as static HTML.** The `sandbox=""` iframe blocks *all* scripts, so any content you build with JS — a `.map()` over a data array, `innerHTML`, `document.createElement` — renders as a **blank card**. Write every card, row, and value out as literal markup. No `<script>` tag at all.
 
+**Drive color from CSS variables so the dark toggle works.** Each card has a per-card dark-mode toggle. It flips the mockup by overriding the system's `:root` color variables (and, when the system declares no dark palette, a derived dark palette), and by marking the root element `data-theme="dark"` / `class="dark"`. So: define your colors as `:root` custom properties and *reference them* (`color: var(--text); background: var(--bg)`) instead of hardcoding hex values inline — a mockup that hardcodes its colors only flips via a coarse baseline fallback. You may also author explicit dark overrides keyed off `[data-theme="dark"]` or `.dark` on the root element for an intentional dark look; the runtime engages those selectors. This is best-effort polish, not a blocker — but variable-driven color makes dark mode look designed rather than force-inverted.
+
 > **Known handoff gap (off-catalog):** the selection endpoint (Step 6) resolves `NN-<system>-mockup.html` back to `design_systems/<system>.md`. An off-catalog mockup has no backing markdown, so selecting it cannot yet copy a design system into `.codeyam/design/design_system.md`. This is a deliberate prototype limitation — the build-handoff for off-catalog (synthesizing `design_system.md` from the chosen mockup's actual tokens) is backend work tracked for the formal build session. Generate off-catalog mockups for *visual exploration*; flag this gap if the user picks one.
 
 **Subject stays constant; the design language and structure are the variables.** Every mockup depicts the same page so the user can directly compare directions. The same headline content, primary actions, data, and information hierarchy must be readable across all N — otherwise the comparison is meaningless.
@@ -189,13 +191,15 @@ After all N files exist, post a short key naming each numbered mockup **and its 
 …
 ```
 
-End with: *"Tell me which to iterate (by number) or say 'let's use N' to lock one in. The bolder ones are idea-generators too — if you like one element from a wild mockup, say so and I'll fold it into a safer direction."*
+End with an invitation that frames iterating and selecting as equally valid, with **no pressure to pick**: *"Want to push any of these further? Tell me which to iterate on (by number) with what to change — you can iterate as many rounds as you like, there's no limit. Whenever a direction feels right, just say 'let's use N' and we'll lock it in — no rush. The bolder ones are idea-generators too: if you like one element from a wild mockup, say so and I'll fold it into a safer direction."* Selecting is a deliberate step the user takes only when ready — never imply they must converge or choose soon.
 
 The preview is already on the Mockups tab (it switched at the start of Step 3), so Step 4's only job is the numbered key. No tab-switch needed here.
 
 ## Step 5 — iterate when asked
 
-When the UI dispatches an Iterate trigger (an `Iterate:` keyword followed by a fenced JSON feedback bundle, or the no-feedback variant), **do not regenerate anything immediately**. First post a short message asking the user which design(s), if any, are close enough to keep and just tweak — and state clearly that every other design will be discarded and redesigned fresh from the feedback. **Wait for the user's reply before writing any mockup.** This is also where **cross-pollination** happens: if the user says "I like #5's layout but #2's palette," carry that explicitly into the refined slot.
+When the UI dispatches an Iterate trigger (an `Iterate:` keyword followed by a fenced JSON feedback bundle, or the no-feedback variant), **do not regenerate anything immediately**. First post a short message asking the user which design(s), if any, are close enough to keep and just tweak — and that every other design will be redesigned fresh from the feedback. **Wait for the user's reply before writing any mockup.** This is also where **cross-pollination** happens: if the user says "I like #5's layout but #2's palette," carry that explicitly into the refined slot.
+
+**Frame iteration as unlimited and pressure-free.** Make it explicit that the user can iterate as many rounds as they like — there is no cap and no expectation to converge. Picking a final direction is a separate, deliberate action they take *only when they're ready* (the "let's use N" selection in Step 6), not something this round is pushing them toward. Earlier rounds are never lost: each iteration archives the current set, and the user can page back through previous rounds (or restore one) in the UI. So keep the keep-question genuinely open — "keep any of these and tweak, or redesign from your notes; iterate again as many times as you want" — with no language implying they should choose soon.
 
 Once the user answers, **switch the preview to the Mockups tab as the regeneration round begins** — before writing the first refreshed/placeholder card:
 

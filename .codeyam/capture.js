@@ -120,6 +120,24 @@ function readStackLoadingMarkers() {
   }
 }
 
+async function getDOMFingerprint(frame) {
+  try {
+    return await frame.evaluate(() => {
+      const body = document.body;
+      if (!body) return "";
+      const html = body.innerHTML;
+      let hash = 0;
+      for (let i = 0; i < html.length; i++) {
+        hash = (hash << 5) - hash + html.charCodeAt(i);
+        hash |= 0;
+      }
+      return `${html.length}-${hash}`;
+    });
+  } catch (err) {
+    return "";
+  }
+}
+
 // Cold-start retry pause. waitForStablePage settles as soon as the page is
 // HTML-stable, which for a lazy/Suspense app is the empty `<div id="root">`
 // shell — stable for the ~3s the dynamic chunk takes to load (longer when the
@@ -141,6 +159,21 @@ function isCrossOriginRequest(url, appOrigin) {
   } catch (_) {
     return false;
   }
+}
+
+// Decide whether a failed request should fail the capture. Only a failure
+// targeting the captured page's OWN origin counts — a first-party route that
+// 500s or a same-origin asset that 404s is a real capture problem. A
+// cross-origin failure (the mocked app's dev port being down, an external
+// CDN/API) is an external resource and is tolerated, so the editor-shell
+// screenshot still succeeds. Mirrors the console handler's tolerance for
+// declared error-mock URLs. When `appOrigin` is unknown (malformed capture
+// URL) the failure stays fatal — the conservative default preserves today's
+// behavior rather than silently swallowing every failure. Pure, so the
+// decision is unit-testable without a live browser.
+function isCaptureFatalRequestFailure(url, appOrigin) {
+  if (!appOrigin) return true;
+  return !isCrossOriginRequest(url, appOrigin);
 }
 
 // Return a copy of `headers` with every name in `markerNames` removed.
@@ -380,6 +413,66 @@ async function dumpPageState(frame, selector) {
   }, selector || null);
 }
 
+// Landed-state verification: assert the localStorage the capture INJECTED
+// (`config.browserState.localStorage`, which already carries the seed-session
+// overlay the editor merged in) actually reached the capture browser after the
+// page settled. The core promise of a seeded scenario is remote control of the
+// app — a seed that silently doesn't land produces an empty screenshot that
+// looks like a successful capture of an empty app, which is exactly the
+// failure this guards. Returns a loud `seed-not-landed` issue (which fails the
+// capture, since `ok` requires zero issues) when a non-empty injected seed is
+// missing/empty on read-back, or `null` when there was nothing to verify, the
+// seed landed, or storage is unavailable (sandboxed/opaque origin — never fail
+// the capture over the verifier itself).
+async function verifySeededStorageLanded(frame, config) {
+  const expected =
+    (config && config.browserState && config.browserState.localStorage) || {};
+  const expectedKeys = Object.keys(expected);
+  if (expectedKeys.length === 0) return null; // nothing was seeded into storage
+
+  let readback;
+  try {
+    readback = await frame.evaluate((keys) => {
+      try {
+        const allKeys = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k != null) allKeys.push(k);
+        }
+        const present = {};
+        for (const k of keys) {
+          const v = window.localStorage.getItem(k);
+          present[k] = v != null && v !== "";
+        }
+        return { present, allKeys };
+      } catch (_) {
+        // localStorage unavailable (sandboxed/opaque origin) — can't verify.
+        return null;
+      }
+    }, expectedKeys);
+  } catch (_) {
+    return null; // evaluate failed — never fail a capture over the verifier.
+  }
+  if (!readback) return null; // storage unavailable — best-effort, don't fail.
+
+  const missing = expectedKeys.filter((k) => !readback.present[k]);
+  if (missing.length === 0) return null; // every seeded key landed — success.
+
+  const actual = readback.allKeys.length ? readback.allKeys.join(", ") : "<none>";
+  return createIssue(
+    "seed-not-landed",
+    `Seeded localStorage did not reach the capture browser: expected non-empty ` +
+      `keys [${expectedKeys.join(", ")}] but [${missing.join(", ")}] are ` +
+      `missing/empty after load (browser localStorage holds: [${actual}]). The ` +
+      `seed did NOT land, so this screenshot shows DEFAULT/EMPTY state — fix the ` +
+      `seed; do not delete the scenario. Likely causes: (1) the seed-session ` +
+      `overlay was stale or empty (re-run the seed adapter to refresh it), (2) the ` +
+      `adapter's stdout localStorage map failed to parse, or (3) the injection ` +
+      `path is down (the seeded origin differs from the captured page's origin).`,
+    { url: (frame && frame.url && frame.url()) || (config && config.url) },
+  );
+}
+
 // Drive an ordered list of flow steps against ONE already-loaded browser
 // session so a scripted multi-step demo (`editor preview-flow`) is captured as
 // the real round-trip — click state and client transients persist across
@@ -453,7 +546,20 @@ async function runFlowSteps(page, initialFrame, steps, ctx) {
 // check) so unit tests that mock the browser can stay network-free.
 async function runScenarioCheck(config, { preflight = assertAppPortReachable } = {}) {
   const { url, outputPath, width, height, httpMocks = {} } = config;
+  let interactionEffect = null;
+  let interactionRetried = false;
   const issues = [];
+  // Origin of the captured page, used to classify failed requests: only a
+  // failure on the page's OWN origin should fail the capture (see
+  // `isCaptureFatalRequestFailure`). Derived from `config.url` exactly as
+  // `applyBrowserState` does; a malformed URL leaves it null, which keeps every
+  // request failure fatal (today's behavior).
+  let appOrigin = null;
+  try {
+    appOrigin = new URL(url).origin;
+  } catch (_) {
+    /* malformed capture URL — the guard no-ops and failures stay fatal */
+  }
   const browser = await launchChromiumWithSelfHeal();
   const contextOptions = {
     viewport: { width: width || 1440, height: height || 900 },
@@ -500,10 +606,22 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
     // scenarios can screenshot the failure UI they exist to demonstrate.
     const sourceUrl = message.location && message.location().url;
     if (sourceUrl && isDeclaredErrorMock(httpMocks, sourceUrl)) return;
+    // A console error originating from a cross-origin resource — the "Failed to
+    // load resource" Chromium logs alongside a cross-origin requestfailed (the
+    // down app dev port, an external CDN) — is an external-resource failure, not
+    // an editor-shell problem. Tolerate it for the same reason, and via the same
+    // predicate, as the requestfailed handler below.
+    if (sourceUrl && !isCaptureFatalRequestFailure(sourceUrl, appOrigin)) return;
     pushIssue(issues, issue);
   });
 
   page.on("requestfailed", (request) => {
+    // A cross-origin sub-resource failing must not fail an editor-shell
+    // screenshot — only the captured page's OWN origin counts. The most common
+    // case here is the live preview pane reaching the mocked project's app dev
+    // port (e.g. http://localhost:3000), which is not running in the
+    // self-hosting capture container.
+    if (!isCaptureFatalRequestFailure(request.url(), appOrigin)) return;
     const issue = handleRequestFailed(request);
     if (issue) {
       pushIssue(issues, issue);
@@ -639,6 +757,15 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
       pushIssue(issues, hydrationIssue);
     }
 
+    // Assert the injected seed actually landed in the capture browser, at rest
+    // and BEFORE any interaction can legitimately mutate storage. A non-empty
+    // seed that didn't reach localStorage means the screenshot will show
+    // default/empty state — fail loudly instead of emitting a misleading frame.
+    const seedNotLandedIssue = await verifySeededStorageLanded(frame, config);
+    if (seedNotLandedIssue) {
+      pushIssue(issues, seedNotLandedIssue);
+    }
+
     // Scripted multi-step flow (`editor preview-flow`): drive an ordered
     // sequence of steps in THIS one browser session — so a behavioral
     // round-trip (click → observe → click) is captured as the real flow, not N
@@ -656,6 +783,9 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
         preflight,
       });
     } else if (config.interaction) {
+      // Record fingerprint before interaction
+      const beforeFingerprint = await getDOMFingerprint(frame);
+
       // Drive the requested interaction (if any) against the settled frame,
       // then re-settle, so `preview-interact` captures the RESULT of a click /
       // fill / press (expanded accordion, open modal) without editing app
@@ -663,6 +793,20 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
       // capture with the candidate-labels hint — never a silent blank shot.
       await performInteraction(frame, config.interaction);
       await waitForStablePage(page, frame, 5000, loadingMarkers);
+
+      // Record fingerprint after interaction
+      let afterFingerprint = await getDOMFingerprint(frame);
+
+      // If unchanged and it was a click, retry once after 500ms (covers the hydration race)
+      if (beforeFingerprint === afterFingerprint && config.interaction.action === "click") {
+        interactionRetried = true;
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await performInteraction(frame, config.interaction);
+        await waitForStablePage(page, frame, 5000, loadingMarkers);
+        afterFingerprint = await getDOMFingerprint(frame);
+      }
+
+      interactionEffect = beforeFingerprint === afterFingerprint ? "none" : "changed";
     }
 
     // Replay the scenario's PERSISTED interaction sequence (if any) in order,
@@ -690,6 +834,11 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
       outputPath,
       url: frame.url() || url,
     });
+
+    if (config.interaction) {
+      result.interactionEffect = interactionEffect;
+      result.interactionRetried = interactionRetried;
+    }
 
     // `capture-state` mode: attach the read-only page-state snapshot so the
     // backend can report localStorage + rendered text. Off by default, so a
@@ -747,9 +896,11 @@ module.exports = {
   runScenarioCheck,
   runFlowSteps,
   dumpPageState,
+  verifySeededStorageLanded,
   readStackLoadingMarkers,
   applyBrowserState,
   isCrossOriginRequest,
+  isCaptureFatalRequestFailure,
   stripMarkerHeaders,
   main,
   launchChromiumWithSelfHeal,

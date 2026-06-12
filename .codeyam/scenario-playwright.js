@@ -424,16 +424,59 @@ async function loadScenarioTopLevel(
 ) {
   await preflight(url);
   const navStarted = Date.now();
-  const response = await page.goto(url, {
-    waitUntil: "load",
-    timeout: 30000,
-  });
-  logCaptureTiming("navigate-toplevel", {
-    elapsedMs: Date.now() - navStarted,
-    status: response ? response.status() : null,
-    url,
-  });
-  return { frame: page.mainFrame(), response };
+  try {
+    const response = await page.goto(url, {
+      waitUntil: "load",
+      timeout: 30000,
+    });
+    logCaptureTiming("navigate-toplevel", {
+      elapsedMs: Date.now() - navStarted,
+      status: response ? response.status() : null,
+      url,
+    });
+    return { frame: page.mainFrame(), response };
+  } catch (error) {
+    if (error.message && error.message.toLowerCase().includes("timeout")) {
+      let parsed = null;
+      try {
+        parsed = new URL(url);
+      } catch (_) {}
+      if (parsed) {
+        let appPort = null;
+        try {
+          const path = require("path");
+          const statePath = path.join(process.cwd(), ".codeyam", "server-state.json");
+          if (fs.existsSync(statePath)) {
+            const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+            appPort = state.appPort;
+          }
+        } catch (_) {}
+
+        if (appPort) {
+          let appHealthy = false;
+          try {
+            await assertAppPortReachable(`http://127.0.0.1:${appPort}/`, { timeoutMs: 500 });
+            appHealthy = true;
+          } catch (_) {}
+
+          if (appHealthy) {
+            throw new Error(
+              `proxy navigation timed out: the proxy at 127.0.0.1:${parsed.port} did not respond within 30000ms. app healthy on :${appPort}, proxy dead on :${parsed.port}.`
+            );
+          } else {
+            throw new Error(
+              `proxy navigation timed out: the proxy at 127.0.0.1:${parsed.port} did not respond within 30000ms. app also unresponsive on :${appPort}.`
+            );
+          }
+        } else {
+          throw new Error(
+            `proxy navigation timed out: the proxy at 127.0.0.1:${parsed.port} did not respond within 30000ms. proxy dead/hung?`
+          );
+        }
+      }
+    }
+    throw error;
+  }
 }
 
 // Collect up to 20 distinct visible labels of interactive elements on the
@@ -501,25 +544,35 @@ async function performInteraction(frame, interaction, { timeoutMs = 5000 } = {})
     );
   }
 
-  switch (action) {
-    case "click":
-      await locator.click({ timeout: timeoutMs });
-      break;
-    case "fill":
-      await locator.fill(value ?? "", { timeout: timeoutMs });
-      break;
-    case "press":
-      await locator.press(value || "Enter", { timeout: timeoutMs });
-      break;
-    case "hover":
-      // Reveals hover-only affordances (an action bar, a tooltip) — one of the
-      // most common ephemeral states a resting-render screenshot misses.
-      await locator.hover({ timeout: timeoutMs });
-      break;
-    default:
-      throw new Error(
-        `preview-interact: unknown action "${action}" (expected click | fill | press | hover)`,
-      );
+  try {
+    switch (action) {
+      case "click":
+        await locator.click({ timeout: timeoutMs });
+        break;
+      case "fill":
+        await locator.fill(value ?? "", { timeout: timeoutMs });
+        break;
+      case "press":
+        await locator.press(value || "Enter", { timeout: timeoutMs });
+        break;
+      case "hover":
+        // Reveals hover-only affordances (an action bar, a tooltip) — one of the
+        // most common ephemeral states a resting-render screenshot misses.
+        await locator.hover({ timeout: timeoutMs });
+        break;
+      default:
+        throw new Error(
+          `preview-interact: unknown action "${action}" (expected click | fill | press | hover)`,
+        );
+    }
+  } catch (error) {
+    const candidates = await collectInteractiveLabels(frame);
+    const candidateList =
+      candidates.length > 0 ? candidates.join(", ") : "(none found on page)";
+    throw new Error(
+      `preview-interact: action "${action}" failed against ${targetDesc}: ${error.message || String(error)}. ` +
+        `Candidate interactive labels: ${candidateList}`,
+    );
   }
 }
 
