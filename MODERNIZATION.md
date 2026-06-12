@@ -103,17 +103,15 @@ cites the reference files in `../tabcommand/` it reproduces.
 1. `foundation-vite-react18-mv3` — Vite+React18+crxjs MV3 shell, Vitest+RTL, empty App shell. ✅
 2. `chrome-storage-layer` — `Chrome` abstraction + chrome shim + localStorage seed adapter; seed pipeline proven. ✅
 3. `home-and-tabs` — `Tabs` (Active/Auto-Closed/History) + `Url` row, real App navigation, `@hello-pangea/dnd` context; stubbed Search/LoadMeter/Labels. ✅ (Home tab rail renders real seeded data.)
-4. `labels-and-dnd` — `Labels`/`LabelCollection`/`LabelForm`/`LabelFormContainer` + the real `onDragEnd` (URL move between groups, label reorder). Removed the Labels stub; fills the Home center. Label scenarios seed `backgroundColor`/`position`/`urlKeys`. ✅ (Home center renders real groups; `search`/`load-meter` remain stubs.)
+4. `labels-and-dnd` — `Labels`/`LabelCollection`/`LabelForm`/`LabelFormContainer` + the real `onDragEnd` (URL move between groups, label reorder). Removed the Labels stub; fills the Home center. Label scenarios seed `backgroundColor`/`position`/`urlKeys`. ✅ (Home center renders real groups.)
+5. `load-meter` — `LoadMeter` gradient gauge (sidebar) + `Load` page + per-process breakdown; `processTotals` key. ✅ (Scenarios `load-meter-low`/`load-meter-high`/`load-page`.)
 
-**Queued (remaining Home-completion batch):**
-5. `search` — `Search` + `SearchResults` (minisearch) + ports `KeyDown`/`event` utils.
-6. `load-meter` — `LoadMeter` gradient gauge + `Load` page; new `processTotals` key.
-
-**Remaining (not yet drafted):**
-7. `url-details` — the `UrlDetails` page (`Pages.URL`; edit/annotate a URL — `notes`).
-8. `import-export` — the `ImportExport` page.
+**Queued (drafted, awaiting execution):**
+6. `search` — `Search` + `SearchResults` (minisearch) + ports `KeyDown`/`event` utils. (Search is still a stub.)
+7. `url-details` — the `UrlDetails` page (`Pages.URL`): edit/annotate a URL (title/url/favicon/**notes** + group chips). Navigation already exists (`Url.editUrl`).
+8. `import-export` — the `ImportExport` page (`Pages.IMPORTEXPORT`): export groups to JSON + Previous snapshots; import/restore from pasted JSON.
 9. `scenarios-and-seeding` — capstone: round out the scenario catalog so every notable
-   app state is captured; tidy/normalize seed data.
+   app state is captured; normalize seed shapes; retire redundant captures.
 
 ### Scenario catalog (current)
 
@@ -128,6 +126,11 @@ intentionally-empty center.
 - `home-grouped` — **Grouped.** 2 groups (Work, Reading); first-organized state.
 - `labels-populated` — **Fully Organized.** 4 colorful groups (Work/Reading/Shopping/Social).
 - `labels-selected` — **Group Selected.** 4 groups, one expanded with pin/edit/delete row actions (`uxSettings.selectedLabel`).
+- `load-meter-low` / `load-meter-high` — **Sidebar gauge,** low vs. high `processTotals`.
+- `load-page` — the **Load page** (`Pages.LOAD`): per-process breakdown.
+
+The `url-details`, `import-export`, and `search` plans each add their page scenario; the
+`scenarios-and-seeding` capstone then rounds out + normalizes + dedups the whole set.
 
 Re-author scenarios via `codeyam-editor editor register @<file>` with a top-level
 `localStorage` map of **pre-stringified** values (the localStorage stack — a `seed:{}`
