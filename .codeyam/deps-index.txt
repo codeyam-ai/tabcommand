@@ -1,8 +1,8 @@
-# regenerated from dependency-graph.json on 2026-06-12T18:35:01Z; do not hand-edit
-src/lib/utils/chromeShim :: imports=0 :: imported_by=12
-src/Constants.jsx :: imports=0 :: imported_by=11
-src/lib/utils/Chrome :: imports=0 :: imported_by=10
-src/lib/components :: imports=0 :: imported_by=7
+# regenerated from dependency-graph.json on 2026-06-12T23:29:39Z; do not hand-edit
+src/lib/utils/chromeShim :: imports=0 :: imported_by=13
+src/Constants.jsx :: imports=0 :: imported_by=12
+src/lib/utils/Chrome :: imports=0 :: imported_by=11
+src/lib/components :: imports=0 :: imported_by=8
 src/images/defaultFavicon.png :: imports=0 :: imported_by=3
 src/lib/utils/KeyDown.js :: imports=0 :: imported_by=3
 src/lib/utils/processLoad.js :: imports=0 :: imported_by=3
@@ -17,9 +17,13 @@ src/lib/components/Search/Search.jsx :: imports=6 :: imported_by=2
 src/lib/components/SearchResults/SearchResults.jsx :: imports=6 :: imported_by=2
 src/lib/components/Tabs/Tabs.jsx :: imports=4 :: imported_by=2
 src/lib/components/Url/Url.jsx :: imports=5 :: imported_by=2
-src/lib/pages/App/App.jsx :: imports=7 :: imported_by=2
+src/lib/components/UrlField/UrlField.jsx :: imports=0 :: imported_by=2
+src/lib/components/UrlLabel/UrlLabel.jsx :: imports=1 :: imported_by=2
+src/lib/pages/App/App.jsx :: imports=8 :: imported_by=2
 src/lib/pages/Load :: imports=0 :: imported_by=2
 src/lib/pages/Load/Load.jsx :: imports=4 :: imported_by=2
+src/lib/pages/UrlDetails :: imports=0 :: imported_by=2
+src/lib/pages/UrlDetails/UrlDetails.jsx :: imports=5 :: imported_by=2
 src/lib/utils :: imports=0 :: imported_by=2
 src/lib/utils/buildSearchDocuments.js :: imports=0 :: imported_by=2
 src/lib/utils/deriveGaugeTotals.js :: imports=0 :: imported_by=2
@@ -28,6 +32,7 @@ src/lib/utils/gaugeFillPercent.js :: imports=0 :: imported_by=2
 src/lib/utils/humanReadableNumber.js :: imports=0 :: imported_by=2
 src/lib/utils/searchNotesSnippet.js :: imports=0 :: imported_by=2
 src/lib/utils/segmentSearchResults.js :: imports=0 :: imported_by=2
+src/lib/utils/urlDetails.js :: imports=0 :: imported_by=2
 .claude/skills/review-session/scripts/find-last-session-helpers.mjs :: imports=0 :: imported_by=1
 manifest.json :: imports=0 :: imported_by=1
 src/images/logo.svg :: imports=0 :: imported_by=1
@@ -54,10 +59,14 @@ src/lib/components/Tabs :: imports=0 :: imported_by=1
 src/lib/components/Tabs/Tabs.css :: imports=0 :: imported_by=1
 src/lib/components/Url :: imports=0 :: imported_by=1
 src/lib/components/Url/Url.css :: imports=0 :: imported_by=1
+src/lib/components/UrlField :: imports=0 :: imported_by=1
+src/lib/components/UrlLabel :: imports=0 :: imported_by=1
+src/lib/components/UrlLabel/UrlLabel.css :: imports=0 :: imported_by=1
 src/lib/pages :: imports=0 :: imported_by=1
 src/lib/pages/App :: imports=0 :: imported_by=1
 src/lib/pages/App/App.css :: imports=0 :: imported_by=1
 src/lib/pages/Load/Load.css :: imports=0 :: imported_by=1
+src/lib/pages/UrlDetails/UrlDetails.css :: imports=0 :: imported_by=1
 src/lib/utils/Chrome/Chrome.js :: imports=0 :: imported_by=1
 src/lib/utils/Chrome/index.js :: imports=1 :: imported_by=1
 src/lib/utils/chromeShim/chromeShim.js :: imports=0 :: imported_by=1
@@ -99,12 +108,18 @@ src/lib/components/Tabs/Tabs.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/Tabs/index.js :: imports=1 :: imported_by=0
 src/lib/components/Url/Url.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/Url/index.js :: imports=1 :: imported_by=0
-src/lib/components/index.js :: imports=11 :: imported_by=0
+src/lib/components/UrlField/UrlField.test.jsx :: imports=1 :: imported_by=0
+src/lib/components/UrlField/index.js :: imports=1 :: imported_by=0
+src/lib/components/UrlLabel/UrlLabel.test.jsx :: imports=1 :: imported_by=0
+src/lib/components/UrlLabel/index.js :: imports=1 :: imported_by=0
+src/lib/components/index.js :: imports=13 :: imported_by=0
 src/lib/pages/App/App.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/App/index.js :: imports=1 :: imported_by=0
 src/lib/pages/Load/Load.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/Load/index.js :: imports=1 :: imported_by=0
-src/lib/pages/index.js :: imports=2 :: imported_by=0
+src/lib/pages/UrlDetails/UrlDetails.test.jsx :: imports=2 :: imported_by=0
+src/lib/pages/UrlDetails/index.js :: imports=1 :: imported_by=0
+src/lib/pages/index.js :: imports=3 :: imported_by=0
 src/lib/utils/Chrome/Chrome.test.js :: imports=1 :: imported_by=0
 src/lib/utils/KeyDown.test.js :: imports=1 :: imported_by=0
 src/lib/utils/buildSearchDocuments.test.js :: imports=1 :: imported_by=0
@@ -117,6 +132,7 @@ src/lib/utils/index.js :: imports=2 :: imported_by=0
 src/lib/utils/processLoad.test.js :: imports=1 :: imported_by=0
 src/lib/utils/searchNotesSnippet.test.js :: imports=1 :: imported_by=0
 src/lib/utils/segmentSearchResults.test.js :: imports=1 :: imported_by=0
+src/lib/utils/urlDetails.test.js :: imports=1 :: imported_by=0
 src/setupTests.js :: imports=0 :: imported_by=0
 ui/src/helpers/stepLabels.generated.ts :: imports=0 :: imported_by=0
 vite.config.mjs :: imports=1 :: imported_by=0

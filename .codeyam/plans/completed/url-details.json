@@ -1,0 +1,20 @@
+{
+  "claimStartedAt": "2026-06-12T22:48:41Z",
+  "completedAt": "2026-06-12T23:33:40Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "machine": "Jareds-Laptop.local",
+    "pid": 28415,
+    "priority": 0,
+    "selectedPlan": "url-details",
+    "sessionId": "",
+    "startedAt": "2026-06-12T22:48:41Z"
+  },
+  "createdAt": "2026-06-12T00:00:00Z",
+  "journalTimestamp": "2026-06-12T23:33:40Z",
+  "mode": "frontend",
+  "planFile": "completed/url-details.md",
+  "slug": "url-details",
+  "title": "URL Details — edit & annotate a single URL"
+}

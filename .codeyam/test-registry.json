@@ -631,6 +631,105 @@
       "runner": "tests"
     },
     {
+      "description": "saving with the notes field left empty omits the notes key entirely",
+      "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "format": "vitest",
+      "key": "UrlDetails › omits notes when the field is left empty",
+      "line": 96,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a Groups chip renders for every label that contains this urlKey, and only those",
+      "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "format": "vitest",
+      "key": "UrlDetails › renders a chip per label that contains the url",
+      "line": 42,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an unlabeled url renders no Groups chips",
+      "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "format": "vitest",
+      "key": "UrlDetails › renders no chips when the url belongs to no label",
+      "line": 59,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the seeded title/url/favicon/notes hydrate the form fields",
+      "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "format": "vitest",
+      "key": "UrlDetails › renders the stored url fields into the form",
+      "line": 29,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "editing notes and saving persists the four form fields and navigates home",
+      "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "format": "vitest",
+      "key": "UrlDetails › saves the edited url and returns home",
+      "line": 70,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "typing into the field forwards each keystroke to onChange",
+      "file": "src/lib/components/UrlField/UrlField.test.jsx",
+      "format": "vitest",
+      "key": "UrlField › calls onChange as the user types",
+      "line": 26,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "renders the label text and the value inside a text input by default",
+      "file": "src/lib/components/UrlField/UrlField.test.jsx",
+      "format": "vitest",
+      "key": "UrlField › renders a labeled text input carrying the value",
+      "line": 9,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "multiline renders a textarea instead of an input, with the name-derived class",
+      "file": "src/lib/components/UrlField/UrlField.test.jsx",
+      "format": "vitest",
+      "key": "UrlField › renders a textarea when multiline is set",
+      "line": 18,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "clicking the chip calls onRemove so the page can remove the url from the group",
+      "file": "src/lib/components/UrlLabel/UrlLabel.test.jsx",
+      "format": "vitest",
+      "key": "UrlLabel › calls onRemove when clicked",
+      "line": 16,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the close icon is rendered alongside the title",
+      "file": "src/lib/components/UrlLabel/UrlLabel.test.jsx",
+      "format": "vitest",
+      "key": "UrlLabel › renders a remove icon",
+      "line": 24,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "renders the group title in a button whose value carries the title",
+      "file": "src/lib/components/UrlLabel/UrlLabel.test.jsx",
+      "format": "vitest",
+      "key": "UrlLabel › renders the label title",
+      "line": 9,
+      "registeredAt": "2026-06-12T23:19:22.408203+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "moving a url out of a group whose member is not an open tab needs no ungroup",
       "file": "src/lib/utils/dragReducer.test.js",
       "format": "vitest",
@@ -745,6 +844,42 @@
       "key": "buildUrlDocuments › skips urls with no backing record",
       "line": 64,
       "registeredAt": "2026-06-12T17:21:31Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "buildUrlInfo › drops processes from the persisted object",
+      "line": 60,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "buildUrlInfo › includes notes when non-empty",
+      "line": 44,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "buildUrlInfo › omits the notes key when notes is empty or undefined",
+      "line": 54,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "buildUrlInfo › writes title, url and favicon",
+      "line": 35,
+      "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
     {
@@ -898,6 +1033,42 @@
       "key": "deriveGaugeTotals › tolerates a missing record",
       "line": 21,
       "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "deriveUrlLabels › returns a single title when only one label matches",
+      "line": 17,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "deriveUrlLabels › returns an empty array for empty or undefined labels",
+      "line": 27,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "deriveUrlLabels › returns an empty array when no label matches",
+      "line": 22,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "deriveUrlLabels › returns each label containing the urlKey",
+      "line": 12,
+      "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
     {
@@ -1087,6 +1258,42 @@
       "key": "popup.js › urlHTML › truncates long titles via truncateString",
       "line": 99,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "removeUrlFromLabel › does not mutate the input",
+      "line": 85,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "removeUrlFromLabel › leaves other labels unchanged",
+      "line": 79,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "removeUrlFromLabel › removes the urlKey from the targeted label",
+      "line": 73,
+      "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "removeUrlFromLabel › returns labels unchanged for an unknown label title",
+      "line": 91,
+      "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
     {

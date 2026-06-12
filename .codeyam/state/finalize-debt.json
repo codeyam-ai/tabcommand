@@ -1,5 +1,7 @@
 {
   "lastFinalizedAt": "2026-06-12T18:35:03Z",
   "lastFinalizedSha": "f4c4c978f079e4232538a62b0bcd56426ffdd729",
-  "deferred": []
+  "deferred": [],
+  "finalizeIntent": "fast",
+  "finalizeIntentBranch": "modern"
 }

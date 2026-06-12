@@ -122,6 +122,24 @@
     "testFile": "src/lib/components/Url/Url.test.jsx"
   },
   {
+    "description": "The URL Details page (entry point for Pages.URL in App): the full-screen form to edit one saved URL — title/url/favicon inputs, a notes textarea, and removable Groups chips for its label memberships. Reads the per-URL object + labels from Chrome storage; Save persists the four form fields (notes only when non-empty) and returns Home, Cancel returns Home. Composes UrlField and UrlLabel; pure logic lives in utils/urlDetails.",
+    "filePath": "src/lib/pages/UrlDetails/UrlDetails.jsx",
+    "name": "UrlDetails",
+    "testFile": "src/lib/pages/UrlDetails/UrlDetails.test.jsx"
+  },
+  {
+    "description": "A single labeled field in the UrlDetails edit form — an <input> (Title/Url/Favicon) or, with `multiline`, a <textarea> (Notes). Reproduces the onKeyDown stopPropagation guard that keeps the app's global Esc/Search key handlers from firing while typing. Class is derived from the field name (UrlDetails-form-<name>).",
+    "filePath": "src/lib/components/UrlField/UrlField.jsx",
+    "name": "UrlField",
+    "testFile": "src/lib/components/UrlField/UrlField.test.jsx"
+  },
+  {
+    "description": "One removable 'Groups' chip in the UrlDetails form: a close icon plus the label title, with the title passed as the button value so the page handler knows which group to remove. Clicking it asks the page to drop this URL from that group.",
+    "filePath": "src/lib/components/UrlLabel/UrlLabel.jsx",
+    "name": "UrlLabel",
+    "testFile": "src/lib/components/UrlLabel/UrlLabel.test.jsx"
+  },
+  {
     "description": "Pure reducer behind App's onDragEnd: for URL drops moves a urlKey out of the source label and into the destination label at the drop index (reporting active tab ids to ungroup); for LABEL_COLLECTION drops reorders groups by rewriting each label's position. Returns null when there is no destination.",
     "filePath": "src/lib/utils/dragReducer.js",
     "name": "applyDrag",
@@ -150,6 +168,12 @@
     "filePath": "src/lib/utils/buildSearchDocuments.js",
     "name": "buildUrlDocuments",
     "testFile": "src/lib/utils/buildSearchDocuments.test.js"
+  },
+  {
+    "description": "Builds the per-URL object persisted on Save from the UrlDetails form fields: always title/url/favicon, plus notes only when non-empty. Faithfully reproduces the reference's behavior of DROPPING the per-URL processes object (it writes only the form fields). Extracted from the page's handleSubmit.",
+    "filePath": "src/lib/utils/urlDetails.js",
+    "name": "buildUrlInfo",
+    "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
     "description": "Empty trace/debug hook called throughout the background worker as a single instrumentation point; intentionally a no-op in the shipped build.",
@@ -201,6 +225,12 @@
     "filePath": "src/lib/utils/deriveGaugeTotals.js",
     "name": "deriveGaugeTotals",
     "testFile": "src/lib/utils/deriveGaugeTotals.test.js"
+  },
+  {
+    "description": "Derives the UrlDetails 'Groups' chip titles from the labels map + a urlKey: the title of every label whose urlKeys contains that urlKey. The chips are derived state, never stored. Extracted from the page's setPartialState so it can be unit-tested in isolation.",
+    "filePath": "src/lib/utils/urlDetails.js",
+    "name": "deriveUrlLabels",
+    "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
     "description": "Synthetic event factory: returns an event-shaped object with no-op stopPropagation/preventDefault spread with the given attributes, so code can feed a synthetic key into KeyDown.trigger (e.g. SearchResults triggering Escape after a click).",
@@ -368,6 +398,12 @@
       "metrics"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Returns a new labels map with a urlKey spliced out of the named label's urlKeys (fresh array, input not mutated; unknown label returns the map unchanged). Backs the UrlDetails Groups-chip removal. Extracted from the page's handleLabelClick.",
+    "filePath": "src/lib/utils/urlDetails.js",
+    "name": "removeUrlFromLabel",
+    "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
     "description": "Computes the truncated, highlighted notes snippet under a URL search result whose match landed in its notes: finds the term case-insensitively, captures the original-cased match, windows ~18 chars before / ~24 after, and returns { before, match, after } (or null when there's nothing to highlight).",

@@ -1,0 +1,18 @@
+{
+  "name": "URL Details - Unlabeled",
+  "id": "892cd72f-ee7d-4cf7-b875-b942addbe0e8",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"https://news.ycombinator.com/favicon.ico\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"page\":{\"name\":\"Url\",\"urlKey\":\"url-https://news.ycombinator.com\"}}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/UrlDetails/UrlDetails.jsx"
+}

@@ -3,6 +3,7 @@ import './App.css';
 import React, { useEffect, useState } from 'react';
 import { Tabs, Labels, LoadMeter, Search } from '../../components';
 import { Load } from '../Load';
+import { UrlDetails } from '../UrlDetails';
 import { ItemTypes, Pages } from '../../../Constants';
 
 import { DragDropContext } from '@hello-pangea/dnd';
@@ -107,7 +108,7 @@ const App = () => {
       </div>
       <div className="App-content">
         {page.name === Pages.URL &&
-          <ComingSoon title="URL Details" />
+          <UrlDetails urlKey={page.urlKey} />
         }
         {page.name === Pages.IMPORTEXPORT &&
           <ComingSoon title="Import / Export" />

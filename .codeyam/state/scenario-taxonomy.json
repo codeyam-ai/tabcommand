@@ -90,6 +90,37 @@
         "status": "n-a",
         "reason": "Gauge to Load and Home-link back navigation is shown in the demo-flow filmstrip, not a static app scenario."
       }
+    },
+    "UrlDetails": {
+      "empty": {
+        "status": "added"
+      },
+      "single": {
+        "status": "n-a",
+        "reason": "edit form, not a list — a single group membership renders the same chip treatment as multiple, no distinct visual state"
+      },
+      "typical": {
+        "status": "added"
+      },
+      "many": {
+        "status": "added"
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "the form hydrates synchronously from local storage on mount via the chrome shim; no pending/loading UI is rendered"
+      },
+      "edge": {
+        "status": "n-a",
+        "reason": "edge typography (very long title/notes, unicode) is deferred to the scenarios-and-seeding capstone plan; no distinct branch in this component"
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "the form has no validation/failure UI; local-storage reads and writes do not surface error states"
+      },
+      "key-interaction": {
+        "status": "n-a",
+        "reason": "Save persists then navigates to Home and remove-group pops a native confirm; neither yields a distinct seeded display state to capture for this view"
+      }
     }
   }
 }

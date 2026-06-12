@@ -124,3 +124,15 @@
 {"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `buildUrlDocuments › returns no documents for an empty labelMap`: added from runner `tests` output"}
 {"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `searchNotesSnippet › trims a long suffix after the term`: added from runner `tests` output"}
 {"timestamp":"2026-06-12T17:21:31Z","kind":"registry-add","message":"registry `segmentSearchResults › treats a falsy labelTitle as a url`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `buildUrlInfo › writes title, url and favicon`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `deriveUrlLabels › returns a single title when only one label matches`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `buildUrlInfo › includes notes when non-empty`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `buildUrlInfo › omits the notes key when notes is empty or undefined`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `buildUrlInfo › drops processes from the persisted object`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `removeUrlFromLabel › removes the urlKey from the targeted label`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `deriveUrlLabels › returns an empty array for empty or undefined labels`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `deriveUrlLabels › returns an empty array when no label matches`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `removeUrlFromLabel › returns labels unchanged for an unknown label title`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `removeUrlFromLabel › leaves other labels unchanged`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `removeUrlFromLabel › does not mutate the input`: added from runner `tests` output"}
+{"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `deriveUrlLabels › returns each label containing the urlKey`: added from runner `tests` output"}

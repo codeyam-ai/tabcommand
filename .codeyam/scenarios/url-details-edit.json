@@ -1,0 +1,18 @@
+{
+  "name": "URL Details - Edit",
+  "id": "9bff714b-d717-4d24-96e3-410800050262",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Starred\":{\"title\":\"Starred\",\"backgroundColor\":\"#E47415\",\"position\":1,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\"]}}",
+      "uxSettings": "{\"page\":{\"name\":\"Url\",\"urlKey\":\"url-https://github.com/codeyam/tabcommand\"}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"notes\":\"Primary repo for the extension. Ship the URL Details page next, then revisit the labels migration before tagging v2.\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/UrlDetails/UrlDetails.jsx"
+}

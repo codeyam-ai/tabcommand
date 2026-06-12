@@ -9,3 +9,5 @@ export { LoadUrl } from "./LoadUrl";
 export { LoadProcesses } from "./LoadProcesses";
 export { Search } from "./Search";
 export { SearchResults } from "./SearchResults";
+export { UrlField } from "./UrlField";
+export { UrlLabel } from "./UrlLabel";

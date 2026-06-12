@@ -1,0 +1,247 @@
+{
+  "timestamp": "2026-06-12T23:33:40Z",
+  "title": "URL Details — edit & annotate a single URL",
+  "type": "feature",
+  "userRequest": "## Summary\n\nSeventh plan in the modern TabCommand reproduction (reference on `main` at\n`../tabcommand/`). Builds the **`UrlDetails`** page (`Pages.URL`) — the full-screen\nform for editing one saved URL: its title, url, favicon, **notes**, and its group\nmemberships. This replaces the `Pages.URL` \"Coming soon\" placeholder in `App`.\n\nNavigation **into** this page already exists: the modern `Url` row's edit/pencil action\n(`Url.jsx` `editUrl`) writes `uxSettings.page = { name: Pages.URL, urlKey }`, and `App`'s\nstorage listener already propagates the full `page` object (including `urlKey`) into its\n`page` state. So this plan is purely: build the page component + render it.\n\n## Reference map\n\n| Concern | Reference (read-only) | This plan |\n|---|---|---|\n| The edit form page | `../tabcommand/src/lib/pages/UrlDetails/UrlDetails.jsx` (+ `.css`) | Full port; replace placeholder |\n| Its tests | `../tabcommand/src/lib/pages/UrlDetails/UrlDetails.test.jsx` | Port/adapt to Vitest + RTL |\n| Where it mounts | `../tabcommand/src/lib/pages/App/App.jsx` (`page.name === Pages.URL`) | Wire `<UrlDetails urlKey={page.urlKey} />` |\n\n## Data model (see MODERNIZATION.md \"Data model\")\n\n- Reads `Chrome.get([urlKey, 'labels'])`. State seeds `url` from `urlKey.replace('url-','')`,\n  then overlays the stored per-URL object (`title`, `favicon`, **`notes`**) and `labels`.\n- **`notes`** is a new optional string field on the per-URL object\n  (`{ title, favicon, notes?, processes }`). This page is the only writer of `notes`.\n- `urlLabels` is **derived, not stored**: the titles of every label whose `urlKeys`\n  contains this `urlKey`. Rendered as removable \"Groups\" chips.\n- **Save replaces the per-URL object** with `{ title, url, favicon, notes? }` (notes only\n  when non-empty) and writes back `labels`, then returns Home. **Faithful-repro caveat:**\n  the reference's save **drops `processes`** from the object (it writes only the four form\n  fields). Reproduce as-is — do not \"fix\" it; it's reference behavior and irrelevant to\n  seeded captures. Leave a `// Stack/ref assumption:` comment naming the drop.\n- `goHome` deletes `uxSettings.urlKey` and sets `uxSettings.page = { name: Pages.HOME }`.\n- Removing a group chip splices this `urlKey` out of that label's `urlKeys` (behind a\n  `confirm(...)`), updating local `labels` state (persisted on Save).\n\n## Key Decisions\n\n- **Drop the `PropTypes` block.** The modern stack has no `prop-types` dependency (the\n  modern `Url`/`Labels` components omit it). Remove the `import PropTypes` + `propTypes`\n  assignment; keep the plain `({ urlKey })` signature.\n- **Exclude the dead `ChromeOutlined` import.** The reference imports it from\n  `@ant-design/icons` but never renders it. Port only the icons actually used:\n  `HomeFilled` (home link) and `CloseCircleOutlined` (chip remove). `@ant-design/icons`\n  `^4.5.0` is already a modern dependency (used by `Url`).\n- **Keep `confirm`/`stopPropagation` faithfully.** The group-chip removal `confirm(...)`\n  and the `onKeyDown`/`onClick` `stopPropagation` guards (which keep the global Esc/Search\n  key handlers from firing while typing) are reproduced verbatim, with the same\n  `// eslint-disable-line no-alert` where the reference has it.\n- **Reuse the existing navigation.** Do **not** add a new entry point — `Url.editUrl`\n  already routes here. This plan only consumes `page.urlKey`.\n\n## Implementation\n\n### 1. Page component (full port)\n\n- `src/lib/pages/UrlDetails/UrlDetails.jsx` (+ `UrlDetails.css` ported from reference):\n  the `({ urlKey })` form — Title / Url / Favicon inputs, Notes `<textarea>`, the Groups\n  chip row, Save (`handleSubmit`) and Cancel (`goHome`). Port `setPartialState`,\n  `handleChange`, `handleSubmit`, `goHome`, `handleLabelClick` as written (minus\n  PropTypes / dead import).\n- `src/lib/pages/UrlDetails/index.js` re-export; add `export { UrlDetails } from './UrlDetails'`\n  to the pages barrel (`src/lib/pages/index.js`).\n\n### 2. App wiring\n\n`src/lib/pages/App/App.jsx`: replace the `Pages.URL` `ComingSoon` placeholder with\n`<UrlDetails urlKey={page.urlKey} />`. (`App` already carries `urlKey` in `page` via the\n`uxSettings.page` listener — confirm, don't re-plumb.)\n\n### 3. Scenario (register + capture)\n\n- `url-details-edit` — seed `uxSettings = { page: { name: \"Url\", urlKey: \"url-https://…\" } }`\n  plus that URL's object **with a `notes` value** and a `labels` map where one or two\n  labels include this `urlKey` (so the Groups chips render). Capture shows the populated\n  edit form (title/url/favicon/notes filled, group chips present). Use the top-level\n  `localStorage` register shape (pre-stringified values) — a `seed:{}` block hits the DB\n  \"array of row objects\" validator and rejects map-shaped keys (see MODERNIZATION.md).\n\n### 4. Tests (Vitest + RTL)\n\n- Renders the seeded `title`/`url`/`favicon`/`notes` into the form fields.\n- Renders a Groups chip per label that contains this `urlKey`; none when unlabeled.\n- Editing `notes` + submitting writes `{ [urlKey]: { title, url, favicon, notes } }` and\n  navigates home (`uxSettings.page.name === 'Home'`, `urlKey` cleared).\n- Submitting with empty notes omits the `notes` key.\n- Each `it()` keeps its `//` description.\n\n## Verification\n\n1. `npm test` green; `npm run lint` clean; `editor verify-build` green.\n2. `url-details-edit` capture shows the form populated with the seeded notes + group chips.\n3. Dev server: from Home, hovering a `Url` row → Edit pencil opens this page for that URL;\n   Save returns Home with the edits persisted; Cancel returns Home unchanged. No\n   `chrome`/console errors.\n\n## Preview limits / out of scope\n\n- The group-chip `confirm(...)` and the Save-drops-`processes` behavior are\n  interaction-time only — neither affects the seeded capture.\n- `Search` (`search`, still queued) and the capstone scenario round-out\n  (`scenarios-and-seeding`) are separate plans.\n- `Closer` auto-close engine + `service_worker.js` remain deferred (runtime, not UI).",
+  "description": "Built the UrlDetails page (Pages.URL): a full-screen form to edit one saved URL — title/url/favicon inputs, a free-form notes textarea (a new per-URL field), and removable group-membership chips. Save persists the four form fields (notes only when non-empty, faithfully dropping processes per the reference) and returns Home; Cancel returns Home. Wired into App, replacing the Coming-soon placeholder; deconstructed into UrlField + UrlLabel components and three unit-tested pure helpers (deriveUrlLabels, buildUrlInfo, removeUrlFromLabel). Demonstrated by populated (url-details-edit) and empty/unlabeled (url-details-unlabeled) app scenarios.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/.last-reconcile.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/per-test-evidence.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/url-details.md\t.codeyam/plans/completed/url-details.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/reconciliation-log.jsonl",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/runner-timing-history.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/finalize-debt.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/provider-auth-verdict.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/all.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-run-marker.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/index.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/url-details-edit.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/url-details-unlabeled.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UrlField/UrlField.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UrlField/UrlField.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UrlField/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UrlLabel/UrlLabel.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UrlLabel/UrlLabel.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UrlLabel/UrlLabel.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UrlLabel/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/UrlDetails/UrlDetails.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/UrlDetails/UrlDetails.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/UrlDetails/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/urlDetails.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/urlDetails.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "URL Details - Edit",
+      "screenshotPath": "url-details-edit--desktop.png"
+    },
+    {
+      "name": "URL Details - Unlabeled",
+      "screenshotPath": "url-details-unlabeled--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 192,
+    "passed": 192,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 192,
+        "passed": 192
+      }
+    ]
+  }
+}
