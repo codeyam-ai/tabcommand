@@ -121,8 +121,6 @@ For `N = 2` you write `01-…` and `02-…`; for `N = 8` you go to `08-…`. Alw
 
 **Render every element as static HTML.** The `sandbox=""` iframe blocks *all* scripts, so any content you build with JS — a `.map()` over a data array, `innerHTML`, `document.createElement` — renders as a **blank card**. Write every card, row, and value out as literal markup. No `<script>` tag at all.
 
-**Drive color from CSS variables so the dark toggle works.** Each card has a per-card dark-mode toggle. It flips the mockup by overriding the system's `:root` color variables (and, when the system declares no dark palette, a derived dark palette), and by marking the root element `data-theme="dark"` / `class="dark"`. So: define your colors as `:root` custom properties and *reference them* (`color: var(--text); background: var(--bg)`) instead of hardcoding hex values inline — a mockup that hardcodes its colors only flips via a coarse baseline fallback. You may also author explicit dark overrides keyed off `[data-theme="dark"]` or `.dark` on the root element for an intentional dark look; the runtime engages those selectors. This is best-effort polish, not a blocker — but variable-driven color makes dark mode look designed rather than force-inverted.
-
 > **Known handoff gap (off-catalog):** the selection endpoint (Step 6) resolves `NN-<system>-mockup.html` back to `design_systems/<system>.md`. An off-catalog mockup has no backing markdown, so selecting it cannot yet copy a design system into `.codeyam/design/design_system.md`. This is a deliberate prototype limitation — the build-handoff for off-catalog (synthesizing `design_system.md` from the chosen mockup's actual tokens) is backend work tracked for the formal build session. Generate off-catalog mockups for *visual exploration*; flag this gap if the user picks one.
 
 **Subject stays constant; the design language and structure are the variables.** Every mockup depicts the same page so the user can directly compare directions. The same headline content, primary actions, data, and information hierarchy must be readable across all N — otherwise the comparison is meaningless.
@@ -178,7 +176,24 @@ Build each representational slot in **two layers**:
 
 (Note that *embedding* the asset and *deriving tokens from* it are separate jobs — Step 2's design read pulls the palette/type/mood out of the asset so it reshapes the whole mockup, not just the spot where the logo sits.)
 
+**Typography — embed the bundled inline face; the fallback remains the floor.** For each picked design system, locate its prebuilt base64 font block under `.codeyam/design/design_systems/<system>.fonts.css` (systems that intentionally use only standard system fonts will not have a file). **Inline that entire `.fonts.css` stylesheet into the mockup's `<style>` tag.** Set the `font-family` using the branded face, and always pair it with its system fallback — e.g. `font-family: 'Manrope', sans-serif;` (or `Georgia, serif` / `'JetBrains Mono', monospace` to match the system's personality). This guarantees full typographic fidelity offline with no network requests and zero IP leaks. **Never** load remote fonts via `@import url(https://fonts.googleapis.com/…)`, `<link href="https://…">`, or any other remote URL — the mockup linter will flag it immediately.
+
 **Atomic writes only.** Write the full file in one step (e.g. the `Write` tool); never streaming opens. The UI polls the directory every few seconds and a half-written file renders as a broken card.
+
+### Step 3b — self-correct against the linter before handoff
+
+The editor backend lints every mockup and exposes the findings on the same API you already curl. **These warnings are for you, the generator — not the user; the user sees no lint badge.** Before posting the numbered key (Step 4), close the loop:
+
+1. After all N files exist, read the lint findings:
+   ```bash
+   curl http://localhost:14199/api/editor-mockups
+   ```
+   The response is a JSON array; each entry carries a `warnings[]` of `{code, message, severity}`. The control port is normally `localhost:14199`; on `connection refused`, ask the user for the editor port — never guess.
+2. For **every** card with a non-empty `warnings[]`, apply the fix its `message` describes and rewrite that HTML file. The `message` is the remediation guide — e.g. *"Use single quotes inside the url() …"* (the quote-collision trap above), *"Render the content statically."* (a stray `<script>` / JS-built content), an empty media box, a remote asset, or a remote font (resolve it with the **Typography** rule: the system's `font-family` + system-font fallback, never a remote load).
+3. Re-`curl` and repeat until every card's `warnings[]` is empty, **capped at ~3 passes** so a stubborn finding can't loop forever.
+4. Anything still flagged after the cap is **named in the Step 4 numbered key as a plain-language advisory** (e.g. *"3: off-catalog — note: the hero photo loads from a remote source"*) — never left as a silent residual, and never surfaced as a cryptic badge.
+
+**If the API is unreachable** (`connection refused` and the user can't give a port), fall back to a local grep of each file for the highest-signal violations before handoff — `fonts.googleapis.com`, `@import url(http`, `<script`, `<img src="http` — and fix what it finds with the same rules. The API loop is preferred; the grep is the belt-and-suspenders floor.
 
 ## Step 4 — post the numbered key in the chat, labeled by tier
 
@@ -191,15 +206,13 @@ After all N files exist, post a short key naming each numbered mockup **and its 
 …
 ```
 
-End with an invitation that frames iterating and selecting as equally valid, with **no pressure to pick**: *"Want to push any of these further? Tell me which to iterate on (by number) with what to change — you can iterate as many rounds as you like, there's no limit. Whenever a direction feels right, just say 'let's use N' and we'll lock it in — no rush. The bolder ones are idea-generators too: if you like one element from a wild mockup, say so and I'll fold it into a safer direction."* Selecting is a deliberate step the user takes only when ready — never imply they must converge or choose soon.
+End with: *"Tell me which to iterate (by number) or say 'let's use N' to lock one in. The bolder ones are idea-generators too — if you like one element from a wild mockup, say so and I'll fold it into a safer direction."*
 
 The preview is already on the Mockups tab (it switched at the start of Step 3), so Step 4's only job is the numbered key. No tab-switch needed here.
 
 ## Step 5 — iterate when asked
 
-When the UI dispatches an Iterate trigger (an `Iterate:` keyword followed by a fenced JSON feedback bundle, or the no-feedback variant), **do not regenerate anything immediately**. First post a short message asking the user which design(s), if any, are close enough to keep and just tweak — and that every other design will be redesigned fresh from the feedback. **Wait for the user's reply before writing any mockup.** This is also where **cross-pollination** happens: if the user says "I like #5's layout but #2's palette," carry that explicitly into the refined slot.
-
-**Frame iteration as unlimited and pressure-free.** Make it explicit that the user can iterate as many rounds as they like — there is no cap and no expectation to converge. Picking a final direction is a separate, deliberate action they take *only when they're ready* (the "let's use N" selection in Step 6), not something this round is pushing them toward. Earlier rounds are never lost: each iteration archives the current set, and the user can page back through previous rounds (or restore one) in the UI. So keep the keep-question genuinely open — "keep any of these and tweak, or redesign from your notes; iterate again as many times as you want" — with no language implying they should choose soon.
+When the UI dispatches an Iterate trigger (an `Iterate:` keyword followed by a fenced JSON feedback bundle, or the no-feedback variant), **do not regenerate anything immediately**. First post a short message asking the user which design(s), if any, are close enough to keep and just tweak — and state clearly that every other design will be discarded and redesigned fresh from the feedback. **Wait for the user's reply before writing any mockup.** This is also where **cross-pollination** happens: if the user says "I like #5's layout but #2's palette," carry that explicitly into the refined slot.
 
 Once the user answers, **switch the preview to the Mockups tab as the regeneration round begins** — before writing the first refreshed/placeholder card:
 
