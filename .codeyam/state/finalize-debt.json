@@ -7,6 +7,12 @@
       "shortSha": "0ebda87",
       "subject": "feat: URL Details — edit & annotate a single URL",
       "deferredAt": "2026-06-12T23:35:49Z"
+    },
+    {
+      "sha": "b06c0bff6877cd313c5db79814fe0eff316a9610",
+      "shortSha": "b06c0bf",
+      "subject": "feat: Import / Export — backup & restore groups",
+      "deferredAt": "2026-06-13T11:08:53Z"
     }
   ],
   "finalizeIntent": "fast",
