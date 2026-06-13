@@ -26,12 +26,6 @@
     "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
-    "description": "Layout-only placeholder for the URL/ImportExport/Load pages until their own plans land; renders a title and Coming soon copy. Exercised by the App navigation test that asserts the Import/Export placeholder.",
-    "filePath": "src/lib/pages/App/App.jsx",
-    "name": "ComingSoon",
-    "testFile": "src/lib/pages/App/App.test.jsx"
-  },
-  {
     "description": "The Import / Export page (entry point for Pages.IMPORTEXPORT in App): a recover/backup view reached from the sidebar Import/Export link. Reads labels + previousLabels from Chrome storage and renders the Current export (groups serialized to JSON, sorted and url-resolved) plus a read-only Previous textarea per snapshot; the Import textarea + button parse pasted JSON to restore groups, swallowing malformed JSON, then call onComplete to return Home. Pure logic lives in utils/importExport; also covered by the import-export-backup application scenario.",
     "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
     "name": "ImportExport",
@@ -446,6 +440,15 @@
     "filePath": "src/lib/utils/importExport.js",
     "name": "sortLabels",
     "testFile": "src/lib/utils/importExport.test.js"
+  },
+  {
+    "description": "Event guard that stops propagation on UrlField key events, keeping the global keydown handler from hijacking typing inside the field. Reproduced faithfully from the original.",
+    "filePath": "src/lib/components/UrlField/UrlField.jsx",
+    "name": "stopProp",
+    "untestabilityReason": {
+      "justification": "single-expression wrapper over event.stopPropagation() — no branching or logic to test",
+      "kind": "trivial-wrapper"
+    }
   },
   {
     "description": "Summarizes a stored per-URL processes record into the load readout a tab shows: average CPU and private-memory, a severity level (low/medium/high/excessive), and a bar width. Returns null when there is no sampled data so callers render nothing. Shared by the Url tab rows and the Load page LoadUrl cards (extracted from the inline copy that lived in Url).",

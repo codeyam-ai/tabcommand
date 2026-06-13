@@ -919,7 +919,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "ref behavior: processes on the input is NOT carried into the saved object",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "buildUrlInfo › drops processes from the persisted object",
@@ -928,7 +928,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "a non-empty notes value is included",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "buildUrlInfo › includes notes when non-empty",
@@ -937,7 +937,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "empty-string and undefined notes are omitted entirely",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "buildUrlInfo › omits the notes key when notes is empty or undefined",
@@ -946,7 +946,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "the three core form fields are always written",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "buildUrlInfo › writes title, url and favicon",
@@ -1135,7 +1135,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "a urlKey present in exactly one label yields a single title",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "deriveUrlLabels › returns a single title when only one label matches",
@@ -1144,7 +1144,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "an empty or undefined labels map is tolerated",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "deriveUrlLabels › returns an empty array for empty or undefined labels",
@@ -1153,7 +1153,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "a urlKey in no label yields an empty list (no chips render)",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "deriveUrlLabels › returns an empty array when no label matches",
@@ -1162,7 +1162,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "returns the titles of every label whose urlKeys contains this urlKey",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "deriveUrlLabels › returns each label containing the urlKey",
@@ -1360,7 +1360,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "does not mutate the input labels map or its arrays",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "removeUrlFromLabel › does not mutate the input",
@@ -1369,7 +1369,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "other labels are left untouched",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "removeUrlFromLabel › leaves other labels unchanged",
@@ -1378,7 +1378,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "splices the urlKey out of the named label's urlKeys",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "removeUrlFromLabel › removes the urlKey from the targeted label",
@@ -1387,7 +1387,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "an unknown label title returns the labels unchanged",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "removeUrlFromLabel › returns labels unchanged for an unknown label title",

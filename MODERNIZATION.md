@@ -105,32 +105,44 @@ cites the reference files in `../tabcommand/` it reproduces.
 3. `home-and-tabs` — `Tabs` (Active/Auto-Closed/History) + `Url` row, real App navigation, `@hello-pangea/dnd` context; stubbed Search/LoadMeter/Labels. ✅ (Home tab rail renders real seeded data.)
 4. `labels-and-dnd` — `Labels`/`LabelCollection`/`LabelForm`/`LabelFormContainer` + the real `onDragEnd` (URL move between groups, label reorder). Removed the Labels stub; fills the Home center. Label scenarios seed `backgroundColor`/`position`/`urlKeys`. ✅ (Home center renders real groups.)
 5. `load-meter` — `LoadMeter` gradient gauge (sidebar) + `Load` page + per-process breakdown; `processTotals` key. ✅ (Scenarios `load-meter-low`/`load-meter-high`/`load-page`.)
-
-**Queued (drafted, awaiting execution):**
-6. `search` — `Search` + `SearchResults` (minisearch) + ports `KeyDown`/`event` utils. (Search is still a stub.)
-7. `url-details` — the `UrlDetails` page (`Pages.URL`): edit/annotate a URL (title/url/favicon/**notes** + group chips). Navigation already exists (`Url.editUrl`).
-8. `import-export` — the `ImportExport` page (`Pages.IMPORTEXPORT`): export groups to JSON + Previous snapshots; import/restore from pasted JSON.
-9. `scenarios-and-seeding` — capstone: round out the scenario catalog so every notable
-   app state is captured; normalize seed shapes; retire redundant captures.
+6. `search` — `Search` + `SearchResults` (minisearch) + ports `KeyDown`/`event` utils. ✅ (Scenario `search-active-results`: overlay open with a typed query, Groups/Grouped URLs/Archived URLs results.)
+7. `url-details` — the `UrlDetails` page (`Pages.URL`): edit/annotate a URL (title/url/favicon/**notes** + group chips). ✅ (Scenarios `url-details-edit` w/ notes + group chips, `url-details-unlabeled` no-notes/no-groups variant.)
+8. `import-export` — the `ImportExport` page (`Pages.IMPORTEXPORT`): export groups to JSON + Previous snapshots; import/restore from pasted JSON. ✅ (Scenario `import-export-backup`: populated export + `previousLabels` snapshot.)
+9. `scenarios-and-seeding` — capstone: rounded out the scenario catalog (12 fresh, 0 stale, 0 missing); normalized seed shapes; reviewed duplicate candidates. ✅
 
 ### Scenario catalog (current)
 
-Consolidated 2026-06-12 from 7 → 5 Home/Labels scenarios. The prior set had **four**
-scenarios painting the identical empty "Click the Add Group icon…" placeholder across
-the whole (largest) center region, differing only in the right rail. The curation
-principle: **each scenario varies the main (center) content**; keep at most one
-intentionally-empty center.
+**Final set: 12 scenarios — one+ per page × meaningful state (12 fresh, 0 stale, 0 missing).**
+Curation principle: **each scenario varies the main (center) content** and earns its place
+by showing a *distinct, meaningful* state, not a re-skin of another; keep at most one
+intentionally-empty center. (The earlier Home set was consolidated 2026-06-12 from 7 → 5,
+folding four near-identical empty-placeholder captures into `home-unorganized`.)
 
+Home / Labels (`App`):
 - `home-empty` — **First Run.** Everything empty; the canonical onboarding state (empty-state copy in every region).
 - `home-unorganized` — **Unorganized.** Loaded rail (6 ungrouped active tabs w/ load bars + 2 auto-closed + collapsed history), no groups yet → the realistic "organize me" state. *(Merged the old `home-active-tabs` + `home-auto-closed-and-history` + `labels-empty`.)*
 - `home-grouped` — **Grouped.** 2 groups (Work, Reading); first-organized state.
 - `labels-populated` — **Fully Organized.** 4 colorful groups (Work/Reading/Shopping/Social).
 - `labels-selected` — **Group Selected.** 4 groups, one expanded with pin/edit/delete row actions (`uxSettings.selectedLabel`).
-- `load-meter-low` / `load-meter-high` — **Sidebar gauge,** low vs. high `processTotals`.
-- `load-page` — the **Load page** (`Pages.LOAD`): per-process breakdown.
 
-The `url-details`, `import-export`, and `search` plans each add their page scenario; the
-`scenarios-and-seeding` capstone then rounds out + normalizes + dedups the whole set.
+Search (`App` overlay):
+- `search-active-results` — **Search overlay open** on a typed query, showing Groups / Grouped URLs / Archived URLs result sections over the group grid.
+
+URL Details (`Pages.URL`):
+- `url-details-edit` — **Edit, annotated.** Populated form *with* notes + group chips (Work, Starred).
+- `url-details-unlabeled` — **Edit, bare.** No-notes / no-groups variant (empty notes placeholder, empty Groups).
+
+Import / Export (`Pages.IMPORTEXPORT`):
+- `import-export-backup` — **Backup.** Populated export + a `previousLabels` snapshot (Previous list non-empty).
+
+Load (`Pages.LOAD`):
+- `load-meter-low` / `load-meter-high` — **Sidebar gauge,** low vs. high `processTotals`.
+- `load-page` — the **Load page**: per-process breakdown.
+
+`scenario-review` flags `labels-populated`, `search-active-results`, `url-details-edit`,
+and `url-details-unlabeled` as VISUAL-DUPLICATE-CANDIDATEs — all reviewed and kept: each
+proves a distinct state (the flag is a perceptual-hash false positive on structurally
+similar layouts).
 
 Re-author scenarios via `codeyam-editor editor register @<file>` with a top-level
 `localStorage` map of **pre-stringified** values (the localStorage stack — a `seed:{}`

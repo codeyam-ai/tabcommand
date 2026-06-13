@@ -136,3 +136,5 @@
 {"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `removeUrlFromLabel › leaves other labels unchanged`: added from runner `tests` output"}
 {"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `removeUrlFromLabel › does not mutate the input`: added from runner `tests` output"}
 {"timestamp":"2026-06-12T23:11:16Z","kind":"registry-add","message":"registry `deriveUrlLabels › returns each label containing the urlKey`: added from runner `tests` output"}
+{"timestamp":"2026-06-13T14:19:56Z","kind":"deferred","message":"glossary `ComingSoon`: deferred — source file src/lib/pages/App/App.jsx still exists but identifier not found by static analysis (qualified-name mismatch or stale dep graph)"}
+{"timestamp":"2026-06-13T14:20:16Z","kind":"glossary-delete","message":"glossary `ComingSoon` deleted: agent-decided"}

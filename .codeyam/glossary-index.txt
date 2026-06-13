@@ -1,7 +1,6 @@
-# regenerated from glossary.json on 2026-06-13T10:52:56Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-13T14:21:06Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
-ComingSoon :: src/lib/pages/App/App.jsx :: tags= :: test=src/lib/pages/App/App.test.jsx
 ImportExport :: src/lib/pages/ImportExport/ImportExport.jsx :: tags= :: test=src/lib/pages/ImportExport/ImportExport.test.jsx
 KeyDown :: src/lib/utils/KeyDown.js :: tags= :: test=src/lib/utils/KeyDown.test.js
 LabelCollection :: src/lib/components/LabelCollection/LabelCollection.jsx :: tags= :: test=src/lib/components/LabelCollection/LabelCollection.test.jsx
@@ -53,6 +52,7 @@ resolveLabelUrls :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils
 searchNotesSnippet :: src/lib/utils/searchNotesSnippet.js :: tags= :: test=src/lib/utils/searchNotesSnippet.test.js
 segmentSearchResults :: src/lib/utils/segmentSearchResults.js :: tags= :: test=src/lib/utils/segmentSearchResults.test.js
 sortLabels :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
+stopProp :: src/lib/components/UrlField/UrlField.jsx :: tags=
 summarizeProcessLoad :: src/lib/utils/processLoad.js :: tags= :: test=src/lib/utils/processLoad.test.js
 tabUpdates :: service_worker.js :: tags=worker,ported-verbatim,tabs :: test=service_worker.test.js
 trackGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js

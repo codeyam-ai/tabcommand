@@ -1,10 +1,15 @@
 {
   "App › changePage writes uxSettings.page when a sidebar link is clicked": {
     "file": "src/lib/pages/App/App.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -48,21 +53,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "App › navigates when uxSettings changes in storage": {
     "file": "src/lib/pages/App/App.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -107,20 +112,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "App › renders the page named by uxSettings.page": {
     "file": "src/lib/pages/App/App.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -165,20 +170,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "App › renders the sidebar and the Home page by default": {
     "file": "src/lib/pages/App/App.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -222,21 +227,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Chrome › hydrates activeTabs/allUrls/previousLabels to [] when absent": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -280,21 +285,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Chrome › hydrates labels/uxSettings/autoClosed to {} when absent": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -338,21 +343,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Chrome › passes through requested keys that are present": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -396,21 +401,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Chrome › remove delegates to chrome.storage.local.remove": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -454,21 +459,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Chrome › set delegates to chrome.storage.local.set": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -512,21 +517,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Chrome › strips timestamp and drops falsy previousLabels entries": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -570,21 +575,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Chrome › supports a single string key": {
     "file": "src/lib/utils/Chrome/Chrome.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -629,20 +634,72 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
+      }
+    ]
+  },
+  "ImportExport › imports a valid export, writing labels and per-url objects then calling onComplete": {
+    "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full",
+    "recentStatuses": [
       {
         "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      }
+    ]
+  },
+  "ImportExport › renders a Previous textarea for each previousLabels snapshot": {
+    "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full",
+    "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      }
+    ]
+  },
+  "ImportExport › serializes the seeded labels into the Current export field": {
+    "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full",
+    "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      }
+    ]
+  },
+  "ImportExport › swallows a malformed-JSON import without writing, still calling onComplete": {
+    "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
+    "lastStatus": "pass",
+    "lastRunKind": "full",
+    "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
         "kind": "full"
       }
     ]
   },
   "KeyDown › dispatches a real document keydown to subscribers": {
     "file": "src/lib/utils/KeyDown.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -687,10 +744,15 @@
   },
   "KeyDown › forwards a Cmd+F event to subscribers": {
     "file": "src/lib/utils/KeyDown.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -735,10 +797,15 @@
   },
   "KeyDown › invokes all subscribers": {
     "file": "src/lib/utils/KeyDown.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -783,10 +850,15 @@
   },
   "KeyDown › invokes an added subscriber with the event": {
     "file": "src/lib/utils/KeyDown.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -831,10 +903,15 @@
   },
   "KeyDown › stops invoking a removed subscriber": {
     "file": "src/lib/utils/KeyDown.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -879,10 +956,15 @@
   },
   "KeyDown › tolerates removing an unknown function": {
     "file": "src/lib/utils/KeyDown.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -927,10 +1009,15 @@
   },
   "LabelCollection › removeUrl removes the url from the group urlKeys": {
     "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -974,21 +1061,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LabelCollection › renders the group title and its member urls": {
     "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1032,21 +1119,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LabelCollection › splits members into active and inactive sections": {
     "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1090,21 +1177,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LabelForm › renames an existing label, deleting the old key": {
     "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1148,21 +1235,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LabelForm › writes a new label with derived backgroundColor and position": {
     "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1206,21 +1293,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LabelFormContainer › expands to reveal the LabelForm when clicked": {
     "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1264,21 +1351,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LabelFormContainer › renders expanded when the expand prop is set": {
     "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1322,21 +1409,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LabelFormContainer › shows the Add Group affordance and hides the form when collapsed": {
     "file": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1380,21 +1467,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Labels › pins the selected label above the grid": {
     "file": "src/lib/components/Labels/Labels.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1438,21 +1525,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Labels › renders a group for each label": {
     "file": "src/lib/components/Labels/Labels.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1496,21 +1583,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Labels › shows the empty-state CTA when there are no labels": {
     "file": "src/lib/components/Labels/Labels.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1554,21 +1641,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Load › navigates home when the Home link is clicked": {
     "file": "src/lib/pages/Load/Load.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1612,21 +1699,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Load › renders the active-tab URL list from storage": {
     "file": "src/lib/pages/Load/Load.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1670,21 +1757,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Load › renders with no URL cards when there are no active tabs": {
     "file": "src/lib/pages/Load/Load.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1728,21 +1815,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadMeter › handles a processTotals storage change": {
     "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1786,21 +1873,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadMeter › reads seeded processTotals on mount without throwing": {
     "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1844,21 +1931,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadMeter › renders the gauge labels": {
     "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1902,21 +1989,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadProcesses › formats private memory in megabytes": {
     "file": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -1960,21 +2047,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadProcesses › removes its listener on unmount without throwing": {
     "file": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2018,21 +2105,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadProcesses › renders a row per process when the API emits": {
     "file": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2076,21 +2163,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadProcesses › renders no process rows until the API emits": {
     "file": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2134,21 +2221,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadUrl › falls back to the default favicon when none is provided": {
     "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2192,21 +2279,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadUrl › omits the load readout when there is no sampled process data": {
     "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2250,21 +2337,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadUrl › renders the title linked to the url": {
     "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2308,21 +2395,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadUrl › shows the per-tab load readout when processes data is present": {
     "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2366,21 +2453,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "LoadUrl › uses the provided favicon": {
     "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2425,20 +2512,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "Search › hides the overlay when the query is cleared": {
     "file": "src/lib/components/Search/Search.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2478,10 +2565,15 @@
   },
   "Search › re-indexes when labels change": {
     "file": "src/lib/components/Search/Search.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2521,10 +2613,15 @@
   },
   "Search › renders the search input": {
     "file": "src/lib/components/Search/Search.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2564,10 +2661,15 @@
   },
   "Search › shows No Results for an unmatched query": {
     "file": "src/lib/components/Search/Search.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2607,10 +2709,15 @@
   },
   "Search › shows a matching label in the results": {
     "file": "src/lib/components/Search/Search.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2650,10 +2757,15 @@
   },
   "Search › shows a matching labeled url in the results": {
     "file": "src/lib/components/Search/Search.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2693,10 +2805,15 @@
   },
   "SearchResults › activates a label on Enter": {
     "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2736,10 +2853,15 @@
   },
   "SearchResults › always renders the Archived URLs section": {
     "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2779,10 +2901,15 @@
   },
   "SearchResults › moves the selection down on ArrowDown": {
     "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2822,10 +2949,15 @@
   },
   "SearchResults › navigates to the URL page from the edit affordance": {
     "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2865,10 +2997,15 @@
   },
   "SearchResults › renders No Results when there are no matches": {
     "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2908,10 +3045,15 @@
   },
   "SearchResults › renders a highlighted notes snippet when the match is in notes": {
     "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2951,10 +3093,15 @@
   },
   "SearchResults › renders label hits under Groups": {
     "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -2994,10 +3141,15 @@
   },
   "SearchResults › renders url hits under Grouped URLs": {
     "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3037,10 +3189,15 @@
   },
   "Tabs › excludes browser-pinned tabs from the active list": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3084,21 +3241,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Tabs › groups labeled tabs under headings and leaves the rest ungrouped": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3142,21 +3299,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Tabs › renders a row for each seeded active tab": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3200,21 +3357,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Tabs › shows the empty-state explainer when there are no active tabs": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3258,21 +3415,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Tabs › toggles the History section open when its title is clicked": {
     "file": "src/lib/components/Tabs/Tabs.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3316,21 +3473,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Url › derives the display url from urlKey when there is no title": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3374,21 +3531,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Url › hides the load indicator when there are no process samples": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3432,21 +3589,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Url › renders nothing meaningful without a urlKey": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3490,21 +3647,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Url › renders the title and favicon for a seeded url": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3548,21 +3705,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Url › reveals the action row on hover": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3606,21 +3763,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Url › shows the excessive load indicator for heavy process stats": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3664,21 +3821,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Url › shows the low load indicator for light process stats": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3722,21 +3879,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "Url › shows the medium load indicator for moderate process stats": {
     "file": "src/lib/components/Url/Url.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3781,20 +3938,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "UrlDetails › omits notes when the field is left empty": {
     "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3814,10 +3971,15 @@
   },
   "UrlDetails › renders a chip per label that contains the url": {
     "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3837,10 +3999,15 @@
   },
   "UrlDetails › renders no chips when the url belongs to no label": {
     "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3860,10 +4027,15 @@
   },
   "UrlDetails › renders the stored url fields into the form": {
     "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3883,10 +4055,15 @@
   },
   "UrlDetails › saves the edited url and returns home": {
     "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3906,10 +4083,15 @@
   },
   "UrlField › calls onChange as the user types": {
     "file": "src/lib/components/UrlField/UrlField.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3929,10 +4111,15 @@
   },
   "UrlField › renders a labeled text input carrying the value": {
     "file": "src/lib/components/UrlField/UrlField.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3952,10 +4139,15 @@
   },
   "UrlField › renders a textarea when multiline is set": {
     "file": "src/lib/components/UrlField/UrlField.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3975,10 +4167,15 @@
   },
   "UrlLabel › calls onRemove when clicked": {
     "file": "src/lib/components/UrlLabel/UrlLabel.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -3998,10 +4195,15 @@
   },
   "UrlLabel › renders a remove icon": {
     "file": "src/lib/components/UrlLabel/UrlLabel.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4021,10 +4223,15 @@
   },
   "UrlLabel › renders the label title": {
     "file": "src/lib/components/UrlLabel/UrlLabel.test.jsx",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4044,10 +4251,15 @@
   },
   "applyDrag › does not report an ungroup when the moved url has no active tab": {
     "file": "src/lib/utils/dragReducer.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4091,21 +4303,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "applyDrag › inserts a url dropped from the sidebar into the destination label": {
     "file": "src/lib/utils/dragReducer.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4149,21 +4361,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "applyDrag › moves a url between groups and reports the tab to ungroup": {
     "file": "src/lib/utils/dragReducer.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4207,21 +4419,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "applyDrag › returns null when there is no destination": {
     "file": "src/lib/utils/dragReducer.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4265,21 +4477,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "applyDrag › rewrites positions when a group is reordered": {
     "file": "src/lib/utils/dragReducer.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4324,20 +4536,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "buildImportUpdates › builds a per-url object plus the rebuilt labels map": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4347,10 +4559,15 @@
   },
   "buildImportUpdates › keys multiple labels by their title": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4360,10 +4577,15 @@
   },
   "buildImportUpdates › preserves notes on a per-url object when present": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4373,10 +4595,15 @@
   },
   "buildImportUpdates › throws on malformed JSON so the page can swallow it": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4386,10 +4613,15 @@
   },
   "buildSearchDocuments › builds a labelMap of urlKey to label title": {
     "file": "src/lib/utils/buildSearchDocuments.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4434,10 +4666,15 @@
   },
   "buildSearchDocuments › builds one label document per label": {
     "file": "src/lib/utils/buildSearchDocuments.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4482,10 +4719,15 @@
   },
   "buildSearchDocuments › returns empty outputs for no labels": {
     "file": "src/lib/utils/buildSearchDocuments.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4530,10 +4772,15 @@
   },
   "buildSearchDocuments › tolerates a label with missing urlKeys": {
     "file": "src/lib/utils/buildSearchDocuments.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4578,10 +4825,15 @@
   },
   "buildUrlDocuments › builds one document per labeled url": {
     "file": "src/lib/utils/buildSearchDocuments.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4626,10 +4878,15 @@
   },
   "buildUrlDocuments › falls back to the url when the title is missing": {
     "file": "src/lib/utils/buildSearchDocuments.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4674,10 +4931,15 @@
   },
   "buildUrlDocuments › returns no documents for an empty labelMap": {
     "file": "src/lib/utils/buildSearchDocuments.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4722,10 +4984,15 @@
   },
   "buildUrlDocuments › skips urls with no backing record": {
     "file": "src/lib/utils/buildSearchDocuments.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4770,10 +5037,15 @@
   },
   "buildUrlInfo › drops processes from the persisted object": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4803,10 +5075,15 @@
   },
   "buildUrlInfo › includes notes when non-empty": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4836,10 +5113,15 @@
   },
   "buildUrlInfo › omits the notes key when notes is empty or undefined": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4869,10 +5151,15 @@
   },
   "buildUrlInfo › writes title, url and favicon": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4902,10 +5189,15 @@
   },
   "chromeShim › does not emit to processes listeners when nothing is seeded": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -4949,21 +5241,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › emits a seeded processes snapshot to onUpdatedWithMemory listeners": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5007,21 +5299,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › exposes callable no-op action stubs": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5065,21 +5357,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › get supports string, array, and all forms": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5123,21 +5415,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › hydrates dynamic url-_url_ keys that are not in KNOWN_KEYS": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5181,21 +5473,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › hydrates the store from seeded localStorage": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5239,21 +5531,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › ignores malformed seed values": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5297,21 +5589,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › is inert when a real chrome.storage.local is present": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5355,21 +5647,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › remove clears the key and fires onChanged with the old value": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5413,21 +5705,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › removeListener stops delivering change events": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5471,21 +5763,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › set mirrors to localStorage and fires onChanged with areaName local": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5529,21 +5821,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "chromeShim › shares the known TabCommand storage keys": {
     "file": "src/lib/utils/chromeShim/chromeShim.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5588,20 +5880,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "collectUrlKeys › de-duplicates a urlKey shared across labels": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5611,10 +5903,15 @@
   },
   "collectUrlKeys › gathers every urlKey across the labels": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5624,10 +5921,15 @@
   },
   "collectUrlKeys › returns an empty array when no labels have urlKeys": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5637,10 +5939,15 @@
   },
   "deriveGaugeTotals › reads cpu alone with zero memory": {
     "file": "src/lib/utils/deriveGaugeTotals.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5684,21 +5991,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "deriveGaugeTotals › reads cpu and sums private + js-used memory": {
     "file": "src/lib/utils/deriveGaugeTotals.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5742,21 +6049,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "deriveGaugeTotals › returns zeros for an empty record": {
     "file": "src/lib/utils/deriveGaugeTotals.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5800,21 +6107,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "deriveGaugeTotals › sums when only one memory field is present": {
     "file": "src/lib/utils/deriveGaugeTotals.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5858,21 +6165,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "deriveGaugeTotals › tolerates a missing record": {
     "file": "src/lib/utils/deriveGaugeTotals.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5917,20 +6224,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "deriveUrlLabels › returns a single title when only one label matches": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5960,10 +6267,15 @@
   },
   "deriveUrlLabels › returns an empty array for empty or undefined labels": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -5993,10 +6305,15 @@
   },
   "deriveUrlLabels › returns an empty array when no label matches": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6026,10 +6343,15 @@
   },
   "deriveUrlLabels › returns each label containing the urlKey": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6059,10 +6381,15 @@
   },
   "gaugeFillPercent › computes the memory arc fraction with a non-zero base": {
     "file": "src/lib/utils/gaugeFillPercent.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6106,21 +6433,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "gaugeFillPercent › returns 0 when value reaches base + max": {
     "file": "src/lib/utils/gaugeFillPercent.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6164,21 +6491,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "gaugeFillPercent › returns 100 when value equals base": {
     "file": "src/lib/utils/gaugeFillPercent.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6222,21 +6549,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "gaugeFillPercent › returns 50 at the half-way point": {
     "file": "src/lib/utils/gaugeFillPercent.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6280,21 +6607,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "gaugeFillPercent › returns a negative percent when value exceeds base + max": {
     "file": "src/lib/utils/gaugeFillPercent.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6338,21 +6665,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "gaugeFillPercent › subtracts the base before computing the fraction": {
     "file": "src/lib/utils/gaugeFillPercent.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6396,21 +6723,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "humanReadableNumber › groups millions": {
     "file": "src/lib/utils/humanReadableNumber.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6454,21 +6781,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "humanReadableNumber › groups thousands with separators": {
     "file": "src/lib/utils/humanReadableNumber.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6512,21 +6839,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "humanReadableNumber › leaves sub-thousand numbers ungrouped": {
     "file": "src/lib/utils/humanReadableNumber.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6570,21 +6897,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "humanReadableNumber › parses a numeric string": {
     "file": "src/lib/utils/humanReadableNumber.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6628,21 +6955,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "humanReadableNumber › preserves a fractional value": {
     "file": "src/lib/utils/humanReadableNumber.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6686,21 +7013,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "humanReadableNumber › returns undefined for falsy values": {
     "file": "src/lib/utils/humanReadableNumber.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6744,21 +7071,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › init › activates an existing TabCommand tab": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6802,21 +7129,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › init › creates a pinned tab when none exists": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6860,21 +7187,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › loadActiveTabs › renders a div per active tab": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6918,21 +7245,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › truncateString › leaves short strings unchanged": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -6976,21 +7303,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › truncateString › returns \"\" for empty/undefined input": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7034,21 +7361,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › truncateString › truncates long strings with an ellipsis": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7092,21 +7419,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › urlHTML › renders an averaged stats block when there are samples": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7150,21 +7477,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › urlHTML › renders title + favicon and no stats when samples is 0": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7208,21 +7535,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "popup.js › urlHTML › truncates long titles via truncateString": {
     "file": "popup/popup.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7267,20 +7594,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "removeUrlFromLabel › does not mutate the input": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7310,10 +7637,15 @@
   },
   "removeUrlFromLabel › leaves other labels unchanged": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7343,10 +7675,15 @@
   },
   "removeUrlFromLabel › removes the urlKey from the targeted label": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7376,10 +7713,15 @@
   },
   "removeUrlFromLabel › returns labels unchanged for an unknown label title": {
     "file": "src/lib/utils/urlDetails.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7409,10 +7751,15 @@
   },
   "resolveLabelUrls › attaches resolved url and title and favicon and removes urlKeys": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7422,10 +7769,15 @@
   },
   "resolveLabelUrls › includes notes only when the resolved url info carries them": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7435,10 +7787,15 @@
   },
   "resolveLabelUrls › resolves urls across multiple labels in order": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7448,10 +7805,15 @@
   },
   "searchNotesSnippet › matches case-insensitively but preserves the original case": {
     "file": "src/lib/utils/searchNotesSnippet.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7496,10 +7858,15 @@
   },
   "searchNotesSnippet › returns before, match, and after around the term": {
     "file": "src/lib/utils/searchNotesSnippet.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7544,10 +7911,15 @@
   },
   "searchNotesSnippet › returns null for missing notes or term": {
     "file": "src/lib/utils/searchNotesSnippet.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7592,10 +7964,15 @@
   },
   "searchNotesSnippet › returns null when the term is absent": {
     "file": "src/lib/utils/searchNotesSnippet.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7640,10 +8017,15 @@
   },
   "searchNotesSnippet › trims a long prefix ahead of the term": {
     "file": "src/lib/utils/searchNotesSnippet.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7688,10 +8070,15 @@
   },
   "searchNotesSnippet › trims a long suffix after the term": {
     "file": "src/lib/utils/searchNotesSnippet.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7736,10 +8123,15 @@
   },
   "segmentSearchResults › dedupes a label and a url independently": {
     "file": "src/lib/utils/segmentSearchResults.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7789,10 +8181,15 @@
   },
   "segmentSearchResults › dedupes by id, keeping the first occurrence": {
     "file": "src/lib/utils/segmentSearchResults.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7842,10 +8239,15 @@
   },
   "segmentSearchResults › returns empty arrays for no results": {
     "file": "src/lib/utils/segmentSearchResults.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7895,10 +8297,15 @@
   },
   "segmentSearchResults › splits hits into labels and urls": {
     "file": "src/lib/utils/segmentSearchResults.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -7948,10 +8355,15 @@
   },
   "segmentSearchResults › tolerates a missing results list": {
     "file": "src/lib/utils/segmentSearchResults.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8001,10 +8413,15 @@
   },
   "segmentSearchResults › treats a falsy labelTitle as a url": {
     "file": "src/lib/utils/segmentSearchResults.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8054,10 +8471,15 @@
   },
   "service_worker.js › associateProcess › fetches each task tab and merges its url updates": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8101,21 +8523,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › central › is a no-op": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8159,21 +8581,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8217,21 +8639,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › getLocalStorage › invokes the callback with the storage result": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8275,21 +8697,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › getLocalStorage › resolves with the result when no callback is passed": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8333,21 +8755,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › getTabGroup › resolves null for id -1 or null": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8391,21 +8813,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › getTabGroup › resolves the group for a real id": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8449,21 +8871,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › getUrlKey › prefixes with url- and strips the fragment": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8507,21 +8929,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › groupTabs › ignores pinned tabs": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8565,21 +8987,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › groupTabs › ungroups an unlabeled grouped tab": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8623,21 +9045,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8681,21 +9103,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › listenToProcesses › does not throw when the processes API throws": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8739,21 +9161,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › listenToProcesses › registers the processes listener": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8797,21 +9219,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › loads and registers chrome event listeners on import": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8855,21 +9277,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › newUrl › prepends an unseen url key to allUrls": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8913,21 +9335,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › newUrl › returns early without tabId/url": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -8971,21 +9393,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › parseTabId › parses the numeric id from a tabKey": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9029,21 +9451,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › processProcesses › bumps samples and persists process totals": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9087,21 +9509,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9145,21 +9567,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › tabUpdates › resolves {} for an invalid tab": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9203,21 +9625,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › trackGroup › stores the group title by id": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9261,21 +9683,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › update › persists updates to chrome.storage.local": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9319,21 +9741,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9377,21 +9799,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › updateTotals › defaults missing metrics to 0": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9435,21 +9857,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › updateTotals › sums process metrics into processTotals": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9493,21 +9915,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › urlUpdates › accumulates process stats when a process is supplied": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9551,21 +9973,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9609,21 +10031,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › urlUpdates › uses the url as title when title is missing": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9667,21 +10089,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › validTab › accepts http and https tabs": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9725,21 +10147,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "service_worker.js › validTab › rejects empty and internal-scheme tabs": {
     "file": "service_worker.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9784,20 +10206,20 @@
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
         "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
-        "kind": "full"
       }
     ]
   },
   "sortLabels › breaks position ties alphabetically by title": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9807,10 +10229,15 @@
   },
   "sortLabels › orders labels by ascending position": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9820,10 +10247,15 @@
   },
   "sortLabels › returns an empty array for an empty labels map": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9833,10 +10265,15 @@
   },
   "sortLabels › treats a missing position as 0": {
     "file": "src/lib/utils/importExport.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9846,10 +10283,15 @@
   },
   "summarizeProcessLoad › averages cpu and memory across samples": {
     "file": "src/lib/utils/processLoad.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9893,21 +10335,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "summarizeProcessLoad › classifies a heavy tab as excessive": {
     "file": "src/lib/utils/processLoad.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -9951,21 +10393,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "summarizeProcessLoad › classifies a moderate tab as medium": {
     "file": "src/lib/utils/processLoad.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -10009,21 +10451,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "summarizeProcessLoad › classifies a near-idle tab as low": {
     "file": "src/lib/utils/processLoad.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -10067,21 +10509,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "summarizeProcessLoad › derives the bar width from the dominant fraction": {
     "file": "src/lib/utils/processLoad.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -10125,21 +10567,21 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]
   },
   "summarizeProcessLoad › returns null when there are no samples": {
     "file": "src/lib/utils/processLoad.test.js",
-    "lastRunAt": "2026-06-13T10:52:34.434376+00:00",
+    "lastRunAt": "2026-06-13T14:22:54.770876+00:00",
     "lastStatus": "pass",
     "lastRunKind": "full",
     "recentStatuses": [
+      {
+        "status": "pass",
+        "at": "2026-06-13T14:22:54.770876+00:00",
+        "kind": "full"
+      },
       {
         "status": "pass",
         "at": "2026-06-13T10:52:34.434376+00:00",
@@ -10183,11 +10625,6 @@
       {
         "status": "pass",
         "at": "2026-06-12T17:20:44.358597+00:00",
-        "kind": "full"
-      },
-      {
-        "status": "pass",
-        "at": "2026-06-12T12:49:23.825961+00:00",
         "kind": "full"
       }
     ]

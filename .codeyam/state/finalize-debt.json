@@ -1,20 +1,5 @@
 {
-  "lastFinalizedAt": "2026-06-12T18:35:03Z",
-  "lastFinalizedSha": "f4c4c978f079e4232538a62b0bcd56426ffdd729",
-  "deferred": [
-    {
-      "sha": "0ebda87dae32d22b9913057f1f86be1e6a2ce165",
-      "shortSha": "0ebda87",
-      "subject": "feat: URL Details — edit & annotate a single URL",
-      "deferredAt": "2026-06-12T23:35:49Z"
-    },
-    {
-      "sha": "b06c0bff6877cd313c5db79814fe0eff316a9610",
-      "shortSha": "b06c0bf",
-      "subject": "feat: Import / Export — backup & restore groups",
-      "deferredAt": "2026-06-13T11:08:53Z"
-    }
-  ],
-  "finalizeIntent": "fast",
-  "finalizeIntentBranch": "modern"
+  "lastFinalizedAt": "2026-06-13T14:23:01Z",
+  "lastFinalizedSha": "9bffc43121820726095ac74bd071654eebe23fb7",
+  "deferred": []
 }
