@@ -1,0 +1,195 @@
+{
+  "timestamp": "2026-06-13T11:06:30Z",
+  "title": "Import / Export — backup & restore groups",
+  "type": "feature",
+  "userRequest": "## Summary\n\nEighth plan in the modern TabCommand reproduction (reference on `main` at\n`../tabcommand/`). Builds the **`ImportExport`** page (`Pages.IMPORTEXPORT`) — the\nrecover/backup view reached from the sidebar \"Import/Export\" link. It serializes the\nuser's groups (labels + their member URLs) to JSON for **Export**, shows prior snapshots\nunder **Previous**, and parses pasted JSON to **Import** (restore) groups. Replaces the\n`Pages.IMPORTEXPORT` \"Coming soon\" placeholder in `App`.\n\nThe sidebar link already navigates here (`changePage(Pages.IMPORTEXPORT)`), so this plan\nis: build the page + render it with the `onComplete` callback.\n\n## Reference map\n\n| Concern | Reference (read-only) | This plan |\n|---|---|---|\n| The import/export page | `../tabcommand/src/lib/pages/ImportExport/ImportExport.jsx` (+ `.css`) | Full port; replace placeholder |\n| Its tests | `../tabcommand/src/lib/pages/ImportExport/ImportExport.test.jsx` | Port/adapt to Vitest + RTL |\n| Where it mounts | `../tabcommand/src/lib/pages/App/App.jsx` (`page.name === Pages.IMPORTEXPORT`) | `<ImportExport onComplete={() => changePage(Pages.HOME)} />` |\n\n## Data model (see MODERNIZATION.md \"Data model\")\n\n- Reads `Chrome.get(['labels', 'previousLabels'])`.\n- **Export (\"Current\")** — `Object.values(labels)` sorted by `title` then `position`; for\n  each label, resolve every `urlKey` via `Chrome.get(label.urlKeys)` into a `urls: [{ url,\n  title, favicon, notes? }]` array, `delete label.urlKeys`, and `JSON.stringify` the\n  result into the read-only Export textarea.\n- **`previousLabels`** — an array of prior `labels`-map snapshots; each is run through the\n  same sort+resolve and rendered as a read-only \"Previous\" textarea (most-recent-first).\n- **Import** — `JSON.parse` the pasted array; for each label rebuild `urlKeys` and write a\n  per-URL object `{ url, title, favicon, notes? }` for every entry, then\n  `Chrome.set({ ...urlObjects, labels })`; `JSON.parse` failure is swallowed with\n  `console.log(\"Error Importing\", e)` (faithful — no user-facing error). Calls\n  `onComplete()` at the end.\n- `goHome` sets `uxSettings.page = { name: Pages.HOME }`.\n\n### Seed nuance (load-bearing for a faithful Export capture)\n\nThe export reads **`urlInfo.url`** off each per-URL object. The canonical per-URL shape\n(`{ title, favicon, notes?, processes }`) has **no `url` field** — only `UrlDetails`'s save\nwrites one. So for the Export textarea to render complete entries in a capture, the\n`import-export` scenario must seed each referenced per-URL object **with an explicit\n`url`** (e.g. `\"url\": \"https://github.com/codeyam/tabcommand\"`). Without it, `JSON.stringify`\ndrops the `url` key and the export shows entries missing their URL. Call this out in the\nscenario; it is the one place the data model needs the extra field.\n\n## Key Decisions\n\n- **Drop the `PropTypes` block.** No `prop-types` dependency in the modern stack; keep the\n  plain `({ onComplete })` signature.\n- **Port the async resolve faithfully.** The reference resolves URL objects via nested\n  `Chrome.get` callbacks (`sortAndStuff`). Reproduce the callback structure as-is; the\n  `Chrome` wrapper is the same callback-based abstraction in the modern build.\n- **Keep `stopPropagation` on the textareas' `onKeyDown`.** Prevents the global Esc/Search\n  key handlers from firing while pasting/editing — reproduce verbatim.\n- **`HomeFilled` icon only.** `@ant-design/icons` is already a dependency. No dead imports\n  in this reference file.\n\n## Implementation\n\n### 1. Page component (full port)\n\n- `src/lib/pages/ImportExport/ImportExport.jsx` (+ `ImportExport.css` ported from\n  reference): the home link, the description block, the Import textarea + button\n  (`saveImport`), and the Export \"Current\" + \"Previous\" read-only textareas. Port\n  `sortAndStuff`, `saveImport`, `goHome` as written (minus PropTypes).\n- `src/lib/pages/ImportExport/index.js` re-export; add\n  `export { ImportExport } from './ImportExport'` to the pages barrel.\n\n### 2. App wiring\n\n`src/lib/pages/App/App.jsx`: replace the `Pages.IMPORTEXPORT` `ComingSoon` placeholder\nwith `<ImportExport onComplete={() => changePage(Pages.HOME)} />`.\n\n### 3. Scenario (register + capture)\n\n- `import-export` — seed `uxSettings = { page: { name: \"ImportExport\" } }`, a `labels` map\n  of 2–3 groups (`backgroundColor`/`position`/`urlKeys`), the referenced per-URL objects\n  **including `url`** (and one with `notes`), and a `previousLabels` array of 1–2 prior\n  snapshots (each a labels map whose `urlKeys` also resolve to seeded URL objects). Capture\n  shows the Export \"Current\" textarea populated with sorted JSON and one or more \"Previous\"\n  blocks. Register with the top-level `localStorage` shape (pre-stringified values).\n\n### 4. Tests (Vitest + RTL)\n\n- Export: seeded `labels` serialize into the Current textarea — sorted by title/position,\n  `urlKeys` resolved to `urls`, `notes` preserved when present.\n- Previous: each `previousLabels` snapshot renders its own read-only textarea.\n- Import: pasting a valid labels-array JSON + clicking Import writes the rebuilt `labels`\n  plus a per-URL object per entry, and calls `onComplete`.\n- Import of malformed JSON is swallowed (no throw, no write).\n- Each `it()` keeps its `//` description.\n\n## Verification\n\n1. `npm test` green; `npm run lint` clean; `editor verify-build` green.\n2. `import-export` capture shows the Current export JSON populated (with URLs, via the\n   seeded `url` field) and the Previous snapshot(s).\n3. Dev server: sidebar \"Import/Export\" opens this page; pasting a valid export and clicking\n   Import restores the groups and returns Home (`onComplete`). No console errors beyond the\n   intentional `console.log` on a bad-JSON import.\n\n## Preview limits / out of scope\n\n- The Import textarea is empty in the seeded capture (import is an interaction); the\n  malformed-JSON path is `console.log`-only.\n- `UrlDetails` (`url-details`) supplies the `url`/`notes` write path that Export reads; it\n  is a sibling plan, but `import-export` does not depend on it landing first (the scenario\n  seeds the fields directly).\n- `Search` (`search`, queued) and the capstone (`scenarios-and-seeding`) are separate.\n- `Closer` + `service_worker.js` remain deferred (runtime, not UI).",
+  "description": "Built the ImportExport page (Pages.IMPORTEXPORT), replacing the Coming Soon placeholder reached from the sidebar Import/Export link. Export serializes the user's groups (labels + member URLs, with notes) to read-only JSON sorted by title/position, Previous renders each previousLabels snapshot, and Import parses pasted JSON to restore groups (swallowing malformed JSON) then returns Home. Extracted the pure transforms (sortLabels, collectUrlKeys, resolveLabelUrls, buildImportUpdates) into utils/importExport with 14 unit tests plus 4 page-level RTL tests, and fixed a chromeShim bug where get returned live store references instead of copies — which the faithful delete label.urlKeys exposed under React StrictMode.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/per-test-evidence.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/import-export.md\t.codeyam/plans/completed/import-export.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/runner-timing-history.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/provider-auth-verdict.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/all.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-run-marker.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.js",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-app/SKILL.md",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-backup.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importExport.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importExport.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Import / Export - Backup",
+      "screenshotPath": "import-export-backup--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 210,
+    "passed": 210,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 210,
+        "passed": 210
+      }
+    ]
+  }
+}

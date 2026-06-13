@@ -1,0 +1,24 @@
+{
+  "name": "Import / Export - Backup",
+  "id": "1cb03499-593e-43ea-ad4b-83d442c7fee2",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.amazon.com/wishlist": "{\"url\":\"https://www.amazon.com/wishlist\",\"title\":\"Your Wish List – Amazon\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"page\":{\"name\":\"ImportExport\"}}",
+      "previousLabels": "[{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}}]",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\"]}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"url\":\"https://developer.mozilla.org/en-US/docs/Web/API\",\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"url\":\"https://www.notion.so/codeyam/Roadmap\",\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"url\":\"https://react.dev/learn\",\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"url\":\"https://github.com/codeyam/tabcommand\",\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"notes\":\"Primary repo for the extension. Ship URL Details, then revisit the labels migration.\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx"
+}

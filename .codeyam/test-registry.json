@@ -100,6 +100,42 @@
       "runner": "tests"
     },
     {
+      "description": "pasting a valid export and clicking Import rebuilds labels + per-url objects and calls onComplete",
+      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "format": "vitest",
+      "key": "ImportExport › imports a valid export, writing labels and per-url objects then calling onComplete",
+      "line": 60,
+      "registeredAt": "2026-06-13T10:52:46.158526+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "each previousLabels snapshot renders its own read-only Previous textarea",
+      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "format": "vitest",
+      "key": "ImportExport › renders a Previous textarea for each previousLabels snapshot",
+      "line": 46,
+      "registeredAt": "2026-06-13T10:52:46.158526+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the seeded labels serialize into the Current export textarea, sorted and url-resolved with notes preserved",
+      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "format": "vitest",
+      "key": "ImportExport › serializes the seeded labels into the Current export field",
+      "line": 26,
+      "registeredAt": "2026-06-13T10:52:46.158526+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a malformed-JSON import is swallowed: nothing is written, but onComplete still fires",
+      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "format": "vitest",
+      "key": "ImportExport › swallows a malformed-JSON import without writing, still calling onComplete",
+      "line": 86,
+      "registeredAt": "2026-06-13T10:52:46.158526+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "add wires document.onkeydown so a real keydown dispatches through trigger",
       "file": "src/lib/utils/KeyDown.test.js",
       "format": "vitest",
@@ -775,6 +811,42 @@
       "runner": "tests"
     },
     {
+      "description": "builds a per-url object plus the rebuilt labels map",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "buildImportUpdates › builds a per-url object plus the rebuilt labels map",
+      "line": 120,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "keys multiple labels by their title",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "buildImportUpdates › keys multiple labels by their title",
+      "line": 152,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "preserves notes on a per-url object when present",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "buildImportUpdates › preserves notes on a per-url object when present",
+      "line": 140,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "throws on malformed JSON so the page can swallow it",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "buildImportUpdates › throws on malformed JSON so the page can swallow it",
+      "line": 162,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "every labeled urlKey maps back to its label title",
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
@@ -988,6 +1060,33 @@
       "key": "chromeShim › shares the known TabCommand storage keys",
       "line": 133,
       "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "de-duplicates a urlKey shared across labels",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "collectUrlKeys › de-duplicates a urlKey shared across labels",
+      "line": 55,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "gathers every urlKey across the labels",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "collectUrlKeys › gathers every urlKey across the labels",
+      "line": 46,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "returns an empty array when no labels have urlKeys",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "collectUrlKeys › returns an empty array when no labels have urlKeys",
+      "line": 64,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
       "runner": "tests"
     },
     {
@@ -1294,6 +1393,33 @@
       "key": "removeUrlFromLabel › returns labels unchanged for an unknown label title",
       "line": 91,
       "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "attaches resolved url/title/favicon and removes urlKeys",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "resolveLabelUrls › attaches resolved url and title and favicon and removes urlKeys",
+      "line": 71,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "includes notes only when the resolved url info carries them",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "resolveLabelUrls › includes notes only when the resolved url info carries them",
+      "line": 84,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "resolves urls across multiple labels in order",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "resolveLabelUrls › resolves urls across multiple labels in order",
+      "line": 101,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
       "runner": "tests"
     },
     {
@@ -1672,6 +1798,42 @@
       "key": "service_worker.js › validTab › rejects empty and internal-scheme tabs",
       "line": 115,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "breaks position ties alphabetically by title",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "sortLabels › breaks position ties alphabetically by title",
+      "line": 21,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "orders labels by ascending position",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "sortLabels › orders labels by ascending position",
+      "line": 11,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "returns an empty array for an empty labels map",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "sortLabels › returns an empty array for an empty labels map",
+      "line": 39,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "treats a missing position as 0",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "sortLabels › treats a missing position as 0",
+      "line": 30,
+      "registeredAt": "2026-06-13T10:49:20.736264+00:00",
       "runner": "tests"
     },
     {

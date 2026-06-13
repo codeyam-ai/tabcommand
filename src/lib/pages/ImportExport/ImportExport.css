@@ -1,0 +1,39 @@
+.ImportExport {
+  padding: 30px 30px 300px 30px;
+  overflow-y: scroll;
+  height: 100%;
+}
+
+.ImportExport-import,
+.ImportExport-export {
+  padding: 30px;
+}
+
+.ImportExport-import textarea,
+.ImportExport-export textarea {
+  padding: 12px;
+  height: 150px;
+  width: 60%;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.ImportExport-homeLink {
+  margin-left: 30px;
+  font-size: 18px;
+  color: black;
+  cursor: pointer;
+}
+
+.ImportExport-description {
+  margin-left: 30px;
+  padding-top: 12px;
+}
+
+.ImportExport-previous-all {
+  margin-top: 60px;
+}
+
+.ImportExport-previous {
+  padding-bottom: 12px;
+}

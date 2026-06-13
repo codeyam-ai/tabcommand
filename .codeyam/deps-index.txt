@@ -1,7 +1,7 @@
-# regenerated from dependency-graph.json on 2026-06-12T23:29:39Z; do not hand-edit
-src/lib/utils/chromeShim :: imports=0 :: imported_by=13
-src/Constants.jsx :: imports=0 :: imported_by=12
-src/lib/utils/Chrome :: imports=0 :: imported_by=11
+# regenerated from dependency-graph.json on 2026-06-13T10:56:23Z; do not hand-edit
+src/lib/utils/chromeShim :: imports=0 :: imported_by=14
+src/Constants.jsx :: imports=0 :: imported_by=13
+src/lib/utils/Chrome :: imports=0 :: imported_by=12
 src/lib/components :: imports=0 :: imported_by=8
 src/images/defaultFavicon.png :: imports=0 :: imported_by=3
 src/lib/utils/KeyDown.js :: imports=0 :: imported_by=3
@@ -19,7 +19,9 @@ src/lib/components/Tabs/Tabs.jsx :: imports=4 :: imported_by=2
 src/lib/components/Url/Url.jsx :: imports=5 :: imported_by=2
 src/lib/components/UrlField/UrlField.jsx :: imports=0 :: imported_by=2
 src/lib/components/UrlLabel/UrlLabel.jsx :: imports=1 :: imported_by=2
-src/lib/pages/App/App.jsx :: imports=8 :: imported_by=2
+src/lib/pages/App/App.jsx :: imports=9 :: imported_by=2
+src/lib/pages/ImportExport :: imports=0 :: imported_by=2
+src/lib/pages/ImportExport/ImportExport.jsx :: imports=4 :: imported_by=2
 src/lib/pages/Load :: imports=0 :: imported_by=2
 src/lib/pages/Load/Load.jsx :: imports=4 :: imported_by=2
 src/lib/pages/UrlDetails :: imports=0 :: imported_by=2
@@ -30,6 +32,7 @@ src/lib/utils/deriveGaugeTotals.js :: imports=0 :: imported_by=2
 src/lib/utils/dragReducer.js :: imports=1 :: imported_by=2
 src/lib/utils/gaugeFillPercent.js :: imports=0 :: imported_by=2
 src/lib/utils/humanReadableNumber.js :: imports=0 :: imported_by=2
+src/lib/utils/importExport.js :: imports=0 :: imported_by=2
 src/lib/utils/searchNotesSnippet.js :: imports=0 :: imported_by=2
 src/lib/utils/segmentSearchResults.js :: imports=0 :: imported_by=2
 src/lib/utils/urlDetails.js :: imports=0 :: imported_by=2
@@ -65,6 +68,7 @@ src/lib/components/UrlLabel/UrlLabel.css :: imports=0 :: imported_by=1
 src/lib/pages :: imports=0 :: imported_by=1
 src/lib/pages/App :: imports=0 :: imported_by=1
 src/lib/pages/App/App.css :: imports=0 :: imported_by=1
+src/lib/pages/ImportExport/ImportExport.css :: imports=0 :: imported_by=1
 src/lib/pages/Load/Load.css :: imports=0 :: imported_by=1
 src/lib/pages/UrlDetails/UrlDetails.css :: imports=0 :: imported_by=1
 src/lib/utils/Chrome/Chrome.js :: imports=0 :: imported_by=1
@@ -115,11 +119,13 @@ src/lib/components/UrlLabel/index.js :: imports=1 :: imported_by=0
 src/lib/components/index.js :: imports=13 :: imported_by=0
 src/lib/pages/App/App.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/App/index.js :: imports=1 :: imported_by=0
+src/lib/pages/ImportExport/ImportExport.test.jsx :: imports=2 :: imported_by=0
+src/lib/pages/ImportExport/index.js :: imports=1 :: imported_by=0
 src/lib/pages/Load/Load.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/Load/index.js :: imports=1 :: imported_by=0
 src/lib/pages/UrlDetails/UrlDetails.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/UrlDetails/index.js :: imports=1 :: imported_by=0
-src/lib/pages/index.js :: imports=3 :: imported_by=0
+src/lib/pages/index.js :: imports=4 :: imported_by=0
 src/lib/utils/Chrome/Chrome.test.js :: imports=1 :: imported_by=0
 src/lib/utils/KeyDown.test.js :: imports=1 :: imported_by=0
 src/lib/utils/buildSearchDocuments.test.js :: imports=1 :: imported_by=0
@@ -128,6 +134,7 @@ src/lib/utils/deriveGaugeTotals.test.js :: imports=1 :: imported_by=0
 src/lib/utils/dragReducer.test.js :: imports=2 :: imported_by=0
 src/lib/utils/gaugeFillPercent.test.js :: imports=1 :: imported_by=0
 src/lib/utils/humanReadableNumber.test.js :: imports=1 :: imported_by=0
+src/lib/utils/importExport.test.js :: imports=1 :: imported_by=0
 src/lib/utils/index.js :: imports=2 :: imported_by=0
 src/lib/utils/processLoad.test.js :: imports=1 :: imported_by=0
 src/lib/utils/searchNotesSnippet.test.js :: imports=1 :: imported_by=0

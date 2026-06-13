@@ -3,6 +3,7 @@ import './App.css';
 import React, { useEffect, useState } from 'react';
 import { Tabs, Labels, LoadMeter, Search } from '../../components';
 import { Load } from '../Load';
+import { ImportExport } from '../ImportExport';
 import { UrlDetails } from '../UrlDetails';
 import { ItemTypes, Pages } from '../../../Constants';
 
@@ -11,15 +12,6 @@ import { DragDropContext } from '@hello-pangea/dnd';
 import logo from '../../../images/logo.svg';
 import { Chrome } from '../../utils/Chrome';
 import { applyDrag } from '../../utils/dragReducer';
-
-// Pages that have their own plans render a placeholder until those land:
-// URL → url-details, IMPORTEXPORT → import-export, LOAD → load-meter.
-const ComingSoon = ({ title }) => (
-  <div className="App-comingSoon">
-    <h2>{title}</h2>
-    <p>Coming soon.</p>
-  </div>
-);
 
 const App = () => {
   const [page, setPage] = useState({ name: Pages.HOME });
@@ -111,7 +103,7 @@ const App = () => {
           <UrlDetails urlKey={page.urlKey} />
         }
         {page.name === Pages.IMPORTEXPORT &&
-          <ComingSoon title="Import / Export" />
+          <ImportExport onComplete={() => changePage(Pages.HOME)} />
         }
         {page.name === Pages.LOAD &&
           <Load />

@@ -1,7 +1,8 @@
-# regenerated from glossary.json on 2026-06-12T23:19:42Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-13T10:52:56Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 ComingSoon :: src/lib/pages/App/App.jsx :: tags= :: test=src/lib/pages/App/App.test.jsx
+ImportExport :: src/lib/pages/ImportExport/ImportExport.jsx :: tags= :: test=src/lib/pages/ImportExport/ImportExport.test.jsx
 KeyDown :: src/lib/utils/KeyDown.js :: tags= :: test=src/lib/utils/KeyDown.test.js
 LabelCollection :: src/lib/components/LabelCollection/LabelCollection.jsx :: tags= :: test=src/lib/components/LabelCollection/LabelCollection.test.jsx
 LabelForm :: src/lib/components/LabelForm/LabelForm.jsx :: tags= :: test=src/lib/components/LabelForm/LabelForm.test.jsx
@@ -20,11 +21,13 @@ UrlField :: src/lib/components/UrlField/UrlField.jsx :: tags= :: test=src/lib/co
 UrlLabel :: src/lib/components/UrlLabel/UrlLabel.jsx :: tags= :: test=src/lib/components/UrlLabel/UrlLabel.test.jsx
 applyDrag :: src/lib/utils/dragReducer.js :: tags= :: test=src/lib/utils/dragReducer.test.js
 associateProcess :: service_worker.js :: tags=worker,ported-verbatim,processes,tabs :: test=service_worker.test.js
+buildImportUpdates :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
 buildSearchDocuments :: src/lib/utils/buildSearchDocuments.js :: tags= :: test=src/lib/utils/buildSearchDocuments.test.js
 buildUrlDocuments :: src/lib/utils/buildSearchDocuments.js :: tags= :: test=src/lib/utils/buildSearchDocuments.test.js
 buildUrlInfo :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDetails.test.js
 central :: service_worker.js :: tags=worker,ported-verbatim,debug :: test=service_worker.test.js
 closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
+collectUrlKeys :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
 createChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
 defer :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
 deriveGaugeTotals :: src/lib/utils/deriveGaugeTotals.js :: tags= :: test=src/lib/utils/deriveGaugeTotals.test.js
@@ -46,8 +49,10 @@ newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=servi
 parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
 removeUrlFromLabel :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDetails.test.js
+resolveLabelUrls :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
 searchNotesSnippet :: src/lib/utils/searchNotesSnippet.js :: tags= :: test=src/lib/utils/searchNotesSnippet.test.js
 segmentSearchResults :: src/lib/utils/segmentSearchResults.js :: tags= :: test=src/lib/utils/segmentSearchResults.test.js
+sortLabels :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
 summarizeProcessLoad :: src/lib/utils/processLoad.js :: tags= :: test=src/lib/utils/processLoad.test.js
 tabUpdates :: service_worker.js :: tags=worker,ported-verbatim,tabs :: test=service_worker.test.js
 trackGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js

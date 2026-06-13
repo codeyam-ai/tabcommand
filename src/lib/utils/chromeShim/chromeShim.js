@@ -74,7 +74,16 @@ export function createChromeShim() {
 
       const results = {};
       for (const k of requested) {
-        if (Object.prototype.hasOwnProperty.call(store, k)) results[k] = store[k];
+        // Hand back a deep COPY, never the live `store[k]` reference. Real
+        // chrome.storage.local serializes/deserializes across a process
+        // boundary, so every get yields a fresh structure that consumers can
+        // freely mutate without corrupting the store. ImportExport's faithful
+        // `sortAndStuff` mutates its result (`delete label.urlKeys`), and under
+        // StrictMode the effect runs twice — sharing the live reference would
+        // leave the second run iterating an already-deleted `urlKeys`.
+        if (Object.prototype.hasOwnProperty.call(store, k)) {
+          results[k] = JSON.parse(JSON.stringify(store[k]));
+        }
       }
       defer(cb, results);
     },

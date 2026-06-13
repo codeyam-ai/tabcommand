@@ -1,0 +1,20 @@
+{
+  "claimStartedAt": "2026-06-13T10:25:08Z",
+  "completedAt": "2026-06-13T11:06:30Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "machine": "Jareds-Laptop.local",
+    "pid": 75961,
+    "priority": 0,
+    "selectedPlan": "import-export",
+    "sessionId": "",
+    "startedAt": "2026-06-13T10:25:08Z"
+  },
+  "createdAt": "2026-06-12T00:00:00Z",
+  "journalTimestamp": "2026-06-13T11:06:30Z",
+  "mode": "frontend",
+  "planFile": "completed/import-export.md",
+  "slug": "import-export",
+  "title": "Import / Export — backup & restore groups"
+}

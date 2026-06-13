@@ -30,7 +30,7 @@ describe('App', () => {
     expect(screen.getByText('Automatically Closed')).toBeInTheDocument();
   });
 
-  // uxSettings.page selects which page renders — a non-HOME page shows its placeholder
+  // uxSettings.page selects which page renders — a non-HOME page shows its own content
   it('renders the page named by uxSettings.page', async () => {
     window.localStorage.setItem(
       'uxSettings',
@@ -39,7 +39,7 @@ describe('App', () => {
     installChromeShim();
     render(<App />);
 
-    expect(await screen.findByText('Import / Export')).toBeInTheDocument();
+    expect(await screen.findByText('Export Groups')).toBeInTheDocument();
     expect(screen.queryByText('Active Tabs')).not.toBeInTheDocument();
   });
 
