@@ -5,8 +5,11 @@
 // sections (full / user-only / decisions / errors) work identically across sources.
 //
 // Format detection: prefers the file path (`.gemini/` or `/chats/session-`), then falls
-// back to the first parseable line (Claude has `obj.message`, Gemini has `obj.kind: "main"`
-// or top-level `obj.type` of "user"/"gemini"/"info").
+// back to a content scan over a window of the first parseable records — picking `claude`
+// on the first Claude message/summary shape and `gemini` on the first unambiguous Gemini
+// shape (`obj.kind: "main"`, or `obj.type` of "gemini"/"info"). A top-level `sessionId`
+// is present on BOTH formats (current Claude transcripts lead with a `last-prompt` record
+// carrying it) and is NOT a Gemini signal — see detectFormat in extract-session-helpers.mjs.
 //
 // Usage: node extract-session.mjs <path-to-session.jsonl> [--section=<section>]
 //
@@ -20,6 +23,7 @@ import { createReadStream } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { stat } from 'node:fs/promises';
 import { basename } from 'node:path';
+import { detectFormat, detectFormatFromPath } from './extract-session-helpers.mjs';
 
 const inputFile = process.argv[2];
 if (!inputFile) {
@@ -40,10 +44,14 @@ try {
   process.exit(1);
 }
 
-// ── Format detection from path (overridden by first-line if path is unclear) ──
-let detectedFormat = null;
-if (inputFile.includes('/.gemini/') || /\/chats\/session-/.test(inputFile)) detectedFormat = 'gemini';
-else if (inputFile.includes('/.claude/')) detectedFormat = 'claude';
+// ── Format detection ──────────────────────────────────────────────────────
+// Prefer the path; when it's inconclusive, buffer a window of the first
+// parseable records and scan them for a content-bearing shape. The window is
+// large enough to skip a leading `last-prompt` / `bridge-session` preamble
+// (which carries `sessionId` but no message body) while staying O(1) memory.
+const DETECTION_WINDOW = 50;
+
+let detectedFormat = detectFormatFromPath(inputFile);
 
 const messages = [];
 let lineCount = 0;
@@ -53,26 +61,15 @@ let lineCount = 0;
 // last-seen version, then convert to messages in insertion order.
 const geminiEvents = new Map();
 
-const rl = createInterface({ input: createReadStream(inputFile) });
-for await (const line of rl) {
-  lineCount++;
-  let obj;
-  try { obj = JSON.parse(line); } catch { continue; }
+// Records parsed before the format is resolved, replayed once it is.
+const pending = [];
 
-  if (detectedFormat === null) {
-    if (obj.type === 'user' && obj.message) detectedFormat = 'claude';
-    else if (obj.type === 'assistant' && obj.message) detectedFormat = 'claude';
-    else if (obj.type === 'summary' && 'summary' in obj) detectedFormat = 'claude';
-    else if (obj.kind === 'main' || obj.sessionId) detectedFormat = 'gemini';
-    else if (obj.message) detectedFormat = 'claude';
-    else detectedFormat = 'gemini';
-  }
-
+function processRecord(obj) {
   if (detectedFormat === 'claude') {
     appendClaudeMessage(obj);
   } else {
-    if (obj.kind || obj.$set) continue; // session metadata / metadata-update lines
-    if (!obj.type) continue;
+    if (obj.kind || obj.$set) return; // session metadata / metadata-update lines
+    if (!obj.type) return;
     if (obj.id) {
       geminiEvents.set(obj.id, obj);
     } else {
@@ -80,6 +77,31 @@ for await (const line of rl) {
     }
   }
 }
+
+const rl = createInterface({ input: createReadStream(inputFile) });
+for await (const line of rl) {
+  lineCount++;
+  let obj;
+  try { obj = JSON.parse(line); } catch { continue; }
+
+  if (detectedFormat === null) {
+    pending.push(obj);
+    if (pending.length < DETECTION_WINDOW) continue;
+    // Window full — decide from the sample (falling back to the default only
+    // now that it's exhausted), then replay the buffered records.
+    detectedFormat = detectFormat(inputFile, pending);
+    for (const rec of pending) processRecord(rec);
+    pending.length = 0;
+    continue;
+  }
+
+  processRecord(obj);
+}
+
+// Stream ended before the window filled (short transcript) — decide from
+// whatever we buffered, then replay it.
+if (detectedFormat === null) detectedFormat = detectFormat(inputFile, pending);
+for (const rec of pending) processRecord(rec);
 
 if (detectedFormat === 'gemini') {
   for (const obj of geminiEvents.values()) appendGeminiMessage(obj);

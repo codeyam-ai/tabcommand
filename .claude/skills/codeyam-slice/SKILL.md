@@ -106,7 +106,7 @@ The plan body MUST:
 - Carry the assess rationale (fan-in, line count, untested entities) so the Deconstruct + TDD steps know what to target.
 - Name the loop chosen in Step 4 (visual scenarios vs. state/output fixtures), and any backend follow-up deferred from a UI+backend split.
 
-After the Write succeeds, output **exactly** `Done — opening Build to finalize.` and stop. The UI's plan-watcher launches the workflow automatically.
+After the Write succeeds, run `codeyam-editor-dev editor launch-plan <slug>` (using the same slug you just wrote). This deterministically selects the plan and switches the UI to the Build tab via `usePlanLauncher.launchPlan` — it does not depend on the UI plan-watcher. Then output **exactly** `Done — opening Build to finalize.` and stop.
 
 Do **NOT** `git add` / `git commit` the plan — the editor's feature-commit step sweeps it in alongside the slice's source changes.
 

@@ -2,6 +2,55 @@
 // in tests without auto-running the script's top-level CLI dispatch.
 
 /**
+ * Decide the transcript format from the file path alone.
+ *
+ * Returns `'gemini'` for Gemini CLI paths (`/.gemini/` or `/chats/session-`),
+ * `'claude'` for `/.claude/` paths, and `null` when the path is inconclusive
+ * (e.g. a transcript fetched to `/tmp` during a fleet review). The caller
+ * then falls back to a content scan via `detectFormatFromRecords`.
+ */
+export function detectFormatFromPath(inputFile) {
+  if (inputFile.includes('/.gemini/') || /\/chats\/session-/.test(inputFile)) return 'gemini';
+  if (inputFile.includes('/.claude/')) return 'claude';
+  return null;
+}
+
+/**
+ * Decide the transcript format by scanning a window of parseable records for
+ * the first content-bearing Claude or Gemini shape. Returns `'claude'`,
+ * `'gemini'`, or `null` when no record in the window is decisive.
+ *
+ * Critically, a bare top-level `sessionId` is NOT a Gemini signal: current
+ * Claude transcripts lead with `last-prompt` / `bridge-session` records that
+ * carry `sessionId` but no message body. Treating `sessionId` as Gemini (the
+ * old heuristic) misclassified the entire file and parsed zero messages.
+ */
+export function detectFormatFromRecords(records) {
+  for (const obj of records) {
+    if (!obj || typeof obj !== 'object') continue;
+    // Unambiguous Claude message/summary shapes.
+    if ((obj.type === 'user' || obj.type === 'assistant') && obj.message) return 'claude';
+    if (obj.type === 'summary' && 'summary' in obj) return 'claude';
+    // Unambiguous Gemini shapes (never a bare `sessionId`).
+    if (obj.kind === 'main') return 'gemini';
+    if (obj.type === 'gemini') return 'gemini';
+    if (obj.type === 'info' && typeof obj.content === 'string') return 'gemini';
+    // Generic Claude fallback: a message body without an explicit recognised type.
+    if (obj.message) return 'claude';
+  }
+  return null;
+}
+
+/**
+ * Resolve the transcript format: prefer the path, then a content scan over the
+ * sampled records, then `fallback` (historically `'gemini'`) only once the
+ * window is exhausted — so a leading metadata preamble can't short-circuit it.
+ */
+export function detectFormat(inputFile, records, fallback = 'gemini') {
+  return detectFormatFromPath(inputFile) ?? detectFormatFromRecords(records) ?? fallback;
+}
+
+/**
  * Truncate `s` to `max` characters, appending a `...[truncated]`
  * marker when the value was cut.
  */

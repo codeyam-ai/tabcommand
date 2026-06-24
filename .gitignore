@@ -5,6 +5,7 @@
 .codeyam/tmp/
 .codeyam/logs/
 .codeyam/captures/
+.codeyam/uploads/
 .codeyam/results/
 .codeyam/_legacy/
 .codeyam/preview-state.json
