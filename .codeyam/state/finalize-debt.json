@@ -1,7 +1,14 @@
 {
   "lastFinalizedAt": "2026-06-13T14:23:01Z",
   "lastFinalizedSha": "9bffc43121820726095ac74bd071654eebe23fb7",
-  "deferred": [],
+  "deferred": [
+    {
+      "sha": "445e2336d71c95ebbad6c1f049428265b5bf2f13",
+      "shortSha": "445e233",
+      "subject": "feat: chrome-extension: Fix the popup launcher so the packaged extension loads",
+      "deferredAt": "2026-06-24T22:16:50Z"
+    }
+  ],
   "finalizeIntent": "fast",
   "finalizeIntentBranch": "modern"
 }
