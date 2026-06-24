@@ -164,9 +164,28 @@ block hits the DB "array of row objects" validator and rejects map-shaped keys l
 - **Deferred (runtime, not UI; irrelevant to seeded scenarios):** the `Closer`
   auto-close engine and `public/service_worker.js` (the real write-side; preview seeds
   storage directly). Ported verbatim where present; not modernized.
-- **Known follow-up:** `@crxjs` drops the classic `popup.js` from `build/` — the popup
-  *launcher* would break in the packaged extension (irrelevant to codeyam captures).
-  Fix = make `popup.js` an ES module. Not yet planned.
+- **Resolved:** `@crxjs` used to drop the classic `popup.js` from `build/`, so the popup
+  *launcher* errored in the packaged extension. Fixed by loading it as an ES module
+  (`<script type="module" src="./popup.js">` in `popup/popup.html`); crxjs now emits the
+  popup and the toolbar icon opens the full-page app.
+
+## Running & sharing the extension
+
+To run the extension locally from source:
+
+1. `npm install`
+2. `npm run build` — emits the loadable extension into `build/`.
+3. Open `chrome://extensions`, enable **Developer mode** (top-right), click
+   **Load unpacked**, and choose the `build/` directory.
+4. Click the TabCommand toolbar icon — it opens the full-page app in a pinned tab
+   (or focuses it if already open).
+
+To hand a build to a teammate / tester without the Chrome Web Store:
+
+- `npm run build`, then zip the `build/` directory and send it.
+- The recipient unzips it and uses **Load unpacked** on the extracted folder (same
+  steps above). Note: unpacked extensions do **not** auto-update, and Chrome shows a
+  developer-mode warning on each launch — both are expected for off-store sharing.
 
 ## Driving the editor
 

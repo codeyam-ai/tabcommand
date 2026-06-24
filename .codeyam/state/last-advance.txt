@@ -1,0 +1,124 @@
+━━━ BEGIN STEP 23: Commit ━━━
+
+NEXT ACTION (same turn — do not stop):
+
+  EXACT_TASK_TITLE: Complete codeyam editor step 23: 'Commit' and move on to step 24: 'Push'
+
+# UI Flow 23 / 25: Commit
+
+**Feature:** chrome-extension: Fix the popup launcher so the packaged extension loads
+
+Commit all changes to git.
+
+## Instructions
+
+RESUMING this step. Check what was already done before repeating work.
+  (Resuming in a fresh session? TaskList may be empty — the previous-step task lived in the prior session's in-memory store. Skip the close-prior step; just create THIS step's task and continue.)
+
+> **Fast Commit mode active.** Heavy work — tests, the full audit, glossary/registry reconcile, and screenshot recapture — is deferred to a single `session-finalize` run, owed before this branch merges to the primary branch. Each tail step renders its fast-aware (terse / auto-advance) variant.
+
+Commit all changes for this feature.
+
+The user already approved at the `ui-present` (UI) or `backend-present` (backend) gate. Execute the commit.
+
+Checklist:
+[ ] Fast Commit: skipping screenshot recapture AND the `stage-feature`
+    coverage gate — both are deferred to the eventual `session-finalize`
+    sweep. Under Fast Commit `stage-feature` no longer refuses to commit on
+    stale/missing screenshots; it prints a one-line deferral note and
+    proceeds. The full recapture + coverage re-assertion happens once, at
+    `session-finalize` (Phase 3.5), when this branch's deferred commits are
+    finalized — NOT on every fast commit. To see this deferred debt from the
+    cheap pass BEFORE paying a finalize cycle, run
+    `codeyam-editor-dev editor finalize-preflight`: the `screenshot-coverage` slot
+    mirrors the Phase 3.5 gate and names the stale/missing count. If finalize
+    bails on stale/missing screenshots, drain it with
+    `codeyam-editor-dev editor recapture-stale --skip-when-clean --include-aged
+    --max-seconds 300 --max-attempts 3` with the dev server up (as of
+    improve41, `--skip-when-clean` recaptures exactly the Phase 3.5 debt
+    instead of skipping it, and still no-ops when coverage is genuinely
+    clean), then `session-finalize --start-from-phase 4` (recapture only
+    rewrites PNGs, so the already-passed phases stay valid). Skipping the
+    routine recapture is the point of Fast Commit — re-capturing screenshots
+    (and even bouncing the dev server to do so) on every commit defeats the
+    deferral.
+
+[ ] Stage the feature: `codeyam-editor-dev editor stage-feature \
+       --path <feature-file-1> --path <feature-file-2> ...`
+    Pass --path for every NON-`.codeyam/` file you edited during this
+    feature. All non-ignored `.codeyam/` files are staged automatically
+    — do NOT ask the user about any `.codeyam/` path, and do NOT pass
+    them via --path. `.gitignore` is the authoritative skip-list.
+    If you have many changed files, you can use `stage-feature --from-status`
+    to stage every dirty file in the working tree. Use `--exclude-prefix`
+    to skip directories you didn't touch.
+    `stage-feature` accepts both file paths and directory paths. File paths
+    work even if they are currently untracked inside an untracked directory.
+    The command prints `stagedInternal` (auto), `stagedExternal`
+    (your --path args), and `untouchedExternal` (other dirty files not
+    yours — leave them for the `push` slug). If `untouchedExternal` is
+    non-empty, that is fine; the `push` slug's `commit-state` will surface them.
+    `stage-feature` also runs `session-cleanup` (orphan screenshots, log
+    rotation, tmp prune) per `editor.json::cleanup` BEFORE the dirty-tree
+    scan, so any deletions land in `stagedInternal` and fold into the
+    feature commit. Best-effort; failures log to stderr.
+[ ] If `.gitignore` was modified, untrack newly-ignored files:
+    `git ls-files --cached | git check-ignore --no-index --stdin`,
+    then `git rm --cached <file>` for each match and re-run
+    `stage-feature`.
+[ ] Commit: `git commit -m "feat: <title>" -m "<journal description>"`
+    The commit message body MUST match the journal description exactly.
+    Verify: git rev-parse HEAD
+[ ] Mark this commit deferred: `codeyam-editor-dev editor mark-deferred`
+    Run this immediately AFTER `git commit` (and any pre-commit-hook re-stage). It stamps the feature commit you just created with `Codeyam-Finalize: deferred`, records it in the finalize-debt index, and keeps the branch's Fast Commit intent set. The push step relies on this trailer being on the feature commit.
+
+[ ] If the pre-commit hook fails, read the error, fix the issue,
+    re-run `stage-feature` (the cache regeneration may dirty more
+    `.codeyam/` files — they get auto-staged), and commit again.
+[ ] Review the commit with `git log --stat -1` to confirm the right files were included
+[ ] Don't worry about regenerated .codeyam/ caches dirtied AFTER this commit
+    (post-commit hook output) — the `push` slug captures any such leftovers in a
+    separate `chore: update codeyam state` commit before the push. Caches
+    already dirty BEFORE the commit are now folded into the feature commit
+    itself by `stage-feature`.
+
+
+When done, move to the next step: `codeyam-editor-dev editor 24`
+
+━━━ TASK ━━━
+If TaskList/TaskCreate/TaskUpdate are not loaded in this session, call `ToolSearch` with `select:TaskList,TaskCreate,TaskUpdate` first.
+
+Hand off from the previous step's task to this step's task. Procedure:
+  1. Run TaskList
+  2. If a task titled exactly `Complete codeyam editor step 22: 'Finalize' and move on to step 23: 'Commit'` exists and is not yet completed, run TaskUpdate with status "completed" on it
+  3. Run TaskCreate with the EXACT title below and set it to in_progress:
+
+EXACT_TASK_TITLE: Complete codeyam editor step 23: 'Commit' and move on to step 24: 'Push'
+
+When you finish this step's checklist, mark this task completed BEFORE running `codeyam-editor-dev editor advance`. The advance gate will block if the current-step task is not both created and completed.
+Do NOT use status "deleted" on any step task — tasks are check-off records of completed work.
+
+━━━ END OF STEP ━━━
+
+This is a non-gate step. Do NOT wait for user confirmation.
+Do NOT write a recap. Do NOT ask the user "ready to advance?" — they did
+not opt into a checkpoint. Recaps belong at gate steps, not here.
+
+If the checklist surfaces a finding that requires a user decision (unrelated test failures, surprising state, ambiguous next action), use AskUserQuestion with 2-4 concrete options — never an inline numbered list. If AskUserQuestion is not loaded, call `ToolSearch` with `select:AskUserQuestion` first.
+
+When you have finished the checklist AND marked the task completed, run:
+
+  Bash: codeyam-editor-dev editor advance
+
+━━━ BEGIN STEP 23: Commit ━━━
+
+NEXT ACTION (same turn — do not stop):
+
+  EXACT_TASK_TITLE: Complete codeyam editor step 23: 'Commit' and move on to step 24: 'Push'
+
+  1. TaskCreate with the EXACT title above, status in_progress
+  2. Run the step 23 checklist (printed above this trailer)
+  3. TaskUpdate completed
+  4. Run `codeyam-editor editor advance`
+
+Tail-truncated this output? Re-run without piping: codeyam-editor editor advance

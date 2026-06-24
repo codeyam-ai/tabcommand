@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { installChromeShim } from './lib/utils/chromeShim';
 import './index.css';
-import { App } from './lib/pages';
+import CodeyamIsolate from './__codeyam_isolate';
 
 // Install the in-app chrome shim before the first render. In the codeyam preview
 // and the plain dev server there is no extension `chrome`, so the shim provides
@@ -16,6 +16,6 @@ installChromeShim();
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <CodeyamIsolate />
   </React.StrictMode>
 );

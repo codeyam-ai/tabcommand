@@ -1,0 +1,12 @@
+{
+  "name": "UrlLabel - Work Chip",
+  "id": "7413fe72-52c2-43df-89fb-c7b701b44b4f",
+  "url": "/?isolate=UrlLabel",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "UrlLabel",
+  "scenarioType": "component"
+}

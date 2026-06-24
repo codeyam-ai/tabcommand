@@ -25,6 +25,34 @@ function hasLoadingMarkers(text, extraMarkers = []) {
 
 function hasRenderableContent(state) {
   if (!state) return false;
+
+  // Reveal-suppression guard. A scroll-gated entrance animation starts its
+  // content at `opacity:0` and reveals it via an IntersectionObserver wired
+  // from the app shell. Captured in isolation (no shell), the observer never
+  // fires, so the text renders into the DOM — `bodyTextLength`/`rootTextLength`
+  // are non-zero — yet stays visually invisible and the screenshot is blank.
+  // `visibleTextLength` is the length of text actually PAINTED to the frame
+  // (computed-style opacity/visibility aware). When the DOM carries text but
+  // none of it is visible AND there is no visible media, the frame is
+  // near-blank: report no content so the blank gate rejects it instead of
+  // waving through an empty shell. `visibleTextLength` is optional — older
+  // capture configs (and stubbed test targets) omit it, in which case the
+  // original DOM-presence behavior below is preserved byte-for-byte.
+  const domTextLength = Math.max(
+    state.bodyTextLength || 0,
+    state.rootTextLength || 0,
+  );
+  const hasVisibleMedia =
+    (state.loadedImageCount || 0) > 0 || (state.mediaBboxCount || 0) > 0;
+  if (
+    typeof state.visibleTextLength === "number" &&
+    domTextLength > 0 &&
+    state.visibleTextLength === 0 &&
+    !hasVisibleMedia
+  ) {
+    return false;
+  }
+
   if (
     state.rootChildCount > 0 ||
     state.rootTextLength > 0 ||
@@ -40,7 +68,17 @@ function hasRenderableContent(state) {
 function describeBlankReason(state) {
   if (!state) return "no content state collected";
   const parts = [];
-  if (!(state.bodyTextLength > 0)) {
+  // Distinguish "no text in the DOM at all" from "text rendered but nothing is
+  // visible" — the latter is the reveal-suppression symptom (opacity:0
+  // entrance content whose observer never fired in isolation), which points
+  // the author at a different fix than a genuinely empty page.
+  if (
+    typeof state.visibleTextLength === "number" &&
+    state.bodyTextLength > 0 &&
+    state.visibleTextLength === 0
+  ) {
+    parts.push("text rendered but not visible (reveal-suppressed?)");
+  } else if (!(state.bodyTextLength > 0)) {
     parts.push("no text");
   }
   const imageCount = state.imageCount || 0;
@@ -69,6 +107,16 @@ const ERROR_PATTERNS = [
   "Scenario Error",
 ];
 
+// The DOM attribute codeyam's own ScenarioRenderer stamps on its error and
+// seed-error fallback frames. Error detection anchors on this marker rather
+// than scanning the whole page body for ERROR_PATTERNS: a legitimately-mocked
+// scenario whose *content* quotes one of those harness phrases (a journal entry
+// describing the error component, say) must not be flagged as a failed capture.
+// Arbitrary client apps that never render a codeyam ScenarioRenderer never emit
+// the marker, so their pages are treated as healthy regardless of body text —
+// these patterns were always codeyam-harness-specific, never generic.
+const SCENARIO_ERROR_MARKER = "data-codeyam-scenario-error";
+
 function hasErrorPatterns(text) {
   return ERROR_PATTERNS.some((pattern) => text.includes(pattern));
 }
@@ -93,6 +141,34 @@ function buildErrorContextSnippet(text, pattern) {
   const prefix = start > 0 ? "…" : "";
   const suffix = end < text.length ? "…" : "";
   return `${prefix}${slice}${suffix}`;
+}
+
+// Classify a scenario-error fallback into a `{ matchedPattern, contextSnippet }`
+// from the marker info collected off the page. `marker` is the
+// `{ reason, text }` read from the `[data-codeyam-scenario-error]` element, or
+// null when no such element is present. Returns null when there is no marked
+// fallback — the page is healthy and no error-content failure is raised.
+//
+// When the marked fallback text contains a known ERROR_PATTERN (the render-error
+// path renders `Component "X" not found in registry`), that pattern is named so
+// the downstream Rust classifier can still extract the component; otherwise the
+// marker's `reason` attribute classifies it (the seed-error fallback, whose
+// "Seed Error" copy is intentionally not an ERROR_PATTERN). Because the text is
+// scoped to the fallback element — not the whole body — content elsewhere on the
+// page can quote these phrases freely without tripping detection.
+function findScenarioError(marker) {
+  // The capture passes the `frame.evaluate` result of querying the marker
+  // element: either null (no fallback rendered) or a `{reason, text}` object.
+  // Anything else (a bare string, a primitive) is not a marked error — guard
+  // so a non-object never reads as a present marker and false-flags the page.
+  if (!marker || typeof marker !== "object") return null;
+  const text = marker.text || "";
+  const reason = marker.reason || "";
+  const matchedPattern = findErrorPattern(text) || reason || "scenario error";
+  const contextSnippet =
+    buildErrorContextSnippet(text, matchedPattern) ||
+    (text ? text.replace(/\s+/g, " ").trim().slice(0, 200) : null);
+  return { matchedPattern, contextSnippet };
 }
 
 // Build the non-blocking "this page looks client-fetched" advisory from the two
@@ -139,7 +215,9 @@ module.exports = {
   shouldStopWaitingForImages,
   hasErrorPatterns,
   findErrorPattern,
+  findScenarioError,
   buildErrorContextSnippet,
   ERROR_PATTERNS,
+  SCENARIO_ERROR_MARKER,
   ERROR_CONTEXT_RADIUS,
 };

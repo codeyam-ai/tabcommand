@@ -1,0 +1,12 @@
+{
+  "name": "LabelFormContainer - Expanded",
+  "id": "387876ef-92e3-4474-ab20-a4432f3cc13e",
+  "url": "/?isolate=LabelFormContainer",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LabelFormContainer",
+  "scenarioType": "component"
+}

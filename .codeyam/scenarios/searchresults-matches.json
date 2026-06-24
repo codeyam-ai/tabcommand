@@ -1,0 +1,16 @@
+{
+  "name": "SearchResults - Matches",
+  "id": "76c1bc0b-8594-43f8-be10-091befcf13d5",
+  "url": "/?isolate=SearchResults",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "uxSettings": "{\"selectedLabel\":\"Work\",\"page\":{\"name\":\"Home\"}}"
+    }
+  },
+  "componentName": "SearchResults",
+  "scenarioType": "component"
+}

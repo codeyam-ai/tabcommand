@@ -1,0 +1,12 @@
+{
+  "name": "LoadUrl - High Load",
+  "id": "8adbea59-33cf-42c5-b523-62abab994bf4",
+  "url": "/?isolate=LoadUrl",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LoadUrl",
+  "scenarioType": "component"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Search - Empty Query",
+  "id": "3faa3ac2-43fb-4624-b188-747a644a4d7a",
+  "url": "/?isolate=Search",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\"]}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://react.dev/learn\",\"url-https://news.ycombinator.com\"]",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"selectedLabel\":\"Work\",\"page\":{\"name\":\"Home\"}}"
+    }
+  },
+  "componentName": "Search",
+  "scenarioType": "component"
+}

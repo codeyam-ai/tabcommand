@@ -1,0 +1,20 @@
+{
+  "name": "LoadProcesses - Active",
+  "id": "498708a0-81f7-4779-8a77-d36573319f81",
+  "url": "/?isolate=LoadProcesses",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://mail.google.com/mail/u/0": "{\"title\":\"Inbox (1,284) - hello@codeyam.com - Gmail\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":737280,\"cpu\":48000,\"privateMemory\":7660800000,\"jsMemoryAllocated\":6128640000,\"jsMemoryUsed\":4596480000}}",
+      "uxSettings": "{\"selectedLabel\":\"Work\",\"page\":{\"name\":\"Home\"}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://mail.google.com/mail/u/0\",\"tabKey\":\"tab-206\",\"pinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-207\",\"pinned\":false}]",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "allUrls": "[\"url-https://mail.google.com/mail/u/0\",\"url-https://news.ycombinator.com\"]"
+    }
+  },
+  "componentName": "LoadProcesses",
+  "scenarioType": "component"
+}

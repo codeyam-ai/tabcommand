@@ -1,0 +1,19 @@
+{
+  "name": "LabelCollection - Work Group",
+  "id": "c1e308ce-66bd-4093-bf5e-1a1e5ba2d555",
+  "url": "/?isolate=LabelCollection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-201\",\"pinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-202\",\"pinned\":false}]",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"selectedLabel\":\"Work\",\"page\":{\"name\":\"Home\"}}"
+    }
+  },
+  "componentName": "LabelCollection",
+  "scenarioType": "component"
+}

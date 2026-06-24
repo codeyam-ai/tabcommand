@@ -26,10 +26,28 @@
     "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
+    "description": "CodeYam component-isolation entrypoint for this router-less stack: with `?isolate=<Name>` it renders just that manifest-listed component (wrapped in #codeyam-capture, inside a DragDropContext, with representative isolation props); with no param it renders the normal full-page App. Mounted in index.jsx in place of App.",
+    "filePath": "src/__codeyam_isolate.jsx",
+    "name": "CodeyamIsolate",
+    "untestabilityReason": {
+      "justification": "Isolation harness scaffold — the capture entrypoint, not application UI.",
+      "kind": "scaffold"
+    }
+  },
+  {
     "description": "The Import / Export page (entry point for Pages.IMPORTEXPORT in App): a recover/backup view reached from the sidebar Import/Export link. Reads labels + previousLabels from Chrome storage and renders the Current export (groups serialized to JSON, sorted and url-resolved) plus a read-only Previous textarea per snapshot; the Import textarea + button parse pasted JSON to restore groups, swallowing malformed JSON, then call onComplete to return Home. Pure logic lives in utils/importExport; also covered by the import-export-backup application scenario.",
     "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
     "name": "ImportExport",
     "testFile": "src/lib/pages/ImportExport/ImportExport.test.jsx"
+  },
+  {
+    "description": "Error boundary used by the isolation harness so a propless/edge-case render of an isolated component surfaces a readable error message in the capture rather than a blank frame.",
+    "filePath": "src/__codeyam_isolate.jsx",
+    "name": "IsolationErrorBoundary",
+    "untestabilityReason": {
+      "justification": "Isolation harness scaffold helper — capture infrastructure, not application UI.",
+      "kind": "scaffold"
+    }
   },
   {
     "description": "Global keydown pub/sub over a single document.onkeydown listener: add/remove subscribers and trigger fans an event (real or synthetic) to all of them. Powers Search's Cmd/Ctrl+F focus + Escape close and SearchResults' arrow/enter navigation.",

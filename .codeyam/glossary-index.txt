@@ -1,7 +1,9 @@
-# regenerated from glossary.json on 2026-06-13T14:21:06Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-24T21:57:20Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
+CodeyamIsolate :: src/__codeyam_isolate.jsx :: tags=
 ImportExport :: src/lib/pages/ImportExport/ImportExport.jsx :: tags= :: test=src/lib/pages/ImportExport/ImportExport.test.jsx
+IsolationErrorBoundary :: src/__codeyam_isolate.jsx :: tags=
 KeyDown :: src/lib/utils/KeyDown.js :: tags= :: test=src/lib/utils/KeyDown.test.js
 LabelCollection :: src/lib/components/LabelCollection/LabelCollection.jsx :: tags= :: test=src/lib/components/LabelCollection/LabelCollection.test.jsx
 LabelForm :: src/lib/components/LabelForm/LabelForm.jsx :: tags= :: test=src/lib/components/LabelForm/LabelForm.test.jsx

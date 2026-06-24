@@ -1,0 +1,27 @@
+{
+  "name": "Labels - Grouped",
+  "id": "98f8afc9-5785-49a6-ab62-0cb230f2aa6a",
+  "url": "/?isolate=Labels",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"selectedLabel\":\"Work\",\"page\":{\"name\":\"Home\"}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\":\"Inbox (1,284) - hello@codeyam.com - Gmail\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":737280,\"cpu\":48000,\"privateMemory\":7660800000,\"jsMemoryAllocated\":6128640000,\"jsMemoryUsed\":4596480000}}",
+      "autoClosed": "{}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://mail.google.com/mail/u/0\",\"url-https://news.ycombinator.com\"]",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\"]}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-201\",\"pinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-202\",\"pinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-204\",\"pinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-207\",\"pinned\":false}]",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "componentName": "Labels",
+  "scenarioType": "component"
+}

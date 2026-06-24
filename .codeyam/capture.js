@@ -20,6 +20,19 @@ const { chromium } = require("playwright");
 const PLAYWRIGHT_MISSING_BROWSER_PATTERN = "Executable doesn't exist";
 const PLAYWRIGHT_INSTALL_COMMAND = "npx playwright install chromium";
 
+// Pin the headless capture browser's `localhost` resolution to the IPv4
+// loopback the editor's listeners bind. The browser-facing preview origin is
+// now `localhost` (secure-context apps refuse a bare IP — see
+// `BROWSER_FACING_HOST`), but on a dual-stack host `localhost` can resolve to
+// `::1` first, which nothing answers on — stalling the capture or paying a
+// happy-eyeballs fallback delay. Forcing the map removes that intermittency
+// deterministically for capture. The operator's OWN preview browser is covered
+// separately by the editor binding `::1` alongside `127.0.0.1` (see start.rs).
+const CAPTURE_HOST_RESOLVER_RULES = "MAP localhost 127.0.0.1";
+const CAPTURE_LAUNCH_ARGS = [
+  `--host-resolver-rules=${CAPTURE_HOST_RESOLVER_RULES}`,
+];
+
 // One-shot self-heal around `chromium.launch()`. If the first launch
 // throws the "missing browser" error, run `npx playwright install
 // chromium` synchronously (with `stdio: "inherit"` so the user sees
@@ -28,7 +41,7 @@ const PLAYWRIGHT_INSTALL_COMMAND = "npx playwright install chromium";
 // `Scenario check failed: <stderr>` path keeps showing the actionable
 // message — looping would hide a real ops failure under a slow timeout.
 async function launchChromiumWithSelfHeal({
-  launch = () => chromium.launch(),
+  launch = () => chromium.launch({ args: CAPTURE_LAUNCH_ARGS }),
   install = () => execSync(PLAYWRIGHT_INSTALL_COMMAND, { stdio: "inherit" }),
   stderr = process.stderr,
 } = {}) {
@@ -57,8 +70,8 @@ async function launchChromiumWithSelfHeal({
 }
 
 const {
-  findErrorPattern,
-  buildErrorContextSnippet,
+  findScenarioError,
+  SCENARIO_ERROR_MARKER,
   hasRenderableContent,
   buildSettleAdvisory,
   describeBlankReason,
@@ -79,10 +92,14 @@ const {
   assertAppPortReachable,
   loadScenarioInIframe,
   loadScenarioTopLevel,
+  resolveHarnessOrigin,
   waitForStablePage,
   createNetworkTracker,
   waitForNetworkQuiet,
   collectContentState,
+  scrollThroughDocument,
+  collectVisibleTextLength,
+  forceFinalVisualState,
   performInteraction,
   waitForPredicate,
   performInteractionSequence,
@@ -120,6 +137,31 @@ function readStackLoadingMarkers() {
   }
 }
 
+// True when the scenario being captured scripts a `/ws/terminal` transcript or
+// a WebSocket stream. Such captures need the REAL `WebSocket` so the server can
+// replay the scripted agent state into the frame — `getInitScript` keeps its
+// reconnect-silencing stub OFF for them (see the comment there). Read from the
+// scenario file by slug (`config.scenarioId`), the same cwd-relative path
+// `readStackLoadingMarkers` uses. Defaults to `false` (stub stays on, today's
+// behavior) for the scenario-less CLI preview path or any unreadable/parse
+// failure, so a missing file never accidentally un-stubs a live terminal.
+function scenarioScriptsLiveSocket(config) {
+  const slug = config && config.scenarioId;
+  if (!slug) return false;
+  try {
+    const raw = fs.readFileSync(
+      path.join(".codeyam", "scenarios", `${slug}.json`),
+      "utf8",
+    );
+    const mocks = (JSON.parse(raw) || {}).mocks || {};
+    const transcripts = mocks.transcripts || {};
+    const streams = mocks.streams || {};
+    return Object.keys(transcripts).length > 0 || Object.keys(streams).length > 0;
+  } catch (_) {
+    return false;
+  }
+}
+
 async function getDOMFingerprint(frame) {
   try {
     return await frame.evaluate(() => {
@@ -145,6 +187,33 @@ async function getDOMFingerprint(frame) {
 // and reported a false blank; this pause must comfortably exceed that window
 // while staying under the test runner's default per-case timeout.
 const BLANK_RETRY_DELAY_MS = 3000;
+
+// Pause after scrolling the document to trip scroll-gated reveal observers, so
+// the IntersectionObserver callbacks fire and any opacity/transform entrance
+// transition begins before we measure visible content and screenshot. Driven
+// through `page.waitForTimeout` so it is a real wait in Playwright but instant
+// against the stubbed pages in unit tests.
+const REVEAL_SETTLE_MS = 600;
+
+// Measure the frame's visible (painted, non-opacity:0) text and fold it into
+// the content state in place, so the blank gate can distinguish "text rendered
+// but invisible" from a populated frame. Best-effort: a frame/target that
+// cannot be measured (a stubbed test target returns a non-number, an evaluate
+// throws) leaves the state untouched, so `hasRenderableContent` falls back to
+// its DOM-presence behavior rather than treating an un-measurable frame as
+// blank.
+async function mergeVisibleTextLength(contentState, frame) {
+  if (!contentState) return;
+  let visible;
+  try {
+    visible = await collectVisibleTextLength(frame);
+  } catch (_) {
+    return;
+  }
+  if (typeof visible === "number") {
+    contentState.visibleTextLength = visible;
+  }
+}
 
 // True when `url` targets a different origin than `appOrigin`. Used to decide
 // whether the codeyam capture markers must be stripped before the request
@@ -491,7 +560,8 @@ async function verifySeededStorageLanded(frame, config) {
 // Returns the frame the flow ended on, so the caller's final screenshot and
 // result URL reflect the last navigated route.
 async function runFlowSteps(page, initialFrame, steps, ctx) {
-  const { url, loadingMarkers, navigation, iframeBackground, preflight } = ctx;
+  const { url, loadingMarkers, navigation, iframeBackground, preflight, harnessOrigin } =
+    ctx;
   let frame = initialFrame;
 
   for (let i = 0; i < steps.length; i++) {
@@ -507,6 +577,7 @@ async function runFlowSteps(page, initialFrame, steps, ctx) {
               : await loadScenarioInIframe(page, target, {
                   background: iframeBackground,
                   preflight,
+                  harnessOrigin,
                 });
           frame = loadResult.frame;
           await waitForStablePage(page, frame, 10000, loadingMarkers);
@@ -544,7 +615,17 @@ async function runFlowSteps(page, initialFrame, steps, ctx) {
 
 // `preflight` is injectable (defaulting to the real app-port reachability
 // check) so unit tests that mock the browser can stay network-free.
-async function runScenarioCheck(config, { preflight = assertAppPortReachable } = {}) {
+// `harnessOrigin` is likewise injectable: it defaults to resolving the editor's
+// harness origin from `.codeyam/server-state.json`, but a test passes an
+// explicit value (e.g. `null` to force the legacy `setContent` harness) so the
+// iframe-load path never silently depends on a server-state file in cwd.
+// Resolved ONCE here and threaded into every iframe load below.
+async function runScenarioCheck(
+  config,
+  { preflight = assertAppPortReachable, harnessOrigin } = {},
+) {
+  const resolvedHarnessOrigin =
+    harnessOrigin !== undefined ? harnessOrigin : resolveHarnessOrigin();
   const { url, outputPath, width, height, httpMocks = {} } = config;
   let interactionEffect = null;
   let interactionRetried = false;
@@ -572,6 +653,13 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
   if (config.timezoneId) contextOptions.timezoneId = config.timezoneId;
   if (config.reduceMotion) contextOptions.reducedMotion = config.reduceMotion;
   if (config.forcedColors) contextOptions.forcedColors = config.forcedColors;
+  // When the opt-in HTTPS preview (`proxy.httpsPreview`) is on, the capture
+  // origin is `https://localhost:<port>` served by the reverse proxy's
+  // self-signed cert. Accept it for capture only — gated on the https origin so
+  // plain-HTTP captures keep full TLS-error fidelity.
+  if (typeof appOrigin === "string" && appOrigin.startsWith("https://")) {
+    contextOptions.ignoreHTTPSErrors = true;
+  }
   const context = await browser.newContext(contextOptions);
 
   // Apply the scenario's merged `browserState` (cookies + request
@@ -582,8 +670,11 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
   // not redirect to `/login` when the proxy is bypassed.
   await applyBrowserState(context, config);
 
-  // Context-level init script runs in ALL frames (including cross-origin iframes)
-  await context.addInitScript(getInitScript());
+  // Context-level init script runs in ALL frames (including cross-origin iframes).
+  // Keep the real WebSocket for scenarios that script a `/ws/terminal`
+  // transcript / WS stream so the scripted agent state reaches the capture;
+  // every other capture gets the reconnect-silencing stub.
+  await context.addInitScript(getInitScript(scenarioScriptsLiveSocket(config)));
 
   const page = await context.newPage();
   // Attach the network tracker BEFORE navigation so every request (the document
@@ -643,6 +734,7 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
         : await loadScenarioInIframe(page, url, {
             background: config.iframeBackground,
             preflight,
+            harnessOrigin: resolvedHarnessOrigin,
           });
     // `frame` is `let` so a `navigate` flow step (below) can re-point it at the
     // freshly-loaded route's content frame; `response` is the initial load only.
@@ -700,6 +792,23 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
       );
     }
 
+    // Reveal-suppression fix: scroll-gated entrance animations (content held at
+    // `opacity:0` until an IntersectionObserver fires on scroll) render blank in
+    // isolation, where the app shell that wires those observers is absent.
+    // Emulate reduced motion — so reduced-motion-aware stylesheets drop their
+    // entrance animations and render the final state — and scroll the document
+    // end-to-end to trip every observer, so the content reveals BEFORE we
+    // measure and screenshot it, with no per-project force-reveal script. Both
+    // are best-effort: a page/frame that cannot emulate or scroll (a
+    // backend/static capture, a stubbed test target) is a no-op.
+    if (typeof page.emulateMedia === "function") {
+      await page.emulateMedia({ reducedMotion: "reduce" }).catch(() => {});
+    }
+    await scrollThroughDocument(frame).catch(() => {});
+    if (typeof page.waitForTimeout === "function") {
+      await page.waitForTimeout(REVEAL_SETTLE_MS);
+    }
+
     // Cold-start retry: a single re-collect after BLANK_RETRY_DELAY_MS covers
     // the React.lazy / Suspense-fallback race where waitForStablePage settles
     // on the still-empty `<div id="root">` shell before the dynamic chunk
@@ -707,10 +816,12 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
     // chunk-load window; only a genuinely blank page falls through to the
     // blank issue below.
     let contentState = await collectContentState(frame);
+    await mergeVisibleTextLength(contentState, frame);
     let hasContent = hasRenderableContent(contentState);
     if (!hasContent) {
       await new Promise((r) => setTimeout(r, BLANK_RETRY_DELAY_MS));
       contentState = await collectContentState(frame);
+      await mergeVisibleTextLength(contentState, frame);
       hasContent = hasRenderableContent(contentState);
     }
 
@@ -725,16 +836,29 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
       );
     }
 
-    // Check for known error states in the rendered content
-    const bodyText = await frame.evaluate(() => document.body?.innerText || "");
-    const matchedPattern = findErrorPattern(bodyText);
-    if (matchedPattern) {
-      const contextSnippet = buildErrorContextSnippet(bodyText, matchedPattern);
+    // Check for codeyam's scenario-renderer error fallback. We anchor on the
+    // DOM marker the ScenarioRenderer stamps on its error / seed-error frames
+    // rather than scanning the whole page body for ERROR_PATTERNS — a
+    // legitimately-mocked scenario whose content quotes one of those harness
+    // phrases must not be flagged. Apps with no codeyam ScenarioRenderer never
+    // emit the marker, so their pages are treated as healthy regardless of body
+    // text. The scan is scoped to the marked element's own text.
+    const errorMarker = await frame.evaluate((attr) => {
+      const el = document.querySelector(`[${attr}]`);
+      if (!el) return null;
+      return {
+        reason: el.getAttribute(attr) || "",
+        text: el.innerText || el.textContent || "",
+      };
+    }, SCENARIO_ERROR_MARKER);
+    const scenarioError = findScenarioError(errorMarker);
+    if (scenarioError) {
+      const { matchedPattern, contextSnippet } = scenarioError;
       pushIssue(
         issues,
         createIssue(
           "error-state",
-          `Page contains error content (matched "${matchedPattern}"): ${contextSnippet ?? bodyText.slice(0, 200)}`,
+          `Page contains error content (matched "${matchedPattern}"): ${contextSnippet ?? ""}`,
           {
             url: page.url() || url,
             matchedPattern,
@@ -781,6 +905,7 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
         navigation: config.navigation,
         iframeBackground: config.iframeBackground,
         preflight,
+        harnessOrigin: resolvedHarnessOrigin,
       });
     } else if (config.interaction) {
       // Record fingerprint before interaction
@@ -820,6 +945,19 @@ async function runScenarioCheck(config, { preflight = assertAppPortReachable } =
         settleMs: 5000,
         loadingMarkers,
       });
+    }
+
+    // Snap any remaining mid-flight CSS entrance animation to its final frame
+    // for the static shot — but only when the scenario has NOT declared an
+    // interactive state (a single `interaction`, a persisted `interactions`
+    // sequence, or a multi-step `steps` flow), so an intentionally
+    // animated/collapsed interactive frame is never clobbered by the force.
+    const hasDeclaredInteractiveState =
+      !!config.interaction ||
+      (Array.isArray(config.interactions) && config.interactions.length > 0) ||
+      (Array.isArray(config.steps) && config.steps.length > 0);
+    if (outputPath && loaded && !hasDeclaredInteractiveState) {
+      await forceFinalVisualState(frame).catch(() => {});
     }
 
     if (outputPath && loaded) {
@@ -894,16 +1032,20 @@ async function main() {
 
 module.exports = {
   runScenarioCheck,
+  mergeVisibleTextLength,
   runFlowSteps,
   dumpPageState,
   verifySeededStorageLanded,
   readStackLoadingMarkers,
+  scenarioScriptsLiveSocket,
   applyBrowserState,
   isCrossOriginRequest,
   isCaptureFatalRequestFailure,
   stripMarkerHeaders,
   main,
   launchChromiumWithSelfHeal,
+  CAPTURE_LAUNCH_ARGS,
+  CAPTURE_HOST_RESOLVER_RULES,
   PLAYWRIGHT_INSTALL_COMMAND,
   PLAYWRIGHT_MISSING_BROWSER_PATTERN,
 };

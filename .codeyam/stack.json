@@ -53,9 +53,8 @@
     "kind": "iframe"
   },
   "routing": {
-    "isolationRoute": "src/isolated-components",
-    "pagesDir": "src",
-    "type": "manifest"
+    "type": "query-param",
+    "componentManifest": "src/__codeyam_components.js"
   },
   "screenSizes": {
     "Desktop": {

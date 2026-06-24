@@ -1,0 +1,12 @@
+{
+  "name": "LabelForm - Edit Work",
+  "id": "78f241dc-7b52-4a23-8a41-c4ee49bc00e9",
+  "url": "/?isolate=LabelForm",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LabelForm",
+  "scenarioType": "component"
+}

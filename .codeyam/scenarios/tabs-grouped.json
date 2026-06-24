@@ -1,0 +1,23 @@
+{
+  "name": "Tabs - Grouped",
+  "id": "e2af3a62-d1bc-47a4-a7ad-107dff9dd6ba",
+  "url": "/?isolate=Tabs",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-201\",\"pinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-202\",\"pinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-204\",\"pinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-207\",\"pinned\":false}]",
+      "autoClosed": "{}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://react.dev/learn\",\"url-https://news.ycombinator.com\"]",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}"
+    }
+  },
+  "componentName": "Tabs",
+  "scenarioType": "component"
+}
