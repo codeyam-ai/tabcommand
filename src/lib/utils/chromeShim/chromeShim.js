@@ -1,17 +1,15 @@
-// In-app `chrome` shim for the codeyam preview and the plain-browser dev server,
-// where there is no extension `chrome` object. It is a purpose-built replacement
-// for the reference App.jsx's `global.chrome = sinon-chrome` hack: a real
-// in-memory store, multi-key callback reads, `onChanged` events, `remove`, and
-// no-op action stubs.
+// In-app `chrome` shim for the dev server, where there is no extension `chrome`
+// object. It provides a real in-memory store, multi-key callback reads,
+// `onChanged` events, `remove`, and no-op action stubs.
 //
-// localStorage is BOTH the seed inlet (codeyam's localStorage adapter writes
+// localStorage is BOTH the seed inlet (state is written as
 // `localStorage[key] = JSON.stringify(value)` before the app boots) and the
 // persistence mirror. The in-memory `store` is the working copy; the JSON string
 // boundary lives entirely inside this shim, so `Chrome.get` consumers always see
 // parsed objects/arrays exactly as the real `chrome.storage` would hand back.
 
-// The TabCommand storage keys. Shared so the Chrome abstraction's default lists
-// and the shim's hydration never drift.
+// The storage keys. Shared so the Chrome abstraction's default lists and the
+// shim's hydration never drift.
 export const KNOWN_KEYS = [
   'labels',
   'uxSettings',
@@ -41,10 +39,9 @@ export function createChromeShim() {
   // Hydrate from EVERY localStorage entry, not just KNOWN_KEYS. Each URL object
   // lives under a dynamic `url-<url>` key that isn't in KNOWN_KEYS, so a
   // known-keys-only loop would drop the seeded per-URL data and every tab would
-  // render blank. In the codeyam iframe localStorage is cleared + seeded per
-  // scenario, so scanning all keys is exactly the seeded set. KNOWN_KEYS remains
-  // the source for the Chrome abstraction's default-hydration lists, not the
-  // shim's boot scope.
+  // render blank. When localStorage is cleared and seeded per scenario, scanning
+  // all keys is exactly the seeded set. KNOWN_KEYS remains the source for the
+  // Chrome abstraction's default-hydration lists, not the shim's boot scope.
   const store = {};
   for (let i = 0; i < window.localStorage.length; i++) {
     const key = window.localStorage.key(i);
@@ -77,7 +74,7 @@ export function createChromeShim() {
         // Hand back a deep COPY, never the live `store[k]` reference. Real
         // chrome.storage.local serializes/deserializes across a process
         // boundary, so every get yields a fresh structure that consumers can
-        // freely mutate without corrupting the store. ImportExport's faithful
+        // freely mutate without corrupting the store. ImportExport's
         // `sortAndStuff` mutates its result (`delete label.urlKeys`), and under
         // StrictMode the effect runs twice — sharing the live reference would
         // leave the second run iterating an already-deleted `urlKeys`.
@@ -136,8 +133,8 @@ export function createChromeShim() {
     },
 
     // Action APIs are side effects of close/drag/group interactions. There are
-    // no OS tabs in the preview, so these are callable no-ops — present only so
-    // interactive scenarios don't throw `chrome.tabs is undefined`.
+    // no OS tabs outside the extension, so these are callable no-ops — present
+    // only so interactive scenarios don't throw `chrome.tabs is undefined`.
     tabs: {
       create: (...args) => defer(lastCallback(args), {}),
       update: (...args) => defer(lastCallback(args)),
@@ -154,9 +151,9 @@ export function createChromeShim() {
     processes: {
       onUpdatedWithMemory: {
         // The real chrome.processes API streams live per-process CPU/memory
-        // samples, which don't exist outside a packaged extension. For the
-        // preview / dev server we surface any seeded `processes` snapshot once,
-        // so the Load page's raw per-process table can be demonstrated. With no
+        // samples, which don't exist outside a packaged extension. On the dev
+        // server we surface any seeded `processes` snapshot once, so the Load
+        // page's raw per-process table can be demonstrated. With no
         // seed this stays a no-op (the table renders empty), exactly as before.
         addListener: (fn) => {
           if (typeof fn === 'function' && store.processes && Object.keys(store.processes).length > 0) {

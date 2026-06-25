@@ -12,9 +12,8 @@ import { deriveUrlLabels, buildUrlInfo, removeUrlFromLabel } from '../../utils/u
 // title/url/favicon, free-form notes, and its group (label) memberships.
 // Navigation in already exists: the Url row's edit pencil writes
 // uxSettings.page = { name: Pages.URL, urlKey }, which App propagates here.
-// Faithful port of ../tabcommand/src/lib/pages/UrlDetails/UrlDetails.jsx, with
-// the form field, the Groups chip, and the pure logic extracted (UrlField /
-// UrlLabel / utils/urlDetails).
+// The form field, the Groups chip, and the pure logic are extracted into
+// UrlField / UrlLabel / utils/urlDetails.
 const UrlDetails = ({ urlKey }) => {
   const [{ url, title, favicon, notes, labels, urlLabels }, setState] = useState({
     url: urlKey.replace('url-', ''),

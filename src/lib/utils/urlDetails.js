@@ -1,7 +1,7 @@
 // Pure logic factored out of the UrlDetails page so it can be unit-tested in
 // isolation (the page component itself is covered by scenario captures). Each
-// function is a faithful extraction of the inline logic that lived in
-// UrlDetails.jsx — same behavior, no Chrome/storage or React coupling.
+// function factors out logic that would otherwise live inline in UrlDetails.jsx,
+// with no Chrome/storage or React coupling.
 
 // The "Groups" chips are DERIVED, not stored: the titles of every label whose
 // `urlKeys` contains this urlKey. Extracted from setPartialState.
@@ -12,9 +12,8 @@ export const deriveUrlLabels = (labels, urlKey) => {
 };
 
 // The object persisted back for one URL on Save. `notes` is included only when
-// non-empty. Stack/ref assumption: this writes ONLY the four form fields, which
-// DROPS the per-URL `processes` object — reproduced verbatim from the reference
-// save; it's irrelevant to the seeded captures.
+// non-empty. This writes ONLY the four form fields, which intentionally DROPS
+// the per-URL `processes` object — it's irrelevant to the saved URL info.
 export const buildUrlInfo = ({ title, url, favicon, notes }) => {
   const updatedUrlInfo = {
     title: title,
@@ -31,8 +30,7 @@ export const buildUrlInfo = ({ title, url, favicon, notes }) => {
 
 // Removing a Groups chip splices this urlKey out of that label's `urlKeys`.
 // Returns a new labels map (and a fresh urlKeys array for the touched label) so
-// the input is not mutated; the resulting state matches the reference's
-// in-place splice.
+// the input is not mutated; the resulting state matches an in-place splice.
 export const removeUrlFromLabel = (labels, labelTitle, urlKey) => {
   const label = labels[labelTitle];
   if (!label) return labels;

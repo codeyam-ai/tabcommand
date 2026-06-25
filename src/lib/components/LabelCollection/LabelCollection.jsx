@@ -146,9 +146,7 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
         label={{ title: title, backgroundColor: currentBackgroundColor }}
       />
       <div className='LabelCollection-menu-section LabelCollection-menu-actions'>
-        <button className='LabelCollection-share' onClick={
-          () => alert('Publicly share this group')
-        }>
+        <button className='LabelCollection-share' disabled title='Group sharing is coming soon'>
           <ShareAltOutlined /> Share Group
         </button>
         <button className='LabelCollection-delete' onClick={deleteLabel}>

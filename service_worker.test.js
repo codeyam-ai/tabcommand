@@ -3,8 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// service_worker.js is a verbatim-ported vanilla (non-module) background
-// script: it declares top-level functions and immediately registers chrome.*
+// service_worker.js is a vanilla (non-module) background script: it declares
+// top-level functions and immediately registers chrome.*
 // listeners / queries at load time. To exercise the functions without editing
 // the source, we read the file and evaluate it in a sloppy-mode Function
 // wrapper with a stubbed `chrome` injected, then return the top-level
@@ -56,7 +56,7 @@ function loadWorker(chrome) {
     'console',
     `${code}
     ;return {
-      fns: { central, trackGroup, listenToProcesses, updateActiveTabs, update,
+      fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
              newUrl, closeUrl, processProcesses, updateTotals, associateProcess,
              tabUpdates, urlUpdates, getUrlKey, validTab, getTabGroup,
              getLocalStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs },
@@ -88,13 +88,6 @@ describe('service_worker.js', () => {
     expect(chrome.tabGroups.onCreated.addListener).toHaveBeenCalled();
     expect(chrome.storage.onChanged.addListener).toHaveBeenCalled();
     expect(chrome.processes.onUpdatedWithMemory.addListener).toHaveBeenCalled();
-  });
-
-  describe('central', () => {
-    // a deliberately empty trace hook — returns undefined and never throws
-    it('is a no-op', () => {
-      expect(fns.central()).toBeUndefined();
-    });
   });
 
   describe('getUrlKey', () => {

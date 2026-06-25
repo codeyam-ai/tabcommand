@@ -1,10 +1,8 @@
-// Faithful port of the reference TabCommand storage abstraction
-// (../tabcommand/src/lib/utils/Chrome/Chrome.js). Every feature plan consumes
-// this exact callback signature — `get(from, keys, callback)` /
-// `set(from, updates)` / `remove(from, keys)` — so the behavior, including the
-// leading `from` debug-label arg and the default-hydration rules, is preserved
-// byte-for-byte. The underlying `chrome.storage.local` is the real extension API
-// in a packaged build and the in-app chromeShim everywhere else.
+// Storage abstraction over `chrome.storage.local`. Every consumer uses this
+// callback signature — `get(from, keys, callback)` / `set(from, updates)` /
+// `remove(from, keys)` — including the leading `from` debug-label arg and the
+// default-hydration rules. The underlying `chrome.storage.local` is the real
+// extension API in a packaged build and the in-app chromeShim everywhere else.
 const Chrome = {
   remove: (from, keys) => {
     chrome.storage.local.remove(keys);

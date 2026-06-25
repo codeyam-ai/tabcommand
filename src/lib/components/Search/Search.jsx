@@ -40,13 +40,10 @@ const Search = () => {
     let labelMap = {};
     if (miniSearch === null) return;
 
-    // Reference parity with a React 18 adaptation: the reference (React 17,
-    // `ReactDOM.render`) registers these listeners with no cleanup, which is
-    // harmless there. Under the modern tree's StrictMode + `createRoot`, effects
-    // are double-invoked in dev, so we name the handlers and remove them on
-    // cleanup — otherwise the duplicate `onChanged` listener races two index
-    // builds and emits duplicate result keys. Matches how App/Labels/SearchResults
-    // already manage their listeners.
+    // Under StrictMode + `createRoot`, effects are double-invoked in dev, so we
+    // name the handlers and remove them on cleanup — otherwise the duplicate
+    // `onChanged` listener races two index builds and emits duplicate result
+    // keys. Matches how App/Labels/SearchResults already manage their listeners.
     const handleKeyDown = (e) => {
       const input = document.getElementById('Search-Input');
 

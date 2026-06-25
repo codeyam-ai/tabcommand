@@ -8,15 +8,15 @@ import deriveGaugeTotals from '../../utils/deriveGaugeTotals';
 
 // The distinctive sidebar gauge: two concentric SVG arcs (cpu inner, memory
 // outer) whose filled fraction reflects the live `processTotals` storage key.
-// The service worker writes `processTotals` in a packaged extension; in the
-// codeyam preview each scenario seeds it directly to drive the gauge to a level.
+// The service worker writes `processTotals` in a packaged extension; outside it
+// the value can be seeded directly to drive the gauge to a level.
 //
 // The arc fill is done with `gradient-path`, which mutates per-segment SVG
 // `fill`/`stroke` attributes — real-DOM/SVG work jsdom can't render. So the
 // GradientPath calls are wrapped to no-op under jsdom (its SVG geometry methods
 // throw "Not implemented"), and the unit tests assert the data binding
 // (reads `processTotals`, computes the fill percent) while the visual is
-// verified by the codeyam screenshot.
+// covered separately.
 const LoadMeter = () => {
   const max = {
     cpu: 150,
@@ -92,7 +92,7 @@ const LoadMeter = () => {
 
       // jsdom doesn't implement SVG path geometry (getTotalLength /
       // getPointAtLength), so GradientPath throws there. No-op under jsdom — the
-      // visual is covered by the codeyam screenshot, not unit tests.
+      // visual is covered separately, not by unit tests.
       try {
         let segments = svg.getElementsByClassName('path-segment');
         if (segments.length === 0) {
@@ -123,7 +123,7 @@ const LoadMeter = () => {
           segments[i].attributes.stroke.value = color;
         }
       } catch {
-        // jsdom / no-SVG-geometry environment — no-op; visual verified by capture.
+        // jsdom / no-SVG-geometry environment — no-op; visual covered separately.
       }
     });
   }, [state.cpu, state.memory]);

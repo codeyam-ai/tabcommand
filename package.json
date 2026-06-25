@@ -12,6 +12,18 @@
   "bugs": {
     "url": "https://github.com/codeyam-ai/tabcommand/issues"
   },
+  "keywords": [
+    "chrome-extension",
+    "manifest-v3",
+    "tab-manager",
+    "browser-tabs",
+    "react",
+    "vite",
+    "codeyam"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

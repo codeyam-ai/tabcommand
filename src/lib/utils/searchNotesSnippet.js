@@ -2,8 +2,8 @@
 // result when the match landed in its notes. Factored out of SearchResults so
 // the windowing/highlight math is testable independent of JSX.
 //
-// Faithful to the reference: find the (case-insensitive) term, capture the
-// original-cased matched substring, then trim the notes to a window of ~18 chars
+// Find the (case-insensitive) term, capture the original-cased matched
+// substring, then trim the notes to a window of ~18 chars
 // before and ~24 after the term, and split the window on the match into the
 // `before` / `match` / `after` parts the overlay renders as
 // `{before}<span>{match}</span>{after}`. Returns null when there's nothing to

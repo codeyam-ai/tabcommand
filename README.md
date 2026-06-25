@@ -1,5 +1,8 @@
 # TabCommand
 
+[![CI](https://github.com/codeyam-ai/tabcommand/actions/workflows/ci.yml/badge.svg)](https://github.com/codeyam-ai/tabcommand/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 **Command Central for your browsing experience** — a Manifest V3 Chrome extension that
 monitors, searches, labels (groups), and auto-closes your browser tabs. The rich UI is a
 full-page React app; the toolbar popup is just a launcher that opens it in a pinned tab.
@@ -8,8 +11,18 @@ All state lives in `chrome.storage.local` — there's no backend.
 This repo is unusual in one deliberate way: **every UI state is captured as a
 [codeyam](https://codeyam.com) scenario with a screenshot, and the whole app is
 explorable — live — without installing anything.** You can see how TabCommand behaves in
-46 seeded states, then make changes through a workflow that keeps tests, a code glossary,
+40+ seeded states, then make changes through a workflow that keeps tests, a code glossary,
 and those scenarios in sync.
+
+<p align="center">
+  <img src=".codeyam/scenarios/screenshots/labels-populated--desktop.png" alt="TabCommand showing colorful labeled tab groups" width="100%">
+</p>
+
+<p align="center">
+  <img src=".codeyam/scenarios/screenshots/home-grouped--desktop.png" alt="Home view with tabs organized into groups" width="49%">
+  &nbsp;
+  <img src=".codeyam/scenarios/screenshots/load-meter-high--desktop.png" alt="Per-tab load gauge under heavy tab load" width="49%">
+</p>
 
 ## Quick start
 
@@ -45,7 +58,7 @@ npm run lint     # ESLint 9 (flat config)
 
 **1. Browse the scenarios in this repo.** Each file in `.codeyam/scenarios/*.json` defines
 a seeded app state, with a matching screenshot under `.codeyam/scenarios/screenshots/`.
-There are 46 — both *application* scenarios (whole pages, e.g. `home-empty`, `home-grouped`,
+There are 40+ — both *application* scenarios (whole pages, e.g. `home-empty`, `home-grouped`,
 `labels-populated`) and *component* scenarios (isolated pieces, e.g. `labelform-reading`,
 `load-meter-high`). A scenario seeds `localStorage`, so the exact state is reproducible and
 version-controlled.
@@ -88,6 +101,18 @@ place:
 You don't *have* to use the editor to contribute — `npm run dev` / `npm test` /
 `npm run lint` work standalone — but the codeyam loop is what keeps the screenshots, tests,
 and glossary honest.
+
+## Permissions
+
+TabCommand requests only what it needs to monitor and organize your tabs, and everything
+stays on your machine:
+
+| Permission | Why it's needed |
+|------------|-----------------|
+| `tabs` | Read tab titles and URLs to list, search, and label your open tabs |
+| `tabGroups` | Create and keep Chrome tab groups in sync with your labels |
+| `storage` | Persist your tabs, labels, and settings in `chrome.storage.local` |
+| `processes` | Show per-tab CPU, memory, and network load in the meter |
 
 ## Tech stack
 

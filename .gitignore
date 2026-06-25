@@ -49,3 +49,17 @@ dev-dist/
 # OS / packaging artifacts
 .DS_Store
 *.zip
+
+# Transient codeyam state — local-only, kept out of the published repo
+.codeyam/.last-reconcile.json
+.codeyam/per-test-evidence.json
+.codeyam/runner-timing-history.json
+.codeyam/test-cache.json
+.codeyam/test-cache/all.json
+.codeyam/test-run-marker.json
+.codeyam/reconciliation-log.jsonl
+.codeyam/cache/step-metadata.json
+.codeyam/state/last-advance.txt
+.codeyam/state/session-results-snapshot.json
+.codeyam/state/provider-auth-verdict.json
+.codeyam/state/finalize-debt.json

@@ -18,9 +18,9 @@ const SearchResults = ({ labels, urls }) => {
     KeyDown.trigger(event({ key: "Escape" }));
     const selectedItem = [...labels, ...urls][index];
     if (selectedItem.labelTitle) {
-      // Modern navigation lives entirely on `uxSettings`: select the label by
-      // title (a string, matching LabelCollection) and route Home via
-      // `uxSettings.page` rather than the reference's legacy top-level `page` key.
+      // Navigation lives entirely on `uxSettings`: select the label by title
+      // (a string, matching LabelCollection) and route Home via
+      // `uxSettings.page`.
       Chrome.get('SearchResults1', 'uxSettings', ({ uxSettings }) => {
         uxSettings.selectedLabel = selectedItem.labelTitle;
         uxSettings.page = { name: Pages.HOME };
@@ -162,7 +162,8 @@ const SearchResults = ({ labels, urls }) => {
         <div className='SearchResults-section-title'>Archived URLs</div>
         <div
           className='SearchResults-search-archived'
-          onClick={() => alert('This would search through all archived URLs')}
+          aria-disabled='true'
+          title='Archived search is coming soon'
         >
           Search Archived URLs
         </div>

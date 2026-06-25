@@ -1,10 +1,10 @@
 // Pure transform behind App's `onDragEnd`. Factored out of the component so the
 // URL-move and label-reorder logic can be unit-tested without driving
-// `@hello-pangea/dnd` end-to-end (which is brittle in jsdom). Faithful port of
-// the reference `handleDrag` in ../tabcommand/src/lib/pages/App/App.jsx.
+// `@hello-pangea/dnd` end-to-end (which is brittle in jsdom). This is App's
+// `handleDrag` logic.
 //
-// Mutates and returns the passed `labels` map (matching the reference, which
-// reads-modifies-writes the stored object), plus the list of tab ids that must
+// Mutates and returns the passed `labels` map (it reads-modifies-writes the
+// stored object), plus the list of tab ids that must
 // be ungrouped via `chrome.tabs.ungroup` when a url leaves an active label.
 // Returns `null` for drops with no valid destination (the caller should no-op).
 import { ItemTypes } from '../../Constants';

@@ -19,12 +19,11 @@ export default defineConfig({
     },
   },
   server: {
-    // Bind IPv4 loopback — the codeyam editor proxy probes 127.0.0.1, and
-    // Vite would otherwise listen on IPv6 only.
+    // Bind IPv4 loopback — some dev proxies probe 127.0.0.1, and Vite would
+    // otherwise listen on IPv6 only.
     host: '127.0.0.1',
-    // Honor the PORT injected by the codeyam editor's reverse proxy (it runs
-    // the app on the injected port and proxies the configured app port to it).
-    // Falls back to 3000 for a plain `npm run dev`.
+    // Honor a PORT injected by an enclosing dev proxy, falling back to 3000
+    // for a plain `npm run dev`.
     port: Number(process.env.PORT) || 3000,
     strictPort: true,
   },

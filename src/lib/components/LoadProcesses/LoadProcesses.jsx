@@ -7,8 +7,8 @@ import humanReadableNumber from '../../utils/humanReadableNumber';
 // The Load page's raw per-process panel: one card per OS process showing its
 // task titles plus CPU and private-memory readouts with inline bars. The data
 // comes from chrome.processes.onUpdatedWithMemory — the live API in a packaged
-// extension; in the codeyam preview the chrome shim emits any seeded `processes`
-// snapshot so the panel can be demonstrated. With no data the panel is empty
+// extension; outside it the chrome shim emits any seeded `processes` snapshot
+// so the panel can be demonstrated. With no data the panel is empty
 // (and collapses via the `:empty` rule), so it never reserves a blank column.
 const LoadProcesses = () => {
   const [processes, setProcesses] = useState({});

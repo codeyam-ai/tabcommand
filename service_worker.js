@@ -1,19 +1,3 @@
-// var _gaq = _gaq || [];
-// _gaq.push(['_setAccount', 'G-XW94WZGGSB']);
-// _gaq.push(['_trackPageview']);
-
-// (function() {
-//   var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-//   ga.src = 'https://ssl.google-analytics.com/ga.js';
-//   var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-// })();
-
-function central() {
-  // let err = new Error();
-  // console.log(((labels || {}).Test2 || {}).urlKeys, err.stack);
-}
-
-
 let defaultWindowId;
 let listening = true;
 let removing;
@@ -26,7 +10,6 @@ function trackGroup(group) {
 chrome.tabGroups.onCreated.addListener((group) => trackGroup(group))
 chrome.tabGroups.onUpdated.addListener((group) => trackGroup(group))
 chrome.tabGroups.query({}, (groups) => {
-  central();
   for (let i=0; i<groups.length; ++i) {
     trackGroup(groups[i]);
   }
@@ -35,7 +18,6 @@ chrome.tabGroups.query({}, (groups) => {
 listenToProcesses();
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  central();
   if (tab.title === "TabCommand") defaultWindowId = tab.windowId;
   let updates = await tabUpdates(tab);
   
@@ -111,12 +93,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 });
 
 chrome.tabs.onActivated.addListener((tabInfo) => {
-  central();
   updateActiveTabs();
 });
 
 chrome.tabs.onCreated.addListener(async (tab) => {
-  central();
   const updates = {
     ...(await tabUpdates(tab)),
     ...(await newUrl(tab.id, tab.url))
@@ -128,8 +108,6 @@ chrome.tabs.onCreated.addListener(async (tab) => {
 });
 
 chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => {
-  central();
-  // console.log("onReplaced", addedTabId, removedTabId);
 
   updateActiveTabs();
 
@@ -138,12 +116,10 @@ chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => {
 });
 
 chrome.tabs.onMoved.addListener((tabId, moveInfo) => {
-  central();
   updateActiveTabs();
 });
 
 chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
-  central();
   removing = tabId;
   const activeTabs = (await getLocalStorage('activeTabs')).activeTabs || [];
   const oldTabUrl = activeTabs.filter(
@@ -157,7 +133,6 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
 let waitingToUpdate = false;
 updateActiveTabs();
 async function updateActiveTabs() {
-  central();
   if (waitingToUpdate) return;
   chrome.tabs.query({ windowType: chrome.tabs.WindowType.NORMAL }, async (tabs) => {
     if (!tabs) {
@@ -217,12 +192,10 @@ async function updateActiveTabs() {
 }
 
 function update(updates) {
-  central();
   chrome.storage.local.set(updates);
 }
 
 async function newUrl(tabId, url) {
-  central();
   updateActiveTabs();
   if (!tabId) return;
   if (!url) return;
@@ -256,7 +229,6 @@ async function newUrl(tabId, url) {
 }
 
 function closeUrl(urlKey, callback) {
-  central();
   getLocalStorage('allUrls', (result) => {
     const allUrls = result.allUrls || [];
     const oldIndex = allUrls.indexOf(urlKey);
@@ -315,7 +287,6 @@ async function processProcesses(processes) {
 }
 
 function updateTotals(process, updates) {
-  central();
   updates.processTotals.cpu += process.cpu || 0;
   updates.processTotals.network += process.network || 0;
   updates.processTotals.privateMemory += process.privateMemory || 0;
@@ -325,16 +296,11 @@ function updateTotals(process, updates) {
 }
 
 async function associateProcess(process, updates) {
-  central();
   const tabIds = process.tasks.map(
     (task) => task.tabId
   ).filter(
     (tabId) => tabId !== undefined
   );
-
-  // if (tabIds.length > 1) {
-  //   console.log("MULTIPLE", tabIds);
-  // }
 
   for (tabId of tabIds) {
     try {
@@ -344,14 +310,12 @@ async function associateProcess(process, updates) {
         ...(await tabUpdates(tab, process, updates))
       };
     } catch (e) {
-      // console.log("Error on loading tab " + tabId, e.message);
     }
   }
   return updates;
 }
 
 async function tabUpdates(tab, process, updates) {
-  central();
   return new Promise((resolve, reject) => {
     if (!validTab(tab)) {
       resolve({});
@@ -370,7 +334,6 @@ async function tabUpdates(tab, process, updates) {
 }
 
 function urlUpdates(url, tab, process) {
-  central();
   if (!url.processes || !url.processes.samples) {
     url.processes = {
       samples: 0,
@@ -412,12 +375,10 @@ function urlUpdates(url, tab, process) {
 }
 
 function getUrlKey(url) {
-  central();
   return `url-${url.split('#')[0]}`;
 }
 
 function validTab(tab) {
-  central();
   return tab.url &&
     tab.url.length &&
     tab.url.indexOf('chrome://') === -1 &&
@@ -431,7 +392,6 @@ function validTab(tab) {
 let labels = {};
 let activeTabs = [];
 getLocalStorage(['labels', 'activeTabs'], (result) => {
-  central();
   labels = result.labels || {};
   activeTabs = result.activeTabs || [];
   groupTabs(activeTabs, labels);
@@ -439,7 +399,6 @@ getLocalStorage(['labels', 'activeTabs'], (result) => {
 
 chrome.storage.onChanged.addListener(
   (changes, areaName) => {
-    central();
     if (areaName !== 'local') return;
     if (!changes.labels && !changes.activeTabs) return;
 
@@ -469,14 +428,12 @@ chrome.storage.onChanged.addListener(
 );
 
 function getTabGroup(id) {
-  central();
   return new Promise(
     (resolve, reject) => {
       if (!id || id === -1) {
         resolve(null);
       } else {
         chrome.tabGroups.get(id, (group) => {
-          central();
           resolve(group);
         });
       }
@@ -488,7 +445,6 @@ function getLocalStorage(query, callback) {
   return new Promise(
     (resolve, reject) =>
       chrome.storage.local.get(query, (result) => {
-        central();
         if (callback) {
           callback(result);
           return;
@@ -499,12 +455,10 @@ function getLocalStorage(query, callback) {
 }
 
 function parseTabId(tab) {
-  central();
   return parseInt(tab.tabKey.split('-')[1]);
 }
 
 async function handleActiveTabsGroupChanges(changes) {
-  central();
   const { newValue, oldValue } = changes;
 
   if (!oldValue) return;
@@ -520,13 +474,13 @@ async function handleActiveTabsGroupChanges(changes) {
     if (oldTab.groupId !== newTab.groupId) {
       const oldGroup = await (
         getTabGroup(oldTab.groupId).catch(
-          e => { }//console.log("Error getting group", oldTab.groupId, e.message)
+          () => { }
         )
       );
 
       const newGroup = await (
         getTabGroup(newTab.groupId).catch(
-          e => { }//console.log("Error getting group", newTab.groupId, e.message)
+          () => { }
         )
       );
 
@@ -558,7 +512,6 @@ async function handleActiveTabsGroupChanges(changes) {
 }
 
 async function groupTabs(activeTabs, labels) {
-  central();
   const mapColors = (labelColor) => {
     const map = {
       '#5F6367': 'grey',
@@ -580,12 +533,9 @@ async function groupTabs(activeTabs, labels) {
       if (!tab.pinned) unpinnedTabIds.push(parseTabId(tab));
     }
 
-    // const labelTitlePath = label.title.split('/');
-    // const labelTitle = labelTitlePath[labelTitlePath.length - 1];
     const labelTitle = label.title;
 
     chrome.tabGroups.query({ title: labelTitle }, async (groups) => {
-      central();
       if (!groups) return;
       
       if (groups.length === 0) {
@@ -623,7 +573,7 @@ async function groupTabs(activeTabs, labels) {
     if (activeTab.groupId && activeTab.groupId > -1) {
       const group = await (
         getTabGroup(activeTab.groupId).catch(
-          e => { }//console.log("Error getting group", activeTab.groupId, e.message)
+          () => { }
         )
       );
 

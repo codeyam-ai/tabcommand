@@ -2,8 +2,8 @@ import React from 'react';
 
 // A single labeled field in the UrlDetails edit form — an <input> (Title, Url,
 // Favicon) or a <textarea> (Notes) when `multiline` is set. The onKeyDown
-// stopPropagation guard is reproduced faithfully: it keeps the app's global
-// Esc/Search key handlers from firing while the user is typing in the field.
+// stopPropagation guard keeps the app's global Esc/Search key handlers from
+// firing while the user is typing in the field.
 // Layout is styled by the page's `.UrlDetails` scope when composed there.
 const stopProp = (event) => event.stopPropagation();
 

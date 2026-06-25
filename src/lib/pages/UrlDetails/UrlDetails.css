@@ -2,9 +2,8 @@
   padding: 30px;
 }
 
-/* The reference reuses ImportExport-homeLink; ImportExport isn't ported in the
-   modern stack yet, so the home link carries its own style here, matching the
-   Load page's home link. */
+/* The home link carries its own style here (rather than reusing
+   ImportExport-homeLink), matching the Load page's home link. */
 .UrlDetails-homeLink {
   display: inline-flex;
   align-items: center;

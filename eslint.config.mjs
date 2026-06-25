@@ -12,9 +12,9 @@ export default [
       '.claude/**',
       '.codeyam/**',
       '.codex/**',
-      // Ported verbatim from the original extension — kept byte-identical and
-      // intentionally not modernized, so they are excluded from the lint gate.
-      // (Their *.test.js harnesses are NOT ignored — those are our code.)
+      // service_worker.js and popup.js use plain-script globals that the
+      // React/flat config rules don't apply to, so they're excluded from the
+      // lint gate. (Their *.test.js harnesses are NOT ignored.)
       'service_worker.js',
       'popup/popup.js',
       'popup/popup.css',

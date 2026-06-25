@@ -16,8 +16,7 @@ import {
 // The Import / Export page: a recover/backup view reached from the sidebar
 // "Import/Export" link. It serializes the user's groups (labels + their member
 // URLs) to JSON for Export, shows prior snapshots under Previous, and parses
-// pasted JSON to Import (restore) groups. Faithful port of
-// ../tabcommand/src/lib/pages/ImportExport/ImportExport.jsx (minus PropTypes).
+// pasted JSON to Import (restore) groups.
 const ImportExport = ({ onComplete }) => {
   const [importLabels, setImportLabels] = useState("");
   const [exportLabels, setExportLabels] = useState("");

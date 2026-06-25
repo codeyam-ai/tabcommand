@@ -1,5 +1,5 @@
 {
-  "name": "TabCommand (Dev)",
+  "name": "TabCommand",
   "version": "0.13",
   "description": "Command Central for your browsing experience.",
   "permissions": ["storage", "tabs", "processes", "tabGroups"],
@@ -7,7 +7,7 @@
     "service_worker": "service_worker.js"
   },
   "action": {
-    "default_title": "Process Monitor",
+    "default_title": "TabCommand",
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "assets/images/tabcommand16.png",

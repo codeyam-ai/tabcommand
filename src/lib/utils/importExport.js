@@ -1,13 +1,12 @@
 // Pure transforms behind the Import / Export page. The page's `useEffect` and
 // `saveImport` keep the impure Chrome.get/set orchestration; these functions are
-// the testable core of the export serialization and import parsing. Extracted
-// from the faithful port of
-// ../tabcommand/src/lib/pages/ImportExport/ImportExport.jsx (`sortAndStuff` /
-// `saveImport`), matching the URL Details precedent (utils/urlDetails.js).
+// the testable core of the export serialization and import parsing. These mirror
+// the page's `sortAndStuff` / `saveImport` orchestration (see utils/urlDetails.js
+// for the analogous URL Details split).
 
 // Sort a labels map into the canonical export order: by title (locale compare),
-// then by position. Two chained sorts mirror the reference exactly — the stable
-// position sort wins, with title as the tiebreaker among equal positions.
+// then by position. The two chained sorts make the stable position sort win,
+// with title as the tiebreaker among equal positions.
 export function sortLabels(labels) {
   return Object.values(labels)
     .sort((a, b) => a.title.localeCompare(b.title))
@@ -30,8 +29,8 @@ export function collectUrlKeys(sortedLabels) {
 
 // Attach each label's resolved `urls` array from the per-URL info map and drop
 // `urlKeys`, returning the labels ready to JSON.stringify into the export. Each
-// url carries url/title/favicon, plus notes only when present (faithful to the
-// reference). Mutates the passed labels — callers pass the freshly-sorted array.
+// url carries url/title/favicon, plus notes only when present. Mutates the
+// passed labels — callers pass the freshly-sorted array.
 export function resolveLabelUrls(sortedLabels, urlInfoByKey) {
   for (const label of sortedLabels) {
     label.urls = [];
@@ -54,8 +53,8 @@ export function resolveLabelUrls(sortedLabels, urlInfoByKey) {
 
 // Parse the pasted export JSON and build the storage updates map: one per-URL
 // object per `url-<url>` key plus the rebuilt `labels` map. Throws on malformed
-// JSON so the page swallows it with a console.log (faithful — no user-facing
-// error), exactly as the reference `saveImport` try/catch does.
+// JSON so the page can swallow it with a console.log (no user-facing error),
+// exactly as the `saveImport` try/catch does.
 export function buildImportUpdates(importLabels) {
   const labelsArray = JSON.parse(importLabels);
 
