@@ -45,7 +45,6 @@ init :: popup/popup.js :: tags=popup,ported-verbatim,launcher :: test=popup/popu
 installChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
 lastCallback :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
 listenToProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes :: test=service_worker.test.js
-loadActiveTabs :: popup/popup.js :: tags=popup,ported-verbatim :: test=popup/popup.test.js
 newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
@@ -59,10 +58,8 @@ stopProp :: src/lib/components/UrlField/UrlField.jsx :: tags=
 summarizeProcessLoad :: src/lib/utils/processLoad.js :: tags= :: test=src/lib/utils/processLoad.test.js
 tabUpdates :: service_worker.js :: tags=worker,ported-verbatim,tabs :: test=service_worker.test.js
 trackGroup :: service_worker.js :: tags=worker,ported-verbatim,tab-groups :: test=service_worker.test.js
-truncateString :: popup/popup.js :: tags=popup,ported-verbatim,util :: test=popup/popup.test.js
 update :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 updateActiveTabs :: service_worker.js :: tags=worker,ported-verbatim,tabs,storage :: test=service_worker.test.js
 updateTotals :: service_worker.js :: tags=worker,ported-verbatim,metrics :: test=service_worker.test.js
-urlHTML :: popup/popup.js :: tags=popup,ported-verbatim,render :: test=popup/popup.test.js
 urlUpdates :: service_worker.js :: tags=worker,ported-verbatim,metrics :: test=service_worker.test.js
 validTab :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js

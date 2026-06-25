@@ -200,17 +200,6 @@
     "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
-    "description": "Empty trace/debug hook called throughout the background worker as a single instrumentation point; intentionally a no-op in the shipped build.",
-    "filePath": "service_worker.js",
-    "name": "central",
-    "tags": [
-      "worker",
-      "ported-verbatim",
-      "debug"
-    ],
-    "testFile": "service_worker.test.js"
-  },
-  {
     "description": "Moves a closed tab's url key to the front of `allUrls`, persists the reordered list, and invokes an optional callback.",
     "filePath": "service_worker.js",
     "name": "closeUrl",
@@ -386,16 +375,6 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Reads the stored activeTabs and their url records and renders a row per active tab into the popup's #active container (currently unused by init).",
-    "filePath": "popup/popup.js",
-    "name": "loadActiveTabs",
-    "tags": [
-      "popup",
-      "ported-verbatim"
-    ],
-    "testFile": "popup/popup.test.js"
-  },
-  {
     "description": "Registers a newly-visited URL: prepends its url key to the capped (250) `allUrls` history, evicting the oldest non-labeled keys from storage, and returns the storage updates. No-ops without a tabId/url.",
     "filePath": "service_worker.js",
     "name": "newUrl",
@@ -506,17 +485,6 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Truncates a string to a maximum length, appending an ellipsis when it overflows; returns an empty string for falsy input.",
-    "filePath": "popup/popup.js",
-    "name": "truncateString",
-    "tags": [
-      "popup",
-      "ported-verbatim",
-      "util"
-    ],
-    "testFile": "popup/popup.test.js"
-  },
-  {
     "description": "Thin write helper that persists an updates object to chrome.storage.local.set; the single storage-write chokepoint for the worker.",
     "filePath": "service_worker.js",
     "name": "update",
@@ -549,17 +517,6 @@
       "metrics"
     ],
     "testFile": "service_worker.test.js"
-  },
-  {
-    "description": "Builds the HTML for one url row in the popup — title heading with favicon and a truncated title, plus an averaged CPU/NET/MEM stats block when the url has process samples.",
-    "filePath": "popup/popup.js",
-    "name": "urlHTML",
-    "tags": [
-      "popup",
-      "ported-verbatim",
-      "render"
-    ],
-    "testFile": "popup/popup.test.js"
   },
   {
     "description": "Merges a tab's current title/favicon/groupId into a stored url record and accumulates rolling process metrics, normalizing the running averages once a sample window exceeds 100.",

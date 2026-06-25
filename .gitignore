@@ -54,7 +54,6 @@ dev-dist/
 .codeyam/.last-reconcile.json
 .codeyam/per-test-evidence.json
 .codeyam/runner-timing-history.json
-.codeyam/test-cache.json
 .codeyam/test-cache/all.json
 .codeyam/test-run-marker.json
 .codeyam/reconciliation-log.jsonl
@@ -63,3 +62,7 @@ dev-dist/
 .codeyam/state/session-results-snapshot.json
 .codeyam/state/provider-auth-verdict.json
 .codeyam/state/finalize-debt.json
+
+# Internal codeyam-editor skill (regenerated locally; not part of this app)
+.claude/skills/review-session/
+.codeyam/test-cache.json
