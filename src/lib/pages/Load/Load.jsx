@@ -6,12 +6,13 @@ import { HomeFilled } from '@ant-design/icons'
 
 import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
-import { LoadProcesses, LoadUrl } from '../../components';
+import { LoadProcesses, LoadUrl, LoadPerTabNote } from '../../components';
 
 // The Load page: a grid of the active tabs' URLs (seedable, driven by
 // `activeTabs` + the per-URL `url-<url>` objects) alongside a raw per-process
-// table (LoadProcesses). The sidebar LoadMeter gauge links here; the Home link
-// returns to the Home page.
+// table (LoadProcesses). When per-tab data is unavailable (stable Chrome),
+// LoadPerTabNote explains the empty per-tab area. The sidebar LoadMeter gauge
+// links here; the Home link returns to the Home page.
 const Load = () => {
   const [urls, setUrls] = useState([]);
 
@@ -48,6 +49,7 @@ const Load = () => {
           <HomeFilled /> Home
         </div>
         <h2 className='Load-title'>Load</h2>
+        <LoadPerTabNote />
         <div className='Load-details'>
           {urls.map((url) => (
             <LoadUrl key={`Load-url-${url.urlKey}`} url={url} />

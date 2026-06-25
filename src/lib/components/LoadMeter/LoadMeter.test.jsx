@@ -53,4 +53,18 @@ describe('LoadMeter', () => {
 
     expect(screen.getByText('CPU')).toBeInTheDocument();
   });
+
+  // the source-aware caption (no-data / whole-browser) is its own component,
+  // LoadMeterCaption — the gauge just composes it. The gauge still mounts and
+  // renders the caption slot without throwing when a loadDataSource is present.
+  it('mounts with a loadDataSource present without throwing', async () => {
+    window.localStorage.setItem('loadDataSource', JSON.stringify('system'));
+    window.localStorage.setItem(
+      'processTotals',
+      JSON.stringify({ cpu: 90, privateMemory: 3000000000, jsMemoryUsed: 0 })
+    );
+    installChromeShim();
+    expect(() => render(<LoadMeter />)).not.toThrow();
+    expect(await screen.findByText('Whole-browser load')).toBeInTheDocument();
+  });
 });

@@ -84,13 +84,13 @@
     }
   },
   {
-    "description": "The Load page (entry point for the LOAD page in App): composes the raw process table (LoadProcesses) with a list of LoadUrl cards built from activeTabs + the per-URL storage objects, plus a Home link that writes uxSettings.page back to Home. The sidebar LoadMeter gauge links here.",
+    "description": "The Load page (entry point for the LOAD page in App): composes LoadPerTabNote (shown when per-tab data is unavailable), a list of LoadUrl cards built from activeTabs + the per-URL storage objects, and the raw process table (LoadProcesses), plus a Home link that writes uxSettings.page back to Home. The sidebar LoadMeter gauge links here.",
     "filePath": "src/lib/pages/Load/Load.jsx",
     "name": "Load",
     "testFile": "src/lib/pages/Load/Load.test.jsx"
   },
   {
-    "description": "Sidebar gauge: two concentric SVG arcs (cpu inner, memory outer) whose filled fraction reflects the processTotals storage key, rendered via gradient-path per-segment fill mutation. Reads processTotals on mount and via chrome.storage.onChanged; pure logic is factored into deriveGaugeTotals + gaugeFillPercent. GradientPath calls are guarded to no-op under jsdom (no SVG geometry); the visual is verified by scenario capture. Clicking it navigates to the Load page.",
+    "description": "Sidebar gauge: two concentric SVG arcs (cpu inner, memory outer) whose filled fraction reflects the processTotals storage key, rendered via gradient-path per-segment fill mutation. Reads processTotals on mount and via chrome.storage.onChanged; pure logic is factored into deriveGaugeTotals + gaugeFillPercent. Composes LoadMeterCaption for the source-aware label beneath it. GradientPath calls are guarded to no-op under jsdom; the visual is verified by scenario capture. Clicking it navigates to the Load page.",
     "filePath": "src/lib/components/LoadMeter/LoadMeter.jsx",
     "name": "LoadMeter",
     "testFile": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
@@ -98,6 +98,23 @@
       "justification": "Layout-only stub — renders an empty div, no props or logic.",
       "kind": "trivial-wrapper"
     }
+  },
+  {
+    "description": "Source-aware label beneath the LoadMeter gauge. Reads the loadDataSource storage marker: system -> a subtle whole-browser-load caption; none -> an explicit No load data indicator (so the empty gauge reads as legible, not broken); processes/unknown -> nothing. Owns its own storage read so the gauge stays purely about the arcs.",
+    "filePath": "src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx",
+    "name": "LoadMeterCaption",
+    "scenarios": [
+      "loadmetercaption-system",
+      "loadmetercaption-no-data"
+    ]
+  },
+  {
+    "description": "Honest note on the Load page shown when per-tab CPU/memory is unavailable. Reads loadDataSource: on system/none it explains that per-tab/per-process data needs Chrome Dev channel (chrome.processes) so the empty per-tab bars and process table read as intentional; on processes (or before the marker is known) it renders nothing. Owns its own storage read, sibling of LoadUrl/LoadProcesses.",
+    "filePath": "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx",
+    "name": "LoadPerTabNote",
+    "scenarios": [
+      "loadpertabnote-unavailable"
+    ]
   },
   {
     "description": "The Load page's raw per-process table: one block per OS process showing task titles plus CPU and private-memory readouts with inline load bars, formatted via humanReadableNumber. Driven by chrome.processes.onUpdatedWithMemory — the live API in a packaged extension; in the codeyam preview the chrome shim emits any seeded `processes` snapshot so the table can be demonstrated (empty when nothing is seeded).",
@@ -217,6 +234,12 @@
     "testFile": "src/lib/utils/importExport.test.js"
   },
   {
+    "description": "Internal helper of deriveSystemTotals: average per-core busy fraction = delta(kernel+user)/delta(total) across processors between two chrome.system.cpu samples. Returns 0 (never NaN) for missing/empty/single-sample input and for a non-advancing counter.",
+    "filePath": "src/lib/utils/deriveSystemTotals.js",
+    "name": "cpuUtilization",
+    "testFile": "src/lib/utils/deriveSystemTotals.test.js"
+  },
+  {
     "description": "Builds the chrome shim object backed by an in-memory store hydrated from window.localStorage (codeyam's seed inlet) over the shared KNOWN_KEYS. Serves storage.local get/set/remove/clear with localStorage mirroring (JSON string boundary kept inside the shim) and onChanged dispatch (areaName 'local'), plus callable no-op tabs/tabGroups/processes/runtime action stubs so interactive preview scenarios never throw on missing chrome APIs.",
     "filePath": "src/lib/utils/chromeShim/chromeShim.js",
     "name": "createChromeShim",
@@ -244,6 +267,12 @@
     "filePath": "src/lib/utils/deriveGaugeTotals.js",
     "name": "deriveGaugeTotals",
     "testFile": "src/lib/utils/deriveGaugeTotals.test.js"
+  },
+  {
+    "description": "Pure stable-Chrome fallback math for the LoadMeter gauge: turns two chrome.system.cpu samples plus a chrome.system.memory reading into a processTotals-shaped record normalized to the gauge's 0->max scale (cpu = avg per-core busy fraction * max.cpu; privateMemory = base + memory-pressure ratio * max.memory; base cancels so gauge fill == utilization). All fields guarded so empty/single-sample inputs read as zero, never NaN. Mirrors deriveGaugeTotals/gaugeFillPercent; fed by the service worker's pollSystemLoad.",
+    "filePath": "src/lib/utils/deriveSystemTotals.js",
+    "name": "deriveSystemTotals",
+    "testFile": "src/lib/utils/deriveSystemTotals.test.js"
   },
   {
     "description": "Derives the UrlDetails 'Groups' chip titles from the labels map + a urlKey: the title of every label whose urlKeys contains that urlKey. The chips are derived state, never stored. Extracted from the page's setPartialState so it can be unit-tested in isolation.",
@@ -276,6 +305,24 @@
       "storage"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Thin promise wrapper around chrome.system.cpu.getInfo() so pollSystemLoad can await it uniformly. Platform boundary to the Chrome system API.",
+    "filePath": "service_worker.js",
+    "name": "getSystemCpuInfo",
+    "untestabilityReason": {
+      "justification": "Direct chrome.system.cpu API call; exercised indirectly through pollSystemLoad with a mocked chrome.system.",
+      "kind": "platform-glue"
+    }
+  },
+  {
+    "description": "Thin promise wrapper around chrome.system.memory.getInfo() so pollSystemLoad can await it uniformly. Platform boundary to the Chrome system API.",
+    "filePath": "service_worker.js",
+    "name": "getSystemMemoryInfo",
+    "untestabilityReason": {
+      "justification": "Direct chrome.system.memory API call; exercised indirectly through pollSystemLoad with a mocked chrome.system.",
+      "kind": "platform-glue"
+    }
   },
   {
     "description": "Promise wrapper around chrome.tabGroups.get that resolves null for absent/sentinel (-1) group ids.",
@@ -341,6 +388,12 @@
     "testFile": "popup/popup.test.js"
   },
   {
+    "description": "Channel-based degradation entry point for the Browser Load gauge, run at worker load. Uses chrome.processes when present (Dev/Canary, full per-tab fidelity, processProcesses tags loadDataSource 'processes'); else falls back to chrome.system.* polling ('system'); else writes loadDataSource 'none' so the UI can say there is no load data.",
+    "filePath": "service_worker.js",
+    "name": "initLoadSource",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Installs the in-app chrome shim on globalThis only when the real extension chrome.storage.local is absent (inert in a packaged extension, so production behavior is unchanged). Replaces the reference App.jsx's sinon-chrome fallback; called once at src/index.jsx before the first render. Returns true when it installed the shim, false when a real chrome was present.",
     "filePath": "src/lib/utils/chromeShim/chromeShim.js",
     "name": "installChromeShim",
@@ -375,6 +428,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Internal helper of deriveSystemTotals: system memory pressure = (capacity - availableCapacity)/capacity, clamped 0..1. Returns 0 (never NaN) when the info object or capacity is missing.",
+    "filePath": "src/lib/utils/deriveSystemTotals.js",
+    "name": "memoryUtilization",
+    "testFile": "src/lib/utils/deriveSystemTotals.test.js"
+  },
+  {
     "description": "Registers a newly-visited URL: prepends its url key to the capped (250) `allUrls` history, evicting the oldest non-labeled keys from storage, and returns the storage updates. No-ops without a tabId/url.",
     "filePath": "service_worker.js",
     "name": "newUrl",
@@ -397,7 +456,13 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "chrome.processes update handler: aggregates per-process CPU/network/memory totals and associates them with tabs, persists the result, and after ~10 samples pauses listening for 15s to throttle.",
+    "description": "One stable-Chrome sampling pass: reads chrome.system.cpu + chrome.system.memory, feeds the previous + current sample through deriveSystemTotals, and persists { processTotals, loadDataSource: 'system' }. On any thrown system call it degrades to loadDataSource 'none' and stops polling rather than crashing the worker.",
+    "filePath": "service_worker.js",
+    "name": "pollSystemLoad",
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "chrome.processes update handler (Dev/Canary): aggregates per-process CPU/network/memory totals and associates them with tabs, tags loadDataSource 'processes', persists the result, and after ~10 samples pauses listening for 15s to throttle.",
     "filePath": "service_worker.js",
     "name": "processProcesses",
     "tags": [
@@ -406,6 +471,12 @@
       "processes",
       "metrics"
     ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Detects whether the Dev/Canary-only chrome.processes.onUpdatedWithMemory API is present, so the worker can choose the full-fidelity per-tab load path over the stable-Chrome system fallback.",
+    "filePath": "service_worker.js",
+    "name": "processesApiAvailable",
     "testFile": "service_worker.test.js"
   },
   {
@@ -448,6 +519,12 @@
     "testFile": "src/lib/utils/importExport.test.js"
   },
   {
+    "description": "Starts the stable-Chrome system-load poll loop: runs pollSystemLoad then re-schedules every SYSTEM_POLL_INTERVAL_MS, idempotently (guards against a double timer). Defensively switches back to the chrome.processes listener if that richer API appears mid-session.",
+    "filePath": "service_worker.js",
+    "name": "startSystemLoadPolling",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Event guard that stops propagation on UrlField key events, keeping the global keydown handler from hijacking typing inside the field. Reproduced faithfully from the original.",
     "filePath": "src/lib/components/UrlField/UrlField.jsx",
     "name": "stopProp",
@@ -457,10 +534,22 @@
     }
   },
   {
+    "description": "Clears the system-load poll timer and resets it to null, ending the stable-Chrome fallback sampling loop (used on switch-to-processes and on a system-call failure).",
+    "filePath": "service_worker.js",
+    "name": "stopSystemLoadPolling",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Summarizes a stored per-URL processes record into the load readout a tab shows: average CPU and private-memory, a severity level (low/medium/high/excessive), and a bar width. Returns null when there is no sampled data so callers render nothing. Shared by the Url tab rows and the Load page LoadUrl cards (extracted from the inline copy that lived in Url).",
     "filePath": "src/lib/utils/processLoad.js",
     "name": "summarizeProcessLoad",
     "testFile": "src/lib/utils/processLoad.test.js"
+  },
+  {
+    "description": "Detects whether chrome.system.cpu and chrome.system.memory are both present, gating the stable-Chrome whole-browser load fallback that drives the gauge when chrome.processes is unavailable.",
+    "filePath": "service_worker.js",
+    "name": "systemApiAvailable",
+    "testFile": "service_worker.test.js"
   },
   {
     "description": "Builds the per-url update record for a tab — resolving an empty object for invalid tabs and otherwise merging the stored url with fresh tab/process metadata via urlUpdates.",

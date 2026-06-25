@@ -1,14 +1,16 @@
-# regenerated from dependency-graph.json on 2026-06-25T16:03:08Z; do not hand-edit
-src/lib/utils/chromeShim :: imports=0 :: imported_by=14
+# regenerated from dependency-graph.json on 2026-06-25T19:45:59Z; do not hand-edit
+src/lib/utils/chromeShim :: imports=0 :: imported_by=16
+src/lib/utils/Chrome :: imports=0 :: imported_by=14
 src/Constants.jsx :: imports=0 :: imported_by=13
-src/lib/utils/Chrome :: imports=0 :: imported_by=12
 src/lib/components :: imports=0 :: imported_by=8
 src/images/defaultFavicon.png :: imports=0 :: imported_by=3
 src/lib/components/LabelCollection/LabelCollection.jsx :: imports=4 :: imported_by=3
 src/lib/components/LabelForm/LabelForm.jsx :: imports=3 :: imported_by=3
 src/lib/components/LabelFormContainer/LabelFormContainer.jsx :: imports=2 :: imported_by=3
 src/lib/components/Labels/Labels.jsx :: imports=4 :: imported_by=3
-src/lib/components/LoadMeter/LoadMeter.jsx :: imports=4 :: imported_by=3
+src/lib/components/LoadMeter/LoadMeter.jsx :: imports=5 :: imported_by=3
+src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx :: imports=2 :: imported_by=3
+src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx :: imports=2 :: imported_by=3
 src/lib/components/LoadProcesses/LoadProcesses.jsx :: imports=2 :: imported_by=3
 src/lib/components/LoadUrl/LoadUrl.jsx :: imports=3 :: imported_by=3
 src/lib/components/Search/Search.jsx :: imports=6 :: imported_by=3
@@ -18,7 +20,9 @@ src/lib/components/Url/Url.jsx :: imports=5 :: imported_by=3
 src/lib/components/UrlField/UrlField.jsx :: imports=0 :: imported_by=3
 src/lib/components/UrlLabel/UrlLabel.jsx :: imports=1 :: imported_by=3
 src/lib/utils/KeyDown.js :: imports=0 :: imported_by=3
+src/lib/utils/deriveSystemTotals.js :: imports=0 :: imported_by=3
 src/lib/utils/processLoad.js :: imports=0 :: imported_by=3
+src/lib/components/LoadMeterCaption :: imports=0 :: imported_by=2
 src/lib/pages/App/App.jsx :: imports=9 :: imported_by=2
 src/lib/pages/ImportExport :: imports=0 :: imported_by=2
 src/lib/pages/ImportExport/ImportExport.jsx :: imports=4 :: imported_by=2
@@ -39,7 +43,7 @@ src/lib/utils/urlDetails.js :: imports=0 :: imported_by=2
 .claude/skills/review-session/scripts/extract-session-helpers.mjs :: imports=0 :: imported_by=1
 .claude/skills/review-session/scripts/find-last-session-helpers.mjs :: imports=0 :: imported_by=1
 manifest.json :: imports=0 :: imported_by=1
-src/__codeyam_components.js :: imports=13 :: imported_by=1
+src/__codeyam_components.js :: imports=15 :: imported_by=1
 src/__codeyam_isolate.jsx :: imports=2 :: imported_by=1
 src/images/logo.svg :: imports=0 :: imported_by=1
 src/index.css :: imports=0 :: imported_by=1
@@ -53,6 +57,9 @@ src/lib/components/Labels :: imports=0 :: imported_by=1
 src/lib/components/Labels/Labels.css :: imports=0 :: imported_by=1
 src/lib/components/LoadMeter :: imports=0 :: imported_by=1
 src/lib/components/LoadMeter/LoadMeter.css :: imports=0 :: imported_by=1
+src/lib/components/LoadMeterCaption/LoadMeterCaption.css :: imports=0 :: imported_by=1
+src/lib/components/LoadPerTabNote :: imports=0 :: imported_by=1
+src/lib/components/LoadPerTabNote/LoadPerTabNote.css :: imports=0 :: imported_by=1
 src/lib/components/LoadProcesses :: imports=0 :: imported_by=1
 src/lib/components/LoadProcesses/LoadProcesses.css :: imports=0 :: imported_by=1
 src/lib/components/LoadUrl :: imports=0 :: imported_by=1
@@ -89,8 +96,8 @@ build/service-worker-loader.js :: imports=0 :: imported_by=0
 eslint.config.mjs :: imports=0 :: imported_by=0
 popup/popup.js :: imports=0 :: imported_by=0
 popup/popup.test.js :: imports=0 :: imported_by=0
-service_worker.js :: imports=0 :: imported_by=0
-service_worker.test.js :: imports=0 :: imported_by=0
+service_worker.js :: imports=1 :: imported_by=0
+service_worker.test.js :: imports=1 :: imported_by=0
 src/__codeyam_component_scenarios.js :: imports=0 :: imported_by=0
 src/index.jsx :: imports=3 :: imported_by=0
 src/lib/components/LabelCollection/LabelCollection.test.jsx :: imports=2 :: imported_by=0
@@ -103,6 +110,10 @@ src/lib/components/Labels/Labels.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/Labels/index.js :: imports=1 :: imported_by=0
 src/lib/components/LoadMeter/LoadMeter.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/LoadMeter/index.js :: imports=1 :: imported_by=0
+src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx :: imports=2 :: imported_by=0
+src/lib/components/LoadMeterCaption/index.js :: imports=1 :: imported_by=0
+src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx :: imports=2 :: imported_by=0
+src/lib/components/LoadPerTabNote/index.js :: imports=1 :: imported_by=0
 src/lib/components/LoadProcesses/LoadProcesses.test.jsx :: imports=1 :: imported_by=0
 src/lib/components/LoadProcesses/index.js :: imports=1 :: imported_by=0
 src/lib/components/LoadUrl/LoadUrl.test.jsx :: imports=1 :: imported_by=0
@@ -119,7 +130,7 @@ src/lib/components/UrlField/UrlField.test.jsx :: imports=1 :: imported_by=0
 src/lib/components/UrlField/index.js :: imports=1 :: imported_by=0
 src/lib/components/UrlLabel/UrlLabel.test.jsx :: imports=1 :: imported_by=0
 src/lib/components/UrlLabel/index.js :: imports=1 :: imported_by=0
-src/lib/components/index.js :: imports=13 :: imported_by=0
+src/lib/components/index.js :: imports=15 :: imported_by=0
 src/lib/pages/App/App.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/App/index.js :: imports=1 :: imported_by=0
 src/lib/pages/ImportExport/ImportExport.test.jsx :: imports=2 :: imported_by=0
@@ -134,6 +145,7 @@ src/lib/utils/KeyDown.test.js :: imports=1 :: imported_by=0
 src/lib/utils/buildSearchDocuments.test.js :: imports=1 :: imported_by=0
 src/lib/utils/chromeShim/chromeShim.test.js :: imports=1 :: imported_by=0
 src/lib/utils/deriveGaugeTotals.test.js :: imports=1 :: imported_by=0
+src/lib/utils/deriveSystemTotals.test.js :: imports=1 :: imported_by=0
 src/lib/utils/dragReducer.test.js :: imports=2 :: imported_by=0
 src/lib/utils/gaugeFillPercent.test.js :: imports=1 :: imported_by=0
 src/lib/utils/humanReadableNumber.test.js :: imports=1 :: imported_by=0

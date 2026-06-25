@@ -1,0 +1,403 @@
+{
+  "timestamp": "2026-06-25T19:23:42Z",
+  "title": "Browser Load Gauge: Stable-Chrome Fallback",
+  "type": "feature",
+  "userRequest": "## Summary\n\nIn the real (unpacked) TabCommand extension running in **stable Chrome**, the\nsidebar **Browser Load** gauge (`LoadMeter`) renders its circle but the arcs stay\nempty — it looks blank and \"does nothing.\" Root cause: the gauge fills from the\n`processTotals` storage key, which `service_worker.js` only ever writes from\n`chrome.processes.onUpdatedWithMemory`. The `chrome.processes` API is **Dev/Canary\nchannel only** — in stable Chrome the object is `undefined`, every call lands in\nthe existing `try/catch`, `processTotals` is never written, and the gauge has no\ndata. This plan makes the gauge work everywhere by adding a stable-channel data\nsource (`chrome.system.cpu` + `chrome.system.memory`), and — because **no stable\nAPI exposes per-tab CPU/memory at all** — makes the per-tab parts of the Load page\ndegrade honestly with a clear explanation instead of looking broken.\n\n## Key Decisions\n\n- **Graceful channel-based degradation (not a single hard path).** Keep using\n  `chrome.processes` when present (Dev/Canary) for true per-process + per-tab data.\n  When it's absent, fall back to `chrome.system.cpu`/`chrome.system.memory` to drive\n  the gauge with whole-browser/OS load. When neither is available (permissions\n  denied), the gauge shows an explicit \"no data\" state. This is the option the user\n  chose over a data-only fix or a messaging-only fix.\n- **The gauge can be saved; per-tab bars cannot.** Verified against the Chrome docs:\n  `chrome.processes` (per-tab/per-process CPU+memory, the only API that maps tasks to\n  `tabId`) is Dev-channel only; there is **no** stable MV3 API for per-tab resource\n  usage. The DevTools Protocol via the `debugger` permission can read the active tab\n  but attaches an intrusive \"started debugging this browser\" banner — rejected for an\n  always-on gauge. So `LoadUrl` per-tab bars and the `LoadProcesses` table stay empty\n  on stable Chrome by necessity; we explain that rather than fake it.\n- **System fallback values are normalized to the gauge's existing scale.** The gauge's\n  `max.cpu`/`max.memory` (in `LoadMeter`) were tuned for summed Chrome-process numbers.\n  Raw OS memory (e.g. 12 GB used) would peg the 5 GiB arc permanently. So the fallback\n  writes `processTotals` normalized to a 0→saturated *utilization fraction* against the\n  existing maxes, keeping `LoadMeter`/`deriveGaugeTotals`/`gaugeFillPercent` unchanged.\n- **CPU% needs two samples.** `chrome.system.cpu.getInfo()` returns cumulative\n  per-core counters; utilization is the delta between two polls. The service worker\n  owns the sampling/timing; the pure math lives in a new testable util.\n- **A small `loadDataSource` marker key drives honest UI.** The service worker records\n  whether the live source is `'processes' | 'system' | 'none'` so `LoadMeter` and the\n  Load page can label themselves truthfully without re-detecting APIs in the popup.\n\n## Implementation\n\n### 1. Add stable-channel permissions\n\n**File**: `manifest.json`\n\nAdd `\"system.cpu\"` and `\"system.memory\"` to the `permissions` array (currently\n`[\"storage\", \"tabs\", \"processes\", \"tabGroups\"]`). Keep `\"processes\"` — it's harmless\non stable and used on Dev/Canary.\n\n### 2. Pure system-load math util\n\n**New file**: `src/lib/utils/deriveSystemTotals.js`\n\nPure, unit-testable (mirrors `deriveGaugeTotals`/`gaugeFillPercent`): given a previous\nand current `chrome.system.cpu` sample plus a `chrome.system.memory` info object,\nreturn a `processTotals`-shaped record (`{ cpu, privateMemory, jsMemoryUsed }`)\nnormalized to the gauge's scale:\n- **CPU**: average per-core busy fraction = `Δ(kernel+user) / Δtotal` across processors,\n  scaled to the gauge's `max.cpu` so a fully-busy machine reads near-full.\n- **Memory**: `(capacity - availableCapacity) / capacity` × the gauge's `max.memory`\n  (proportional system-memory pressure), written into `privateMemory`; `jsMemoryUsed: 0`.\n- Every field optional/guarded → empty or single-sample input reads as zero, never NaN\n  (first poll has no delta → contributes 0 until the second sample).\n\n### 3. Service-worker fallback + data-source marker\n\n**File**: `service_worker.js`\n\n- Where `listenToProcesses()` is wired: detect availability with\n  `chrome.processes && chrome.processes.onUpdatedWithMemory`. If present, keep today's\n  behavior and set `loadDataSource: 'processes'`.\n- If absent, start a `system.*` polling loop (e.g. every few seconds, mirroring the\n  existing `setTimeout` re-listen cadence): call `chrome.system.cpu.getInfo()` +\n  `chrome.system.memory.getInfo()`, feed the previous + current sample through\n  `deriveSystemTotals`, and `update({ processTotals, loadDataSource: 'system' })`\n  via the existing `update()`/`chrome.storage.local.set` path.\n- If `chrome.system.*` is also unavailable (wrap in `try/catch` like the existing\n  processes guard), write `loadDataSource: 'none'` and stop — no throwing.\n- Stop the system poll if `chrome.processes` later becomes available (defensive; not\n  expected mid-session).\n\n### 4. LoadMeter degraded / source-aware state\n\n**File**: `src/lib/components/LoadMeter/LoadMeter.jsx` (+ `LoadMeter.css`)\n\n- Also read `loadDataSource` (same `Chrome.get` + `chrome.storage.onChanged` pattern\n  already used for `processTotals`).\n- When `loadDataSource === 'none'` (or no `processTotals` and no source), render an\n  explicit dimmed indicator inside/under the gauge — e.g. a small \"No load data\"\n  caption — instead of a silently-empty circle.\n- When `loadDataSource === 'system'`, add a subtle caption/title noting the gauge shows\n  whole-browser load (not per-tab). Keep all DOM/SVG lookups guarded for jsdom exactly\n  as the existing GradientPath code does.\n\n### 5. Honest per-tab note on the Load page\n\n**File**: `src/lib/pages/Load/Load.jsx` (+ `Load.css`)\n\nWhen per-tab/process data is unavailable (no `loadDataSource === 'processes'`, i.e. the\n`LoadUrl` cards have no `processes` and the `LoadProcesses` table is empty), render a\nshort explanatory note (e.g. near where the process table would be): per-tab CPU/memory\nrequires Chrome's Dev channel (`chrome.processes`); the gauge shows whole-browser load\nonly. This makes the empty per-tab area read as intentional rather than broken. The\n`LoadUrl`/`LoadProcesses` components themselves are unchanged — they already collapse\ncleanly with no data.\n\n### 6. Tests\n\n**Files**: `service_worker.test.js`, `src/lib/components/LoadMeter/LoadMeter.test.jsx`,\n`src/lib/pages/Load/Load.test.jsx`, **new** `src/lib/utils/deriveSystemTotals.test.js`\n\n- `deriveSystemTotals.test.js`: CPU delta → utilization across two samples; memory\n  normalization; partial/empty/single-sample inputs → zero, never NaN.\n- `service_worker.test.js`: with `chrome.processes` absent but `chrome.system.*` seeded,\n  the fallback writes `processTotals` + `loadDataSource: 'system'`; with both absent it\n  writes `'none'` and never throws; with `chrome.processes` present it sets `'processes'`\n  and keeps current behavior.\n- `LoadMeter.test.jsx`: renders the \"no data\" indicator when `loadDataSource === 'none'`;\n  renders the gauge from seeded `processTotals` otherwise (keep the existing jsdom-guard\n  assertion). Preserve each `it()`'s `//` description.\n- `Load.test.jsx`: shows the per-tab-unavailable note when there's no process data; the\n  existing URL-list / home-link tests stay green.\n\n## Reused existing code\n\n- `deriveGaugeTotals` from `src/lib/utils/deriveGaugeTotals.js` (glossary entry:\n  `deriveGaugeTotals`) — gauge binding unchanged; the fallback feeds the same\n  `processTotals` shape it already maps.\n- `gaugeFillPercent` from `src/lib/utils/gaugeFillPercent.js` (glossary entry:\n  `gaugeFillPercent`) — fill math unchanged; the new util normalizes to its `base`/`max`.\n- `LoadMeter` from `src/lib/components/LoadMeter/LoadMeter.jsx` (glossary entry:\n  `LoadMeter`) — extended with `loadDataSource`, not rewritten; reuses its\n  `Chrome.get` + `chrome.storage.onChanged` subscription pattern.\n- `Load` from `src/lib/pages/Load/Load.jsx` (glossary entry: `Load`) and `LoadUrl` /\n  `LoadProcesses` (glossary entries: `LoadUrl`, `LoadProcesses`) — render unchanged; only\n  an explanatory note is added to the page.\n- `summarizeProcessLoad` from `src/lib/utils/processLoad.js` (glossary entry:\n  `summarizeProcessLoad`) — already returns null with no data, so `LoadUrl` bars hide\n  themselves; relied on, not modified.\n- The service worker's existing `update()` / `getLocalStorage()` helpers and\n  `listenToProcesses()` re-listen pattern.\n\n## Scenarios to Demonstrate\n\n- **Dev-channel happy path** — `loadDataSource: 'processes'` with seeded `processTotals`:\n  gauge fills, per-tab bars present (existing `load-meter-high` / `load-page` behavior).\n- **Stable-Chrome system fallback** — `loadDataSource: 'system'` with normalized\n  `processTotals`: gauge fills, plus the subtle \"whole-browser load\" caption; Load page\n  shows the per-tab-unavailable note.\n- **No data at all** — `loadDataSource: 'none'`, no `processTotals`: gauge shows the\n  explicit \"No load data\" indicator instead of a blank circle (the bug's current state,\n  now legible).\n- **Load page on stable Chrome** — URL list renders from `activeTabs`, per-tab load bars\n  absent, honest explanatory note visible (empty process table reads as intentional).\n- **Normalization edge** — high system memory pressure fills the memory arc proportionally\n  without permanently pegging on a large-RAM machine.",
+  "description": "The sidebar Browser Load gauge (LoadMeter) rendered blank in stable Chrome because processTotals was only ever written from the Dev/Canary-only chrome.processes API. The service worker now degrades by channel: it keeps chrome.processes for full per-tab fidelity when present, otherwise polls chrome.system.cpu + chrome.system.memory and feeds two samples through a new pure util (deriveSystemTotals) to drive the gauge with whole-browser load normalized to its existing scale; when neither API exists it records loadDataSource none. A loadDataSource storage marker drives honest UI: the extracted LoadMeterCaption shows a Whole-browser load caption (system) or an explicit No load data indicator (none), and the extracted LoadPerTabNote explains on the Load page that per-tab CPU/memory needs Chrome Dev channel so the empty per-tab area reads as intentional. Added system.cpu/system.memory permissions; 224 tests pass and the audit is clean.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/hooks/_step_metadata.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/editor-pretool-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/editor-step-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-design/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-editor/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-explore/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-new-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-onboard/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-prototype/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-recent-change/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-slice/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/completed/browser-load-gauge-stable-chrome-fallback.md",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/load-page.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadprocesses-active--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-long-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-notes--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".gitignore",
+      "status": "modified"
+    },
+    {
+      "path": "manifest.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_components.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/Load/Load.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/Load/Load.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/load-stable-chrome-fallback.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/loadmeter-no-data.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/loadmeter-system-fallback.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/loadmetercaption-no-data.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/loadmetercaption-system.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/loadpertabnote-unavailable.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-no-data--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-no-data--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-system--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-system--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadpertabnote-unavailable--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadpertabnote-unavailable--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "added"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadMeterCaption/LoadMeterCaption.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadMeterCaption/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadPerTabNote/LoadPerTabNote.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LoadPerTabNote/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/deriveSystemTotals.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/deriveSystemTotals.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Load - Stable Chrome Fallback",
+      "screenshotPath": "load-stable-chrome-fallback--desktop.png"
+    },
+    {
+      "name": "Load Page",
+      "screenshotPath": "load-page--desktop.png"
+    },
+    {
+      "name": "LoadMeter - High Load",
+      "screenshotPath": "loadmeter-high-load--desktop.png"
+    },
+    {
+      "name": "LoadMeter - No Data",
+      "screenshotPath": "loadmeter-no-data--desktop.png"
+    },
+    {
+      "name": "LoadMeter - System Fallback",
+      "screenshotPath": "loadmeter-system-fallback--desktop.png"
+    },
+    {
+      "name": "LoadMeterCaption - No Data",
+      "screenshotPath": "loadmetercaption-no-data--desktop.png"
+    },
+    {
+      "name": "LoadMeterCaption - System",
+      "screenshotPath": "loadmetercaption-system--desktop.png"
+    },
+    {
+      "name": "LoadPerTabNote - Unavailable",
+      "screenshotPath": "loadpertabnote-unavailable--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 224,
+    "passed": 0,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 224,
+        "passed": 0
+      }
+    ]
+  }
+}

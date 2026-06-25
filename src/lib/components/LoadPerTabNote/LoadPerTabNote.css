@@ -1,0 +1,16 @@
+.LoadPerTabNote {
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border-left: 3px solid #1873E4;
+  background: #F2F6FD;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #5F6780;
+}
+
+.LoadPerTabNote code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  color: #243156;
+}

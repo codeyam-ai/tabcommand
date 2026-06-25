@@ -5,6 +5,7 @@ import { GradientPath } from 'gradient-path';
 import { Chrome } from '../../utils/Chrome';
 import gaugeFillPercent from '../../utils/gaugeFillPercent';
 import deriveGaugeTotals from '../../utils/deriveGaugeTotals';
+import { LoadMeterCaption } from '../LoadMeterCaption';
 
 // The distinctive sidebar gauge: two concentric SVG arcs (cpu inner, memory
 // outer) whose filled fraction reflects the live `processTotals` storage key.
@@ -172,6 +173,7 @@ const LoadMeter = () => {
           ></path>
         </svg>
       </svg>
+      <LoadMeterCaption />
     </div>
   )
 }

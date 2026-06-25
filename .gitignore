@@ -65,4 +65,3 @@ dev-dist/
 
 # Internal codeyam-editor skill (regenerated locally; not part of this app)
 .claude/skills/review-session/
-.codeyam/test-cache.json

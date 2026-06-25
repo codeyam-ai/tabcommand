@@ -1,0 +1,16 @@
+/* Honest, low-key label under the gauge: explains a 'system'-source gauge shows
+   whole-browser load, or that there is no load data at all on stable Chrome. */
+.LoadMeterCaption {
+  margin-top: 2px;
+  text-align: center;
+  font-family: roboto, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: #858CA1;
+  opacity: 0.85;
+}
+
+.LoadMeterCaption--none {
+  color: #5F6780;
+  font-style: italic;
+}

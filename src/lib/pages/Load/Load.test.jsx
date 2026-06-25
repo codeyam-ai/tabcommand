@@ -56,4 +56,26 @@ describe('Load', () => {
     expect(await screen.findByRole('heading', { name: 'Load' })).toBeInTheDocument();
     expect(container.querySelectorAll('.Load-url').length).toBe(0);
   });
+
+  // on a stable-Chrome ('system') source, the page explains that per-tab load is
+  // unavailable so the empty per-tab area reads as intentional, not broken
+  it('shows the per-tab-unavailable note when the source is not processes', async () => {
+    window.localStorage.setItem('loadDataSource', JSON.stringify('system'));
+    installChromeShim();
+    render(<Load />);
+
+    expect(
+      await screen.findByText(/Per-tab CPU & memory needs Chrome/)
+    ).toBeInTheDocument();
+  });
+
+  // on the full-fidelity processes source, no explanatory note is shown
+  it('hides the per-tab note when per-tab data is available on processes', async () => {
+    window.localStorage.setItem('loadDataSource', JSON.stringify('processes'));
+    installChromeShim();
+    render(<Load />);
+
+    expect(await screen.findByRole('heading', { name: 'Load' })).toBeInTheDocument();
+    expect(screen.queryByText(/Per-tab CPU & memory needs Chrome/)).not.toBeInTheDocument();
+  });
 });

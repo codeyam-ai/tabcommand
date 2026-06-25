@@ -1,0 +1,16 @@
+{
+  "name": "LoadMeterCaption - No Data",
+  "id": "9cfdfd74-4389-4bbb-bfc1-120e1aba1c10",
+  "url": "/?isolate=LoadMeterCaption",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "loadDataSource": "\"none\""
+    }
+  },
+  "componentName": "LoadMeterCaption",
+  "scenarioType": "component"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "LoadMeter - System Fallback",
+  "id": "1eedb652-ad62-436d-81a9-024e2f52c9d6",
+  "url": "/?isolate=LoadMeter",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "loadDataSource": "\"system\"",
+      "processTotals": "{\"cpu\": 93, \"network\": 0, \"privateMemory\": 3638139290, \"jsMemoryAllocated\": 0, \"jsMemoryUsed\": 0}"
+    }
+  },
+  "componentName": "LoadMeter",
+  "scenarioType": "component"
+}

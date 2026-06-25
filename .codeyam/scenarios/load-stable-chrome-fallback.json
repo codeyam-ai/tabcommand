@@ -1,0 +1,25 @@
+{
+  "name": "Load - Stable Chrome Fallback",
+  "id": "b5fc7f8e-271b-45bc-8e8f-7dd39a433602",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "uxSettings": "{\"page\": {\"name\": \"Load\"}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\": \"TabCommand UI – Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand — GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "loadDataSource": "\"system\"",
+      "processTotals": "{\"cpu\": 78, \"network\": 0, \"privateMemory\": 2993894195, \"jsMemoryAllocated\": 0, \"jsMemoryUsed\": 0}",
+      "autoClosed": "{}",
+      "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-301\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.figma.com/file/tabcommand\", \"tabKey\": \"tab-302\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://news.ycombinator.com\", \"tabKey\": \"tab-303\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://mail.google.com/mail/u/0\", \"tabKey\": \"tab-304\", \"pinned\": false, \"tabCommandPinned\": false}]",
+      "url-https://mail.google.com/mail/u/0": "{\"title\": \"Inbox (1,284) - hello@codeyam.com - Gmail\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\", \"url-https://news.ycombinator.com\", \"url-https://mail.google.com/mail/u/0\"]"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/Load/Load.jsx"
+}

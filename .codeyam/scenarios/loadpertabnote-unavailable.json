@@ -1,0 +1,16 @@
+{
+  "name": "LoadPerTabNote - Unavailable",
+  "id": "9dddda77-655a-423d-b57c-aec2447b0347",
+  "url": "/?isolate=LoadPerTabNote",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "loadDataSource": "\"system\""
+    }
+  },
+  "componentName": "LoadPerTabNote",
+  "scenarioType": "component"
+}

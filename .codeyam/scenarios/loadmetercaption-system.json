@@ -1,0 +1,16 @@
+{
+  "name": "LoadMeterCaption - System",
+  "id": "5e51c178-9f34-4092-864e-ebf6c0664747",
+  "url": "/?isolate=LoadMeterCaption",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "loadDataSource": "\"system\""
+    }
+  },
+  "componentName": "LoadMeterCaption",
+  "scenarioType": "component"
+}

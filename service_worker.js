@@ -1,6 +1,21 @@
+import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
+
 let defaultWindowId;
 let listening = true;
 let removing;
+
+// The LoadMeter gauge's scale, mirrored from src/lib/components/LoadMeter so the
+// system fallback normalizes to the same 0→max range the gauge already renders.
+// (The two runtimes — classic web app vs. service worker — can't share a module
+// of plain constants, so this small duplication is intentional and commented.)
+const GAUGE = {
+  max: { cpu: 150, memory: 5 * 1024 * 1024 * 1024 },
+  base: { cpu: 0, memory: 500 * 1024 * 1024 }
+};
+
+const SYSTEM_POLL_INTERVAL_MS = 5000;
+let systemPollTimer = null;
+let previousCpuSample = null;
 
 let groups = {};
 function trackGroup(group) {
@@ -15,7 +30,7 @@ chrome.tabGroups.query({}, (groups) => {
   }
 });
 
-listenToProcesses();
+initLoadSource();
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (tab.title === "TabCommand") defaultWindowId = tab.windowId;
@@ -238,11 +253,91 @@ function closeUrl(urlKey, callback) {
   });
 }
 
+function processesApiAvailable() {
+  return !!(typeof chrome !== 'undefined' && chrome.processes && chrome.processes.onUpdatedWithMemory);
+}
+
+function systemApiAvailable() {
+  return !!(
+    typeof chrome !== 'undefined' &&
+    chrome.system && chrome.system.cpu && chrome.system.memory
+  );
+}
+
+// Channel-based degradation for the Browser Load gauge:
+// - Dev/Canary (chrome.processes present): true per-process + per-tab data,
+//   loadDataSource written as 'processes' alongside processTotals.
+// - Stable Chrome (chrome.system.* present): whole-browser/OS load drives the
+//   gauge, loadDataSource 'system'. Per-tab data is unavailable by necessity.
+// - Neither (permissions denied): loadDataSource 'none' so the UI can say so.
+function initLoadSource() {
+  if (processesApiAvailable()) {
+    // processProcesses writes loadDataSource:'processes' with the first totals,
+    // so there is no storage write at load time on this path.
+    listenToProcesses();
+    return;
+  }
+  if (systemApiAvailable()) {
+    startSystemLoadPolling();
+    return;
+  }
+  update({ loadDataSource: 'none' });
+}
+
 function listenToProcesses() {
   try {
     chrome.processes.onUpdatedWithMemory.addListener(processProcesses);
   } catch (e) {
     console.log("Unable to listen to processes", e);
+  }
+}
+
+function getSystemCpuInfo() {
+  return Promise.resolve().then(() => chrome.system.cpu.getInfo());
+}
+
+function getSystemMemoryInfo() {
+  return Promise.resolve().then(() => chrome.system.memory.getInfo());
+}
+
+function startSystemLoadPolling() {
+  if (systemPollTimer) return;
+  const poll = async () => {
+    // Defensive: if the richer processes API appears mid-session, switch to it.
+    if (processesApiAvailable()) {
+      stopSystemLoadPolling();
+      listenToProcesses();
+      return;
+    }
+    await pollSystemLoad();
+    systemPollTimer = setTimeout(poll, SYSTEM_POLL_INTERVAL_MS);
+  };
+  poll();
+}
+
+function stopSystemLoadPolling() {
+  if (systemPollTimer) {
+    clearTimeout(systemPollTimer);
+    systemPollTimer = null;
+  }
+}
+
+async function pollSystemLoad() {
+  try {
+    const cpuInfo = await getSystemCpuInfo();
+    const memoryInfo = await getSystemMemoryInfo();
+    const processTotals = deriveSystemTotals(
+      previousCpuSample,
+      cpuInfo,
+      memoryInfo,
+      GAUGE
+    );
+    previousCpuSample = cpuInfo;
+    update({ processTotals, loadDataSource: 'system' });
+  } catch (e) {
+    console.log("Unable to sample system load", e);
+    stopSystemLoadPolling();
+    update({ loadDataSource: 'none' });
   }
 }
 
@@ -253,6 +348,7 @@ async function processProcesses(processes) {
   processesIndex.global += 1;
 
   let updates = {
+    loadDataSource: 'processes',
     processTotals: {
       cpu: 0,
       network: 0,

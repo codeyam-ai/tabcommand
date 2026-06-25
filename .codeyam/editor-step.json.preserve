@@ -1,0 +1,14 @@
+{
+  "step": 23,
+  "feature": "Browser Load Gauge: Stable-Chrome Fallback",
+  "startedAt": "2026-06-25T19:49:19Z",
+  "featureStartedAt": "2026-06-25T18:16:45Z",
+  "mode": "ui",
+  "waiting": false,
+  "selectedPlan": "browser-load-gauge-stable-chrome-fallback",
+  "slug": "commit",
+  "holderSessionId": "b1d458b7-b43f-46b6-bb47-edbae77f657b",
+  "holderPid": 44451,
+  "holderAcquiredAt": "2026-06-25T19:49:15.537258+00:00",
+  "version": 23675
+}

@@ -289,6 +289,15 @@
       "runner": "tests"
     },
     {
+      "description": "on the full-fidelity processes source no explanatory note is shown",
+      "file": "src/lib/pages/Load/Load.test.jsx",
+      "format": "vitest",
+      "key": "Load › hides the per-tab note when per-tab data is available on processes",
+      "line": 73,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
       "description": "the Home link writes uxSettings.page back to Home through Chrome.set",
       "file": "src/lib/pages/Load/Load.test.jsx",
       "format": "vitest",
@@ -316,12 +325,30 @@
       "runner": "tests"
     },
     {
+      "description": "on a stable-Chrome system source the page shows the per-tab-unavailable note so the empty per-tab area reads as intentional",
+      "file": "src/lib/pages/Load/Load.test.jsx",
+      "format": "vitest",
+      "key": "Load › shows the per-tab-unavailable note when the source is not processes",
+      "line": 62,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
       "description": "a processTotals storage change is handled without throwing and keeps rendering",
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
       "key": "LoadMeter › handles a processTotals storage change",
       "line": 41,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the gauge composes LoadMeterCaption and mounts without throwing when a loadDataSource is present",
+      "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeter › mounts with a loadDataSource present without throwing",
+      "line": 60,
+      "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
     {
@@ -340,6 +367,87 @@
       "key": "LoadMeter › renders the gauge labels",
       "line": 22,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "loadDataSource processes renders no caption since the full-fidelity path needs no label",
+      "file": "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeterCaption › renders nothing on the full-fidelity processes source",
+      "line": 42,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "with no marker set the caption renders nothing and does not throw",
+      "file": "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeterCaption › renders nothing when no loadDataSource is set",
+      "line": 55,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "loadDataSource none renders the explicit No load data indicator instead of a silently-empty circle",
+      "file": "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeterCaption › renders the no-data indicator when loadDataSource is none",
+      "line": 23,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "loadDataSource system renders the whole-browser-load label and not the no-data indicator",
+      "file": "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeterCaption › renders the whole-browser label when loadDataSource is system",
+      "line": 32,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "reacts to a live loadDataSource change when the worker switches source mid-session",
+      "file": "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeterCaption › updates when loadDataSource changes from none to system",
+      "line": 64,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the full-fidelity processes source has per-tab data so no note is shown",
+      "file": "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx",
+      "format": "vitest",
+      "key": "LoadPerTabNote › hides the note on the processes source",
+      "line": 41,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "with no marker set the note renders nothing and does not throw",
+      "file": "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx",
+      "format": "vitest",
+      "key": "LoadPerTabNote › renders nothing when no loadDataSource is set",
+      "line": 52,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a none source is still unavailable so the note is shown",
+      "file": "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx",
+      "format": "vitest",
+      "key": "LoadPerTabNote › shows the note when the source is none",
+      "line": 32,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a stable-Chrome system source shows the per-tab-unavailable explanatory note",
+      "file": "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx",
+      "format": "vitest",
+      "key": "LoadPerTabNote › shows the note when the source is system",
+      "line": 23,
+      "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
     {
@@ -1135,6 +1243,60 @@
       "runner": "tests"
     },
     {
+      "description": "high memory pressure fills the arc proportionally and clamps at the max without pegging past it",
+      "file": "src/lib/utils/deriveSystemTotals.test.js",
+      "format": "vitest",
+      "key": "deriveSystemTotals › clamps memory pressure to the gauge ceiling at full saturation",
+      "line": 85,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "two cpu samples -> average per-core busy fraction scaled to the gauge max",
+      "file": "src/lib/utils/deriveSystemTotals.test.js",
+      "format": "vitest",
+      "key": "deriveSystemTotals › computes cpu utilization from the delta between two samples",
+      "line": 21,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "memory pressure -> (capacity-available)/capacity scaled to gauge max, ridden in privateMemory with the base offset so gauge fill equals the ratio",
+      "file": "src/lib/utils/deriveSystemTotals.test.js",
+      "format": "vitest",
+      "key": "deriveSystemTotals › normalizes memory pressure into privateMemory against the gauge scale",
+      "line": 37,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "first poll has no previous sample so cpu contributes 0, while memory still reads from the single sample",
+      "file": "src/lib/utils/deriveSystemTotals.test.js",
+      "format": "vitest",
+      "key": "deriveSystemTotals › reads zero cpu on the first single sample but still reports memory",
+      "line": 48,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "empty / partial / missing inputs are guarded so every field reads zero, never NaN",
+      "file": "src/lib/utils/deriveSystemTotals.test.js",
+      "format": "vitest",
+      "key": "deriveSystemTotals › returns zeros and never NaN for empty or partial inputs",
+      "line": 60,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a non-advancing cpu counter with delta-total <= 0 contributes 0 rather than NaN or a negative value",
+      "file": "src/lib/utils/deriveSystemTotals.test.js",
+      "format": "vitest",
+      "key": "deriveSystemTotals › treats a non-advancing cpu counter as zero utilization",
+      "line": 75,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
       "description": "a urlKey present in exactly one label yields a single title",
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
@@ -1472,7 +1634,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
-      "line": 291,
+      "line": 301,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1481,7 +1643,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback",
-      "line": 238,
+      "line": 248,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1490,7 +1652,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getLocalStorage › invokes the callback with the storage result",
-      "line": 183,
+      "line": 193,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1499,7 +1661,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getLocalStorage › resolves with the result when no callback is passed",
-      "line": 191,
+      "line": 201,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1508,7 +1670,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves null for id -1 or null",
-      "line": 199,
+      "line": 209,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1517,7 +1679,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves the group for a real id",
-      "line": 205,
+      "line": 215,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1526,7 +1688,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getUrlKey › prefixes with url- and strips the fragment",
-      "line": 95,
+      "line": 105,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1535,7 +1697,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ignores pinned tabs",
-      "line": 336,
+      "line": 346,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1544,7 +1706,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
-      "line": 329,
+      "line": 339,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1553,7 +1715,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
-      "line": 319,
+      "line": 329,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1562,7 +1724,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › does not throw when the processes API throws",
-      "line": 228,
+      "line": 238,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1571,8 +1733,44 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › registers the processes listener",
-      "line": 221,
+      "line": 231,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a thrown system call degrades to loadDataSource none rather than crashing the worker",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › load source fallback › degrades to none when a system call throws",
+      "line": 411,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "stable Chrome: no processes API but chrome.system present, so one poll writes a normalized processTotals tagged loadDataSource system",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › load source fallback › falls back to chrome.system and tags 'system' when processes is absent",
+      "line": 376,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "neither API available so loadDataSource none is written once at init and nothing throws",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › load source fallback › tags 'none' and never throws when no load API is available",
+      "line": 402,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Dev/Canary path: processes present so the listener registers and the first totals write is tagged loadDataSource processes",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › load source fallback › tags 'processes' and keeps processing when chrome.processes is present",
+      "line": 366,
+      "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
     {
@@ -1580,7 +1778,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › loads and registers chrome event listeners on import",
-      "line": 86,
+      "line": 96,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1589,7 +1787,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prepends an unseen url key to allUrls",
-      "line": 255,
+      "line": 265,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1598,7 +1796,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › returns early without tabId/url",
-      "line": 249,
+      "line": 259,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1607,7 +1805,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › parseTabId › parses the numeric id from a tabKey",
-      "line": 118,
+      "line": 128,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1616,7 +1814,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
-      "line": 281,
+      "line": 291,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1625,7 +1823,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
-      "line": 310,
+      "line": 320,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1634,7 +1832,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
-      "line": 305,
+      "line": 315,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1643,7 +1841,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › trackGroup › stores the group title by id",
-      "line": 213,
+      "line": 223,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1652,7 +1850,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › update › persists updates to chrome.storage.local",
-      "line": 175,
+      "line": 185,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1661,7 +1859,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
-      "line": 264,
+      "line": 274,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1670,7 +1868,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateTotals › defaults missing metrics to 0",
-      "line": 135,
+      "line": 145,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1679,7 +1877,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateTotals › sums process metrics into processTotals",
-      "line": 125,
+      "line": 135,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1688,7 +1886,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › accumulates process stats when a process is supplied",
-      "line": 156,
+      "line": 166,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1697,7 +1895,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId",
-      "line": 144,
+      "line": 154,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1706,7 +1904,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › uses the url as title when title is missing",
-      "line": 167,
+      "line": 177,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1715,7 +1913,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › accepts http and https tabs",
-      "line": 103,
+      "line": 113,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -1724,7 +1922,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › rejects empty and internal-scheme tabs",
-      "line": 108,
+      "line": 118,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },

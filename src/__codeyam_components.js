@@ -3,6 +3,8 @@ import LabelForm from "./lib/components/LabelForm/LabelForm";
 import LabelFormContainer from "./lib/components/LabelFormContainer/LabelFormContainer";
 import Labels from "./lib/components/Labels/Labels";
 import LoadMeter from "./lib/components/LoadMeter/LoadMeter";
+import LoadMeterCaption from "./lib/components/LoadMeterCaption/LoadMeterCaption";
+import LoadPerTabNote from "./lib/components/LoadPerTabNote/LoadPerTabNote";
 import LoadProcesses from "./lib/components/LoadProcesses/LoadProcesses";
 import LoadUrl from "./lib/components/LoadUrl/LoadUrl";
 import Search from "./lib/components/Search/Search";
@@ -18,6 +20,8 @@ export const components = {
   LabelFormContainer: LabelFormContainer,
   Labels: Labels,
   LoadMeter: LoadMeter,
+  LoadMeterCaption: LoadMeterCaption,
+  LoadPerTabNote: LoadPerTabNote,
   LoadProcesses: LoadProcesses,
   LoadUrl: LoadUrl,
   Search: Search,

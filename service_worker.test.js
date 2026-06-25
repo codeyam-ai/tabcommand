@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -49,17 +50,26 @@ function makeChrome() {
   };
 }
 
+// service_worker.js is shipped as an ES-module service worker (crxjs sets
+// `"type": "module"` at build), so it `import`s the pure deriveSystemTotals util.
+// The sloppy-mode Function wrapper here can't hold a top-level `import`, so we
+// strip the import line and inject the REAL util as a parameter — the worker
+// tests then exercise the same util that deriveSystemTotals.test.js covers.
 function loadWorker(chrome) {
-  const code = fs.readFileSync(SW_PATH, 'utf8');
+  const raw = fs.readFileSync(SW_PATH, 'utf8');
+  const code = raw.replace(/^\s*import\s.*$/gm, '');
   const factory = new Function(
     'chrome',
     'console',
+    'deriveSystemTotals',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
              newUrl, closeUrl, processProcesses, updateTotals, associateProcess,
              tabUpdates, urlUpdates, getUrlKey, validTab, getTabGroup,
-             getLocalStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs },
+             getLocalStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs,
+             initLoadSource, processesApiAvailable, systemApiAvailable,
+             startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad },
       state: {
         get groups() { return groups; },
         get samples() { return samples; },
@@ -67,7 +77,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() });
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals);
 }
 
 describe('service_worker.js', () => {
@@ -336,6 +346,80 @@ describe('service_worker.js', () => {
     it('ignores pinned tabs', async () => {
       await fns.groupTabs([{ tabKey: 'tab-1', urlKey: 'url-y', pinned: true, groupId: 2 }], {});
       expect(chrome.tabs.group).not.toHaveBeenCalled();
+    });
+  });
+
+  // Channel-based degradation: the gauge's data source depends on which Chrome
+  // API is available. processProcesses (Dev/Canary) tags 'processes'; the
+  // system poll (stable Chrome) tags 'system'; neither tags 'none'.
+  describe('load source fallback', () => {
+    const cpuInfo = {
+      processors: [
+        { usage: { kernel: 10, user: 10, idle: 80, total: 100 } },
+        { usage: { kernel: 20, user: 10, idle: 70, total: 100 } },
+      ],
+    };
+    const memoryInfo = { capacity: 1000, availableCapacity: 400 }; // 60% used
+
+    // Dev/Canary path: processes present → listener registered and the first
+    // totals write is tagged loadDataSource:'processes'
+    it("tags 'processes' and keeps processing when chrome.processes is present", async () => {
+      // default `chrome` from beforeEach has chrome.processes
+      expect(chrome.processes.onUpdatedWithMemory.addListener).toHaveBeenCalledWith(fns.processProcesses);
+      await fns.processProcesses({});
+      const writes = chrome.storage.local.set.mock.calls.map((c) => c[0]);
+      expect(writes.some((w) => w.loadDataSource === 'processes')).toBe(true);
+    });
+
+    // stable Chrome: no processes API, but chrome.system.* present → one poll
+    // writes a normalized processTotals tagged loadDataSource:'system'
+    it("falls back to chrome.system and tags 'system' when processes is absent", async () => {
+      const c = makeChrome();
+      delete c.processes;
+      c.system = {
+        cpu: { getInfo: vi.fn().mockResolvedValue(cpuInfo) },
+        memory: { getInfo: vi.fn().mockResolvedValue(memoryInfo) },
+      };
+      const loaded = loadWorker(c);
+      // let the load-time poll resolve and schedule its repeat, then silence it
+      await new Promise((r) => setTimeout(r, 0));
+      loaded.fns.stopSystemLoadPolling();
+      c.storage.local.set.mockClear();
+
+      await loaded.fns.pollSystemLoad();
+      loaded.fns.stopSystemLoadPolling();
+
+      const last = c.storage.local.set.mock.calls.at(-1)[0];
+      expect(last.loadDataSource).toBe('system');
+      expect(last.processTotals).toBeTruthy();
+      // memory pressure flows through on a single sample (never NaN)
+      expect(last.processTotals.privateMemory).toBeGreaterThan(0);
+      expect(Number.isNaN(last.processTotals.cpu)).toBe(false);
+    });
+
+    // neither API available → loadDataSource:'none', written once at init,
+    // and nothing throws
+    it("tags 'none' and never throws when no load API is available", () => {
+      const c = makeChrome();
+      delete c.processes;
+      // no c.system at all
+      expect(() => loadWorker(c)).not.toThrow();
+      expect(c.storage.local.set).toHaveBeenCalledWith({ loadDataSource: 'none' });
+    });
+
+    // a thrown system call degrades to 'none' rather than crashing the worker
+    it('degrades to none when a system call throws', async () => {
+      const c = makeChrome();
+      delete c.processes;
+      c.system = {
+        cpu: { getInfo: vi.fn().mockRejectedValue(new Error('denied')) },
+        memory: { getInfo: vi.fn().mockResolvedValue(memoryInfo) },
+      };
+      const loaded = loadWorker(c);
+      c.storage.local.set.mockClear();
+      await loaded.fns.pollSystemLoad();
+      loaded.fns.stopSystemLoadPolling();
+      expect(c.storage.local.set).toHaveBeenCalledWith({ loadDataSource: 'none' });
     });
   });
 });
