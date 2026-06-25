@@ -1,0 +1,37 @@
+{
+  "name": "Home - Overflowing Tabs",
+  "id": "bbf163ef-1bdf-4177-be66-21fb1c491eeb",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://tailwindcss.com/docs/installation": "{\"title\": \"Installation \\u2013 Tailwind CSS\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://www.figma.com/community/file/icons": "{\"title\": \"Icon Library \\u2013 Figma Community\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "labels": "{\"Work\": {\"title\": \"Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\", \"url-https://www.notion.so/codeyam/Roadmap\", \"url-https://docs.github.com/en/actions\", \"url-https://linear.app/codeyam/team/ENG/active\"]}, \"Reading\": {\"title\": \"Reading\", \"backgroundColor\": \"#1F8E43\", \"position\": 1, \"urlKeys\": [\"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://stackoverflow.com/questions/tagged/react\", \"url-https://web.dev/articles/extensions\"]}}",
+      "url-https://www.youtube.com/watch?v=dQw4w9WgXcQ": "{\"title\": \"Build a Chrome Extension \\u2013 YouTube\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://docs.github.com/en/actions": "{\"title\": \"GitHub Actions Documentation\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://linear.app/codeyam/team/ENG/active": "{\"title\": \"Active Issues \\u2013 Linear\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\", \"url-https://www.notion.so/codeyam/Roadmap\", \"url-https://docs.github.com/en/actions\", \"url-https://linear.app/codeyam/team/ENG/active\", \"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://stackoverflow.com/questions/tagged/react\", \"url-https://web.dev/articles/extensions\", \"url-https://mail.google.com/mail/u/0\", \"url-https://news.ycombinator.com\", \"url-https://www.youtube.com/watch?v=dQw4w9WgXcQ\", \"url-https://tailwindcss.com/docs/installation\", \"url-https://vitejs.dev/guide/\", \"url-https://calendar.google.com/calendar/u/0/r\", \"url-https://www.figma.com/community/file/icons\", \"url-https://chat.openai.com/\", \"url-https://www.npmjs.com/package/react-router-dom\"]",
+      "url-https://www.npmjs.com/package/react-router-dom": "{\"title\": \"react-router-dom \\u2013 npm\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "autoClosed": "{}",
+      "url-https://chat.openai.com/": "{\"title\": \"ChatGPT\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\": \"Inbox (1,284) - hello@codeyam.com - Gmail\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 737280, \"cpu\": 48000, \"privateMemory\": 7660800000, \"jsMemoryAllocated\": 6128640000, \"jsMemoryUsed\": 4596480000}}",
+      "url-https://vitejs.dev/guide/": "{\"title\": \"Getting Started | Vite\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\": \"TabCommand UI \\u2013 Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\": \"Roadmap \\u2013 Notion\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://stackoverflow.com/questions/tagged/react": "{\"title\": \"Newest 'react' Questions \\u2013 Stack Overflow\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://web.dev/articles/extensions": "{\"title\": \"Chrome Extensions Best Practices \\u2013 web.dev\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2013 React\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 737280, \"cpu\": 48000, \"privateMemory\": 7660800000, \"jsMemoryAllocated\": 6128640000, \"jsMemoryUsed\": 4596480000}}",
+      "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-300\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.figma.com/file/tabcommand\", \"tabKey\": \"tab-301\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.notion.so/codeyam/Roadmap\", \"tabKey\": \"tab-302\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://docs.github.com/en/actions\", \"tabKey\": \"tab-303\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://linear.app/codeyam/team/ENG/active\", \"tabKey\": \"tab-304\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://react.dev/learn\", \"tabKey\": \"tab-305\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"tabKey\": \"tab-306\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://stackoverflow.com/questions/tagged/react\", \"tabKey\": \"tab-307\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://web.dev/articles/extensions\", \"tabKey\": \"tab-308\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://mail.google.com/mail/u/0\", \"tabKey\": \"tab-309\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://news.ycombinator.com\", \"tabKey\": \"tab-310\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.youtube.com/watch?v=dQw4w9WgXcQ\", \"tabKey\": \"tab-311\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://tailwindcss.com/docs/installation\", \"tabKey\": \"tab-312\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://vitejs.dev/guide/\", \"tabKey\": \"tab-313\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://calendar.google.com/calendar/u/0/r\", \"tabKey\": \"tab-314\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.figma.com/community/file/icons\", \"tabKey\": \"tab-315\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://chat.openai.com/\", \"tabKey\": \"tab-316\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.npmjs.com/package/react-router-dom\", \"tabKey\": \"tab-317\", \"pinned\": false, \"tabCommandPinned\": false}]",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://calendar.google.com/calendar/u/0/r": "{\"title\": \"Google Calendar \\u2013 Week of June 22\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

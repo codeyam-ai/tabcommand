@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-24T21:57:20Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-25T13:27:05Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 CodeyamIsolate :: src/__codeyam_isolate.jsx :: tags=
@@ -50,6 +50,7 @@ newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=servi
 parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
 removeUrlFromLabel :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDetails.test.js
+resolveIsolationProps :: src/__codeyam_isolate.jsx :: tags=
 resolveLabelUrls :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
 searchNotesSnippet :: src/lib/utils/searchNotesSnippet.js :: tags= :: test=src/lib/utils/searchNotesSnippet.test.js
 segmentSearchResults :: src/lib/utils/segmentSearchResults.js :: tags= :: test=src/lib/utils/segmentSearchResults.test.js

@@ -436,6 +436,15 @@
     "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
+    "description": "Prop-lookup helper inside the CodeYam-generated component-isolation entrypoint scaffold. Maps an isolate component name plus optional variant key to its representative prop set, falling back to the default prop set for an absent or unknown variant.",
+    "filePath": "src/__codeyam_isolate.jsx",
+    "name": "resolveIsolationProps",
+    "untestabilityReason": {
+      "justification": "Helper within the generated CodeYam isolation harness scaffold; not application source.",
+      "kind": "scaffold"
+    }
+  },
+  {
     "description": "Attaches each label's resolved urls array (url/title/favicon, plus notes only when present) from the per-URL info map and drops urlKeys, returning the labels ready to JSON.stringify into the export.",
     "filePath": "src/lib/utils/importExport.js",
     "name": "resolveLabelUrls",
