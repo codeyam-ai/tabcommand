@@ -627,6 +627,11 @@ async function runScenarioCheck(
   const resolvedHarnessOrigin =
     harnessOrigin !== undefined ? harnessOrigin : resolveHarnessOrigin();
   const { url, outputPath, width, height, httpMocks = {} } = config;
+  // Per-scenario capture-check allowances (see `CaptureAllowances` /
+  // `ScenarioDefinition` on the Rust side). Default false so the guards keep
+  // their strict behavior for every scenario that does not opt in.
+  const allowMinimalRender = !!(config && config.allowMinimalRender);
+  const expectedConsoleErrors = !!(config && config.expectedConsoleErrors);
   let interactionEffect = null;
   let interactionRetried = false;
   const issues = [];
@@ -691,6 +696,13 @@ async function runScenarioCheck(
   page.on("console", (message) => {
     const issue = handleConsoleMessage(message);
     if (!issue) return;
+    // Per-scenario allowance: a scenario that provokes console errors by design
+    // (a broken-image fallback whose `<img>` is meant to 404) opts in via
+    // `expectedConsoleErrors`. Load-bearing: without it the console-error guard
+    // fails the capture instead of screenshotting the intended fallback UI. A
+    // non-opted-in scenario still fails, so an unexpected console error is never
+    // silently tolerated.
+    if (expectedConsoleErrors) return;
     // Console errors produced by the scenario's OWN declared error mocks
     // (status >= 400) are the intended behavior of an error-state scenario,
     // not a capture problem — skip them so "History - Load Error"-style
@@ -707,6 +719,12 @@ async function runScenarioCheck(
   });
 
   page.on("requestfailed", (request) => {
+    // Per-scenario allowance: the broken-image fallback scenario's `<img>` 404
+    // is a SAME-origin request failure it exists to demonstrate, so
+    // `expectedConsoleErrors` tolerates it here too (the console guard above
+    // relaxes the paired "Failed to load resource" error). Load-bearing for the
+    // same reason; a non-opted-in same-origin failure still fails the capture.
+    if (expectedConsoleErrors) return;
     // A cross-origin sub-resource failing must not fail an editor-shell
     // screenshot — only the captured page's OWN origin counts. The most common
     // case here is the live preview pane reaching the mocked project's app dev
@@ -823,6 +841,18 @@ async function runScenarioCheck(
       contentState = await collectContentState(frame);
       await mergeVisibleTextLength(contentState, frame);
       hasContent = hasRenderableContent(contentState);
+    }
+
+    // Per-scenario allowance: a scenario whose intended UI is intrinsically
+    // minimal (an empty `<textarea>` the blank heuristic can't "see") opts in
+    // via `allowMinimalRender`. Accept the near-blank render as valid content so
+    // BOTH the blank issue below is skipped AND `buildResult`'s `ok` (which
+    // independently requires `hasContent`) can be true — otherwise the capture
+    // would still fail with an empty issue list. The cold-start retry already
+    // ran above, so a non-opted-in blank (a genuinely empty render) still falls
+    // through to the issue below.
+    if (!hasContent && allowMinimalRender) {
+      hasContent = true;
     }
 
     if (!hasContent) {
