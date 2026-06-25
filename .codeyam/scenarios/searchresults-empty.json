@@ -1,0 +1,12 @@
+{
+  "name": "SearchResults - Empty",
+  "id": "0fd092eb-dcbf-40fe-b238-e59f48e62509",
+  "url": "/?isolate=SearchResults&variant=empty",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "SearchResults",
+  "scenarioType": "component"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "LabelForm - New Group",
+  "id": "8dc02db4-bec2-43b0-a4d0-ebc620106b6e",
+  "url": "/?isolate=LabelForm&variant=new-blank",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LabelForm",
+  "scenarioType": "component"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "UrlField - Empty",
+  "id": "ec390587-999b-469a-a7e0-5a62d965294a",
+  "url": "/?isolate=UrlField&variant=empty",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "UrlField",
+  "scenarioType": "component"
+}

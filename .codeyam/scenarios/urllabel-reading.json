@@ -1,0 +1,12 @@
+{
+  "name": "UrlLabel - Reading",
+  "id": "bb474222-1476-47c7-9bfc-eb8ccc247fba",
+  "url": "/?isolate=UrlLabel&variant=reading",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "UrlLabel",
+  "scenarioType": "component"
+}

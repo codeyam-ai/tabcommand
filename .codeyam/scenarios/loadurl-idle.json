@@ -1,0 +1,12 @@
+{
+  "name": "LoadUrl - Idle",
+  "id": "38370096-5bab-4515-9c11-06aa081687e0",
+  "url": "/?isolate=LoadUrl&variant=idle",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LoadUrl",
+  "scenarioType": "component"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "LabelForm - Social",
+  "id": "86abd5d0-385f-4985-a4d9-5035c6f18e62",
+  "url": "/?isolate=LabelForm&variant=social",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LabelForm",
+  "scenarioType": "component"
+}

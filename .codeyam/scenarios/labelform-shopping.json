@@ -1,0 +1,12 @@
+{
+  "name": "LabelForm - Shopping",
+  "id": "f7b16ca0-c737-4d4a-aa87-4990b9634b2a",
+  "url": "/?isolate=LabelForm&variant=shopping",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LabelForm",
+  "scenarioType": "component"
+}

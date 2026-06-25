@@ -1,0 +1,12 @@
+{
+  "name": "LabelFormContainer - Collapsed",
+  "id": "fcc73af9-9c27-4995-bf8d-5d97b53d5b28",
+  "url": "/?isolate=LabelFormContainer&variant=collapsed",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LabelFormContainer",
+  "scenarioType": "component"
+}

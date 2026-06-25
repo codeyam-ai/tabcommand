@@ -1,0 +1,12 @@
+{
+  "name": "UrlLabel - Long Title",
+  "id": "7b73f0a9-0f50-47e4-8236-48d03df9fc77",
+  "url": "/?isolate=UrlLabel&variant=long",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "UrlLabel",
+  "scenarioType": "component"
+}

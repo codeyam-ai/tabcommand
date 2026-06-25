@@ -1,0 +1,12 @@
+{
+  "name": "LabelCollection - Empty",
+  "id": "021e761a-6a13-4daa-8805-6818c34f1a1d",
+  "url": "/?isolate=LabelCollection&variant=empty",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LabelCollection",
+  "scenarioType": "component"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Url - Idle",
+  "id": "cced6b71-9f6b-4d09-b4ea-3f63a26f4baf",
+  "url": "/?isolate=Url&variant=idle",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-204\",\"pinned\":false}]",
+      "uxSettings": "{\"selectedLabel\":\"Reading\",\"page\":{\"name\":\"Home\"}}"
+    }
+  },
+  "componentName": "Url",
+  "scenarioType": "component"
+}

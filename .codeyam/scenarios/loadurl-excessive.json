@@ -1,0 +1,12 @@
+{
+  "name": "LoadUrl - Excessive",
+  "id": "72d7e35c-0b4c-4414-b2aa-c875ea21ddf5",
+  "url": "/?isolate=LoadUrl&variant=excessive",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LoadUrl",
+  "scenarioType": "component"
+}

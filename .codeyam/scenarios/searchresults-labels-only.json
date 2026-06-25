@@ -1,0 +1,12 @@
+{
+  "name": "SearchResults - Labels Only",
+  "id": "e95a1edf-ae2a-4e7b-8449-ffd3257e804c",
+  "url": "/?isolate=SearchResults&variant=labels-only",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "SearchResults",
+  "scenarioType": "component"
+}

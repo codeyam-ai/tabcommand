@@ -1,0 +1,12 @@
+{
+  "name": "LabelForm - Reading",
+  "id": "608381ff-b88c-4dda-957e-71bb88a337f0",
+  "url": "/?isolate=LabelForm&variant=reading",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LabelForm",
+  "scenarioType": "component"
+}

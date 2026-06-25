@@ -1,0 +1,12 @@
+{
+  "name": "LoadUrl - Low Load",
+  "id": "e36ff3a2-c335-4ddc-98a7-81845b82ba37",
+  "url": "/?isolate=LoadUrl&variant=low",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LoadUrl",
+  "scenarioType": "component"
+}

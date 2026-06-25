@@ -1,0 +1,12 @@
+{
+  "name": "UrlField - Notes",
+  "id": "c304341e-de23-4917-888a-21fc27ec820b",
+  "url": "/?isolate=UrlField&variant=notes",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "UrlField",
+  "scenarioType": "component"
+}

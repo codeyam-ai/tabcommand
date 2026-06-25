@@ -1,0 +1,18 @@
+{
+  "name": "Url - Minimal",
+  "id": "78cd5003-fd8b-4e77-8af7-9e81f16a5f89",
+  "url": "/?isolate=Url&variant=minimal",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-207\",\"pinned\":false}]",
+      "uxSettings": "{\"selectedLabel\":\"Work\",\"page\":{\"name\":\"Home\"}}"
+    }
+  },
+  "componentName": "Url",
+  "scenarioType": "component"
+}

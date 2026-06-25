@@ -1,0 +1,12 @@
+{
+  "name": "SearchResults - Many Results",
+  "id": "75789997-70d9-42fd-ad9a-3d708c9d4780",
+  "url": "/?isolate=SearchResults&variant=many",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "SearchResults",
+  "scenarioType": "component"
+}

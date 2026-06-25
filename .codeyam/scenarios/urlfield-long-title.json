@@ -1,0 +1,12 @@
+{
+  "name": "UrlField - Long Title",
+  "id": "9f4dd167-9c6b-41a2-814c-e5f8247bbc02",
+  "url": "/?isolate=UrlField&variant=long-title",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "UrlField",
+  "scenarioType": "component"
+}

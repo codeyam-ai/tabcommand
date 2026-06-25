@@ -1,0 +1,12 @@
+{
+  "name": "LoadUrl - High Severity",
+  "id": "f852197b-2267-445b-9269-221304ee4c3e",
+  "url": "/?isolate=LoadUrl&variant=high",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "LoadUrl",
+  "scenarioType": "component"
+}
