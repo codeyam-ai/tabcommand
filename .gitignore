@@ -45,3 +45,7 @@ blob-report/
 node_modules/
 build/
 dev-dist/
+
+# OS / packaging artifacts
+.DS_Store
+*.zip

@@ -1,7 +1,17 @@
 {
   "name": "tabcommand",
   "version": "0.2.0",
-  "private": true,
+  "description": "Command Central for your browsing experience — a Manifest V3 Chrome extension to monitor, search, label, and auto-close browser tabs. Built with codeyam.",
+  "license": "MIT",
+  "author": "NodLabs Inc",
+  "homepage": "https://github.com/codeyam-ai/tabcommand#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codeyam-ai/tabcommand.git"
+  },
+  "bugs": {
+    "url": "https://github.com/codeyam-ai/tabcommand/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
