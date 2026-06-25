@@ -1,14 +1,14 @@
 {
-  "step": 24,
+  "step": 25,
   "feature": "Browser Load Gauge: Stable-Chrome Fallback",
-  "startedAt": "2026-06-25T19:51:15Z",
+  "startedAt": "2026-06-25T20:00:44Z",
   "featureStartedAt": "2026-06-25T18:16:45Z",
   "mode": "ui",
   "waiting": false,
   "selectedPlan": "browser-load-gauge-stable-chrome-fallback",
-  "slug": "push",
+  "slug": "feature-complete",
   "holderSessionId": "b1d458b7-b43f-46b6-bb47-edbae77f657b",
-  "holderPid": 53239,
-  "holderAcquiredAt": "2026-06-25T19:51:12.750866+00:00",
-  "version": 24250
+  "holderPid": 81606,
+  "holderAcquiredAt": "2026-06-25T20:00:43.327690+00:00",
+  "version": 26863
 }
