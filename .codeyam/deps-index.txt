@@ -1,4 +1,4 @@
-# regenerated from dependency-graph.json on 2026-06-25T13:42:35Z; do not hand-edit
+# regenerated from dependency-graph.json on 2026-06-25T13:50:25Z; do not hand-edit
 src/lib/utils/chromeShim :: imports=0 :: imported_by=14
 src/Constants.jsx :: imports=0 :: imported_by=13
 src/lib/utils/Chrome :: imports=0 :: imported_by=12
