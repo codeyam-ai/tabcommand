@@ -4,7 +4,7 @@ autoApprove: true
 description: |
   Finalize the current branch outside the editor workflow. Lists any
   deferred-finalize commits since the last successful finalize, runs
-  `codeyam-editor-dev editor session-finalize`, and on failure groups the
+  `codeyam-editor editor session-finalize`, and on failure groups the
   audit findings by the deferred commit(s) that introduced them.
   Use when you have accumulated deferred commits, did manual commits
   outside the workflow, or just want to audit the current branch.
@@ -12,7 +12,7 @@ description: |
 
 # Audit and Finalize the Current Branch
 
-Run `codeyam-editor-dev editor session-finalize` on the current branch and surface deferred-commit attribution on failure.
+Run `codeyam-editor editor session-finalize` on the current branch and surface deferred-commit attribution on failure.
 
 ## Critical Rule: Audit Only — Never Apply Fixes Autonomously
 
@@ -25,7 +25,7 @@ This skill **runs** the finalize and **reports** what it found. It does NOT sile
 Confirm the project is initialized for codeyam-editor:
 
 ```bash
-codeyam-editor-dev editor config-show >/dev/null 2>&1 || {
+codeyam-editor editor config-show >/dev/null 2>&1 || {
   echo "Project is not initialized for codeyam-editor. Run /codeyam-onboard first."
   exit 1
 }
@@ -35,7 +35,7 @@ If the check fails, tell the user to run `/codeyam-onboard` and stop. Do not pro
 
 ### Step 2 — Summarize the debt
 
-Run `codeyam-editor-dev editor finalize-debt show --format json` and parse the result. The JSON shape is:
+Run `codeyam-editor editor finalize-debt show --format json` and parse the result. The JSON shape is:
 
 ```json
 {
@@ -58,7 +58,7 @@ If the user picks Cancel, stop. Do not advance.
 If the user confirmed:
 
 ```bash
-codeyam-editor-dev editor pre-commit-sync
+codeyam-editor editor pre-commit-sync
 ```
 
 If `pre-commit-sync` fails (queue tenure unhealthy, remote ahead, etc.), surface the exact error verbatim and stop — do **not** retry or work around the bail. Every queue bail names its own recovery command; quote that command to the user.
@@ -66,14 +66,14 @@ If `pre-commit-sync` fails (queue tenure unhealthy, remote ahead, etc.), surface
 Then run:
 
 ```bash
-codeyam-editor-dev editor session-finalize 2>&1 | tee /tmp/codeyam-audit-finalize.log
+codeyam-editor editor session-finalize 2>&1 | tee /tmp/codeyam-audit-finalize.log
 ```
 
 ### Step 4 — Report
 
 **On success** (exit 0): tell the user the finalize passed and the deferred-debt index has been cleared. If commits were deferred, note that the trailers remain in commit history as audit trail (visible via `git log --grep="^Codeyam-Finalize: deferred"`).
 
-**On failure** (non-zero exit): re-run `codeyam-editor-dev editor audit --format json` to get the structured failure list with the new `attribution[]` field. The shape:
+**On failure** (non-zero exit): re-run `codeyam-editor editor audit --format json` to get the structured failure list with the new `attribution[]` field. The shape:
 
 ```json
 {

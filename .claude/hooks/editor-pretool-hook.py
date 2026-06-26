@@ -161,8 +161,8 @@ def main():
     if tool_name == "Bash":
         command = tool_input.get("command", "")
         if (
-            "codeyam-editor-dev editor" in command
-            or "codeyam-editor-dev:editor" in command
+            "codeyam-editor editor" in command
+            or "codeyam-editor:editor" in command
             or "codeyam-editor-dev editor" in command
             or "codeyam-editor-dev:editor" in command
         ):

@@ -13,7 +13,7 @@ description: |
 
 # Design exploration
 
-You are helping the user pick a design direction inside the new-project questionnaire's chat substep. The project files do not exist yet — **do not scaffold, install dependencies, or run any `codeyam-editor-dev editor` command**. Your only job is to read the brief and assets, read the bundled design systems, write mockup HTML, and (on the user's pick) POST a single API call.
+You are helping the user pick a design direction inside the new-project questionnaire's chat substep. The project files do not exist yet — **do not scaffold, install dependencies, or run any `codeyam-editor editor` command**. Your only job is to read the brief and assets, read the bundled design systems, write mockup HTML, and (on the user's pick) POST a single API call.
 
 **The brief drives; the systems are a floor, not a ceiling.** The user's product description and any uploaded design assets are the primary signal — every mockup must feel like *their* product, not a stock template. The curated design systems in `.codeyam/design/design_systems/` are a quality floor: a vocabulary of robust, internally-consistent languages you can adhere to, stretch, or set aside depending on a mockup's *tier* (Step 2). Your goal across a set is **genuine range** — diverse directions — anchored by at least one safe, on-brief option, and (when the set is large enough) reaching all the way to a fully bespoke, off-catalog direction.
 
@@ -253,7 +253,7 @@ The control port is normally `localhost:14199`. If curl returns `connection refu
 
 ## What NOT to do
 
-- **No scaffolding** — do not run `codeyam-editor-dev editor template`, `npm install`, `git init`, or any setup command. The project hasn't decided its tech stack yet.
+- **No scaffolding** — do not run `codeyam-editor editor template`, `npm install`, `git init`, or any setup command. The project hasn't decided its tech stack yet.
 - **No editing `.codeyam/design/design_system.md`** — that's the API's job after the selection POST.
 - **No remote fonts or scripts; remote *content photos* only with a fallback.** Never load remote fonts or `<script>` — the `sandbox=""` iframe blocks scripts outright, and a remote font that fails renders inconsistently. Remote *images*, though, the sandbox *does* load: inline is the default for **robustness** (offline / flaky environments) and **privacy** (a remote fetch leaks the viewer's IP to the host), not because the network is blocked. So — decorative imagery stays inline, and a **representational content-photo slot may use a remote image only when stacked on top of the inline depiction as its fallback layer** (the hybrid in Step 3); no bare remote `<img>` that can render as a broken icon. **User-uploaded `.codeyam/design/user_files/` assets** embedded as base64 `data:` URIs (or inline SVG) are inline content and are **required** when provided (Step 1, Step 3).
 - **No iframe-busting markup** — avoid `<meta http-equiv="refresh">`, `window.parent` access, or anything that breaks the sandbox.

@@ -30,11 +30,11 @@ Then end your turn. The user replies with a freeform description.
 
 - Edit any source files needed (`.ts`, `.tsx`, `.rs`, `.css`, `.json`, …).
   Speed beats rigor — this is the rapid-iteration phase.
-- Register scenarios on the fly with `codeyam-editor-dev editor register` so
+- Register scenarios on the fly with `codeyam-editor editor register` so
   the live-preview iteration loop has realistic data.
 - Use `AskUserQuestion` to confirm direction when there are multiple
   reasonable approaches; otherwise iterate freely.
-- Do **NOT** run `codeyam-editor-dev editor advance` or `codeyam-editor-dev editor
+- Do **NOT** run `codeyam-editor editor advance` or `codeyam-editor editor
   step`. Those belong to the formalized Build workflow. While the
   Prototype sub-tab is active there is no advance gate.
 - Do **NOT** run `git add` or `git commit`. The prototype's source
@@ -49,7 +49,7 @@ you built". Treat every batch of edits as a demo cue.
 
 - **Every batch of changes ends with a `preview-nav`.** After you finish
   a coherent batch (1–3 related edits), run
-  `codeyam-editor-dev editor preview-nav` pointing the iframe at the
+  `codeyam-editor editor preview-nav` pointing the iframe at the
   scenario or page that exercises what you just built. Do not describe
   changes in text and move on — show them.
 - **After each batch, offer the user 2–4 views to compare via
@@ -61,11 +61,11 @@ you built". Treat every batch of edits as a demo cue.
   not to perform a confirmation.
 - **`preview-nav` is the in-loop iteration tool.** It's lightweight
   (<200 ms), HMR-friendly, and never blocks. Reach for it constantly.
-  Use the heavier `codeyam-editor-dev editor preview` only when you need
+  Use the heavier `codeyam-editor editor preview` only when you need
   a screenshot to verify something the user can't easily see live.
 - **Register scenarios before navigating to them.** `preview-nav` with
   `scenarioSlug` requires the scenario to exist — call
-  `codeyam-editor-dev editor register` first, then navigate.
+  `codeyam-editor editor register` first, then navigate.
 - **Never claim "you should see X" without having just navigated the
   preview.** If you describe a change without driving the iframe to
   the view where it's visible, the user has to find it themselves —
@@ -81,7 +81,7 @@ this exact instruction string:
 > prototyped. Use frontmatter with `mode: ui` and `step: 10` (or
 > `mode: backend` and `step: 8` for backend mode) and `source: prototype`.
 > Pick a kebab-case slug that matches the feature you prototyped.
-> Once the Write succeeds, run `codeyam-editor-dev editor launch-plan <slug>` to
+> Once the Write succeeds, run `codeyam-editor editor launch-plan <slug>` to
 > switch the UI to the Build tab, then output "Done — opening Build to
 > finalize." and stop.
 
@@ -105,7 +105,7 @@ When you receive that message:
    Deconstruct step will use this to drive extraction + TDD over the
    working tree's already-built code.
 
-4. After the Write succeeds, run `codeyam-editor-dev editor launch-plan <slug>`
+4. After the Write succeeds, run `codeyam-editor editor launch-plan <slug>`
    (using the same slug you just wrote). This deterministically selects the
    plan and switches the UI to the Build tab via `usePlanLauncher.launchPlan` —
    it no longer depends on the UI plan-watcher catching the new plan. Then
@@ -123,5 +123,5 @@ When you receive that message:
 
 ## Disallowed during the prototype phase
 
-- `codeyam-editor-dev editor advance` / `step` — those belong to Build.
+- `codeyam-editor editor advance` / `step` — those belong to Build.
 - `git add` / `git commit` — leftovers sweep into the feature commit.
