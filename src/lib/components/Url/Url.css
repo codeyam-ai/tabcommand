@@ -1,8 +1,8 @@
 .Url {
   cursor: pointer;
-  margin-bottom: 6px;
-  border-radius: 18px;
-  padding: 9px;
+  margin-bottom: 2px;
+  border-radius: 8px;
+  padding: 5px 8px;
   font-size: 13px;
   vertical-align: middle;
 }
@@ -16,19 +16,12 @@
   border-right-color: #d5d5d5;
 }
 
-.Url img {
-  height: 18px;
-  width: 18px;
-  vertical-align: bottom;
-  margin-right: 3px;
-}
-
 .Url .Url-title {
   width: auto;
   white-space: nowrap;
   overflow: hidden;
   /* text-overflow: ellipsis; */
-  background-image: linear-gradient(to right, black 80%, transparent 98%);
+  background-image: linear-gradient(to right, var(--text-primary) 80%, transparent 98%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -38,6 +31,24 @@
 .Url-stats {
   float: right;
   white-space: nowrap;
+}
+
+/* Always-visible gray ✕ on the far right to remove the row. */
+.Url-removeBtn {
+  float: right;
+  margin-left: 6px;
+  padding: 2px 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.Url-removeBtn:hover {
+  color: var(--text-primary);
+}
+
+.Url-removeBtn .Url-action-icon {
+  font-size: 0.9rem;
 }
 
 .Url-actions .Url-action {

@@ -15,6 +15,14 @@
     "testFile": "src/lib/pages/App/App.test.jsx"
   },
   {
+    "description": "Sidebar wordmark: the 4-color TabCommand mark plus a Tab/Command text wordmark in their brand colors. Clicking it returns to Home via the parent-supplied onClick.",
+    "filePath": "src/lib/components/AppBrand/AppBrand.jsx",
+    "name": "AppBrand",
+    "scenarios": [
+      "appbrand-wordmark"
+    ]
+  },
+  {
     "description": "Callback-based storage abstraction faithfully ported from the reference TabCommand. Wraps chrome.storage.local with get(from, keys, callback) / set(from, updates) / remove(from, keys), preserving the leading `from` debug-label arg. On get it applies default-hydration (labels/uxSettings/autoClosed -> {}, activeTabs/allUrls/previousLabels -> []) and strips each previousLabels entry's timestamp while dropping falsy entries. The storage contract every feature plan's reads build on.",
     "filePath": "src/lib/utils/Chrome/Chrome.js",
     "name": "Chrome",
@@ -33,6 +41,16 @@
       "justification": "Isolation harness scaffold — the capture entrypoint, not application UI.",
       "kind": "scaffold"
     }
+  },
+  {
+    "description": "Renders a url row's favicon with a graceful fallback: the site's image when available, otherwise a deterministic colored monogram tile (via faviconMonogram). Falls back on image load error too.",
+    "filePath": "src/lib/components/Favicon/Favicon.jsx",
+    "name": "Favicon",
+    "scenarios": [
+      "favicon-real-favicon",
+      "favicon-monogram-fallback",
+      "favicon-monogram-figma"
+    ]
   },
   {
     "description": "The Import / Export page (entry point for Pages.IMPORTEXPORT in App): a recover/backup view reached from the sidebar Import/Export link. Reads labels + previousLabels from Chrome storage and renders the Current export (groups serialized to JSON, sorted and url-resolved) plus a read-only Previous textarea per snapshot; the Import textarea + button parse pasted JSON to restore groups, swallowing malformed JSON, then call onComplete to return Home. Pure logic lives in utils/importExport; also covered by the import-export-backup application scenario.",
@@ -149,6 +167,15 @@
     "filePath": "src/lib/components/Tabs/Tabs.jsx",
     "name": "Tabs",
     "testFile": "src/lib/components/Tabs/Tabs.test.jsx"
+  },
+  {
+    "description": "Sidebar light/dark toggle button: shows the moon glyph in light mode (click switches to dark) and the sun glyph in dark mode (click switches to light). Theme and toggle handler are owned by the parent.",
+    "filePath": "src/lib/components/ThemeToggle/ThemeToggle.jsx",
+    "name": "ThemeToggle",
+    "scenarios": [
+      "themetoggle-light",
+      "themetoggle-dark"
+    ]
   },
   {
     "description": "A single tab/url row: shows favicon + title (derived from urlKey when untitled), a process-load indicator (level + bar width from averaged CPU/memory), and a hover action row (pin/keep-open, edit, delete, close) wired to chrome.tabs and Chrome storage.",
@@ -288,6 +315,12 @@
       "justification": "synthetic event factory — object literal spread with no branching",
       "kind": "trivial-wrapper"
     }
+  },
+  {
+    "description": "Derives a deterministic favicon fallback monogram for a url row: the first visible letter (scheme/www. stripped, title preferred, '?' when empty) and a palette color chosen by hashing the url, so the same site always gets the same tile.",
+    "filePath": "src/lib/utils/faviconMonogram.js",
+    "name": "faviconMonogram",
+    "testFile": "src/lib/utils/faviconMonogram.test.js"
   },
   {
     "description": "Pure fill math for the LoadMeter gauge, factored out of the SVG-mutation effect so it is testable without a DOM. Given a measured value, the arc base floor and max ceiling, returns the percent of segments that stay EMPTY (100 - filledFraction*100); a fuller gauge returns a smaller number. Intentionally un-clamped to mirror the reference.",
@@ -617,6 +650,12 @@
       "metrics"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "React hook owning the light/dark theme: keeps the active theme in state and mirrors it to the document element's data-theme attribute, which the CSS token layer keys off so the whole UI re-themes from one place. Returns [theme, toggleTheme].",
+    "filePath": "src/lib/hooks/useTheme.js",
+    "name": "useTheme",
+    "testFile": "src/lib/hooks/useTheme.test.jsx"
   },
   {
     "description": "Predicate that excludes empty and browser-internal tabs (chrome://, devtools://, chrome-extension://) from tracking.",

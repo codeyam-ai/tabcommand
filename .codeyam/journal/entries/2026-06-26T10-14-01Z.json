@@ -1,0 +1,643 @@
+{
+  "timestamp": "2026-06-26T10:14:01Z",
+  "title": "Visual Redesign — Light/Dark Theme & Layout",
+  "type": "feature",
+  "userRequest": "# Visual Redesign — Light/Dark Theme & Layout\n\nPrototyped a move toward two new design mockups (`lighttabcommand.png` and\n`darktabcommand.png`), starting from the structural/foundational layer (colors,\nsidebar widths, spacing) and iterating outward based on live feedback. The work\nwas deliberately scoped to layout + theming + per-row affordances; the right-rail\ncontent restyle and the sidebar gauge legend / \"Getting busy\" status card were\nexplicitly **deferred** (not done this session).\n\n## Theme token system (new)\n\nIntroduced a CSS custom-property theme layer in `src/index.css`:\n\n- A light `:root` palette: neutral warm-gray surfaces (`--app-bg #f1f1f2`,\n  `--sidebar-bg`/`--rail-bg #f4f4f5`), white group cards (`--card-bg #ffffff`),\n  text tokens, border/search/gauge tokens, brand wordmark colors\n  (`--brand-tab`, `--brand-command #e05a3b`), elevation (`--shadow-card`),\n  shape (`--radius-card`), and layout dims (`--sidebar-width 260px`,\n  `--rail-width 320px`, `--gap 16px`, `--content-pad 20px`).\n- A `[data-theme=\"dark\"]` block overriding the surface/text/line tokens with the\n  dark mockup's near-black surfaces (`#0e0e10` / `#090909`), dark cards\n  (`#1b1b1d`), and lighter text — layout dims shared.\n\nComponents were migrated off raw hex onto these tokens so the whole UI re-themes\nfrom one place.\n\n## Layout (structural)\n\n- `src/lib/pages/App/App.{jsx,css}`: converted the float/percentage layout to\n  flexbox. `.App` is a flex row; left sidebar and right rail are **fixed width**\n  (260px / 320px) and the center flexes. Home content wrapped in a new\n  `.App-home` flex row (`<Labels />` then `<Tabs />`). `body`/surfaces use theme\n  tokens.\n- `src/lib/components/Labels/Labels.{jsx,css}`: center grid is flexible; cards\n  lay out in a **2-column** grid (was 3) via `chunkLength` default `2` and a\n  simplified media-query mapping (2 cols ≥900px, 1 col below). Added a\n  `.Labels-header` row (Add-group pill + \"All Groups\" label) with extra spacing\n  and a visible bottom divider.\n- `src/lib/components/Tabs/Tabs.css`: right rail converted to fixed width + theme\n  surfaces; section header bars restyled from dark-gray bars to light uppercase\n  muted labels with a bottom border.\n\n## Group cards\n\n- `src/lib/components/LabelCollection/{jsx,css}`: white card body, theme border +\n  shadow, `--radius-card`. Card width via `flex: 1 1 calc(50% - gap/2)` so a lone\n  card takes half-width. Header made **compact + left-aligned** with a **count\n  badge** (translucent pill showing `urlKeys.length`) and the menu button; tab\n  rows tightened.\n\n## Brand wordmark + theme toggle\n\n- `src/images/icon.svg` (new): extracted the 4-color TabCommand mark from\n  `logo.svg` (the original logo's wordmark text was light-gray, built for the old\n  dark sidebar).\n- `App.jsx`: replaced the `logo.svg` `<img>` with the colored `icon.svg` + a\n  \"TabCommand\" text wordmark (`Tab` in `--brand-tab`, `Command` in\n  `--brand-command`). Removed the unused `logo` import.\n- Theme toggle: added `theme` state that sets `document.documentElement.dataset.theme`,\n  a `toggleTheme` handler, and a button in a new `.App-sidebar-header` row —\n  aligned with the logo at the **far-right edge of the left panel**. Uses inline\n  **sun/moon** SVG glyphs (`MoonIcon` in light mode → switch to dark, `SunIcon`\n  in dark mode → switch to light); Ant's icon set has no sun/moon.\n\n## Tab rows (`Url`)\n\n- `src/lib/components/Url/{jsx,css}`:\n  - **Persistent gray ✕** on the far right of every row to remove it\n    (`removeHandler = onRemove || (closed ? handleRemove : handleClose)`,\n    shown whenever there's something to remove). The redundant remove/close\n    icons were dropped from the hover action row, which now holds only pin +\n    edit (edit stays hover-only to preserve existing behavior/tests).\n  - **Favicon fallback** replaced the dated `defaultFavicon.png` blue-circle-x\n    placeholder with a **colored monogram tile** (first letter, color chosen\n    deterministically per-url from an 8-color palette). Also triggers on\n    `<img onError>` so broken favicon URLs degrade gracefully. Removed the\n    `defaultFavicon` import; initial favicon state is now `''`.\n  - Row title gradient text-fill changed from hardcoded `black` to\n    `var(--text-primary)` (fixed a dark-mode bug where titles vanished).\n\n## Scenario seed data\n\n- `.codeyam/scenarios/home-grouped.json`: populated the empty `favicon` fields\n  for all seeded URLs with Google favicon-service URLs so the grouped preview\n  shows real site icons (GitHub, Figma, Notion, React, MDN, Gmail, Hacker News).\n  Other scenarios (e.g. `home-unorganized`) still have empty favicons and now\n  exercise the monogram fallback.\n\n## Tests\n\n- `src/lib/components/Url/Url.test.jsx`: updated the favicon test to seed a real\n  favicon URL (asserts `<img>` renders, no fallback) and added a new test\n  asserting the monogram fallback (`.Url-favFallback`, letter `Q`) when a url has\n  no favicon. All 9 Url tests pass. The hover test (edit appears only on hover)\n  still holds.\n\n## Verified live\n\nCaptured across light + dark (toggle click) and the grouped / unorganized /\nempty states. Confirmed: flex layout + fixed sidebars, 2-column grid, neutral\ngrays, white cards with compact colored headers + count badges, wordmark + icon,\nsidebar sun/moon toggle, persistent ✕, real favicons, and monogram fallback.\n\n## Deferred (not done — candidates for follow-up)\n\n- Right-rail content restyle: \"UNGROUPED TABS\" + count + \"Drag onto a group to\n  file it.\", \"AUTOMATICALLY CLOSED\" short subtitle, History footer with arrow,\n  and the dark-mode \"drag me\" (`encourageDrag`) highlight pill that still reads\n  as a light gray pill on dark surfaces.\n- Sidebar gauge legend (CPU/Mem dots + %), the \"Getting busy / Looks good\"\n  status card, and the TABS / GROUPS footer counts.\n- Theme preference persistence (currently in-memory state; not stored to\n  `uxSettings`).",
+  "description": "Deconstructed the prototyped light/dark redesign into reusable units: a faviconMonogram pure function, a useTheme hook, and three components — AppBrand, Favicon, and ThemeToggle — reducing the App sidebar header and the Url favicon to pure composition. Added a faviconMonogram + useTheme unit suite, full isolated-component coverage for the new components across favicon/monogram and light/dark states, and a new Home - Dark Mode app scenario that exercises the theme toggle. Reconciled five redesign-caused test failures so the whole suite is green.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/hooks/_step_metadata.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/editor-pretool-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/editor-step-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-design/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-editor/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-explore/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-new-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-onboard/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-prototype/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-recent-change/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-slice/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/editor-step.json.preserve",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/completed/visual-redesign-light-dark.md",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-grouped.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-collapsed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_components.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/index.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelFormContainer/LabelFormContainer.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Search/Search.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/appbrand-wordmark.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favicon-monogram-fallback.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favicon-monogram-figma.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favicon-real-favicon.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-dark-mode.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-dark--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-dark--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-light--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-light--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/themetoggle-dark.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/themetoggle-light.json",
+      "status": "added"
+    },
+    {
+      "path": "src/images/icon.svg",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/AppBrand/AppBrand.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/AppBrand/AppBrand.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/AppBrand/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Favicon/Favicon.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Favicon/Favicon.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Favicon/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ThemeToggle/ThemeToggle.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ThemeToggle/ThemeToggle.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ThemeToggle/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useTheme.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useTheme.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/faviconMonogram.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/faviconMonogram.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "AppBrand - Wordmark",
+      "screenshotPath": "appbrand-wordmark--desktop.png"
+    },
+    {
+      "name": "Favicon - Monogram Fallback",
+      "screenshotPath": "favicon-monogram-fallback--desktop.png"
+    },
+    {
+      "name": "Favicon - Monogram Figma",
+      "screenshotPath": "favicon-monogram-figma--desktop.png"
+    },
+    {
+      "name": "Favicon - Real Favicon",
+      "screenshotPath": "favicon-real-favicon--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelFormContainer - Collapsed",
+      "screenshotPath": "labelformcontainer-collapsed--desktop.png"
+    },
+    {
+      "name": "LabelFormContainer - Expanded",
+      "screenshotPath": "labelformcontainer-expanded--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "LoadMeter - High Load",
+      "screenshotPath": "loadmeter-high-load--desktop.png"
+    },
+    {
+      "name": "LoadMeter - No Data",
+      "screenshotPath": "loadmeter-no-data--desktop.png"
+    },
+    {
+      "name": "LoadMeter - System Fallback",
+      "screenshotPath": "loadmeter-system-fallback--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "Search - Empty Query",
+      "screenshotPath": "search-empty-query--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    },
+    {
+      "name": "ThemeToggle - Dark",
+      "screenshotPath": "themetoggle-dark--desktop.png"
+    },
+    {
+      "name": "ThemeToggle - Light",
+      "screenshotPath": "themetoggle-light--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 237,
+    "passed": 237,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 237,
+        "passed": 237
+      }
+    ]
+  }
+}

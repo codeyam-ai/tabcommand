@@ -1,0 +1,11 @@
+{
+  "name": "ThemeToggle - Light",
+  "id": "705a29dd-8a92-4593-aa63-b735d44c71ed",
+  "url": "/?isolate=ThemeToggle",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ThemeToggle",
+  "scenarioType": "component"
+}

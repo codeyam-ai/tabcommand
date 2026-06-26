@@ -1,5 +1,8 @@
 export { Tabs } from "./Tabs";
 export { Url } from "./Url";
+export { Favicon } from "./Favicon";
+export { AppBrand } from "./AppBrand";
+export { ThemeToggle } from "./ThemeToggle";
 export { LabelForm } from "./LabelForm";
 export { LabelFormContainer } from "./LabelFormContainer";
 export { LabelCollection } from "./LabelCollection";

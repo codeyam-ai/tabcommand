@@ -707,7 +707,7 @@
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
       "key": "Url › derives the display url from urlKey when there is no title",
-      "line": 46,
+      "line": 59,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -716,7 +716,7 @@
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
       "key": "Url › hides the load indicator when there are no process samples",
-      "line": 90,
+      "line": 103,
       "registeredAt": "2026-06-09T18:53:48.683090+00:00",
       "runner": "tests"
     },
@@ -725,7 +725,7 @@
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
       "key": "Url › renders nothing meaningful without a urlKey",
-      "line": 101,
+      "line": 114,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -743,8 +743,17 @@
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
       "key": "Url › reveals the action row on hover",
-      "line": 108,
+      "line": 121,
       "registeredAt": "2026-06-09T17:34:02Z",
+      "runner": "tests"
+    },
+    {
+      "description": "with no favicon, a colored monogram tile stands in for the missing image",
+      "file": "src/lib/components/Url/Url.test.jsx",
+      "format": "vitest",
+      "key": "Url › shows a monogram fallback when the url has no favicon",
+      "line": 47,
+      "registeredAt": "2026-06-26T01:28:59Z",
       "runner": "tests"
     },
     {
@@ -752,7 +761,7 @@
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
       "key": "Url › shows the excessive load indicator for heavy process stats",
-      "line": 54,
+      "line": 67,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -761,7 +770,7 @@
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
       "key": "Url › shows the low load indicator for light process stats",
-      "line": 78,
+      "line": 91,
       "registeredAt": "2026-06-09T18:53:42.309150+00:00",
       "runner": "tests"
     },
@@ -770,7 +779,7 @@
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
       "key": "Url › shows the medium load indicator for moderate process stats",
-      "line": 66,
+      "line": 79,
       "registeredAt": "2026-06-09T18:53:33.858215+00:00",
       "runner": "tests"
     },
@@ -1330,6 +1339,78 @@
       "key": "deriveUrlLabels › returns each label containing the urlKey",
       "line": 12,
       "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "falls back to the url when there is no title",
+      "file": "src/lib/utils/faviconMonogram.test.js",
+      "format": "vitest",
+      "key": "faviconMonogram › derives the letter from the url when the title is empty",
+      "line": 11,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "called with no arguments at all, still returns the placeholder safely",
+      "file": "src/lib/utils/faviconMonogram.test.js",
+      "format": "vitest",
+      "key": "faviconMonogram › handles missing arguments without throwing",
+      "line": 26,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the color comes from the fixed palette",
+      "file": "src/lib/utils/faviconMonogram.test.js",
+      "format": "vitest",
+      "key": "faviconMonogram › returns a color from the palette",
+      "line": 38,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "empty url and title yield the question-mark placeholder",
+      "file": "src/lib/utils/faviconMonogram.test.js",
+      "format": "vitest",
+      "key": "faviconMonogram › returns a question mark when there is nothing to use",
+      "line": 21,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the color is deterministic: the same url always maps to the same palette color",
+      "file": "src/lib/utils/faviconMonogram.test.js",
+      "format": "vitest",
+      "key": "faviconMonogram › returns a stable color for the same url",
+      "line": 31,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "different urls can produce different colors",
+      "file": "src/lib/utils/faviconMonogram.test.js",
+      "format": "vitest",
+      "key": "faviconMonogram › spreads different urls across the palette",
+      "line": 44,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "strips the scheme and a leading www. before taking the first letter",
+      "file": "src/lib/utils/faviconMonogram.test.js",
+      "format": "vitest",
+      "key": "faviconMonogram › strips the scheme and www. prefix from the url",
+      "line": 16,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "prefers the title and returns its first letter uppercased",
+      "file": "src/lib/utils/faviconMonogram.test.js",
+      "format": "vitest",
+      "key": "faviconMonogram › uses the first letter of the title, uppercased",
+      "line": 6,
+      "registeredAt": "2026-06-26T01:28:59Z",
       "runner": "tests"
     },
     {
@@ -2014,6 +2095,42 @@
       "key": "summarizeProcessLoad › returns null when there are no samples",
       "line": 6,
       "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "defaults to light and mirrors it onto the document element",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › defaults to light and sets data-theme on the document",
+      "line": 11,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an explicit initial theme is honored",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › honors an explicit initial theme",
+      "line": 18,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "toggling twice returns to the original theme",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › toggles back to light after two flips",
+      "line": 33,
+      "registeredAt": "2026-06-26T01:28:59Z",
+      "runner": "tests"
+    },
+    {
+      "description": "toggling flips light to dark and updates the document attribute",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › toggles from light to dark",
+      "line": 25,
+      "registeredAt": "2026-06-26T01:28:59Z",
       "runner": "tests"
     }
   ],

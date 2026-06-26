@@ -32,14 +32,27 @@ describe('Url', () => {
     window.localStorage.clear();
   });
 
-  // renders the stored title and a favicon image
+  // renders the stored title and a favicon image when the url has a favicon
   it('renders the title and favicon for a seeded url', async () => {
-    seed('url-https://react.dev/learn', { title: 'Quick Start – React', favicon: '' });
+    seed('url-https://react.dev/learn', { title: 'Quick Start – React', favicon: 'https://react.dev/favicon.ico' });
     installChromeShim();
     const { container } = render(<Url urlKey="url-https://react.dev/learn" />);
 
     expect(await screen.findByText('Quick Start – React')).toBeInTheDocument();
     expect(container.querySelector('.Url-title img')).toBeInTheDocument();
+    expect(container.querySelector('.Url-favFallback')).not.toBeInTheDocument();
+  });
+
+  // with no favicon, a colored monogram tile stands in for the missing image
+  it('shows a monogram fallback when the url has no favicon', async () => {
+    seed('url-https://react.dev/learn', { title: 'Quick Start – React', favicon: '' });
+    installChromeShim();
+    const { container } = render(<Url urlKey="url-https://react.dev/learn" />);
+
+    await screen.findByText('Quick Start – React');
+    expect(container.querySelector('.Url-favFallback')).toBeInTheDocument();
+    expect(container.querySelector('.Url-favFallback').textContent).toBe('Q');
+    expect(container.querySelector('.Url-title img')).not.toBeInTheDocument();
   });
 
   // with no stored title, the display falls back to the url derived from urlKey

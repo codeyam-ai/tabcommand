@@ -1,0 +1,11 @@
+{
+  "name": "Favicon - Monogram Fallback",
+  "id": "80119a25-dbc5-4114-92b3-6d239631274e",
+  "url": "/?isolate=Favicon&variant=monogram",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "Favicon",
+  "scenarioType": "component"
+}

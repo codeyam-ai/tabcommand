@@ -74,7 +74,7 @@ describe('LabelCollection', () => {
     seed('url-b', { title: 'Beta', favicon: '' });
     installChromeShim();
 
-    // expanded forces the per-url action icons (incl. Remove From Group) to render
+    // expanded forces the per-url action icons (incl. the persistent ✕) to render
     const { container } = renderCollection({
       title: 'Work',
       backgroundColor: '#1873E4',
@@ -84,7 +84,7 @@ describe('LabelCollection', () => {
 
     await screen.findByText('Alpha');
 
-    const removeButtons = container.querySelectorAll('[data-tool-tip="Remove From Group"]');
+    const removeButtons = container.querySelectorAll('[data-tool-tip="Remove"]');
     // urlKeys are rendered in order → first remove button targets url-a
     await userEvent.click(removeButtons[0]);
 

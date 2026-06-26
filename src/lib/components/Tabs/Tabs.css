@@ -1,33 +1,14 @@
 .Tabs {
-  float: right;
-  width: 20%;
+  width: var(--rail-width);
+  flex-shrink: 0;
   height: 100%;
-  overflow-y: scroll;
-  background-color: white;
-  background-color: #f3f3f3;
-  -webkit-box-shadow: -2px 2px 4px 0px rgb(0 0 0 / 10%);
-  box-shadow: -2px 2px 4px 0px rgb(0 0 0 / 10%);
+  overflow-y: auto;
+  background-color: var(--rail-bg);
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-}
-
-@media only screen and (max-width: 1275px) {
-  .Tabs {
-    width: 28%;
-  }
-}
-
-@media only screen and (max-width: 1100px) {
-  .Tabs {
-    width: 32%;
-  }
-}
-
-@media only screen and (max-width: 950px) {
-  .Tabs {
-    width: 43%;
-  }
+  box-sizing: border-box;
 }
 
 .Tabs-section {
@@ -49,10 +30,14 @@
 }
 
 .Tabs-section > h3.Tabs-section-title {
-  background-color: #4c4c4c;
-  color: white;
-  padding: 12px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 16px 16px 8px 16px;
   margin: 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .Tabs-section > h3.Tabs-section-title .anticon {
@@ -73,19 +58,19 @@
 .Tabs-section-explainer {
   text-align: center;
   padding: 45px 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .Tabs-active {
-  background-color: white;
+  background-color: var(--rail-bg);
 }
 
 .Tabs-autoClosed {
-  background-color: #ececec;
+  background-color: var(--rail-bg);
 }
 
 .Tabs-closed {
-  background-color: #e4e4e4;
+  background-color: var(--rail-bg);
 }
 
 .Tabs-closed.Tabs-section-collapsed .Tabs-section-urls {

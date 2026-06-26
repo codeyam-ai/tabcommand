@@ -1,12 +1,14 @@
 .LabelCollection {
-  width: 30%;
-  margin: 15px 0 15px 3%;
-  background-color: #ececec;
-  border-radius: 12px;
+  flex: 1 1 calc(50% - (var(--gap) / 2));
+  max-width: calc(50% - (var(--gap) / 2));
+  min-width: 0;
+  margin: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
   position: relative;
-  /* overflow-x: hidden; */
-  -webkit-box-shadow: 2px 2px 8px 0px rgb(0 0 0 / 10%);
-  box-shadow: -2px 2px 8px 0px rgb(0 0 0 / 10%);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
 }
@@ -18,23 +20,24 @@
 }
 
 .LabelCollection .LabelCollection-urls.UrlOver {
-  background-color: #fcfcfc;
+  background-color: var(--app-bg);
 }
 
 .LabelCollection-urls-active {
-  background-color: #fcfcfc;
-  padding: 12px;
+  background-color: var(--card-bg);
+  padding: 8px;
   overflow: hidden;
 }
 
 .LabelCollection-urls-inactive {
-  padding: 12px;
+  padding: 8px;
   overflow: hidden;
 }
 
 .LabelCollections-selected .LabelCollection {
   min-height: 300px;
-  width: 96%;
+  flex-basis: 100%;
+  max-width: 100%;
 }
 
 .LabelCollections-selected .LabelCollection .LabelCollection-urls {
@@ -48,25 +51,49 @@
 }
 
 .LabelCollection-title {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  border-bottom: 1px solid #ccc;
-  padding: 12px;
-  text-align: center;
-  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top-left-radius: var(--radius-card);
+  border-top-right-radius: var(--radius-card);
+  padding: 8px 12px;
+  color: var(--card-header-text);
   cursor: pointer;
 }
 
 .LabelCollection-title h3 {
-  margin: 0 0 0 24px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Count badge — translucent pill echoing the mockup's circular count. */
+.LabelCollection-count {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.28);
+  color: var(--card-header-text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
 }
 
 .LabelCollection-menuButton {
-  float: right;
-  padding: 0 3px;
+  flex-shrink: 0;
+  padding: 0 2px;
   cursor: pointer;
-  color: white;
-  font-size: 18px;
+  color: var(--card-header-text);
+  font-size: 16px;
+  opacity: 0.85;
 }
 
 .LabelCollection-overUrl {

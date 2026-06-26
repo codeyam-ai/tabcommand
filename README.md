@@ -114,3 +114,58 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full workflow.
 ## License
 
 [MIT](./LICENSE) © 2026 NodLabs Inc.
+
+<!-- codeyam:run-and-edit:start -->
+## Develop this project with codeyam-editor
+
+This project is built with [codeyam-editor](https://codeyam.com) — code and runnable data scenarios are authored side by side against a live preview.
+
+```bash
+# Launch the editor (split-screen terminal + live preview)
+codeyam-editor editor
+
+# Run the app
+npm run dev
+
+# Run the tests
+npx vitest run
+```
+<!-- codeyam:run-and-edit:end -->
+
+<!-- codeyam:scenario-gallery:start -->
+## Scenario gallery
+
+States captured as runnable scenarios with codeyam-editor:
+
+### AppBrand - Wordmark
+
+![AppBrand - Wordmark](.codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png)
+
+### Favicon - Monogram Fallback
+
+![Favicon - Monogram Fallback](.codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png)
+
+### Favicon - Monogram Figma
+
+![Favicon - Monogram Figma](.codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png)
+
+### Favicon - Real Favicon
+
+![Favicon - Real Favicon](.codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png)
+
+### Home - Dark Mode
+
+![Home - Dark Mode](.codeyam/scenarios/screenshots/home-dark-mode--desktop.png)
+
+### Home - Empty
+
+![Home - Empty](.codeyam/scenarios/screenshots/home-empty--desktop.png)
+
+### Home - Grouped
+
+![Home - Grouped](.codeyam/scenarios/screenshots/home-grouped--desktop.png)
+
+### Home - Overflowing Tabs
+
+![Home - Overflowing Tabs](.codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png)
+<!-- codeyam:scenario-gallery:end -->
