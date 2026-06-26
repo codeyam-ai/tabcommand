@@ -9,7 +9,7 @@ Only fires when CODEYAM_EDITOR_ACTIVE=1 (set by terminal.rs in editor PTY sessio
 
 Step labels, descriptions, and restrictions are loaded from
 .codeyam/cache/step-metadata.json, which is regenerated from
-crates/types/src/step.rs by `codeyam-editor-dev editor verify-build`. The
+crates/types/src/step.rs by `codeyam-editor editor verify-build`. The
 cache is the single source of truth — do not embed step tables here.
 If the cache is missing or unreadable, the hook degrades to a
 label-less reminder rather than serving stale literals.

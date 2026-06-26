@@ -1,0 +1,24 @@
+.App-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 16px 6px 16px;
+  cursor: pointer;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.App-brand-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.App-brand-tab {
+  color: var(--brand-tab);
+}
+
+.App-brand-command {
+  color: var(--brand-command);
+}

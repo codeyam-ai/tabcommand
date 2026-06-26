@@ -1,0 +1,21 @@
+/* Light/dark toggle, aligned with the logo at the right edge of the sidebar. */
+.App-themeToggle {
+  margin-left: auto;
+  margin-right: 14px;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.App-themeToggle:hover {
+  color: var(--text-primary);
+}

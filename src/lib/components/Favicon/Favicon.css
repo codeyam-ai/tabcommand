@@ -1,0 +1,27 @@
+.Url-favicon {
+  height: 18px;
+  width: 18px;
+  vertical-align: bottom;
+  margin-right: 5px;
+  border-radius: 4px;
+}
+
+/* Monogram fallback when a site has no (or a broken) favicon. */
+.Url-favFallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  border-radius: 5px;
+  vertical-align: bottom;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  /* The row title clips text to a transparent gradient fill; the monogram letter
+     must opt back out so it stays visible. */
+  -webkit-text-fill-color: #fff;
+}

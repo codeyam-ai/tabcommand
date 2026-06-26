@@ -1,0 +1,11 @@
+{
+  "name": "Favicon - Real Favicon",
+  "id": "f865ae77-c196-4132-af63-8b2ac7c25501",
+  "url": "/?isolate=Favicon",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "Favicon",
+  "scenarioType": "component"
+}

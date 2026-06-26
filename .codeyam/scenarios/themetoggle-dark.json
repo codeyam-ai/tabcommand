@@ -1,0 +1,11 @@
+{
+  "name": "ThemeToggle - Dark",
+  "id": "6112a5fe-b248-4623-a286-7630f0264940",
+  "url": "/?isolate=ThemeToggle&variant=dark",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ThemeToggle",
+  "scenarioType": "component"
+}

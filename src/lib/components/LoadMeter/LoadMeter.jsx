@@ -85,7 +85,11 @@ const LoadMeter = () => {
       { color: '#81DE7D', pos: 0.75 },
       { color: '#00D1C5', pos: 1 }
     ];
-    const defaultColor = '#243156';
+    // Empty-arc track color follows the theme token so the gauge reads correctly
+    // on either a light or dark sidebar; falls back to the original navy.
+    const defaultColor =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--gauge-track').trim() || '#243156';
 
     ["memory", "cpu"].forEach((id) => {
       const svg = document.getElementById(id);

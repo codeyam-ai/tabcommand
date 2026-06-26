@@ -1,7 +1,7 @@
 import './App.css';
 
 import React, { useEffect, useState } from 'react';
-import { Tabs, Labels, LoadMeter, Search } from '../../components';
+import { Tabs, Labels, LoadMeter, Search, AppBrand, ThemeToggle } from '../../components';
 import { Load } from '../Load';
 import { ImportExport } from '../ImportExport';
 import { UrlDetails } from '../UrlDetails';
@@ -9,12 +9,13 @@ import { ItemTypes, Pages } from '../../../Constants';
 
 import { DragDropContext } from '@hello-pangea/dnd';
 
-import logo from '../../../images/logo.svg';
 import { Chrome } from '../../utils/Chrome';
 import { applyDrag } from '../../utils/dragReducer';
+import { useTheme } from '../../hooks/useTheme';
 
 const App = () => {
   const [page, setPage] = useState({ name: Pages.HOME });
+  const [theme, toggleTheme] = useTheme();
 
   useEffect(() => {
     Chrome.get('App1', 'uxSettings', ({ uxSettings }) => {
@@ -77,12 +78,10 @@ const App = () => {
   return (
     <div className="App">
       <div className="App-sidebar">
-        <img
-          src={logo}
-          className="App-logo"
-          alt="TabCommand"
-          onClick={() => changePage(Pages.HOME)}
-        />
+        <div className="App-sidebar-header">
+          <AppBrand onClick={() => changePage(Pages.HOME)} />
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        </div>
         <Search />
 
         <div onClick={() => changePage(Pages.LOAD)}>
@@ -110,8 +109,10 @@ const App = () => {
         }
         {page.name === Pages.HOME &&
           <DragDropContext onDragEnd={handleDrag} onDragStart={handleDragStart}>
-            <Tabs />
-            <Labels />
+            <div className="App-home">
+              <Labels />
+              <Tabs />
+            </div>
           </DragDropContext>
         }
       </div>

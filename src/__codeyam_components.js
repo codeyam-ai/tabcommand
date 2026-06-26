@@ -1,3 +1,5 @@
+import AppBrand from "./lib/components/AppBrand/AppBrand";
+import Favicon from "./lib/components/Favicon/Favicon";
 import LabelCollection from "./lib/components/LabelCollection/LabelCollection";
 import LabelForm from "./lib/components/LabelForm/LabelForm";
 import LabelFormContainer from "./lib/components/LabelFormContainer/LabelFormContainer";
@@ -10,11 +12,14 @@ import LoadUrl from "./lib/components/LoadUrl/LoadUrl";
 import Search from "./lib/components/Search/Search";
 import SearchResults from "./lib/components/SearchResults/SearchResults";
 import Tabs from "./lib/components/Tabs/Tabs";
+import ThemeToggle from "./lib/components/ThemeToggle/ThemeToggle";
 import Url from "./lib/components/Url/Url";
 import UrlField from "./lib/components/UrlField/UrlField";
 import UrlLabel from "./lib/components/UrlLabel/UrlLabel";
 
 export const components = {
+  AppBrand: AppBrand,
+  Favicon: Favicon,
   LabelCollection: LabelCollection,
   LabelForm: LabelForm,
   LabelFormContainer: LabelFormContainer,
@@ -27,6 +32,7 @@ export const components = {
   Search: Search,
   SearchResults: SearchResults,
   Tabs: Tabs,
+  ThemeToggle: ThemeToggle,
   Url: Url,
   UrlField: UrlField,
   UrlLabel: UrlLabel,

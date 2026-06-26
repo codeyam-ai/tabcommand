@@ -1,3 +1,72 @@
+/* ── TabCommand theme tokens ───────────────────────────────────────────────
+   Structural palette, spacing and layout dimensions. Light is the default;
+   dark mode later is just a matter of overriding these under
+   `[data-theme="dark"]`. Components should reference these vars, never raw
+   hex, so the whole UI re-themes from one place. */
+:root {
+  /* Surfaces — neutral light grays for all three panels, white group cards */
+  --app-bg: #f1f1f2;          /* center content backdrop */
+  --sidebar-bg: #f4f4f5;      /* left sidebar */
+  --rail-bg: #f4f4f5;         /* right tab rail */
+  --card-bg: #ffffff;         /* group card body */
+
+  /* Text */
+  --text-primary: #2b2b2d;
+  --text-secondary: #8a8a8f;
+  --text-muted: #a6a6ab;
+  --card-header-text: #ffffff;
+
+  /* Brand wordmark */
+  --brand-tab: #2b2b2d;
+  --brand-command: #e05a3b;
+
+  /* Lines & inputs */
+  --border: #e4e4e6;
+  --search-bg: #ffffff;
+  --search-border: #e2e2e4;
+  --search-text: #2b2b2d;
+  --search-placeholder: #a6a6ab;
+
+  /* Gauge */
+  --gauge-track: #e4e4e6;
+
+  /* Elevation & shape */
+  --shadow-card: 0 1px 3px rgba(20, 24, 40, 0.08), 0 1px 2px rgba(20, 24, 40, 0.04);
+  --radius-card: 10px;
+
+  /* Layout dimensions */
+  --sidebar-width: 260px;
+  --rail-width: 320px;
+  --gap: 16px;
+  --content-pad: 20px;
+}
+
+/* Dark theme — flips the surface/text/line tokens; layout dims are shared. */
+[data-theme="dark"] {
+  --app-bg: #0e0e10;
+  --sidebar-bg: #090909;
+  --rail-bg: #0e0e10;
+  --card-bg: #1b1b1d;
+
+  --text-primary: #f3f3f4;
+  --text-secondary: #8a8a8f;
+  --text-muted: #6c6c72;
+  --card-header-text: #ffffff;
+
+  --brand-tab: #f3f3f4;
+  --brand-command: #e0653b;
+
+  --border: #2a2a2d;
+  --search-bg: #1b1b1d;
+  --search-border: #2a2a2d;
+  --search-text: #f3f3f4;
+  --search-placeholder: #6c6c72;
+
+  --gauge-track: #2a2a2d;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

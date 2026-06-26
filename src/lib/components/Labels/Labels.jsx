@@ -12,7 +12,7 @@ const Labels = () => {
     loading: true,
     labels: [],
     selectedLabel: null,
-    chunkLength: 3
+    chunkLength: 2
   });
 
   const setPartialState = (updates) => {
@@ -123,14 +123,15 @@ const Labels = () => {
   useLayoutEffect(() => {
     if (!window.matchMedia) return;
 
+    // Two columns at comfortable widths (matching the target layout), collapsing
+    // to a single column once the center pane gets narrow.
     const queries = [
-      "(min-width: 1275px)",
-      "(max-width: 1275px)",
-      "(max-width: 950px)"
+      "(min-width: 900px)",
+      "(max-width: 900px)"
     ];
     const handleMediaChange = (e) => {
       const index = queries.indexOf(e.media);
-      if (e.matches) setPartialState({ chunkLength: 3 - index });
+      if (e.matches) setPartialState({ chunkLength: index === 0 ? 2 : 1 });
     };
 
     for (const query of queries) {
@@ -165,7 +166,10 @@ const Labels = () => {
 
   return (
     <div id="Labels" className="Labels" ref={labelsRef}>
-      <LabelFormContainer />
+      <div className="Labels-header">
+        <LabelFormContainer />
+        <span className="Labels-header-all">All Groups</span>
+      </div>
       <div className="LabelCollections">
         {(!loading && (!sortedLabels || !sortedLabels.length) && !selectedLabel) &&
           <div className='Labels-none'>

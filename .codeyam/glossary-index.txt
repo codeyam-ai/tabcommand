@@ -1,7 +1,9 @@
-# regenerated from glossary.json on 2026-06-25T19:12:22Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-26T01:33:18Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
+AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 CodeyamIsolate :: src/__codeyam_isolate.jsx :: tags=
+Favicon :: src/lib/components/Favicon/Favicon.jsx :: tags=
 ImportExport :: src/lib/pages/ImportExport/ImportExport.jsx :: tags= :: test=src/lib/pages/ImportExport/ImportExport.test.jsx
 IsolationErrorBoundary :: src/__codeyam_isolate.jsx :: tags=
 KeyDown :: src/lib/utils/KeyDown.js :: tags= :: test=src/lib/utils/KeyDown.test.js
@@ -18,6 +20,7 @@ LoadUrl :: src/lib/components/LoadUrl/LoadUrl.jsx :: tags= :: test=src/lib/compo
 Search :: src/lib/components/Search/Search.jsx :: tags= :: test=src/lib/components/Search/Search.test.jsx
 SearchResults :: src/lib/components/SearchResults/SearchResults.jsx :: tags= :: test=src/lib/components/SearchResults/SearchResults.test.jsx
 Tabs :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
+ThemeToggle :: src/lib/components/ThemeToggle/ThemeToggle.jsx :: tags=
 Url :: src/lib/components/Url/Url.jsx :: tags= :: test=src/lib/components/Url/Url.test.jsx
 UrlDetails :: src/lib/pages/UrlDetails/UrlDetails.jsx :: tags= :: test=src/lib/pages/UrlDetails/UrlDetails.test.jsx
 UrlField :: src/lib/components/UrlField/UrlField.jsx :: tags= :: test=src/lib/components/UrlField/UrlField.test.jsx
@@ -37,6 +40,7 @@ deriveGaugeTotals :: src/lib/utils/deriveGaugeTotals.js :: tags= :: test=src/lib
 deriveSystemTotals :: src/lib/utils/deriveSystemTotals.js :: tags= :: test=src/lib/utils/deriveSystemTotals.test.js
 deriveUrlLabels :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDetails.test.js
 event :: src/lib/utils/event.js :: tags=
+faviconMonogram :: src/lib/utils/faviconMonogram.js :: tags= :: test=src/lib/utils/faviconMonogram.test.js
 gaugeFillPercent :: src/lib/utils/gaugeFillPercent.js :: tags= :: test=src/lib/utils/gaugeFillPercent.test.js
 getLocalStorage :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 getSystemCpuInfo :: service_worker.js :: tags=
@@ -74,4 +78,5 @@ update :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=servi
 updateActiveTabs :: service_worker.js :: tags=worker,ported-verbatim,tabs,storage :: test=service_worker.test.js
 updateTotals :: service_worker.js :: tags=worker,ported-verbatim,metrics :: test=service_worker.test.js
 urlUpdates :: service_worker.js :: tags=worker,ported-verbatim,metrics :: test=service_worker.test.js
+useTheme :: src/lib/hooks/useTheme.js :: tags= :: test=src/lib/hooks/useTheme.test.jsx
 validTab :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js

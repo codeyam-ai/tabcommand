@@ -173,8 +173,9 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
         {...provided.dragHandleProps}
         onClick={pin}
       >
-        <MenuOutlined className='LabelCollection-menuButton' onClick={toggleMenu} />
         <h3>{currentTitle || title}</h3>
+        <span className='LabelCollection-count'>{(currentUrlKeys || []).length}</span>
+        <MenuOutlined className='LabelCollection-menuButton' onClick={toggleMenu} />
       </div>
 
       <Droppable

@@ -1,14 +1,14 @@
 {
   "step": 25,
-  "feature": "Browser Load Gauge: Stable-Chrome Fallback",
-  "startedAt": "2026-06-25T20:00:44Z",
-  "featureStartedAt": "2026-06-25T18:16:45Z",
+  "feature": "Visual Redesign — Light/Dark Theme & Layout",
+  "startedAt": "2026-06-26T10:28:09Z",
+  "featureStartedAt": "2026-06-26T01:20:52Z",
   "mode": "ui",
   "waiting": false,
-  "selectedPlan": "browser-load-gauge-stable-chrome-fallback",
+  "selectedPlan": "visual-redesign-light-dark",
   "slug": "feature-complete",
-  "holderSessionId": "b1d458b7-b43f-46b6-bb47-edbae77f657b",
-  "holderPid": 81606,
-  "holderAcquiredAt": "2026-06-25T20:00:43.327690+00:00",
-  "version": 26863
+  "holderSessionId": "9c734ca9-f7ca-4940-842c-3959632f5834",
+  "holderPid": 40552,
+  "holderAcquiredAt": "2026-06-26T10:28:08.573806+00:00",
+  "version": 19249
 }

@@ -1,6 +1,6 @@
 {
-  "feature": "browser-load-gauge-stable-chrome-fallback",
+  "feature": "visual-redesign-light-dark",
   "maxStep": 25,
-  "version": 26944,
-  "updatedAt": "2026-06-25T20:01:00.961778+00:00"
+  "version": 19308,
+  "updatedAt": "2026-06-26T10:28:20.921280+00:00"
 }

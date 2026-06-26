@@ -1,3 +1,11 @@
 .LoadMeter {
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.LoadMeter svg {
+  display: block;
 }

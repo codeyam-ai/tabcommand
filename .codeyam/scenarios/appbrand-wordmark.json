@@ -1,0 +1,11 @@
+{
+  "name": "AppBrand - Wordmark",
+  "id": "30ce83d5-9713-42c2-a1ab-3f1393256c1a",
+  "url": "/?isolate=AppBrand",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "AppBrand",
+  "scenarioType": "component"
+}

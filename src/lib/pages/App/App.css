@@ -6,21 +6,35 @@ body,
 }
 
 body {
-  background-color: white;
+  background-color: var(--app-bg);
+  color: var(--text-primary);
   font-family: "Roboto", sans-serif;
 }
 
 .App {
   height: 100%;
   min-height: 100vh;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  position: relative;
+}
+
+/* Sidebar header: logo on the left, theme toggle pinned to the far right. */
+.App-sidebar-header {
+  display: flex;
+  align-items: center;
 }
 
 .App-sidebar {
-  width: 200px;
+  width: var(--sidebar-width);
+  flex-shrink: 0;
   height: 100%;
-  background-color: #0b1a42;
-  float: left;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
   position: relative;
+  box-sizing: border-box;
+  padding: 0 0 60px 0;
 }
 
 .App-sidebar .App-logo {
@@ -30,7 +44,7 @@ body {
 
 .App-sidebar .App-tagline {
   font-size: 0.8em;
-  color: white;
+  color: var(--text-secondary);
   text-align: center;
 }
 
@@ -39,14 +53,23 @@ body {
   left: 0;
   bottom: 0;
   height: 60px;
-  color: white;
+  color: var(--text-secondary);
   width: 100%;
   text-align: center;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .App-sidebar-footer .App-sidebar-link {
   cursor: pointer;
   padding: 6px;
+  color: var(--text-secondary);
+}
+
+.App-sidebar-footer .App-sidebar-link:hover {
+  color: var(--text-primary);
 }
 
 #backgroundOverlay {
@@ -61,11 +84,22 @@ body {
 }
 
 .App-content {
+  flex: 1;
+  min-width: 0;
   height: 100%;
   overflow: hidden;
+  background-color: var(--app-bg);
+}
+
+/* Home: flexible center group grid + fixed-width right tab rail. */
+.App-home {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100%;
 }
 
 .App-content .App-comingSoon {
   padding: 48px;
-  color: #0b1a42;
+  color: var(--text-primary);
 }

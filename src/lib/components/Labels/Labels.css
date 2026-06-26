@@ -1,48 +1,42 @@
 .Labels {
-  float: left;
-  padding: 0 2% 30px 0;
-  width: 78%;
+  flex: 1;
+  min-width: 0;
+  padding: var(--content-pad);
   height: 100%;
-  overflow-y: scroll;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
-@media only screen and (max-width: 1275px) {
-  .Labels {
-    width: 70%;
-  }
-
-  .Labels .LabelCollection {
-    width: 48%;
-  }
+.Labels-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 4px 18px 4px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--border);
 }
 
-@media only screen and (max-width: 1100px) {
-  .Labels {
-    width: 66%;
-  }
-}
-
-@media only screen and (max-width: 950px) {
-  .Labels {
-    width: 55%;
-  }
-
-  .Labels .LabelCollection {
-    width: 98%;
-  }
+.Labels-header-all {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .LabelCollections {
   clear: both;
-  /* padding-top: 18px; */
 }
 
 .LabelCollections-row {
   display: flex;
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+  align-items: flex-start;
 }
 
 .Labels .Labels-none {
   text-align: center;
   margin-top: 150px;
   font-size: 15pt;
+  color: var(--text-secondary);
 }

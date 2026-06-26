@@ -2,11 +2,11 @@ import './Url.css';
 
 import React, { useEffect, useState } from 'react';
 
-import defaultFavicon from '../../../images/defaultFavicon.png'
-import { CloseCircleOutlined, DeleteOutlined, PushpinOutlined, PushpinFilled, EditOutlined } from '@ant-design/icons';
+import { CloseOutlined, PushpinOutlined, PushpinFilled, EditOutlined } from '@ant-design/icons';
 import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
 import { summarizeProcessLoad } from '../../utils/processLoad';
+import Favicon from '../Favicon/Favicon';
 
 const Url = ({
   dragRef,
@@ -36,7 +36,7 @@ const Url = ({
 
   const [{ tabId, favicon, title, processStats, tabCommandPinned, hover }, setState] = useState({
     tabId: null,
-    favicon: defaultFavicon,
+    favicon: '',
     title: url(),
     processStats: [],
     tabCommandPinned: false,
@@ -155,6 +155,12 @@ const Url = ({
     })
   };
 
+  // The far-right ✕ removes the row from wherever it lives: out of its group
+  // (onRemove), out of history (handleRemove for a closed url), or it closes the
+  // live tab (handleClose). Always visible, unlike the hover-only pin/edit row.
+  const removeHandler = onRemove || (closed ? handleRemove : handleClose);
+  const showRemove = !!(onRemove || closed || tabId || showClose);
+
   let loadClassName = 'Url-load-hidden';
   let statsWidth = 25;
   const load = summarizeProcessLoad(processStats);
@@ -176,6 +182,17 @@ const Url = ({
       onMouseOver={() => { if (!hover) setPartialState({ hover: true }); }}
       onMouseLeave={() => setPartialState({ hover: false })}
     >
+      {showRemove &&
+        <div
+          className='Url-removeBtn'
+          onClick={removeHandler}
+          data-tool-tip="Remove"
+          title="Remove"
+        >
+          <CloseOutlined className='Url-action-icon' />
+        </div>
+      }
+
       {(showActions || hover || expanded) &&
         <div className='Url-actions'>
           {(tabId && !tabCommandPinned) &&
@@ -193,22 +210,6 @@ const Url = ({
           <div className='Url-action Url-edit' onClick={editUrl} data-tool-tip="Edit/Annotate">
             <EditOutlined className='Url-action-icon' />
           </div>
-
-          {closed &&
-            <div className='Url-action Url-remove' onClick={handleRemove} data-tool-tip="Delete">
-              <DeleteOutlined className='Url-action-icon' />
-            </div>
-          }
-          {onRemove &&
-            <div className='Url-action Url-remove' onClick={onRemove} data-tool-tip="Remove From Group">
-              <DeleteOutlined className='Url-action-icon' />
-            </div>
-          }
-          {(tabId || showClose) &&
-            <div className='Url-action' onClick={handleClose} data-tool-tip="Close">
-              <CloseCircleOutlined className='Url-action-icon' />
-            </div>
-          }
         </div>
       }
 
@@ -228,7 +229,7 @@ const Url = ({
       }
 
       <div className='Url-title'>
-        <img src={favicon || defaultFavicon} />
+        <Favicon favicon={favicon} urlKey={urlKey} title={title} />
         {title || url()}
       </div>
     </div>

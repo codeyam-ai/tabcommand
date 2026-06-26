@@ -35,6 +35,49 @@ import { components } from './__codeyam_components';
 const noop = () => {};
 
 const ISOLATION_PROPS = {
+  // The sidebar wordmark introduced by the visual redesign: the 4-color mark plus
+  // the Tab/Command text wordmark. Single visual state; click is a no-op here.
+  AppBrand: {
+    default: {
+      onClick: noop,
+    },
+  },
+  // The favicon-with-monogram-fallback. Default shows a real favicon; the
+  // monogram variants show the deterministic colored tile that stands in when a
+  // site has no favicon — the new fallback this redesign introduced.
+  Favicon: {
+    default: {
+      favicon: 'https://www.google.com/s2/favicons?domain=github.com&sz=64',
+      urlKey: 'url-https://github.com',
+      title: 'GitHub',
+    },
+    variants: {
+      monogram: {
+        favicon: '',
+        urlKey: 'url-https://news.ycombinator.com',
+        title: 'Hacker News',
+      },
+      'monogram-figma': {
+        favicon: '',
+        urlKey: 'url-https://www.figma.com',
+        title: 'Figma',
+      },
+    },
+  },
+  // The sidebar light/dark toggle. Light shows the moon glyph (click → dark);
+  // dark shows the sun glyph (click → light).
+  ThemeToggle: {
+    default: {
+      theme: 'light',
+      onToggle: noop,
+    },
+    variants: {
+      dark: {
+        theme: 'dark',
+        onToggle: noop,
+      },
+    },
+  },
   Url: {
     default: {
       urlKey: 'url-https://news.ycombinator.com',
