@@ -269,6 +269,18 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "The Closer engine sweep: reads activeTabs/autoClosed/settings, prunes stale entries, then closes every eligible inactive tab via chrome.tabs.remove and records each into the autoClosed map so the Automatically Closed UI updates.",
+    "filePath": "service_worker.js",
+    "name": "autoCloseSweep",
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Resolves the active inactivity threshold in minutes from settings.autoCloseMinutes, falling back to the default when unset and returning 0 when the user has set the Off position.",
+    "filePath": "service_worker.js",
+    "name": "autoCloseThresholdMinutes",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Navigates from the History page back to the Home page by updating uxSettings.page via Chrome storage.",
     "filePath": "src/lib/pages/History/History.jsx",
     "name": "back",
@@ -390,6 +402,12 @@
     "testFile": "src/lib/utils/faviconMonogram.test.js"
   },
   {
+    "description": "Formats the auto-close inactivity threshold in minutes for the Settings control, rendering Off for non-positive values, whole minutes under an hour, or hours with a single decimal only when not whole.",
+    "filePath": "src/lib/utils/formatAutoClose.js",
+    "name": "formatAutoClose",
+    "testFile": "src/lib/utils/formatAutoClose.test.js"
+  },
+  {
     "description": "Pure fill math for the LoadMeter gauge, factored out of the SVG-mutation effect so it is testable without a DOM. Given a measured value, the arc base floor and max ceiling, returns the percent of segments that stay EMPTY (100 - filledFraction*100); a fuller gauge returns a smaller number. Intentionally un-clamped to mirror the reference.",
     "filePath": "src/lib/utils/gaugeFillPercent.js",
     "name": "gaugeFillPercent",
@@ -505,6 +523,12 @@
     "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
   },
   {
+    "description": "Predicate deciding whether an activeTabs entry may be auto-closed: not Chrome-pinned, not tabCommandPinned, not the active tab, and last active at or before the cutoff.",
+    "filePath": "service_worker.js",
+    "name": "isAutoCloseEligible",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Internal shim helper: resolves the callback argument from a variadic action-stub call by returning the last argument when it is a function, else undefined. Lets the no-op tabs/tabGroups stubs accept Chrome's varying (props, cb?) / (id, props, cb?) arities.",
     "filePath": "src/lib/utils/chromeShim/chromeShim.js",
     "name": "lastCallback",
@@ -595,6 +619,12 @@
     "description": "Detects whether the Dev/Canary-only chrome.processes.onUpdatedWithMemory API is present, so the worker can choose the full-fidelity per-tab load path over the stable-Chrome system fallback.",
     "filePath": "service_worker.js",
     "name": "processesApiAvailable",
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Removes auto-closed entries older than the retention window from the autoClosed map in place so the Automatically Closed list does not grow unbounded.",
+    "filePath": "service_worker.js",
+    "name": "pruneAutoClosed",
     "testFile": "service_worker.test.js"
   },
   {

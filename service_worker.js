@@ -17,6 +17,17 @@ const SYSTEM_POLL_INTERVAL_MS = 5000;
 let systemPollTimer = null;
 let previousCpuSample = null;
 
+// Auto-close ("Closer") engine tunables, mirrored from src/Constants.jsx
+// (`AutoCloseMinutes` / `MaxAutoClosedTime`) for the same reason GAUGE is
+// duplicated above: the service-worker runtime can't share the ES module of
+// plain constants. AUTO_CLOSE_MINUTES is the default inactivity threshold used
+// when the user hasn't set `settings.autoCloseMinutes`; MAX_AUTO_CLOSED_TIME is
+// how long a closed entry lingers in the "Automatically Closed" list before the
+// sweep prunes it (the UI filters by the same window).
+const AUTO_CLOSE_MINUTES = 120;
+const MAX_AUTO_CLOSED_TIME = 1000 * 60 * 60 * 24 * 5;
+const AUTO_CLOSE_ALARM = 'auto-close-sweep';
+
 let groups = {};
 function trackGroup(group) {
   groups[parseInt(group.id)] = group.title;
@@ -31,6 +42,16 @@ chrome.tabGroups.query({}, (groups) => {
 });
 
 initLoadSource();
+
+// The Closer: a periodic alarm wakes the (ephemeral MV3) worker once a minute to
+// sweep inactive tabs. Guarded because the test harness's chrome stub omits
+// chrome.alarms; in the packaged extension the "alarms" permission makes it present.
+if (chrome.alarms) {
+  chrome.alarms.create(AUTO_CLOSE_ALARM, { periodInMinutes: 1 });
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm && alarm.name === AUTO_CLOSE_ALARM) autoCloseSweep();
+  });
+}
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (tab.title === "TabCommand") defaultWindowId = tab.windowId;
@@ -203,6 +224,80 @@ async function updateActiveTabs() {
 
       update(updates);
     });
+  });
+}
+
+// Resolve the active inactivity threshold (in minutes) from the user's settings,
+// falling back to the AUTO_CLOSE_MINUTES default when unset. A value of 0 (the
+// "Off" position on the Settings slider) disables auto-closing entirely — return
+// 0 so the sweep skips the closing pass but still prunes stale entries.
+function autoCloseThresholdMinutes(settings) {
+  const configured = settings && settings.autoCloseMinutes;
+  if (configured === undefined || configured === null || configured === '') {
+    return AUTO_CLOSE_MINUTES;
+  }
+  const minutes = Number(configured);
+  return Number.isFinite(minutes) && minutes > 0 ? minutes : 0;
+}
+
+// A tab is eligible for auto-close when it is not Chrome-pinned, not
+// thumbtack-pinned (tabCommandPinned), not the currently active tab, and its
+// last activity (activeAt, falling back to openedAt) is at or before the cutoff.
+// activeTabs entries are already validTab-filtered by updateActiveTabs, so no
+// scheme check is needed here.
+function isAutoCloseEligible(tab, cutoff) {
+  if (!tab) return false;
+  if (tab.pinned) return false;
+  if (tab.tabCommandPinned) return false;
+  if (tab.active) return false;
+  const lastActive = tab.activeAt || tab.openedAt;
+  if (!lastActive) return false;
+  return lastActive <= cutoff;
+}
+
+// Drop auto-closed entries older than the retention window so the map (and the
+// "Automatically Closed" list it feeds) doesn't grow unbounded. Mutates in place.
+function pruneAutoClosed(autoClosed, now) {
+  const maxTime = autoClosed.maxTime || MAX_AUTO_CLOSED_TIME;
+  for (const urlKey of Object.keys(autoClosed)) {
+    if (urlKey === 'maxTime') continue;
+    if (now - autoClosed[urlKey] >= maxTime) {
+      delete autoClosed[urlKey];
+    }
+  }
+}
+
+// The sweep itself: record + close every eligible inactive tab, then persist the
+// updated autoClosed map. Writing autoClosed in this same synchronous pass (before
+// the async chrome.tabs.remove callbacks fire onRemoved -> closeUrl -> updateActiveTabs)
+// guarantees the downstream reconciliation reads our entries rather than clobbering them.
+function autoCloseSweep() {
+  getLocalStorage(['activeTabs', 'autoClosed', 'settings'], (result) => {
+    const activeTabs = result.activeTabs || [];
+    const autoClosed = result.autoClosed || {};
+    const settings = result.settings || {};
+    const now = Date.now();
+
+    pruneAutoClosed(autoClosed, now);
+
+    const minutes = autoCloseThresholdMinutes(settings);
+    if (minutes > 0) {
+      const cutoff = now - minutes * 60 * 1000;
+      for (const tab of activeTabs) {
+        if (!isAutoCloseEligible(tab, cutoff)) continue;
+        autoClosed[tab.urlKey] = now;
+        try {
+          chrome.tabs.remove(parseTabId(tab), () => {
+            // Swallow "No tab with id" — a stale tabId must not abort the sweep.
+            void (chrome.runtime && chrome.runtime.lastError);
+          });
+        } catch (e) {
+          console.log('Unable to auto-close tab', e);
+        }
+      }
+    }
+
+    update({ autoClosed });
   });
 }
 

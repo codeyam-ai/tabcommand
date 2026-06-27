@@ -1,4 +1,4 @@
-# regenerated from dependency-graph.json on 2026-06-27T17:33:41Z; do not hand-edit
+# regenerated from dependency-graph.json on 2026-06-27T20:40:30Z; do not hand-edit
 src/lib/utils/chromeShim :: imports=0 :: imported_by=19
 src/Constants.jsx :: imports=0 :: imported_by=18
 src/lib/utils/Chrome :: imports=0 :: imported_by=18
@@ -32,7 +32,7 @@ src/lib/utils/loadLevel.js :: imports=0 :: imported_by=3
 src/lib/components/AppBrand/AppBrand.jsx :: imports=1 :: imported_by=2
 src/lib/components/HistoryRow/HistoryRow.jsx :: imports=2 :: imported_by=2
 src/lib/components/LoadMeterCaption :: imports=0 :: imported_by=2
-src/lib/components/Settings/Settings.jsx :: imports=4 :: imported_by=2
+src/lib/components/Settings/Settings.jsx :: imports=5 :: imported_by=2
 src/lib/components/ThemeToggle/ThemeToggle.jsx :: imports=1 :: imported_by=2
 src/lib/hooks/useTheme.js :: imports=1 :: imported_by=2
 src/lib/pages/App/App.jsx :: imports=10 :: imported_by=2
@@ -48,6 +48,7 @@ src/lib/utils :: imports=0 :: imported_by=2
 src/lib/utils/buildSearchDocuments.js :: imports=0 :: imported_by=2
 src/lib/utils/dragReducer.js :: imports=1 :: imported_by=2
 src/lib/utils/faviconMonogram.js :: imports=0 :: imported_by=2
+src/lib/utils/formatAutoClose.js :: imports=0 :: imported_by=2
 src/lib/utils/historyBuckets.js :: imports=0 :: imported_by=2
 src/lib/utils/importExport.js :: imports=0 :: imported_by=2
 src/lib/utils/searchNotesSnippet.js :: imports=0 :: imported_by=2
@@ -185,6 +186,7 @@ src/lib/utils/deriveGaugeTotals.test.js :: imports=1 :: imported_by=0
 src/lib/utils/deriveSystemTotals.test.js :: imports=1 :: imported_by=0
 src/lib/utils/dragReducer.test.js :: imports=2 :: imported_by=0
 src/lib/utils/faviconMonogram.test.js :: imports=1 :: imported_by=0
+src/lib/utils/formatAutoClose.test.js :: imports=1 :: imported_by=0
 src/lib/utils/gaugeFillPercent.test.js :: imports=1 :: imported_by=0
 src/lib/utils/historyBuckets.test.js :: imports=1 :: imported_by=0
 src/lib/utils/humanReadableNumber.test.js :: imports=1 :: imported_by=0

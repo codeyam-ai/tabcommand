@@ -42,6 +42,10 @@ function makeChrome() {
       update: vi.fn(),
     },
     processes: { onUpdatedWithMemory: evt() },
+    alarms: {
+      create: vi.fn(),
+      onAlarm: evt(),
+    },
     storage: {
       local: { get: vi.fn(), set: vi.fn(), remove: vi.fn() },
       onChanged: evt(),
@@ -69,7 +73,9 @@ function loadWorker(chrome) {
              tabUpdates, urlUpdates, getUrlKey, validTab, getTabGroup,
              getLocalStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs,
              initLoadSource, processesApiAvailable, systemApiAvailable,
-             startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad },
+             startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad,
+             autoCloseSweep, isAutoCloseEligible, pruneAutoClosed,
+             autoCloseThresholdMinutes },
       state: {
         get groups() { return groups; },
         get samples() { return samples; },
@@ -420,6 +426,147 @@ describe('service_worker.js', () => {
       await loaded.fns.pollSystemLoad();
       loaded.fns.stopSystemLoadPolling();
       expect(c.storage.local.set).toHaveBeenCalledWith({ loadDataSource: 'none' });
+    });
+  });
+
+  // The "Closer" engine: a periodic alarm sweeps inactive tabs, removing them and
+  // recording each into the autoClosed map so the "Automatically Closed" UI lights up.
+  describe('autoCloseSweep', () => {
+    const MINUTE = 60 * 1000;
+
+    // Drives one sweep against the supplied storage and returns the removed tab
+    // ids plus the autoClosed map that was persisted.
+    const runSweep = ({ activeTabs = [], autoClosed = {}, settings = {} }) => {
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ activeTabs, autoClosed, settings })
+      );
+      chrome.storage.local.set.mockClear();
+      chrome.tabs.remove.mockClear();
+      fns.autoCloseSweep();
+      const lastSet = chrome.storage.local.set.mock.calls.at(-1);
+      return {
+        written: lastSet ? lastSet[0].autoClosed : undefined,
+        removedIds: chrome.tabs.remove.mock.calls.map((c) => c[0]),
+      };
+    };
+
+    const tab = (over) => ({
+      tabKey: 'tab-1',
+      urlKey: 'url-https://x.com',
+      pinned: false,
+      groupId: -1,
+      tabCommandPinned: false,
+      active: false,
+      ...over,
+    });
+
+    // a periodic alarm + onAlarm listener are wired up at load
+    it('registers the auto-close alarm at load', () => {
+      expect(chrome.alarms.create).toHaveBeenCalledWith('auto-close-sweep', { periodInMinutes: 1 });
+      expect(chrome.alarms.onAlarm.addListener).toHaveBeenCalled();
+    });
+
+    // an inactive ungrouped tab past the threshold is removed and recorded
+    it('closes and records an inactive ungrouped tab', () => {
+      const now = Date.now();
+      const t = tab({ tabKey: 'tab-5', urlKey: 'url-old', activeAt: now - 200 * MINUTE, openedAt: now - 300 * MINUTE });
+      const { written, removedIds } = runSweep({ activeTabs: [t] });
+      expect(removedIds).toContain(5);
+      expect(written['url-old']).toBeGreaterThan(0);
+    });
+
+    // pinned, thumbtack-pinned, and the active tab are exempt
+    it('never closes pinned, tabCommandPinned, or the active tab', () => {
+      const now = Date.now();
+      const old = now - 200 * MINUTE;
+      const { written, removedIds } = runSweep({
+        activeTabs: [
+          tab({ tabKey: 'tab-1', urlKey: 'url-pinned', pinned: true, activeAt: old }),
+          tab({ tabKey: 'tab-2', urlKey: 'url-thumb', tabCommandPinned: true, activeAt: old }),
+          tab({ tabKey: 'tab-3', urlKey: 'url-active', active: true, activeAt: old }),
+        ],
+      });
+      expect(removedIds).toEqual([]);
+      expect(written['url-pinned']).toBeUndefined();
+      expect(written['url-thumb']).toBeUndefined();
+      expect(written['url-active']).toBeUndefined();
+    });
+
+    // a tab active within the threshold window is left open
+    it('keeps a tab that was active within the window', () => {
+      const now = Date.now();
+      const t = tab({ tabKey: 'tab-7', urlKey: 'url-recent', activeAt: now - 10 * MINUTE });
+      const { written, removedIds } = runSweep({ activeTabs: [t] });
+      expect(removedIds).toEqual([]);
+      expect(written['url-recent']).toBeUndefined();
+    });
+
+    // grouped/labeled inactive tabs are in scope and get closed
+    it('closes a grouped/labeled inactive tab', () => {
+      const now = Date.now();
+      const t = tab({ tabKey: 'tab-8', urlKey: 'url-grouped', groupId: 42, activeAt: now - 200 * MINUTE });
+      const { removedIds } = runSweep({ activeTabs: [t] });
+      expect(removedIds).toContain(8);
+    });
+
+    // a throwing chrome.tabs.remove for one tab does not abort the others
+    it('continues the sweep when one tab removal throws', () => {
+      chrome.tabs.remove.mockImplementation((id) => {
+        if (id === 1) throw new Error('No tab with id: 1');
+      });
+      const now = Date.now();
+      const old = now - 200 * MINUTE;
+      const { written, removedIds } = runSweep({
+        activeTabs: [
+          tab({ tabKey: 'tab-1', urlKey: 'url-a', activeAt: old }),
+          tab({ tabKey: 'tab-2', urlKey: 'url-b', activeAt: old }),
+        ],
+      });
+      expect(removedIds).toContain(2);
+      expect(written['url-a']).toBeGreaterThan(0);
+      expect(written['url-b']).toBeGreaterThan(0);
+    });
+
+    // entries older than the retention window are pruned from the map
+    it('prunes autoClosed entries older than MAX_AUTO_CLOSED_TIME', () => {
+      const now = Date.now();
+      const { written } = runSweep({
+        activeTabs: [],
+        autoClosed: {
+          'url-fresh': now - 1000,
+          'url-stale': now - 1000 * 60 * 60 * 24 * 6, // 6 days > 5-day window
+        },
+      });
+      expect(written['url-fresh']).toBeDefined();
+      expect(written['url-stale']).toBeUndefined();
+    });
+
+    // a shorter user-configured threshold closes a tab the default would keep
+    it('respects a custom settings.autoCloseMinutes', () => {
+      const now = Date.now();
+      const t = tab({ tabKey: 'tab-9', urlKey: 'url-mid', activeAt: now - 90 * MINUTE });
+      // default (120) keeps a 90-min-idle tab
+      expect(runSweep({ activeTabs: [t] }).removedIds).toEqual([]);
+      // a 60-min threshold closes it
+      expect(runSweep({ activeTabs: [t], settings: { autoCloseMinutes: 60 } }).removedIds).toContain(9);
+    });
+
+    // the "Off" position (0) disables closing entirely
+    it('closes nothing when autoCloseMinutes is 0 meaning Off', () => {
+      const now = Date.now();
+      const t = tab({ tabKey: 'tab-10', urlKey: 'url-off', activeAt: now - 300 * MINUTE });
+      const { written, removedIds } = runSweep({ activeTabs: [t], settings: { autoCloseMinutes: 0 } });
+      expect(removedIds).toEqual([]);
+      expect(written['url-off']).toBeUndefined();
+    });
+
+    describe('autoCloseThresholdMinutes', () => {
+      // unset → default; 0 → Off; a positive value passes through
+      it('falls back to the default and maps Off to 0', () => {
+        expect(fns.autoCloseThresholdMinutes({})).toBe(120);
+        expect(fns.autoCloseThresholdMinutes({ autoCloseMinutes: 0 })).toBe(0);
+        expect(fns.autoCloseThresholdMinutes({ autoCloseMinutes: 45 })).toBe(45);
+      });
     });
   });
 });

@@ -2,7 +2,7 @@
   "name": "TabCommand",
   "version": "0.13",
   "description": "Command Central for your browsing experience.",
-  "permissions": ["storage", "tabs", "processes", "tabGroups", "system.cpu", "system.memory"],
+  "permissions": ["storage", "tabs", "processes", "tabGroups", "system.cpu", "system.memory", "alarms"],
   "background": {
     "service_worker": "service_worker.js"
   },

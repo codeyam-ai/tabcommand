@@ -1,0 +1,635 @@
+{
+  "timestamp": "2026-06-27T20:38:44Z",
+  "title": "Auto-Close Engine (Closer)",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe \"Automatically Closed\" section in the Home/Tabs view is permanently empty in\nreal usage because the runtime engine that closes inactive tabs — the \"Closer\" —\nwas never implemented. Everything *around* it already exists and works: `Tabs.jsx`\nreads and renders the `autoClosed` storage map (ungrouped + grouped), `Url.jsx`\nexposes the restore (✕ / click-to-reopen) actions and the thumbtack pin\n(`tabCommandPinned`) exemption, and `updateActiveTabs` in `service_worker.js`\nalready *clears* an `autoClosed` entry when its tab is reactivated or moved. But\nnothing ever *writes* into `autoClosed` at runtime — `AutoCloseMinutes = 120` is\ndefined in `Constants.jsx` and referenced nowhere, there is no timer/alarm in the\nservice worker, and `\"alarms\"` is not in the manifest permissions. The \"Closer\"\nwas explicitly deferred as out-of-scope in `labels-and-dnd.md`; scenarios seed\n`autoClosed` directly, which is why it only ever appears in mockups. This plan\nimplements the engine in `service_worker.js` so inactive tabs are actually closed,\nrecorded in `autoClosed`, and surfaced in the \"Automatically Closed\" section —\nwhere the existing restore/close UI then takes over. The plan also adds a\nuser-facing control to the gear settings popup so the inactivity threshold is\nadjustable (it currently hard-codes to 120 minutes with no way to change it).\n\n## Key Decisions\n\n- **Drive the engine with `chrome.alarms`, not `setInterval`** — MV3 service\n  workers are ephemeral and get torn down between events, so an in-memory timer\n  would not survive. A periodic alarm (e.g. every ~1 minute) wakes the worker to\n  run a sweep. This requires adding `\"alarms\"` to `manifest.json` permissions.\n- **Make the threshold user-adjustable via the existing `settings` key** — add an\n  `autoCloseMinutes` control to the gear settings popup (`Settings.jsx`), persisted\n  under the same `settings` storage object that already holds `warnAt` /\n  `heavyThreshold`. The engine reads `settings.autoCloseMinutes` at sweep time and\n  falls back to the `AutoCloseMinutes` (120) default when unset, so behavior is\n  unchanged until the user moves the control. This reuses the established\n  slider-row + `Chrome.set('settings', …)` pattern rather than introducing a new\n  storage key or settings surface.\n- **Use `activeAt` for the inactivity clock, falling back to `openedAt`** — both\n  are already maintained per tab inside `updateActiveTabs` (`activeAt` is stamped\n  to `Date.now()` whenever a tab is active). A tab is \"inactive\" when\n  `Date.now() - (activeAt || openedAt) >= AutoCloseMinutes * 60 * 1000`. No new\n  bookkeeping is needed.\n- **Close (remove) tabs, don't discard them** — the data contract and the UI\n  expect the tab to be gone and recorded so it can be *restored* from the section.\n  `autoClosed[urlKey] = Date.now()` records the close, mirroring exactly what the\n  scenarios seed and what `Tabs.jsx`'s `sortAutoClosed` reads.\n- **All eligible inactive tabs are closable, including grouped/labeled ones**\n  (per scope decision). The \"Automatically Closed\" section already renders a\n  grouped sub-list (`autoClosedTabUrlLabels`), and the per-URL group color comes\n  from `labels` via `colorMap`, so grouped auto-closed rows display correctly\n  with no extra writes.\n- **Exemptions match the UI's promise** — never auto-close: Chrome-pinned tabs\n  (`pinned`), TabCommand-pinned tabs (`tabCommandPinned`, set by the thumbtack),\n  the currently active tab (`active`), and anything `validTab()` already rejects\n  (the TabCommand tab itself, `chrome://`, `devtools://`, `chrome-extension://`).\n  This is exactly what the empty-state explainer text in `Tabs.jsx` describes.\n- **Let the existing reactivation cleanup do the restore half** — when a user\n  reopens an auto-closed URL, `updateActiveTabs` (lines ~190–197) already deletes\n  the stale `autoClosed` entry. No changes needed there; the engine only fills the\n  map, the existing code drains it.\n- **Reuse the established `autoClosed` shape** — `{ [urlKey]: closedTimestampMs }`\n  with optional `maxTime`. `Tabs.jsx` already filters out entries older than\n  `MaxAutoClosedTime` (5 days) and `closeUrl`/`handleClose` already prune entries\n  on manual close, so no separate expjust is required, though the sweep may\n  opportunistically drop entries older than `MaxAutoClosedTime` to keep storage\n  small.\n\n## Implementation\n\n### 1. Add the `alarms` permission\n\n**File**: `manifest.json`\n\nAdd `\"alarms\"` to the `permissions` array (currently `[\"storage\", \"tabs\",\n\"processes\", \"tabGroups\", \"system.cpu\", \"system.memory\"]`). Without it,\n`chrome.alarms.create` / `onAlarm` are unavailable.\n\n### 2. Implement the Closer engine in the service worker\n\n**File**: `service_worker.js`\n\nAdd the engine alongside the existing top-level listener registrations. Mirror the\nfile's existing style (plain functions, `getLocalStorage`/`update` helpers,\ncallback-based `chrome.storage.local`, `validTab`, `getUrlKey`).\n\n- Import the threshold constants. The worker currently can't share the\n  `Constants.jsx` ES module (same constraint already documented for `GAUGE` at the\n  top of the file — the test harness strips imports). Follow that established\n  pattern: define local `AUTO_CLOSE_MINUTES = 120` and\n  `MAX_AUTO_CLOSED_TIME = 1000 * 60 * 60 * 24 * 5` constants with a short comment\n  noting they mirror `src/Constants.jsx` (`AutoCloseMinutes` / `MaxAutoClosedTime`),\n  the same way `GAUGE` mirrors the LoadMeter scale.\n- Register a repeating alarm near the other `chrome.*.addListener` calls, e.g.\n  `chrome.alarms.create('auto-close-sweep', { periodInMinutes: 1 })` plus a\n  `chrome.alarms.onAlarm.addListener` that runs the sweep when\n  `alarm.name === 'auto-close-sweep'`.\n- Add an `autoCloseSweep()` function that:\n  1. Reads `['activeTabs', 'autoClosed', 'settings']` from storage.\n  2. Computes `now` and the cutoff using the user-configured threshold:\n     `minutes = (settings && settings.autoCloseMinutes) || AUTO_CLOSE_MINUTES`,\n     then `cutoff = now - minutes * 60 * 1000`.\n  3. Selects activeTabs that are **eligible to close**: not `pinned`, not\n     `tabCommandPinned`, not `active`, and whose `(activeAt || openedAt)` is at or\n     before the cutoff. (activeTabs entries are URL-level records with `tabKey`,\n     `urlKey`, `pinned`, `tabCommandPinned`, `activeAt`, `openedAt` — all already\n     produced by `updateActiveTabs`.)\n  4. For each eligible tab: record `autoClosed[urlKey] = now`, then close the live\n     Chrome tab via `chrome.tabs.remove(parseInt(tabKey.split('-')[1]))`. Guard\n     each removal (wrap in try/catch or use the callback to swallow\n     `chrome.runtime.lastError`) so a stale tabId can't abort the sweep — follow\n     the defensive style already used in `groupTabs`/`tabUpdates`.\n  5. Optionally prune `autoClosed` entries older than `MAX_AUTO_CLOSED_TIME` so\n     the map doesn't grow unbounded (the UI filters them out already, but pruning\n     keeps storage clean).\n  6. Persist the updated `autoClosed` via `update({ autoClosed })`.\n- Removing tabs fires the existing `chrome.tabs.onRemoved` listener, which calls\n  `closeUrl(...)` → `updateActiveTabs()`, so `activeTabs` rebuilds itself and the\n  closed rows drop out of \"Active\". Because `updateActiveTabs` reads `autoClosed`\n  and stamps each surviving tab's `autoClosedAt`, and `Tabs.jsx` subscribes to\n  `chrome.storage.onChanged` for `autoClosed`, the \"Automatically Closed\" section\n  updates live with no UI changes. **Important:** set `removing` / order writes so\n  the sweep's `autoClosed` write is not clobbered — write `autoClosed` *before or\n  together with* triggering removals, and confirm the `onRemoved`→`closeUrl` path\n  (which only touches `allUrls`) does not overwrite it.\n\n### 3. Add an auto-close-time control to the settings popup\n\n**File**: `src/lib/components/Settings/Settings.jsx`\n\nAdd a third `Settings-row` below the existing \"Warn at\" / \"Heavy tab ≥\" sliders,\nfollowing the same structure exactly:\n\n- Seed the default in the `useState` initializer: `autoCloseMinutes: AutoCloseMinutes`\n  (import `AutoCloseMinutes` from `../../../Constants`).\n- Render a labeled control — e.g. label \"Auto-close after\",\n  value display showing the current value in human terms (e.g. `120 min` or\n  `2 hr`), and an `<input type=\"range\">` bound to `settings.autoCloseMinutes` that\n  calls `update('autoCloseMinutes', e.target.value)`. Pick a sensible\n  min/max/step (e.g. min 15, max 480, step 15) so the range covers ~15 min to\n  8 hours. (If a discrete `<select>` of presets reads better than a slider, that's\n  an acceptable tactical choice for the editor workflow — the persisted shape is\n  the same.)\n- No new persistence code is needed: the existing `update(key, value)` helper\n  already writes `{ settings: next }` via `Chrome.set`, and `Number(value)`\n  coercion is already applied there.\n\nBecause the engine reads `settings.autoCloseMinutes` on each sweep, moving this\ncontrol takes effect on the next sweep with no extra wiring.\n\n### 4. Make the engine unit-testable\n\n**File**: `service_worker.test.js`\n\nThe test harness loads `service_worker.js` by reading the source, stripping\n`import` lines, and evaluating it in a `Function` wrapper with mocked `chrome.*`\n(see the existing setup around lines 16–95). Expose `autoCloseSweep` (and any\nsmall helper such as an `isAutoCloseEligible(tab, now)` predicate, if extracted)\nthrough the same returned-function bag the other internals use, then add a\n`describe('autoCloseSweep', ...)` block covering:\n\n- An inactive ungrouped tab past the threshold is removed and written to\n  `autoClosed` with a timestamp.\n- A pinned tab, a `tabCommandPinned` tab, and the `active` tab are **not** closed.\n- A tab active within the threshold window is **not** closed.\n- A grouped/labeled inactive tab **is** closed (scope: all eligible).\n- `chrome.tabs.remove` throwing for one tab does not prevent the others from being\n  processed.\n- Entries older than `MAX_AUTO_CLOSED_TIME` are pruned from `autoClosed`.\n\n- A custom `settings.autoCloseMinutes` overrides the default: a tab inactive past\n  the configured (shorter) threshold but younger than 120 min is closed; with the\n  default, the same tab would be kept.\n\nUse the existing `vi.fn()` chrome mocks and the `beforeEach` storage-stub pattern\nalready in the file.\n\n## Reused existing code\n\n- `updateActiveTabs` from `service_worker.js` — already maintains `activeAt` /\n  `openedAt`, stamps `autoClosedAt`, and **clears** `autoClosed` entries on\n  reactivation; the engine only needs to fill the map (glossary/registry:\n  `updateActiveTabs`).\n- `validTab`, `getUrlKey`, `getLocalStorage`, `update`, `parseTabId` helpers from\n  `service_worker.js` — reuse for filtering, key derivation, storage reads, and\n  persistence (glossary entries: `validTab`, `getUrlKey`, `getLocalStorage`,\n  `update`, `parseTabId`).\n- `closeUrl` + `chrome.tabs.onRemoved` listener in `service_worker.js` — already\n  reconciles `allUrls`/`activeTabs` after a tab is removed; the sweep relies on\n  this rather than duplicating cleanup.\n- `tabCommandPinned` field — produced by `updateActiveTabs`, toggled by the\n  thumbtack in `src/lib/components/Url/Url.jsx` (`togglePin` around line 145); the\n  engine reads it as the user's \"don't auto-close this\" signal.\n- `AutoCloseMinutes` / `MaxAutoClosedTime` from `src/Constants.jsx` — the\n  canonical default thresholds (mirrored locally in the worker, as `GAUGE` already\n  is; imported directly in `Settings.jsx` for the control's default).\n- `Settings` component + its `update(key, value)` helper and `settings` storage\n  key in `src/lib/components/Settings/Settings.jsx` — the existing\n  slider-row/`Chrome.set` pattern the new auto-close-time control reuses verbatim\n  (glossary/registry entry: `Settings`). The `settings` map is also already read\n  by `Tabs.jsx`'s `readLoad`, confirming it's the right home for the value.\n- `sortAutoClosed` / `autoClosedTabUrlLabels` / `ungroupedAutoClosed` in\n  `src/lib/components/Tabs/Tabs.jsx` — the existing display side that consumes the\n  `autoClosed` map; no changes needed, they light up once the map is populated.\n\n## Scenarios to Demonstrate\n\n- **Happy path** — a couple of ungrouped tabs inactive past 120 minutes get\n  closed and appear under \"Automatically Closed → Ungrouped\" with recent\n  timestamps, alongside still-open active tabs. (Maps to the existing\n  `home-autoclosed-and-history` scenario seed.)\n- **Grouped auto-closed** — an inactive tab that belonged to a colored label is\n  closed and shows under \"Automatically Closed → <label>\" with the group's color\n  dot.\n- **Exempt: pinned / thumbtacked / active** — tabs that are Chrome-pinned,\n  thumbtack-pinned (`tabCommandPinned`), or currently active stay open and are\n  absent from the section even though they're \"old\".\n- **Empty state** — no eligible inactive tabs yet: the section renders the\n  explainer text (\"TabCommand automatically closes tabs… click the thumbtack icon\n  to stop it…\").\n- **Restore round-trip** — reopening an auto-closed URL (click the row) removes it\n  from \"Automatically Closed\" (existing `updateActiveTabs` cleanup) and it\n  reappears under \"Active\".\n- **Adjustable threshold** — open the gear settings popup, drag \"Auto-close after\"\n  to a shorter interval; tabs that were just under the old threshold now qualify\n  and get swept on the next pass. Setting persists across reopen of the popup.\n- **Edge: stale tabId during sweep** — one tab's `chrome.tabs.remove` errors; the\n  remaining eligible tabs are still closed and recorded.",
+  "description": "Implemented the runtime Closer engine that was previously deferred: a chrome.alarms-driven sweep in service_worker.js closes tabs inactive past a threshold, records them into the autoClosed map (so the formerly-empty Automatically Closed section finally populates), and prunes entries older than five days. Exempts Chrome-pinned, thumbtack-pinned (tabCommandPinned), and the active tab. Added a user-adjustable Auto-close after slider to the gear Settings popup (with an Off position that disables the engine), the alarms manifest permission, and full unit coverage for the sweep and the formatAutoClose helper.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/skills/codeyam-design/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/capture.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/auto-close-engine.md\t.codeyam/plans/completed/auto-close-engine.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-collapsed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-no-data--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-no-data--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-system--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-system--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadpertabnote-unavailable--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadpertabnote-unavailable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadprocesses-active--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-excessive--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-excessive--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-severity--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-severity--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-low-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-low-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-long-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-long-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-notes--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-notes--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-long--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-long--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-work-chip--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-work-chip--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "manifest.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-automatically-closed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-monogram-fallback--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-no-timestamp--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-history--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-auto-close-control.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/formatAutoClose.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/formatAutoClose.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 86,
+    "passed": 86,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 86,
+        "passed": 86
+      }
+    ]
+  }
+}

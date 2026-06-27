@@ -3,7 +3,8 @@ import './Settings.css';
 import React, { useEffect, useRef, useState } from 'react';
 import { Chrome } from '../../utils/Chrome';
 import { Icon } from '../Icon';
-import { WarnAtDefault, HeavyThresholdDefault } from '../../../Constants';
+import { WarnAtDefault, HeavyThresholdDefault, AutoCloseMinutes } from '../../../Constants';
+import formatAutoClose from '../../utils/formatAutoClose';
 
 // A compact sidebar settings affordance: a gear button that expands two sliders
 // persisted to the `settings` storage key. `warnAt` drives the gauge/triage red
@@ -18,6 +19,7 @@ const Settings = () => {
   const [settings, setSettings] = useState({
     warnAt: WarnAtDefault,
     heavyThreshold: HeavyThresholdDefault,
+    autoCloseMinutes: AutoCloseMinutes,
   });
   const buttonRef = useRef();
 
@@ -88,6 +90,18 @@ const Settings = () => {
               step="5"
               value={settings.heavyThreshold}
               onChange={(e) => update('heavyThreshold', e.target.value)}
+            />
+          </label>
+          <label className="Settings-row">
+            <span className="Settings-label">Auto-close after</span>
+            <span className="Settings-value">{formatAutoClose(settings.autoCloseMinutes)}</span>
+            <input
+              type="range"
+              min="0"
+              max="480"
+              step="15"
+              value={settings.autoCloseMinutes}
+              onChange={(e) => update('autoCloseMinutes', e.target.value)}
             />
           </label>
         </div>

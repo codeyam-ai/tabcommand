@@ -778,10 +778,19 @@ async function runScenarioCheck(
     const loadingMarkers = Array.isArray(config.loadingMarkers)
       ? config.loadingMarkers
       : readStackLoadingMarkers();
+    // Content-stability window. Defaults to 10s; the editor's own WS-driven
+    // terminal/build route under self-hosting passes a longer `stableTimeoutMs`
+    // (its network never goes idle, so the default expired before the WS replay
+    // landed and the capture came back blank — VM1). Every other route omits the
+    // field and keeps the 10s default.
+    const stableTimeoutMs =
+      typeof config.stableTimeoutMs === "number" && config.stableTimeoutMs > 0
+        ? config.stableTimeoutMs
+        : 10000;
     const stableOutcome = await waitForStablePage(
       page,
       frame,
-      10000,
+      stableTimeoutMs,
       loadingMarkers,
     );
 

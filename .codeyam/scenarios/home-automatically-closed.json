@@ -1,0 +1,25 @@
+{
+  "name": "Home - Automatically Closed",
+  "id": "5d197476-d87e-4631-8b9d-259d07ca7651",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "autoClosed": "{\"url-https://en.wikipedia.org/wiki/Tab_(interface)\":1782588000000,\"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\":1782585000000,\"url-https://www.figma.com/file/tabcommand\":1782560000000}",
+      "url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms": "{\"title\":\"chrome.alarms not firing in MV3 service worker - Stack Overflow\",\"favicon\":\"https://www.google.com/s2/favicons?domain=stackoverflow.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"https://www.google.com/s2/favicons?domain=react.dev&sz=64\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://react.dev/learn\",\"url-https://news.ycombinator.com\",\"url-https://en.wikipedia.org/wiki/Tab_(interface)\",\"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\",\"url-https://www.figma.com/file/tabcommand\"]",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-303\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://www.google.com/s2/favicons?domain=github.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"https://www.google.com/s2/favicons?domain=figma.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://en.wikipedia.org/wiki/Tab_(interface)": "{\"title\":\"Tab (interface) - Wikipedia\",\"favicon\":\"https://www.google.com/s2/favicons?domain=en.wikipedia.org&sz=64\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

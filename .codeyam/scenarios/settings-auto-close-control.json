@@ -1,0 +1,17 @@
+{
+  "name": "Settings - Auto Close Control",
+  "id": "29b0b352-f95f-40f9-b368-4d6b5ac99eb7",
+  "url": "/?isolate=Settings",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "Settings",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".Settings-toggle"
+    }
+  ]
+}
