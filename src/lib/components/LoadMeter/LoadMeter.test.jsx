@@ -6,8 +6,8 @@ import LoadMeter from './LoadMeter';
 
 // The gauge's fill math lives in gaugeFillPercent / deriveGaugeTotals (unit
 // tested separately). These tests cover the component wiring: it mounts and
-// renders under jsdom (where the GradientPath SVG work must no-op rather than
-// throw), reads the seeded processTotals, and survives an onChanged update.
+// renders the two SVG rings under jsdom (plain stroke-dashoffset, no SVG path
+// geometry), reads the seeded processTotals, and drives the rendered load %.
 describe('LoadMeter', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -18,29 +18,40 @@ describe('LoadMeter', () => {
     window.localStorage.clear();
   });
 
-  // the gauge renders its CPU and Memory labels
-  it('renders the gauge labels', () => {
+  // the gauge renders its CPU and Mem legend labels
+  it('renders the gauge legend labels', async () => {
     installChromeShim();
     render(<LoadMeter />);
-    expect(screen.getByText('CPU')).toBeInTheDocument();
-    expect(screen.getByText('Memory')).toBeInTheDocument();
+    expect(await screen.findByText('CPU')).toBeInTheDocument();
+    expect(screen.getByText('Mem')).toBeInTheDocument();
   });
 
-  // mounting with seeded processTotals reads the value without throwing under jsdom
-  // (this exercises the jsdom guard around GradientPath — remove it and this fails)
-  it('reads seeded processTotals on mount without throwing', () => {
+  // with no stored processTotals the gauge reads as Idle (rings on track)
+  it('reads as Idle on first run', async () => {
+    installChromeShim();
+    render(<LoadMeter />);
+    expect(
+      await screen.findByText('Idle', { selector: '.LoadMeter-value' })
+    ).toBeInTheDocument();
+  });
+
+  // seeded processTotals drive the rendered load %: cpu 75 / 150 = 50%
+  it('reflects seeded processTotals in the rendered load %', async () => {
     window.localStorage.setItem(
       'processTotals',
       JSON.stringify({ cpu: 75, privateMemory: 1, jsMemoryUsed: 1 })
     );
     installChromeShim();
-    expect(() => render(<LoadMeter />)).not.toThrow();
+    render(<LoadMeter />);
+    expect(await screen.findByText('50%', { selector: '.LoadMeter-value' })).toBeInTheDocument();
   });
 
-  // a processTotals storage change is handled without throwing and keeps rendering
+  // a processTotals storage change updates the gauge: cpu 120 / 150 = 80%
   it('handles a processTotals storage change', async () => {
     installChromeShim();
     render(<LoadMeter />);
+    // Let the initial (deferred) read settle to Idle before the change arrives.
+    await screen.findByText('Idle', { selector: '.LoadMeter-value' });
 
     await act(async () => {
       await new Promise((resolve) =>
@@ -51,7 +62,7 @@ describe('LoadMeter', () => {
       );
     });
 
-    expect(screen.getByText('CPU')).toBeInTheDocument();
+    expect(await screen.findByText('80%', { selector: '.LoadMeter-value' })).toBeInTheDocument();
   });
 
   // the source-aware caption (no-data / whole-browser) is its own component,

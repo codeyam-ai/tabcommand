@@ -53,6 +53,32 @@
     ]
   },
   {
+    "description": "History page component: lists every closed/visited tab grouped by Today / Yesterday / Earlier this week, each row colored by its group label and offering a Reopen action.",
+    "filePath": "src/lib/pages/History/History.jsx",
+    "name": "History",
+    "testFile": "src/lib/pages/History/History.test.jsx"
+  },
+  {
+    "description": "One closed/visited tab row in the History list: a group-color dot, the tab favicon (monogram fallback via Favicon), the title with a full title+URL tooltip, a mono timestamp when known, and a Reopen action that calls back with the urlKey.",
+    "filePath": "src/lib/components/HistoryRow/HistoryRow.jsx",
+    "name": "HistoryRow",
+    "scenarios": [
+      "historyrow-default",
+      "historyrow-monogram-fallback",
+      "historyrow-no-timestamp"
+    ],
+    "testFile": "src/lib/components/HistoryRow/HistoryRow.test.jsx"
+  },
+  {
+    "description": "Local Lucide-style inline-SVG icon set (1.9px stroke, currentColor, round joins) that replaces @ant-design/icons. A name->path lookup returning static SVG; color and size are driven by the caller.",
+    "filePath": "src/lib/components/Icon/Icon.jsx",
+    "name": "Icon",
+    "scenarios": [
+      "icon-default",
+      "icon-history"
+    ]
+  },
+  {
     "description": "The Import / Export page (entry point for Pages.IMPORTEXPORT in App): a recover/backup view reached from the sidebar Import/Export link. Reads labels + previousLabels from Chrome storage and renders the Current export (groups serialized to JSON, sorted and url-resolved) plus a read-only Previous textarea per snapshot; the Import textarea + button parse pasted JSON to restore groups, swallowing malformed JSON, then call onComplete to return Home. Pure logic lives in utils/importExport; also covered by the import-export-backup application scenario.",
     "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
     "name": "ImportExport",
@@ -163,6 +189,20 @@
     "testFile": "src/lib/components/SearchResults/SearchResults.test.jsx"
   },
   {
+    "description": "Sidebar gear popover with two range sliders (warnAt, heavyThreshold) persisted to the settings storage key. Anchored via fixed positioning so the sidebar's overflow cannot clip it; the load math it tunes lives in loadLevel.",
+    "filePath": "src/lib/components/Settings/Settings.jsx",
+    "name": "Settings",
+    "scenarios": [
+      "settings-default"
+    ]
+  },
+  {
+    "description": "Read-only textarea paired with a copy-to-clipboard button that shows a transient 'Copied' confirmation, used to display an import/export snapshot value.",
+    "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+    "name": "SnapshotField",
+    "testFile": "src/lib/pages/ImportExport/ImportExport.test.jsx"
+  },
+  {
     "description": "Home tab list: renders Active Tabs, Automatically Closed, and collapsible History sections from chrome.storage; splits tabs into label groups vs an ungrouped remainder; filters browser-pinned tabs and expired auto-closed entries. Each row is a draggable Url.",
     "filePath": "src/lib/components/Tabs/Tabs.jsx",
     "name": "Tabs",
@@ -175,6 +215,15 @@
     "scenarios": [
       "themetoggle-light",
       "themetoggle-dark"
+    ]
+  },
+  {
+    "description": "Sidebar load-triage card (Home only) whose color tracks overall load vs settings.warnAt: red 'Running hot' with a 'Review N heavy tabs' CTA, amber 'Getting busy', or green 'Comfortable'. Counts heavy tabs (per-tab load >= heavyThreshold) and toggles the shared review mode. Pure load->level math is in loadLevel.",
+    "filePath": "src/lib/components/Triage/Triage.jsx",
+    "name": "Triage",
+    "scenarios": [
+      "triage-comfortable",
+      "triage-running-hot"
     ]
   },
   {
@@ -220,6 +269,18 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Navigates from the History page back to the Home page by updating uxSettings.page via Chrome storage.",
+    "filePath": "src/lib/pages/History/History.jsx",
+    "name": "back",
+    "testFile": "src/lib/pages/History/History.test.jsx"
+  },
+  {
+    "description": "Buckets a closed/visited tab timestamp (ms epoch) into the History page day groups — Today, Yesterday, or Earlier this week — relative to a passed-in now. A missing timestamp falls into Earlier this week so the tab still appears. Exports HISTORY_BUCKETS for render order.",
+    "filePath": "src/lib/utils/historyBuckets.js",
+    "name": "bucketByDay",
+    "testFile": "src/lib/utils/historyBuckets.test.js"
+  },
+  {
     "description": "Parses the pasted export JSON and builds the storage updates map: one per-URL object per url-<url> key plus the rebuilt labels map. Throws on malformed JSON so the page swallows it with a console.log, faithful to the reference saveImport.",
     "filePath": "src/lib/utils/importExport.js",
     "name": "buildImportUpdates",
@@ -242,6 +303,12 @@
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "buildUrlInfo",
     "testFile": "src/lib/utils/urlDetails.test.js"
+  },
+  {
+    "description": "Clamps a number to the [0, 1] range, used to normalize CPU/memory ratios before rendering the load gauge.",
+    "filePath": "src/lib/components/LoadMeter/LoadMeter.jsx",
+    "name": "clamp01",
+    "testFile": "src/lib/components/LoadMeter/LoadMeter.test.jsx"
   },
   {
     "description": "Moves a closed tab's url key to the front of `allUrls`, persists the reordered list, and invokes an optional callback.",
@@ -461,6 +528,18 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Maps a load-bar width percentage to a CSS color variable (high >= 70, medium >= 40, otherwise light).",
+    "filePath": "src/lib/components/Tabs/Tabs.jsx",
+    "name": "loadColor",
+    "testFile": "src/lib/components/Tabs/Tabs.test.jsx"
+  },
+  {
+    "description": "Maps an overall browser-load percentage onto the three triage/gauge severity bands (low/medium/high) given the user warnAt threshold; the medium band begins at warnAt*0.6. Shared by the LoadMeter gauge and the Triage panel so both color the same load identically. Distinct from summarizeProcessLoad which yields a per-tab level.",
+    "filePath": "src/lib/utils/loadLevel.js",
+    "name": "loadLevel",
+    "testFile": "src/lib/utils/loadLevel.test.js"
+  },
+  {
     "description": "Internal helper of deriveSystemTotals: system memory pressure = (capacity - availableCapacity)/capacity, clamped 0..1. Returns 0 (never NaN) when the info object or capacity is missing.",
     "filePath": "src/lib/utils/deriveSystemTotals.js",
     "name": "memoryUtilization",
@@ -487,6 +566,12 @@
       "util"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Scales a value within a [base, max] window to a clamped 0-100 percentage for the triage load bands.",
+    "filePath": "src/lib/components/Triage/Triage.jsx",
+    "name": "pct",
+    "testFile": "src/lib/components/Triage/Triage.test.jsx"
   },
   {
     "description": "One stable-Chrome sampling pass: reads chrome.system.cpu + chrome.system.memory, feeds the previous + current sample through deriveSystemTotals, and persists { processTotals, loadDataSource: 'system' }. On any thrown system call it degrades to loadDataSource 'none' and stops polling rather than crashing the worker.",

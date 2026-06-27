@@ -3,18 +3,17 @@
   z-index: 10;
   top: 60px;
   left: 27px;
-  padding: 12px;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(12px);
+  padding: 8px;
   width: 300px;
   text-align: left;
-  border-radius: 12px;
-  -webkit-box-shadow: -6px 7px 15px 3px rgba(0, 0, 0, 0.25);
-  box-shadow: -6px 7px 15px 3px rgba(0, 0, 0, 0.25);
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .SearchResults-section {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .SearchResults-section:last-of-type {
@@ -22,77 +21,92 @@
 }
 
 .SearchResults-section .SearchResults-section-title {
-  margin-bottom: 6px;
-  color: #828282;
+  margin-bottom: 4px;
+  padding: 0 8px;
+  color: var(--text-muted);
   text-transform: uppercase;
-  font-weight: 400;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 .SearchResults-result {
-  padding: 6px;
-  margin-bottom: 3px;
-  border-radius: 12px;
-  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 7px 8px;
+  margin-bottom: 2px;
+  border-radius: var(--r-row);
   cursor: pointer;
+  transition: background-color var(--t-fast);
 }
 
 .SearchResults-result-selected {
-  background-color: black;
+  background-color: var(--c-raised);
 }
 
-.SearchResults-result-url img {
-  height: 18px;
-  width: 18px;
-  vertical-align: bottom;
-  margin-right: 6px;
-  margin-bottom: -1px;
+/* Favicon (image or monogram fallback) leads the url row. */
+.SearchResults-result-url .Url-favicon,
+.SearchResults-result-url .Url-favFallback {
+  order: 1;
+}
+
+/* Group color dot leads the label row. */
+.SearchResults-labelIcon {
+  order: 1;
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .SearchResults-result-title {
-  width: 80%;
+  order: 2;
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
-  background-image: linear-gradient(to right, white 80%, transparent 98%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: white;
-  display: inline-block;
-}
-
-.SearchResults-labelIcon {
-  height: 16px;
-  width: 16px;
-  display: inline-block;
-  border-radius: 8px;
-  margin-right: 6px;
-}
-
-.SearchResults-result-notes {
-  width: 90%;
-  white-space: nowrap;
-  overflow: hidden;
-  background-image: linear-gradient(
-    to right,
-    transparent 2%,
-    white 20%,
-    white 80%,
-    transparent 98%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: white;
-  text-align: center;
-  margin-top: 3px;
-}
-
-.SearchResults-result-notes span {
-  background-color: rgba(255, 255, 0, 0.25);
+  text-overflow: ellipsis;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
 .SearchResults-result-url-edit {
-  color: white;
-  float: right;
-  font-size: 1.5em;
+  order: 3;
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+}
+
+.SearchResults-result-url-edit:hover {
+  color: var(--brand-command);
+}
+
+.SearchResults-result-notes {
+  order: 4;
+  flex-basis: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* The matched term within a notes snippet, called out in the brand accent. */
+.SearchResults-result-notes span {
+  color: var(--brand-command);
+  font-weight: 600;
+}
+
+.SearchResults-search-archived {
+  padding: 7px 8px;
+  border-radius: var(--r-row);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: not-allowed;
 }

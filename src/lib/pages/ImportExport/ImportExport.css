@@ -1,39 +1,147 @@
+/* The Import / Export (recover/backup) page in the CodeYam look. A Back link +
+   "Import / Export" H1 and a short recovery intro, then the Import group (a
+   mono paste box + lime Import button) and the Export group (a read-only
+   Current snapshot and the Previous snapshots, each with a Copy button that
+   flips to a green "Copied ✓"). */
 .ImportExport {
-  padding: 30px 30px 300px 30px;
-  overflow-y: scroll;
-  height: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 22px 28px 96px;
+  font-family: var(--font-sans);
+  background: var(--app-bg);
 }
 
-.ImportExport-import,
-.ImportExport-export {
-  padding: 30px;
+.ImportExport-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--c-t3);
+  cursor: pointer;
+  transition: color var(--t-fast);
 }
 
-.ImportExport-import textarea,
-.ImportExport-export textarea {
-  padding: 12px;
-  height: 150px;
-  width: 60%;
+.ImportExport-back:hover {
+  color: var(--c-t1);
+}
+
+.ImportExport-h1 {
+  margin: 14px 0 4px;
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--c-t1);
+}
+
+.ImportExport-intro {
+  max-width: 560px;
+  margin: 0 0 24px;
+  color: var(--c-t3);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ImportExport-group {
+  margin-bottom: 32px;
+  max-width: 560px;
+}
+
+.ImportExport-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--c-t4);
+  margin: 0 0 12px;
+}
+
+.ImportExport-subhead {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-t2);
+  margin: 18px 0 8px;
+}
+
+.ImportExport-box {
   display: block;
+  width: 100%;
+  height: 150px;
+  box-sizing: border-box;
+  padding: 12px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--search-text);
+  background: var(--search-bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-row);
+  transition: border-color var(--t-fast);
+}
+
+.ImportExport-box:focus {
+  outline: none;
+  border-color: var(--search-border);
+}
+
+.ImportExport-import-save {
+  margin-top: 12px;
+  padding: 9px 22px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #0a0a0a;
+  background: var(--c-lime);
+  border: none;
+  border-radius: var(--r-row);
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+
+.ImportExport-import-save:hover {
+  background: var(--c-lime-hover);
+}
+
+.ImportExport-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
-.ImportExport-homeLink {
-  margin-left: 30px;
-  font-size: 18px;
-  color: black;
+.ImportExport-field .ImportExport-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.ImportExport-copy {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-t2);
+  background: var(--card-bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-row);
   cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast);
 }
 
-.ImportExport-description {
-  margin-left: 30px;
-  padding-top: 12px;
+.ImportExport-copy:hover {
+  color: var(--c-t1);
 }
 
-.ImportExport-previous-all {
-  margin-top: 60px;
-}
-
-.ImportExport-previous {
-  padding-bottom: 12px;
+.ImportExport-copy.is-copied {
+  color: var(--c-load-light);
+  border-color: var(--c-load-light);
 }

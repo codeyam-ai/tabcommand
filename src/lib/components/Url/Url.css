@@ -5,6 +5,7 @@
   padding: 5px 8px;
   font-size: 13px;
   vertical-align: middle;
+  transition: background-color var(--t-fast);
 }
 
 .Url:last-child {
@@ -12,8 +13,8 @@
 }
 
 .Url.Url-hover {
-  background-color: #d5d5d5;
-  border-right-color: #d5d5d5;
+  background-color: var(--c-raised);
+  border-right-color: var(--c-raised);
 }
 
 .Url .Url-title {
@@ -21,7 +22,7 @@
   white-space: nowrap;
   overflow: hidden;
   /* text-overflow: ellipsis; */
-  background-image: linear-gradient(to right, var(--text-primary) 80%, transparent 98%);
+  background-image: linear-gradient(to right, var(--text-secondary) 80%, transparent 98%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -44,23 +45,33 @@
 }
 
 .Url-removeBtn:hover {
-  color: var(--text-primary);
+  color: var(--c-load-high);
 }
 
 .Url-removeBtn .Url-action-icon {
   font-size: 0.9rem;
 }
 
+/* Line-icon SVGs sit on the text baseline by default; center them in the row. */
+.Url .Url-action-icon,
+.Url-tabCommandPinned {
+  vertical-align: middle;
+}
+
 .Url-actions .Url-action {
   display: inline-block;
   padding: 3px 6px;
-  color: #aaa;
+  color: var(--text-muted);
   cursor: pointer;
+  transition: color var(--t-fast);
 }
 
-.Url-actions .Url-action:hover,
+.Url-actions .Url-action:hover {
+  color: var(--text-primary);
+}
+
 .Url-actions .Url-action.Url-pinned {
-  color: #333;
+  color: var(--c-lime);
 }
 
 .Url-actions .Url-action .Url-action-icon {
@@ -71,7 +82,7 @@
   float: right;
   font-size: 15px;
   margin-top: 3px;
-  color: #333;
+  color: var(--c-lime);
 }
 
 .Url-stats {
@@ -81,15 +92,15 @@
 }
 
 .Url-loadIndicatorContainer {
-  border-radius: 12px;
-  background-color: #aaaaaa;
+  border-radius: var(--r-bar);
+  background-color: var(--c-track);
   height: 6px;
   width: 60px;
 }
 
 .Url-loadIndicator {
   height: 100%;
-  border-radius: 12px;
+  border-radius: var(--r-bar);
 }
 
 .Url-load-hidden {
@@ -97,25 +108,25 @@
 }
 
 .Url-load-low .Url-loadIndicator {
-  background-color: green;
+  background-color: var(--c-load-light);
 }
 
 .Url-load-medium .Url-loadIndicator {
-  background-color: yellow;
+  background-color: var(--c-load-med);
 }
 
 .Url-load-high .Url-loadIndicator {
-  background-color: orange;
+  background-color: var(--c-load-high);
 }
 
 .Url-load-excessive .Url-loadIndicator {
-  background-color: red;
+  background-color: var(--c-load-high);
 }
 
 .Url.Url-encourageDrag {
   margin-top: 12px;
-  background-color: #d5d5d5;
-  border-right-color: #d5d5d5;
+  background-color: var(--c-raised);
+  border-right-color: var(--c-raised);
 }
 
 .Url.Url-encourageDrag::before {
@@ -134,13 +145,14 @@
   position: relative;
 }
 
+/* Inverted tooltip: light-on-dark in dark theme, dark-on-light in light theme. */
 .Url-actions .Url-action[data-tool-tip]::after {
   content: attr(data-tool-tip);
   display: block;
   position: absolute;
-  background-color: #333;
+  background-color: var(--text-primary);
   padding: 0.5em;
-  color: white;
+  color: var(--app-bg);
   border-radius: 5px;
   font-size: 0.8em;
   bottom: 0;

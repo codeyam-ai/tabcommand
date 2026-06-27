@@ -25,7 +25,7 @@ describe('App', () => {
     installChromeShim();
     render(<App />);
 
-    expect(screen.getByAltText('TabCommand')).toBeInTheDocument();
+    expect(screen.getByLabelText('TabCommand')).toBeInTheDocument();
     expect(await screen.findByText('Active Tabs')).toBeInTheDocument();
     expect(screen.getByText('Automatically Closed')).toBeInTheDocument();
   });
@@ -39,7 +39,7 @@ describe('App', () => {
     installChromeShim();
     render(<App />);
 
-    expect(await screen.findByText('Export Groups')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Import / Export' })).toBeInTheDocument();
     expect(screen.queryByText('Active Tabs')).not.toBeInTheDocument();
   });
 

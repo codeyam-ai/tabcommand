@@ -18,12 +18,11 @@ describe('LoadUrl', () => {
     expect(container.querySelector('img')).toHaveAttribute('src', 'https://x.test/icon.png');
   });
 
-  // a missing favicon falls back to the bundled default image
-  it('falls back to the default favicon when none is provided', () => {
+  // a missing favicon falls back to a colored monogram tile (no broken image)
+  it('falls back to a monogram tile when no favicon is provided', () => {
     const { container } = render(<LoadUrl url={{ urlKey: 'url-y', url: 'https://y.test', title: 'Y', favicon: '' }} />);
-    const src = container.querySelector('img').getAttribute('src');
-    expect(src).toBeTruthy();
-    expect(src).not.toBe('');
+    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('.Url-favFallback')).toBeInTheDocument();
   });
 
   // a tab with sampled process data shows its CPU/memory load readout + bar

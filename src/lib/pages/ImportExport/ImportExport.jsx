@@ -1,17 +1,53 @@
 import './ImportExport.css';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import { HomeFilled } from '@ant-design/icons';
-
-import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { Icon } from '../../components/Icon';
 import {
   sortLabels,
   collectUrlKeys,
   resolveLabelUrls,
   buildImportUpdates,
 } from '../../utils/importExport';
+
+// A read-only snapshot field with its own Copy button. The button writes the
+// field's value to the clipboard and flips to a green "Copied ✓" for ~1.6s
+// before reverting.
+const SnapshotField = ({ value }) => {
+  const [copied, setCopied] = useState(false);
+  const timer = useRef(null);
+
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  const copy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCopied(false), 1600);
+  };
+
+  return (
+    <div className="ImportExport-field">
+      <textarea className="ImportExport-box" value={value} readOnly={true} />
+      <button
+        type="button"
+        className={`ImportExport-copy${copied ? ' is-copied' : ''}`}
+        onClick={copy}
+      >
+        {copied ? (
+          <>
+            <Icon name="check" size={14} /> Copied ✓
+          </>
+        ) : (
+          <>
+            <Icon name="copy" size={14} /> Copy
+          </>
+        )}
+      </button>
+    </div>
+  );
+};
 
 // The Import / Export page: a recover/backup view reached from the sidebar
 // "Import/Export" link. It serializes the user's groups (labels + their member
@@ -59,58 +95,45 @@ const ImportExport = ({ onComplete }) => {
     if (onComplete) onComplete();
   }
 
-  const goHome = (e) => {
-    e.stopPropagation();
-    Chrome.get('ImportExport3', 'uxSettings', ({ uxSettings }) => {
-      uxSettings.page = { name: Pages.HOME };
-      Chrome.set('ImportExport2', { uxSettings: uxSettings });
-    })
-  }
-
   return (
     <div className="ImportExport">
-      <div className="ImportExport-homeLink" onClick={goHome}>
-        <HomeFilled /> Go To Homepage
-      </div>
-      <div className="ImportExport-description">
-        <p>
-          This page allows you to recover your tab information if a bug ever happens.
-        </p>
-        <p>
-          Simply take the value from one of the &#34;Previous&#34; fields and paste it into the &#34;Import&#34;
-          <br/>
-          area to restore your tab information from before the bug.
-        </p>
-        <p>
-          You may also want to save the working copy to a file in case the bug happens again.
-        </p>
-      </div>
-      <div className="ImportExport-import">
-        <h3>Import Groups</h3>
+      <button className="ImportExport-back" onClick={onComplete}>
+        <Icon name="arrowLeft" size={15} /> Home
+      </button>
+
+      <h1 className="ImportExport-h1">Import / Export</h1>
+      <p className="ImportExport-intro">
+        Recover your tab information if a bug ever happens. Paste a saved snapshot
+        into Import to restore your groups, or copy a snapshot below to keep a
+        working backup.
+      </p>
+
+      <section className="ImportExport-group">
+        <h2 className="ImportExport-eyebrow">Import</h2>
         <textarea
+          className="ImportExport-box"
           value={importLabels}
           onChange={(e) => setImportLabels(e.target.value)}
           onKeyDown={(event) => {
             event.stopPropagation();
           }}
         />
-        <button className='ImportExport-import-save' onClick={saveImport}>
+        <button className="ImportExport-import-save" onClick={saveImport}>
           Import
         </button>
-      </div>
-      <div className="ImportExport-export">
-        <h3>Export Groups</h3>
+      </section>
 
-        <h4>Current</h4>
-        <textarea value={exportLabels} readOnly={true}/>
+      <section className="ImportExport-group">
+        <h2 className="ImportExport-eyebrow">Export</h2>
 
-        <h4 className='ImportExport-previous-all'>Previous (most recent first)</h4>
+        <h3 className="ImportExport-subhead">Current</h3>
+        <textarea className="ImportExport-box" value={exportLabels} readOnly={true} />
+
+        <h3 className="ImportExport-subhead">Previous (most recent first)</h3>
         {previousLabels.map((previous, index) => (
-          <div key={`previousLabels-${index}`} className="ImportExport-previous">
-            <textarea value={previous} readOnly={true}/>
-          </div>
+          <SnapshotField key={`previousLabels-${index}`} value={previous} />
         ))}
-      </div>
+      </section>
     </div>
   );
 }

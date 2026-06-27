@@ -25,7 +25,7 @@ describe('LabelForm', () => {
     render(<LabelForm />);
 
     await userEvent.type(screen.getByPlaceholderText('Group Title'), 'Work');
-    await userEvent.click(screen.getByText('Save'));
+    await userEvent.click(screen.getByText('Create group'));
 
     await waitFor(async () => {
       const { labels } = await get('labels');
@@ -49,7 +49,7 @@ describe('LabelForm', () => {
     const input = screen.getByPlaceholderText('Group Title');
     await userEvent.clear(input);
     await userEvent.type(input, 'Office');
-    await userEvent.click(screen.getByText('Save'));
+    await userEvent.click(screen.getByText('Create group'));
 
     await waitFor(async () => {
       const { labels } = await get('labels');

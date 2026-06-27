@@ -87,18 +87,18 @@ describe('Tabs', () => {
     expect(screen.getByText('Ungrouped')).toBeInTheDocument();
   });
 
-  // the History section is collapsed by default and expands when its title is clicked
-  it('toggles the History section open when its title is clicked', async () => {
+  // the footer History button navigates to the History page via uxSettings
+  it('navigates to the History page when the footer button is clicked', async () => {
+    seed('uxSettings', { page: { name: 'Home' } });
     installChromeShim();
-    const { container } = renderTabs();
+    renderTabs();
 
-    const history = await screen.findByText('History');
-    expect(container.querySelector('.Tabs-history.Tabs-section-collapsed')).toBeInTheDocument();
-
+    const history = await screen.findByRole('button', { name: 'History' });
     await userEvent.click(history);
 
     await waitFor(() => {
-      expect(container.querySelector('.Tabs-history.Tabs-section-collapsed')).not.toBeInTheDocument();
+      const uxSettings = JSON.parse(window.localStorage.getItem('uxSettings'));
+      expect(uxSettings.page).toEqual({ name: 'History' });
     });
   });
 });

@@ -1,16 +1,25 @@
 .LoadPerTabNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   margin: 0 0 18px;
-  padding: 10px 14px;
-  border-left: 3px solid #1873E4;
-  background: #F2F6FD;
-  border-radius: 4px;
+  padding: 11px 14px;
+  background: var(--c-card);
+  border: 0.5px solid var(--c-border);
+  border-radius: var(--r-row);
   font-size: 13px;
   line-height: 1.5;
-  color: #5F6780;
+  color: var(--c-t3);
+}
+
+.LoadPerTabNote-icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--c-blue);
 }
 
 .LoadPerTabNote code {
-  font-family: "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: #243156;
+  color: var(--c-t2);
 }

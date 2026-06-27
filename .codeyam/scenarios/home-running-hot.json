@@ -1,0 +1,32 @@
+{
+  "name": "Home - Running Hot",
+  "id": "b4de3ada-05db-4dff-9ed0-6adec9e1fcf9",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\",\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\",\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\",\"url-https://news.ycombinator.com\"]",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\"]},\"Social\":{\"title\":\"Social\",\"backgroundColor\":\"#D01882\",\"position\":3,\"urlKeys\":[\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\"]}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.reddit.com/r/programming": "{\"title\":\"r/programming\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://overreacted.io": "{\"title\":\"overreacted — A blog by Dan Abramov\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.notion.so/codeyam/Roadmap\",\"tabKey\":\"tab-303\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-304\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"tabKey\":\"tab-305\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://twitter.com/home\",\"tabKey\":\"tab-306\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-307\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "url-https://www.etsy.com/favorites": "{\"title\":\"Favorites – Etsy\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "processTotals": "{\"cpu\": 132, \"privateMemory\": 4300000000, \"jsMemoryUsed\": 1200000000}",
+      "url-https://twitter.com/home": "{\"title\": \"Home / X\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"cpu\": 540000, \"privateMemory\": 7400000000, \"jsMemoryUsed\": 1}}",
+      "autoClosed": "{}",
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"cpu\": 610000, \"privateMemory\": 8200000000, \"jsMemoryUsed\": 1}}",
+      "url-https://www.amazon.com/wishlist": "{\"title\":\"Your Wish List – Amazon\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

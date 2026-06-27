@@ -16,3 +16,7 @@ export { Search } from "./Search";
 export { SearchResults } from "./SearchResults";
 export { UrlField } from "./UrlField";
 export { UrlLabel } from "./UrlLabel";
+export { Icon } from "./Icon";
+export { Triage } from "./Triage";
+export { Settings } from "./Settings";
+export { HistoryRow } from "./HistoryRow";

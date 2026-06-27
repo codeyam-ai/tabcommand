@@ -2,14 +2,22 @@ import './Tabs.css';
 
 import React, { useEffect, useState } from 'react';
 import { Url } from '..';
-import { SwitcherFilled, CaretRightFilled, CaretDownFilled } from '@ant-design/icons';
+import { Icon } from '../Icon';
 
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 
-import { ItemTypes, MaxAutoClosedTime } from '../../../Constants';
+import { ItemTypes, MaxAutoClosedTime, Pages, HeavyThresholdDefault } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { summarizeProcessLoad } from '../../utils/processLoad';
+import humanReadableNumber from '../../utils/humanReadableNumber';
 
-const Tabs = () => {
+// Fixed load cutoffs for the heaviest-tabs bar color, matching the gauge legend:
+// < 40 light, 40–69 medium, ≥ 70 high. Independent of `heavyThreshold` (which
+// only decides which tabs enter the list).
+const loadColor = (width) =>
+  width >= 70 ? 'var(--c-load-high)' : width >= 40 ? 'var(--c-load-med)' : 'var(--c-load-light)';
+
+const Tabs = ({ reviewMode = false }) => {
   const setPartialState = (updates) => {
     if (Object.keys(updates).length === 0) return;
     setState(prevState => {
@@ -20,22 +28,14 @@ const Tabs = () => {
     })
   }
 
-  const [{ activeTabUrls, autoClosedUrlKeys, allUrlKeys, labelMap, archiveCollapsed }, setState] = useState({
+  const [{ activeTabUrls, autoClosedUrlKeys, labelMap, colorMap, urlDataMap, settings }, setState] = useState({
     activeTabUrls: [],
     autoClosedUrlKeys: [],
-    allUrlKeys: [],
     labelMap: {},
-    archiveCollapsed: true
+    colorMap: {},
+    urlDataMap: {},
+    settings: { heavyThreshold: HeavyThresholdDefault }
   });
-
-  const ungroupedUrlKeys = () => {
-    return (allUrlKeys || []).slice(0,500).filter(
-      urlKey => urlKey &&
-                !activeTabUrls.map(t => t.urlKey).includes(urlKey) &&
-                !autoClosedUrlKeys.includes(urlKey) &&
-                !labelMap[urlKey]
-    ).slice(0,250);
-  };
 
   const generateTabUrlLabels = (tabUrls) => {
     const labels = [];
@@ -78,15 +78,40 @@ const Tabs = () => {
     return generateTabUrlLabels(autoClosedUrlKeys.map(urlKey => ({urlKey: urlKey})));
   }
 
+  // Tabs whose per-tab load ≥ heavyThreshold, heaviest first. Shares the
+  // summarize math + threshold with the sidebar Triage card and the Load page.
+  const heaviestTabs = () => {
+    const heavyThreshold = (settings && settings.heavyThreshold) ?? HeavyThresholdDefault;
+    return activeTabUrls
+      .map((tabUrl) => {
+        const url = urlDataMap[tabUrl.urlKey];
+        const load = url && url.processes ? summarizeProcessLoad(url.processes) : null;
+        return { tabUrl, url, load };
+      })
+      .filter((item) => item.load && item.load.width >= heavyThreshold)
+      .sort((a, b) => b.load.width - a.load.width);
+  };
+
   useEffect(() => {
     const generateLabelMap = (labels) => {
       const newLabelMap = {};
       for (const label of Object.values(labels || {})) {
-        for (const urlKey of label.urlKeys) {
+        for (const urlKey of label.urlKeys || label.urls || []) {
           newLabelMap[urlKey] = label.title;
         }
       }
       return newLabelMap;
+    };
+
+    // urlKey -> owning group's color, so each heaviest-tab row gets its group dot.
+    const generateColorMap = (labels) => {
+      const newColorMap = {};
+      for (const label of Object.values(labels || {})) {
+        for (const urlKey of label.urlKeys || label.urls || []) {
+          newColorMap[urlKey] = label.backgroundColor;
+        }
+      }
+      return newColorMap;
     };
 
     const sortAutoClosed = (autoClosed) => {
@@ -101,15 +126,34 @@ const Tabs = () => {
       )
     };
 
-    Chrome.get('Tabs1', ['activeTabs', 'autoClosed', 'allUrls', 'labels'], (result) => {
+    // Reads `settings` + the per-URL process records for the current active tabs,
+    // so the Heaviest-Tabs section can size its bars. Mirrors how Triage feeds
+    // its heavy count.
+    const readLoad = () => {
+      Chrome.get('Tabs2', ['settings', 'activeTabs'], (base) => {
+        const newSettings = base.settings || {};
+        const activeTabs = (base.activeTabs || []).filter((t) => !t.pinned);
+        const urlKeys = activeTabs.map((t) => t.urlKey);
+        if (!urlKeys.length) {
+          setPartialState({ settings: newSettings, urlDataMap: {} });
+          return;
+        }
+        Chrome.get('Tabs3', urlKeys, (urls) => {
+          setPartialState({ settings: newSettings, urlDataMap: urls });
+        });
+      });
+    };
+
+    Chrome.get('Tabs1', ['activeTabs', 'autoClosed', 'labels'], (result) => {
       const autoClosed = sortAutoClosed(result.autoClosed);
       setPartialState({
         activeTabUrls: (result.activeTabs).filter(tabUrl => !tabUrl.pinned),
         autoClosedUrlKeys: autoClosed,
-        allUrlKeys: result.allUrls,
-        labelMap: generateLabelMap(result.labels)
+        labelMap: generateLabelMap(result.labels),
+        colorMap: generateColorMap(result.labels)
       });
     });
+    readLoad();
 
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
@@ -122,13 +166,10 @@ const Tabs = () => {
         );
       }
 
-      if (changes.allUrls) {
-        updates.allUrlKeys = changes.allUrls.newValue;
-      }
-
       if (changes.labels) {
         const labels = changes.labels.newValue;
         updates.labelMap = generateLabelMap(labels);
+        updates.colorMap = generateColorMap(labels);
       }
 
       if (changes.autoClosed) {
@@ -136,12 +177,47 @@ const Tabs = () => {
       }
 
       setPartialState(updates);
+
+      // Refresh the heaviest-tabs feed when its inputs move: the tab set, the
+      // threshold, or any per-URL process record (`url-*`).
+      if (
+        changes.activeTabs ||
+        changes.settings ||
+        Object.keys(changes).some((key) => key.startsWith('url-'))
+      ) {
+        readLoad();
+      }
     };
 
     chrome.storage.onChanged.addListener(handleChange);
 
     return () => chrome.storage.onChanged.removeListener(handleChange);
   }, []);
+
+  // Closes a heaviest-tab the same way Url's ✕ does: kill the live Chrome tab
+  // (the background then drops it from activeTabs) and tidy autoClosed / allUrls.
+  const closeHeavyTab = (tabUrl) => (event) => {
+    event.stopPropagation();
+    const tabId = tabUrl.tabKey && parseInt(tabUrl.tabKey.split('-')[1]);
+    if (tabId) chrome.tabs.remove(tabId, () => {});
+    Chrome.get('Tabs4', ['autoClosed', 'allUrls'], (result) => {
+      const autoClosed = result.autoClosed || {};
+      delete autoClosed[tabUrl.urlKey];
+
+      const allUrls = result.allUrls || [];
+      const index = allUrls.indexOf(tabUrl.urlKey);
+      if (index > -1) allUrls.splice(0, 0, allUrls.splice(index, 1)[0]);
+
+      Chrome.set('Tabs1', { autoClosed: autoClosed, allUrls: allUrls });
+    });
+  };
+
+  const goToHistory = () => {
+    Chrome.get('Tabs5', 'uxSettings', ({ uxSettings }) => {
+      uxSettings.page = { name: Pages.HISTORY };
+      Chrome.set('Tabs2', { uxSettings: uxSettings });
+    });
+  };
 
   const DraggableTabUrls = ({name, urls, autoClosed}) => {
     return (
@@ -189,8 +265,49 @@ const Tabs = () => {
     );
   }
 
+  const heavyRows = heaviestTabs();
+
   return (
-    <div className={`Tabs ${archiveCollapsed ? '' : 'Tabs-archive'}`}>
+    <div className="Tabs">
+      { heavyRows.length > 0 &&
+        <div className={`Tabs-section Tabs-heaviest${reviewMode ? ' Tabs-heaviest-review' : ''}`}>
+          <h3 className='Tabs-section-title'>Heaviest Tabs</h3>
+          <div className="Tabs-heaviest-rows">
+            {heavyRows.map(({ tabUrl, url, load }) => {
+              const title = (url && url.title) || tabUrl.urlKey.replace(/^url-/, '');
+              const barWidth = Math.min(load.width, 100);
+              const mem = humanReadableNumber(Math.round(load.mem)) || '0';
+              return (
+                <div className="Tabs-heavyRow" key={`heavy-${tabUrl.urlKey}`}>
+                  <span
+                    className="Tabs-heavyRow-dot"
+                    style={{ background: colorMap[tabUrl.urlKey] || 'var(--text-muted)' }}
+                  />
+                  <span className="Tabs-heavyRow-title" title={title}>{title}</span>
+                  <span className="Tabs-heavyRow-bar">
+                    <span
+                      className="Tabs-heavyRow-barFill"
+                      style={{ width: `${barWidth}%`, background: loadColor(load.width) }}
+                    />
+                  </span>
+                  <span className="Tabs-heavyRow-stats">
+                    {Math.round(load.width)}% · ≈{mem} MB
+                  </span>
+                  <button
+                    className="Tabs-heavyRow-close"
+                    onClick={closeHeavyTab(tabUrl)}
+                    title="Close tab"
+                    aria-label="Close tab"
+                  >
+                    <Icon name="close" size={14} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      }
+
       <div className="Tabs-section Tabs-active">
         <h3 className='Tabs-section-title'>Active Tabs</h3>
         <div className="Tabs-section-urls">
@@ -255,21 +372,11 @@ const Tabs = () => {
           )}
         </div>
       </div>
-      <div className={`Tabs-section Tabs-history Tabs-closed ${archiveCollapsed ? 'Tabs-section-collapsed' : ''}`}>
-        <h3
-          className='Tabs-section-title'
-          onClick={() => setPartialState({ archiveCollapsed: !archiveCollapsed })}
-        >
-          <SwitcherFilled/>
+      <div className="Tabs-footer">
+        <button className="Tabs-historyBtn" onClick={goToHistory}>
+          <Icon name="history" size={15} />
           History
-          {archiveCollapsed ? <CaretRightFilled/> : <CaretDownFilled/> }
-        </h3>
-        <div className="Tabs-section-urls">
-          <DraggableTabUrls
-            name='history'
-            urls={ungroupedUrlKeys().map(urlKey => ({ urlKey: urlKey, closed: true }))}
-          />
-        </div>
+        </button>
       </div>
     </div>
   );

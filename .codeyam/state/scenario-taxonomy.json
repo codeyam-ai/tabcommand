@@ -93,7 +93,8 @@
     },
     "UrlDetails": {
       "empty": {
-        "status": "added"
+        "status": "n-a",
+        "reason": "Single-record edit form, not a list — there is no empty-list state. The 'not in any group yet' empty-groups variant is shown by url-details-unlabeled."
       },
       "single": {
         "status": "n-a",
@@ -103,7 +104,8 @@
         "status": "added"
       },
       "many": {
-        "status": "added"
+        "status": "n-a",
+        "reason": "Single-record edit form, not a list — no overflow/many state. A URL in multiple groups renders the same removable-chip treatment shown in url-details-edit."
       },
       "loading": {
         "status": "n-a",

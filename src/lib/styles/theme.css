@@ -1,0 +1,87 @@
+/*
+ * CodeYam design-language token layer for TabCommand.
+ *
+ * Dark is the default and the home of the brand. The whole UI swaps by toggling
+ * a `data-theme` attribute on the `.App` root (absent/"" = dark, "light" = light).
+ * Neutrals swap per theme; identity/load/group colors and radii/motion are
+ * constant across themes. Values are the authoritative handoff tables — treat
+ * them as exact.
+ *
+ * IBM Plex Sans (UI) + IBM Plex Mono (numerics/eyebrows) are pulled in at runtime
+ * rather than via a build-time font framework, per the handoff.
+ */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap');
+
+:root,
+[data-theme='dark'] {
+  /* Neutrals — dark */
+  --c-page: #0a0a0a;
+  --c-panel: #0e0e0e;
+  --c-card: #161616;
+  --c-raised: #1c1c1c;
+  --c-track: #2a2a2a;
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-border2: rgba(255, 255, 255, 0.12);
+  --c-t1: #f2f2f2;
+  --c-t2: #cfcfcf;
+  --c-t3: #aaaaaa;
+  --c-t4: #6b6b6b;
+  --c-t5: #4a4a4a;
+  --c-blue: #85b7eb;
+  --c-logo-accent: #c7f04a;
+}
+
+[data-theme='light'] {
+  /* Neutrals — light */
+  --c-page: #fafafa;
+  --c-panel: #f4f4f4;
+  --c-card: #ffffff;
+  --c-raised: #eeeeee;
+  --c-track: #e2e2e2;
+  --c-border: rgba(0, 0, 0, 0.10);
+  --c-border2: rgba(0, 0, 0, 0.16);
+  --c-t1: #1a1a1a;
+  --c-t2: #3a3a3a;
+  --c-t3: #6a6a6a;
+  --c-t4: #8a8a8a;
+  --c-t5: #b2b2b2;
+  --c-blue: #2f7de1;
+  --c-logo-accent: #3a3a3a;
+}
+
+:root {
+  /* Identity + load — constant across themes */
+  --c-lime: #c7f04a;
+  --c-lime-hover: #a9d437;
+  --c-load-light: #9bd35a; /* load < 40% */
+  --c-load-med: #ef9f27;   /* load 40–69% */
+  --c-load-high: #ef6f6f;  /* load ≥ 70% */
+  --c-mem: #b48ead;        /* private-memory bars */
+
+  /* Group colors — functional wayfinding, constant across themes (no repeats) */
+  --c-group-1: #1e9e57; /* green */
+  --c-group-2: #2f7de1; /* blue */
+  --c-group-3: #e07d1e; /* orange */
+  --c-group-4: #c2278a; /* pink */
+  --c-group-5: #d8352a; /* red */
+  --c-group-6: #168f8f; /* teal */
+  --c-group-7: #7c3aed; /* purple */
+  --c-group-8: #5b6470; /* gray */
+  --c-group-9: #cf9f1c; /* gold */
+
+  /* Radii */
+  --r-card: 16px;
+  --r-row: 11px;
+  --r-tile: 8px;
+  --r-badge: 20px;
+  --r-bar: 3px;
+
+  /* Motion */
+  --t-fast: 0.12s ease;
+  --t-med: 0.18s ease;
+  --t-gauge: 0.6s ease;
+
+  /* Type */
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', Menlo, Monaco, monospace;
+}

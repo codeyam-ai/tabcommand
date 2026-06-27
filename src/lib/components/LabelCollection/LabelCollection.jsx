@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import { Url, LabelForm } from '..';
-import { DeleteOutlined, ShareAltOutlined, MenuOutlined } from '@ant-design/icons';
+import { Icon } from '../Icon';
 
 import { ItemTypes } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
@@ -147,10 +147,10 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
       />
       <div className='LabelCollection-menu-section LabelCollection-menu-actions'>
         <button className='LabelCollection-share' disabled title='Group sharing is coming soon'>
-          <ShareAltOutlined /> Share Group
+          <Icon name="globe" size={15} /> Share Group
         </button>
         <button className='LabelCollection-delete' onClick={deleteLabel}>
-          <DeleteOutlined /> Delete Group
+          <Icon name="close" size={15} /> Delete Group
         </button>
       </div>
     </div>
@@ -175,7 +175,7 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
       >
         <h3>{currentTitle || title}</h3>
         <span className='LabelCollection-count'>{(currentUrlKeys || []).length}</span>
-        <MenuOutlined className='LabelCollection-menuButton' onClick={toggleMenu} />
+        <span className='LabelCollection-menuButton' onClick={toggleMenu}>⋮</span>
       </div>
 
       <Droppable

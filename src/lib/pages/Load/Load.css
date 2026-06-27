@@ -2,10 +2,11 @@
   display: flex;
   align-items: flex-start;
   gap: 24px;
-  padding: 28px 32px;
-  height: 100%;
+  padding: 22px 28px 48px;
+  height: 100vh;
   box-sizing: border-box;
   overflow: hidden;
+  width: 100%;
 }
 
 .Load-main {
@@ -20,24 +21,87 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
-  color: #1873E4;
+  border: none;
+  background: none;
+  color: var(--c-t3);
+  font-family: var(--font-sans);
+  font-size: 13px;
   cursor: pointer;
+  padding: 0;
+  transition: color var(--t-fast);
 }
 
 .Load-homeLink:hover {
-  text-decoration: underline;
+  color: var(--c-t1);
 }
 
 .Load-title {
-  margin: 8px 0 20px;
-  font-size: 26px;
-  color: #243156;
+  margin: 14px 0 16px;
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--c-t1);
+}
+
+.Load-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 18px;
+  background: var(--c-panel);
+  border: 0.5px solid var(--c-border);
+  border-radius: var(--r-badge);
+}
+
+.Load-toggle-btn {
+  border: none;
+  background: none;
+  color: var(--c-t3);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  padding: 5px 14px;
+  border-radius: var(--r-badge);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.Load-toggle-btn:hover {
+  color: var(--c-t1);
+}
+
+.Load-toggle-btn.is-active {
+  background: var(--c-card);
+  color: var(--c-t1);
+}
+
+.Load-fallbackBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 11px 14px;
+  background: var(--c-card);
+  border: 0.5px solid var(--c-border);
+  border-radius: var(--r-row);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-t3);
+}
+
+.Load-fallbackBanner-icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--c-blue);
+}
+
+.Load-fallbackBanner code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--c-t2);
 }
 
 .Load-details {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 16px;
   align-items: start;
 }

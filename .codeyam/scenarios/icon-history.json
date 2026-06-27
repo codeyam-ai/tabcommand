@@ -1,0 +1,11 @@
+{
+  "name": "Icon - History",
+  "id": "e45bd19d-a8e2-4b56-8efa-303524ac5a73",
+  "url": "/?isolate=Icon&variant=history",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "Icon",
+  "scenarioType": "component"
+}

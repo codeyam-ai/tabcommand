@@ -3,10 +3,9 @@
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  border: 1px solid #e3e6ec;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(36, 49, 86, 0.04);
+  border: 0.5px solid var(--c-border);
+  border-radius: var(--r-card);
+  background: var(--c-card);
 }
 
 .Load-url-title {
@@ -24,12 +23,12 @@
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: #243156;
+  color: var(--c-t1);
   min-width: 0;
 }
 
 .Load-url-title a:hover {
-  color: #1873E4;
+  color: var(--c-blue);
 }
 
 .Load-url-title img {
@@ -46,17 +45,18 @@
 .Load-url-load-stats {
   display: flex;
   justify-content: space-between;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: #6b7280;
+  color: var(--c-t3);
   margin-bottom: 5px;
 }
 
 /* Self-contained load-bar styling so the cards render colored whether or not
    the Url component (and its Url.css) is mounted on the page. Mirrors the
-   shared Url-load severity palette. */
+   shared Url-load severity palette using the CodeYam load tokens. */
 .Url-loadIndicatorContainer {
-  border-radius: 12px;
-  background-color: #eceef2;
+  border-radius: var(--r-bar);
+  background-color: var(--c-track);
   height: 6px;
   width: 100%;
   overflow: hidden;
@@ -64,21 +64,21 @@
 
 .Url-loadIndicator {
   height: 100%;
-  border-radius: 12px;
+  border-radius: var(--r-bar);
 }
 
 .Url-load-low .Url-loadIndicator {
-  background-color: #1F8E43;
+  background-color: var(--c-load-light);
 }
 
 .Url-load-medium .Url-loadIndicator {
-  background-color: #E4A615;
+  background-color: var(--c-load-med);
 }
 
 .Url-load-high .Url-loadIndicator {
-  background-color: #E47415;
+  background-color: var(--c-load-high);
 }
 
 .Url-load-excessive .Url-loadIndicator {
-  background-color: #DA2F25;
+  background-color: var(--c-load-high);
 }

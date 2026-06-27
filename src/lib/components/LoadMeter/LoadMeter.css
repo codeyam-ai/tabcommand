@@ -6,6 +6,69 @@
   margin-top: 8px;
 }
 
-.LoadMeter svg {
+.LoadMeter-svg {
   display: block;
+}
+
+/* Both rings share an even, theme-aware groove. */
+.LoadMeter-track {
+  stroke: var(--gauge-track);
+}
+
+/* Progress arcs animate their fill via stroke-dashoffset. */
+.LoadMeter-progress {
+  transition: stroke-dashoffset var(--t-gauge), stroke var(--t-med, 0.18s ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .LoadMeter-progress {
+    transition: none;
+  }
+}
+
+/* Center — "Browser Load" eyebrow above the overall load %. */
+.LoadMeter-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  fill: var(--text-muted);
+}
+
+.LoadMeter-value {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 600;
+  fill: var(--text-primary);
+}
+
+/* Legend — ■ CPU NN%  ■ Mem NN% */
+.LoadMeter-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.LoadMeter-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.LoadMeter-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.LoadMeter-legend-label {
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.LoadMeter-legend-value {
+  color: var(--text-primary);
 }

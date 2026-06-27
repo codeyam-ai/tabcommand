@@ -1,47 +1,197 @@
-.LabelForm h3 {
-  margin: 2px 6px;
+/* Inline "Add group" card: header, named color dot + input, swatch row with a
+   custom-color picker, then Create / Cancel actions. */
+.LabelForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
 }
 
-.LabelForm .Form {
+.LabelForm-header {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+/* Color dot + bordered name input */
+.LabelForm-nameField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-row);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.LabelForm-nameField:focus-within {
+  border-color: var(--brand-command);
+  box-shadow: 0 0 0 2px var(--brand-command);
+}
+
+.LabelForm-dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.LabelForm-nameInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.LabelForm-nameInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* "Pick a color" mono eyebrow */
+.LabelForm-pick {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+/* Swatch row */
+.LabelForm-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  border: none;
   margin: 0;
 }
 
-.LabelForm input {
-  width: 90%;
-  margin: 0 3px 3px 3px;
-  padding: 6px;
-  font-size: 1.2em;
-}
-
-.LabelForm .LabelForm-colors {
-  padding: 9px;
-  border-bottom: 1px solid #ccc;
-  margin-bottom: 9px;
-}
-
-.LabelForm .LabelForm-color {
-  height: 12px;
-  width: 12px;
-  border-radius: 12px;
-  margin-right: 3px;
+.LabelForm-color {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
   cursor: pointer;
-  display: inline-block;
-  border: 2px solid white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1px var(--border);
+  transition: transform var(--t-fast);
 }
 
-.LabelForm .LabelForm-color.selected {
-  border: 2px solid black;
+.LabelForm-color:hover {
+  transform: scale(1.08);
 }
 
-.LabelForm .LabelForm-cancelLink {
-  display: inline-block;
+.LabelForm-color.selected {
+  border-color: var(--card-bg);
+  box-shadow: 0 0 0 2px var(--brand-command);
+}
+
+.LabelForm-colorCheck {
+  color: #fff;
+}
+
+/* Custom-color picker: rainbow swatch wrapping a native <input type=color> */
+.LabelForm-custom {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
   cursor: pointer;
-  font-weight: 400;
-  margin: 0 15px 0 0;
+  display: inline-flex;
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px var(--border);
+  /* A proper HSV color wheel: full-hue conic gradient with a white center that
+     fades out toward the saturated rim (radial overlay). */
+  background:
+    radial-gradient(circle at center, #ffffff 0%, rgba(255, 255, 255, 0) 68%),
+    conic-gradient(
+      from 90deg,
+      hsl(0, 100%, 50%),
+      hsl(60, 100%, 50%),
+      hsl(120, 100%, 50%),
+      hsl(180, 100%, 50%),
+      hsl(240, 100%, 50%),
+      hsl(300, 100%, 50%),
+      hsl(360, 100%, 50%)
+    );
+  transition: transform var(--t-fast);
 }
 
-.LabelForm button {
-  border-radius: 12px;
-  padding: 6px 12px;
+.LabelForm-custom:hover {
+  transform: scale(1.08);
+}
+
+.LabelForm-custom.selected {
+  border-color: var(--card-bg);
+  box-shadow: 0 0 0 2px var(--brand-command);
+}
+
+.LabelForm-customInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
   border: none;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Actions */
+.LabelForm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.LabelForm-cancel {
+  padding: 7px 12px;
+  border: none;
+  border-radius: var(--r-row);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--t-fast), background-color var(--t-fast);
+}
+
+.LabelForm-cancel:hover {
+  color: var(--text-primary);
+  background-color: var(--search-bg);
+}
+
+.LabelForm-create {
+  padding: 7px 14px;
+  border: none;
+  border-radius: var(--r-row);
+  background-color: var(--c-lime);
+  color: #1a1a1a;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--t-fast);
+}
+
+.LabelForm-create:hover {
+  background-color: var(--c-lime-hover);
 }

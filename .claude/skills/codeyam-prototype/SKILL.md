@@ -28,10 +28,20 @@ Then end your turn. The user replies with a freeform description.
 
 ## During prototyping
 
+- **Get the current scenario right before changing scenarios.** Changing
+  or adding scenarios is valuable, but it's a follow-up move. After a
+  batch of edits, drive the preview to the current scenario and ask the
+  user whether it looks right or what should change. Only once they
+  confirm it looks good do you register new scenarios or switch the
+  preview to a different one.
 - Edit any source files needed (`.ts`, `.tsx`, `.rs`, `.css`, `.json`, …).
   Speed beats rigor — this is the rapid-iteration phase.
-- Register scenarios on the fly with `codeyam-editor editor register` so
-  the live-preview iteration loop has realistic data.
+- Work one scenario at a time. Register scenarios when the live loop
+  genuinely needs realistic data to make the current view legible — but
+  do not *expand* the scenario set (new scenarios, alternate states,
+  edge-case variants) until the user has confirmed the scenario currently
+  on screen looks right. Use `codeyam-editor editor register` for the
+  scenarios you do create.
 - Use `AskUserQuestion` to confirm direction when there are multiple
   reasonable approaches; otherwise iterate freely.
 - Do **NOT** run `codeyam-editor editor advance` or `codeyam-editor editor
@@ -52,13 +62,20 @@ you built". Treat every batch of edits as a demo cue.
   `codeyam-editor editor preview-nav` pointing the iframe at the
   scenario or page that exercises what you just built. Do not describe
   changes in text and move on — show them.
-- **After each batch, offer the user 2–4 views to compare via
-  `AskUserQuestion`.** Pick views that are genuinely different —
-  different scenarios, an empty vs. populated state, a focused
-  component vs. the whole app, an edge case the prototype now handles.
-  Don't offer trivially-similar options ("View A" / "View A but
-  slightly different"). The point is to let the user steer the demo,
-  not to perform a confirmation.
+- **After each batch, confirm the current scenario before branching
+  out.** Once the `preview-nav` above points the iframe at the scenario
+  the batch exercises, ask the user — via `AskUserQuestion` or plain
+  text — whether *this* view looks right or what they'd like changed.
+  Give them room to iterate on the scenario in front of them; refine the
+  same view and re-confirm rather than hopping to a new one.
+- **Only after the user confirms the current scenario looks right** do
+  you offer alternate views or register additional scenarios. At that
+  point, offer views that are genuinely different — different scenarios,
+  an empty vs. populated state, a focused component vs. the whole app, an
+  edge case the prototype now handles. Don't offer trivially-similar
+  options ("View A" / "View A but slightly different"). This is "where to
+  go next" once the current view is signed off — not the default move
+  after every batch.
 - **`preview-nav` is the in-loop iteration tool.** It's lightweight
   (<200 ms), HMR-friendly, and never blocks. Reach for it constantly.
   Use the heavier `codeyam-editor editor preview` only when you need

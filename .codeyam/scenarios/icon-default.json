@@ -1,0 +1,11 @@
+{
+  "name": "Icon - Default",
+  "id": "46cc9410-2311-4956-88d5-c3d41bab3061",
+  "url": "/?isolate=Icon",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "Icon",
+  "scenarioType": "component"
+}

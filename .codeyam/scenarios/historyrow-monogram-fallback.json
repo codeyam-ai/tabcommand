@@ -1,0 +1,11 @@
+{
+  "name": "HistoryRow - Monogram Fallback",
+  "id": "d09d7d12-f5f4-43d9-b252-5b18ec692367",
+  "url": "/?isolate=HistoryRow&variant=monogram",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistoryRow",
+  "scenarioType": "component"
+}

@@ -24,6 +24,33 @@ body {
 .App-sidebar-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding-right: 14px;
+}
+
+.App-sidebar-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Clickable Browser Load gauge → Load page. */
+.App-gauge {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 8px;
+}
+
+/* Load-aware triage card (Home only) sits under the gauge. */
+.App-sidebar > .Triage {
+  margin: 0 16px;
+}
+
+.App-sidebar-counts {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .App-sidebar {
@@ -52,24 +79,30 @@ body {
   position: absolute;
   left: 0;
   bottom: 0;
-  height: 60px;
+  min-height: 60px;
   color: var(--text-secondary);
   width: 100%;
+  box-sizing: border-box;
   text-align: center;
   border-top: 1px solid var(--border);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  padding: 10px 0;
 }
 
 .App-sidebar-footer .App-sidebar-link {
   cursor: pointer;
-  padding: 6px;
-  color: var(--text-secondary);
+  padding: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--c-lime);
 }
 
 .App-sidebar-footer .App-sidebar-link:hover {
-  color: var(--text-primary);
+  color: var(--c-lime-hover);
 }
 
 #backgroundOverlay {

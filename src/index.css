@@ -1,82 +1,87 @@
-/* ── TabCommand theme tokens ───────────────────────────────────────────────
-   Structural palette, spacing and layout dimensions. Light is the default;
-   dark mode later is just a matter of overriding these under
-   `[data-theme="dark"]`. Components should reference these vars, never raw
-   hex, so the whole UI re-themes from one place. */
-:root {
-  /* Surfaces — neutral light grays for all three panels, white group cards */
-  --app-bg: #f1f1f2;          /* center content backdrop */
-  --sidebar-bg: #f4f4f5;      /* left sidebar */
-  --rail-bg: #f4f4f5;         /* right tab rail */
-  --card-bg: #ffffff;         /* group card body */
+/* ── TabCommand theme tokens — CodeYam design language ─────────────────────
+   Dark is the default and the home of the brand; light overrides live under
+   `[data-theme="light"]`. These keep the SAME token NAMES main's components
+   already reference, but carry the CodeYam values (near-black surfaces, lime
+   identity accent, hairline borders instead of shadows, IBM Plex type). The
+   richer CodeYam palette (load colors, group hues, radii, motion) lives in
+   `lib/styles/theme.css`, imported alongside this file. Components reference
+   these vars, never raw hex, so the whole UI re-themes from one place. */
+:root,
+[data-theme="dark"] {
+  /* Surfaces — near-black workspace, hairline-separated panels */
+  --app-bg: #0a0a0a;          /* center content backdrop */
+  --sidebar-bg: #0e0e0e;      /* left sidebar */
+  --rail-bg: #0e0e0e;         /* right tab rail */
+  --card-bg: #161616;         /* group card body */
 
   /* Text */
-  --text-primary: #2b2b2d;
-  --text-secondary: #8a8a8f;
-  --text-muted: #a6a6ab;
+  --text-primary: #f2f2f2;
+  --text-secondary: #cfcfcf;
+  --text-muted: #8a8a8f;
   --card-header-text: #ffffff;
 
-  /* Brand wordmark */
-  --brand-tab: #2b2b2d;
-  --brand-command: #e05a3b;
+  /* Brand wordmark — "command" + logo accent is lime in dark */
+  --brand-tab: #f2f2f2;
+  --brand-command: #c7f04a;
 
   /* Lines & inputs */
-  --border: #e4e4e6;
-  --search-bg: #ffffff;
-  --search-border: #e2e2e4;
-  --search-text: #2b2b2d;
-  --search-placeholder: #a6a6ab;
+  --border: rgba(255, 255, 255, 0.08);
+  --search-bg: #161616;
+  --search-border: rgba(255, 255, 255, 0.08);
+  --search-text: #f2f2f2;
+  --search-placeholder: #6b6b6b;
 
   /* Gauge */
-  --gauge-track: #e4e4e6;
+  --gauge-track: #2a2a2a;
 
-  /* Elevation & shape */
-  --shadow-card: 0 1px 3px rgba(20, 24, 40, 0.08), 0 1px 2px rgba(20, 24, 40, 0.04);
-  --radius-card: 10px;
+  /* Elevation & shape — hairlines, not shadows */
+  --shadow-card: none;
+  --radius-card: 16px;
 
   /* Layout dimensions */
-  --sidebar-width: 260px;
-  --rail-width: 320px;
+  --sidebar-width: 268px;
+  --rail-width: 312px;
   --gap: 16px;
-  --content-pad: 20px;
+  --content-pad: 22px;
 }
 
-/* Dark theme — flips the surface/text/line tokens; layout dims are shared. */
-[data-theme="dark"] {
-  --app-bg: #0e0e10;
-  --sidebar-bg: #090909;
-  --rail-bg: #0e0e10;
-  --card-bg: #1b1b1d;
+/* Light theme — flips the surface/text/line tokens; layout dims are shared.
+   The lime identity accent stays lime for CTAs (see --c-lime in theme.css), but
+   the logo wordmark "command" + mark go dark-gray (lime fails contrast on white). */
+[data-theme="light"] {
+  --app-bg: #fafafa;
+  --sidebar-bg: #f4f4f4;
+  --rail-bg: #f4f4f4;
+  --card-bg: #ffffff;
 
-  --text-primary: #f3f3f4;
-  --text-secondary: #8a8a8f;
-  --text-muted: #6c6c72;
+  --text-primary: #1a1a1a;
+  --text-secondary: #3a3a3a;
+  --text-muted: #8a8a8a;
   --card-header-text: #ffffff;
 
-  --brand-tab: #f3f3f4;
-  --brand-command: #e0653b;
+  --brand-tab: #1a1a1a;
+  --brand-command: #3a3a3a;
 
-  --border: #2a2a2d;
-  --search-bg: #1b1b1d;
-  --search-border: #2a2a2d;
-  --search-text: #f3f3f4;
-  --search-placeholder: #6c6c72;
+  --border: rgba(0, 0, 0, 0.10);
+  --search-bg: #ffffff;
+  --search-border: rgba(0, 0, 0, 0.10);
+  --search-text: #1a1a1a;
+  --search-placeholder: #8a8a8a;
 
-  --gauge-track: #2a2a2d;
+  --gauge-track: #e2e2e2;
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: none;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-sans);
+  background: var(--app-bg);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--font-mono);
 }

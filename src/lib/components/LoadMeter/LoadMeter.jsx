@@ -1,68 +1,62 @@
 import './LoadMeter.css';
 
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { GradientPath } from 'gradient-path';
+import React, { useState, useEffect } from 'react';
 import { Chrome } from '../../utils/Chrome';
-import gaugeFillPercent from '../../utils/gaugeFillPercent';
 import deriveGaugeTotals from '../../utils/deriveGaugeTotals';
+import { loadLevel } from '../../utils/loadLevel';
 import { LoadMeterCaption } from '../LoadMeterCaption';
+import { WarnAtDefault } from '../../../Constants';
 
-// The distinctive sidebar gauge: two concentric SVG arcs (cpu inner, memory
-// outer) whose filled fraction reflects the live `processTotals` storage key.
-// The service worker writes `processTotals` in a packaged extension; outside it
-// the value can be seeded directly to drive the gauge to a level.
+// The signature sidebar gauge: two concentric SVG rings in a 200×200 box, the
+// group rotated -90deg so both start at 12 o'clock. The OUTER ring is CPU, the
+// INNER ring is Memory; each ring's filled fraction reflects the live
+// `processTotals` storage key (written by the service worker in a packaged
+// extension, or seeded directly in-app to drive the gauge to a level).
 //
-// The arc fill is done with `gradient-path`, which mutates per-segment SVG
-// `fill`/`stroke` attributes — real-DOM/SVG work jsdom can't render. So the
-// GradientPath calls are wrapped to no-op under jsdom (its SVG geometry methods
-// throw "Not implemented"), and the unit tests assert the data binding
-// (reads `processTotals`, computes the fill percent) while the visual is
-// covered separately.
+// Rendering is plain SVG: a track <circle> plus a progress <circle> whose
+// `stroke-dashoffset` is `circumference × (1 − value)`. No gradient-path / no SVG
+// path geometry, so it renders identically under jsdom (the unit tests assert the
+// data binding: processTotals → the rendered load % / legend).
+//
+// Gauge ceilings — shared with Triage so "% of capacity" reads the same scale.
+const MAX = { cpu: 150, memory: 5 * 1024 * 1024 * 1024 };
+const MEM_FLOOR = 500 * 1024 * 1024;
+
+const clamp01 = (n) => Math.max(0, Math.min(1, n));
+
+// Outer CPU ring r=84, inner Memory ring r=66; both stroke-width 9, round caps.
+const R_CPU = 84;
+const R_MEM = 66;
+const CIRC_CPU = 2 * Math.PI * R_CPU;
+const CIRC_MEM = 2 * Math.PI * R_MEM;
+
 const LoadMeter = () => {
-  const max = {
-    cpu: 150,
-    memory: 5 * 1024 * 1024 * 1024
-  }
-
-  const base = {
+  const [{ cpu, memory, hasData }, setState] = useState({
     cpu: 0,
-    memory: 500 * 1024 * 1024
-  }
-
-  const [state, setState] = useState({
-    cpu: 0,
-    memory: 0
+    memory: 0,
+    hasData: false,
   });
-
-  const setPartialState = (updates) => {
-    if (Object.keys(updates).length === 0) return;
-    setState(prevState => {
-      return {
-        ...prevState,
-        ...updates
-      }
-    })
-  }
-
-  // Pristine per-arc gradient colors, captured the first time each arc's
-  // segments are built and reused when we recolor — so the gradient base never
-  // drifts as we toggle segments to the default (empty) color.
-  const baseColors = useRef({});
+  const [warnAt, setWarnAt] = useState(WarnAtDefault);
 
   useEffect(() => {
-    const updateProcessTotals = (processTotals) => {
-      setPartialState(deriveGaugeTotals(processTotals));
-    };
+    const update = (processTotals, loaded) =>
+      setState({ ...deriveGaugeTotals(processTotals), hasData: loaded });
 
     Chrome.get('LoadMeter1', 'processTotals', (result) => {
-      updateProcessTotals(result.processTotals || {});
+      update(result.processTotals || {}, !!result.processTotals);
+    });
+
+    Chrome.get('LoadMeter2', 'settings', (result) => {
+      setWarnAt(result.settings?.warnAt ?? WarnAtDefault);
     });
 
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
-
       if (changes.processTotals) {
-        updateProcessTotals(changes.processTotals.newValue || {});
+        update(changes.processTotals.newValue || {}, true);
+      }
+      if (changes.settings) {
+        setWarnAt(changes.settings.newValue?.warnAt ?? WarnAtDefault);
       }
     };
     chrome.storage.onChanged.addListener(handleChange);
@@ -70,116 +64,115 @@ const LoadMeter = () => {
     return () => chrome.storage.onChanged.removeListener(handleChange);
   }, []);
 
-  // Build the gradient arcs and apply the fill in ONE pass that re-runs whenever
-  // cpu/memory change. GradientPath replaces the original <path> with a <g> of
-  // path-segments; a React re-render (e.g. when processTotals loads
-  // asynchronously) can restore the <path> and drop those segments, so we
-  // rebuild whenever they're missing rather than relying on segments surviving
-  // across renders. `gaugeFillPercent` returns the percent of segments that stay
-  // EMPTY (default color); segments at index >= percent show the gradient.
-  useLayoutEffect(() => {
-    const gradientColors = [
-      { color: '#E30B66', pos: 0 },
-      { color: '#E16B28', pos: 0.25 },
-      { color: '#C6B146', pos: 0.5 },
-      { color: '#81DE7D', pos: 0.75 },
-      { color: '#00D1C5', pos: 1 }
-    ];
-    // Empty-arc track color follows the theme token so the gauge reads correctly
-    // on either a light or dark sidebar; falls back to the original navy.
-    const defaultColor =
-      getComputedStyle(document.documentElement)
-        .getPropertyValue('--gauge-track').trim() || '#243156';
+  // 0..1 ring values, on the same ceilings the old gauge used.
+  const cpuValue = clamp01(cpu / MAX.cpu);
+  const memValue = clamp01((memory - MEM_FLOOR) / MAX.memory);
 
-    ["memory", "cpu"].forEach((id) => {
-      const svg = document.getElementById(id);
-      if (!svg) return;
+  const cpuPct = Math.round(cpuValue * 100);
+  const memPct = Math.round(memValue * 100);
+  const loadPct = Math.max(cpuPct, memPct);
 
-      // jsdom doesn't implement SVG path geometry (getTotalLength /
-      // getPointAtLength), so GradientPath throws there. No-op under jsdom — the
-      // visual is covered separately, not by unit tests.
-      try {
-        let segments = svg.getElementsByClassName('path-segment');
-        if (segments.length === 0) {
-          const pathElement = svg.querySelector('path');
-          if (!pathElement) return;
-          const path = new GradientPath({
-            path: pathElement,
-            segments: 100,
-            samples: 3,
-            precision: 2 // Optional
-          });
-          path.render({
-            type: 'path',
-            fill: gradientColors,
-            stroke: gradientColors,
-            width: 5,
-            strokeWidth: 0.5
-          });
-          segments = svg.getElementsByClassName('path-segment');
-          baseColors.current[id] = Array.from(segments, (s) => s.attributes.fill.value);
-        }
+  // Color a percent by its shared load level (vs the warnAt setting). Returns a
+  // token reference so the theme drives the hue.
+  const LEVEL_COLOR = {
+    high: 'var(--c-load-high)',
+    medium: 'var(--c-load-med)',
+    low: 'var(--c-load-light)',
+  };
+  const colorFor = (p) => LEVEL_COLOR[loadLevel(p, warnAt)];
 
-        const colors = baseColors.current[id] || Array.from(segments, (s) => s.attributes.fill.value);
-        const percent = gaugeFillPercent(state[id], base[id], max[id]);
-        for (let i = 0; i < segments.length; ++i) {
-          const color = i >= percent ? colors[i] : defaultColor;
-          segments[i].attributes.fill.value = color;
-          segments[i].attributes.stroke.value = color;
-        }
-      } catch {
-        // jsdom / no-SVG-geometry environment — no-op; visual covered separately.
-      }
-    });
-  }, [state.cpu, state.memory]);
+  const cpuColor = colorFor(cpuPct);
+  const loadColor = colorFor(loadPct);
+  const memColor = 'var(--c-mem)';
 
   return (
-    <div className='LoadMeter'>
-      <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-        <text
-          x="100"
-          y="90"
-          textAnchor="middle"
-          fill="#858CA1"
-          style={{ fontSize: '15px', fontFamily: 'roboto' }}
-        >Browser</text>
-        <text
-          x="100"
-          y="105"
-          textAnchor="middle"
-          fill="#858CA1"
-          style={{ fontSize: '15px', fontFamily: 'roboto' }}
-        >Load</text>
-        <text
-          x="100"
-          y="150"
-          textAnchor="middle"
-          fill="#858CA1"
-          style={{ fontSize: '10px', fontFamily: 'roboto' }}
-        >CPU</text>
-        <text
-          x="100"
-          y="189"
-          textAnchor="middle"
-          fill="#858CA1"
-          style={{ fontSize: '10px', fontFamily: 'roboto' }}
-        >Memory</text>
-        <svg id="memory" className='load-element'>
-          <path
+    <div className="LoadMeter">
+      <svg
+        className="LoadMeter-svg"
+        xmlns="http://www.w3.org/2000/svg"
+        width="200"
+        height="200"
+        viewBox="0 0 200 200"
+      >
+        <g transform="rotate(-90 100 100)">
+          {/* Outer — CPU */}
+          <circle
+            className="LoadMeter-track"
+            cx="100"
+            cy="100"
+            r={R_CPU}
+            strokeWidth="9"
             fill="none"
-            d="M 101.30893048279627 174.98857713672936 A 75 75 0 1 0 100 175"
-          ></path>
-        </svg>
-        <svg id="cpu" className='load-element'>
-          <path
+          />
+          <circle
+            className="LoadMeter-progress"
+            cx="100"
+            cy="100"
+            r={R_CPU}
+            strokeWidth="9"
+            strokeLinecap="round"
             fill="none"
-            d="M 101.04714438623702 159.99086170938347 A 60 60 0 1 0 100 160"
-          ></path>
-        </svg>
+            style={{
+              stroke: cpuColor,
+              strokeDasharray: CIRC_CPU,
+              strokeDashoffset: CIRC_CPU * (1 - cpuValue),
+            }}
+          />
+          {/* Inner — Memory */}
+          <circle
+            className="LoadMeter-track"
+            cx="100"
+            cy="100"
+            r={R_MEM}
+            strokeWidth="9"
+            fill="none"
+          />
+          <circle
+            className="LoadMeter-progress"
+            cx="100"
+            cy="100"
+            r={R_MEM}
+            strokeWidth="9"
+            strokeLinecap="round"
+            fill="none"
+            style={{
+              stroke: memColor,
+              strokeDasharray: CIRC_MEM,
+              strokeDashoffset: CIRC_MEM * (1 - memValue),
+            }}
+          />
+        </g>
+
+        <text className="LoadMeter-eyebrow" x="100" y="92" textAnchor="middle">
+          Browser Load
+        </text>
+        <text
+          className="LoadMeter-value"
+          x="100"
+          y="120"
+          textAnchor="middle"
+          style={{ fill: hasData ? loadColor : undefined }}
+        >
+          {hasData ? `${loadPct}%` : 'Idle'}
+        </text>
       </svg>
+
+      <div className="LoadMeter-legend">
+        <span className="LoadMeter-legend-item">
+          <span className="LoadMeter-swatch" style={{ background: cpuColor }} />
+          <span className="LoadMeter-legend-label">CPU</span>
+          <span className="LoadMeter-legend-value">{cpuPct}%</span>
+        </span>
+        <span className="LoadMeter-legend-item">
+          <span className="LoadMeter-swatch" style={{ background: memColor }} />
+          <span className="LoadMeter-legend-label">Mem</span>
+          <span className="LoadMeter-legend-value">{memPct}%</span>
+        </span>
+      </div>
+
       <LoadMeterCaption />
     </div>
-  )
-}
+  );
+};
 
 export default LoadMeter;

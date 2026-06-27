@@ -1,0 +1,20 @@
+{
+  "name": "Triage - Running Hot",
+  "id": "183b4960-1c05-4406-89cf-8609c586f232",
+  "url": "/?isolate=Triage&variant=review",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"cpu\": 600000, \"privateMemory\": 8000000000, \"jsMemoryUsed\": 1}}",
+      "processTotals": "{\"cpu\": 130, \"privateMemory\": 4200000000, \"jsMemoryUsed\": 1100000000}",
+      "activeTabs": "[{\"urlKey\": \"url-https://news.ycombinator.com\", \"tabKey\": \"t1\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://twitter.com/home\", \"tabKey\": \"t2\", \"pinned\": false, \"tabCommandPinned\": false}]",
+      "url-https://twitter.com/home": "{\"title\": \"Home / X\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"cpu\": 520000, \"privateMemory\": 7200000000, \"jsMemoryUsed\": 1}}",
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}"
+    }
+  },
+  "componentName": "Triage",
+  "scenarioType": "component"
+}

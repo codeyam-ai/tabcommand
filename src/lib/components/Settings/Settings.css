@@ -1,0 +1,66 @@
+.Settings {
+  position: relative;
+}
+
+.Settings-toggle {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-tile);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+
+.Settings-toggle:hover,
+.Settings-open .Settings-toggle {
+  background: var(--c-raised);
+  color: var(--text-primary);
+  border-color: var(--border2, var(--border));
+}
+
+.Settings-panel {
+  position: fixed;
+  z-index: 50;
+  width: 214px;
+  background: var(--card-bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-row);
+  padding: 12px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.Settings-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.Settings-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.Settings-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--c-lime);
+  text-align: right;
+}
+
+.Settings-row input[type='range'] {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: var(--c-lime);
+  margin: 2px 0 0;
+}
