@@ -1,6 +1,6 @@
 {
   "feature": "hide-load-triage-and-settings-without-per-tab-data",
-  "maxStep": 24,
-  "version": 303,
-  "updatedAt": "2026-06-27T22:19:49.578899596+00:00"
+  "maxStep": 25,
+  "version": 310,
+  "updatedAt": "2026-06-27T22:20:21.604072313+00:00"
 }
