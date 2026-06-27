@@ -5,6 +5,7 @@
   height: 38px;
   padding: 0 10px;
   border-radius: var(--r-row);
+  cursor: pointer;
   transition: background var(--t-fast);
 }
 

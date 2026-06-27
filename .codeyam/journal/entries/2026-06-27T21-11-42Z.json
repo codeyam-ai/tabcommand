@@ -1,0 +1,99 @@
+{
+  "timestamp": "2026-06-27T21:11:42Z",
+  "title": "Clickable History Rows",
+  "type": "feature",
+  "userRequest": "## Summary\n\nOn the History page, each `HistoryRow` currently only responds to clicks on its\nsmall \"↻ Reopen\" button. The rest of the row has a hover background but no\npointer cursor and no click target, so users who click the title, favicon, or\ntimestamp get no response. Make the entire row a click target that reopens the\ntab, with a pointer cursor on hover, while keeping the explicit \"Reopen\" button\nas a discoverable affordance.\n\n## Key Decisions\n\n- **Whole row clickable** — Attach `onClick` to the `.HistoryRow` container so a\n  click anywhere on the row calls `onReopen(row.urlKey)`. This matches the\n  user's request and the existing hover-highlight already implies the row is\n  interactive.\n- **Keep the Reopen button** — Per scope decision, the \"↻ Reopen\" button stays\n  as an explicit, discoverable affordance. To avoid firing `onReopen` twice\n  (once from the button, once from the row), the button's `onClick` calls\n  `e.stopPropagation()` before invoking `onReopen`.\n- **Pointer cursor on the row** — Add `cursor: pointer` to `.HistoryRow` so the\n  whole row signals clickability on hover, consistent with the button's existing\n  `cursor: pointer`.\n- **Accessibility** — Add `role=\"button\"` and `tabIndex={0}` to the row, plus a\n  keyboard handler so Enter/Space also reopen the tab, keeping the new click\n  target reachable without a mouse.\n\n## Implementation\n\n### 1. Make the row container clickable\n\n**File**: `src/lib/components/HistoryRow/HistoryRow.jsx`\n\n- Add `onClick={() => onReopen(row.urlKey)}` to the outer `.HistoryRow` div.\n- Add `role=\"button\"`, `tabIndex={0}`, and an `onKeyDown` handler that calls\n  `onReopen(row.urlKey)` when the key is `Enter` or `' '` (Space), preventing the\n  default scroll on Space.\n- Update the existing Reopen button's `onClick` to `(e) => { e.stopPropagation();\n  onReopen(row.urlKey); }` so the row's handler doesn't also fire, preventing a\n  duplicate reopen.\n\n### 2. Add the pointer cursor\n\n**File**: `src/lib/components/HistoryRow/HistoryRow.css`\n\n- Add `cursor: pointer;` to the `.HistoryRow` rule (alongside the existing\n  hover-background transition). The `.HistoryRow:hover` background rule already\n  exists and needs no change.\n\n### 3. Update tests for the new row-level interaction\n\n**File**: `src/lib/components/HistoryRow/HistoryRow.test.jsx`\n\n- Add a test: clicking the row container (e.g. on the title text) calls\n  `onReopen` with the row's `urlKey`.\n- Add a test: clicking the Reopen button calls `onReopen` exactly once (verifies\n  `stopPropagation` prevents a double-fire from the row's `onClick`).\n- Keep the existing tests for title rendering, timestamp omission, and the\n  monogram fallback.\n\n## Reused existing code\n\n- `HistoryRow` component from `src/lib/components/HistoryRow/HistoryRow.jsx`\n  (glossary entry: `HistoryRow`) — the row being made fully clickable.\n- `History` page from `src/lib/pages/History/History.jsx` (glossary entry:\n  `History`) — already passes `reopen` as `onReopen`; no change needed there.\n- Existing `onReopen` contract (`onReopen(urlKey)`) and the `reopen` handler in\n  `History.jsx` are reused as-is.\n\n## Scenarios to Demonstrate\n\n- Happy path — a row with title, favicon, color dot, and timestamp; clicking\n  anywhere on the row reopens the tab; pointer cursor shows on hover.\n- Reopen button — clicking the \"↻ Reopen\" button reopens the tab exactly once\n  (no duplicate from the row handler).\n- Keyboard — focusing a row and pressing Enter (or Space) reopens the tab.\n- No-timestamp row — a row without a `ts` still renders and is fully clickable.\n- No-favicon row — a row falling back to the monogram tile is still fully\n  clickable.",
+  "description": "Made the entire HistoryRow a click target: clicking anywhere on a row (title, favicon, or timestamp) now reopens the tab, with a pointer cursor on hover. The explicit Reopen button stays and calls stopPropagation so it fires exactly once. Added keyboard accessibility via role=button, tabIndex, and an Enter/Space handler, plus unit tests covering row-body click, single-fire button, and keyboard reopen.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/clickable-history-rows.md\t.codeyam/plans/completed/clickable-history-rows.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-monogram-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-monogram-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-no-timestamp--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-no-timestamp--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "status": "modified"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "HistoryRow - Default",
+      "screenshotPath": "historyrow-default--desktop.png"
+    },
+    {
+      "name": "HistoryRow - Monogram Fallback",
+      "screenshotPath": "historyrow-monogram-fallback--desktop.png"
+    },
+    {
+      "name": "HistoryRow - No Timestamp",
+      "screenshotPath": "historyrow-no-timestamp--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 45,
+    "passed": 45,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 45,
+        "passed": 45
+      }
+    ]
+  }
+}

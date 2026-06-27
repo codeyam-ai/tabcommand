@@ -28,6 +28,39 @@
         "status": "added"
       }
     },
+    "History": {
+      "empty": {
+        "status": "n-a",
+        "reason": "Empty History has no rows, so the clickable-row behavior this feature adds cannot manifest; the empty state is unchanged."
+      },
+      "single": {
+        "status": "n-a",
+        "reason": "A single row exercises the identical clickable-row behavior as typical; no distinct visual or interaction state."
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "n-a",
+        "reason": "Row count does not change row interaction; history-populated already shows the multi-row list."
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "History reads synchronous localStorage via the chrome shim; there is no async loading state."
+      },
+      "edge": {
+        "status": "n-a",
+        "reason": "Edge typography renders the same clickable row; HistoryRow component scenarios cover row variants (no-timestamp, monogram fallback)."
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "localStorage reads have no failure path; this view renders no error UI."
+      },
+      "key-interaction": {
+        "status": "n-a",
+        "reason": "The row-click reopen calls chrome.tabs.create with no in-view state change to capture; covered by HistoryRow unit tests and the driven demo click."
+      }
+    },
     "Home": {
       "empty": {
         "status": "covered"

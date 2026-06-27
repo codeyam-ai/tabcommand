@@ -127,6 +127,15 @@
       "runner": "tests"
     },
     {
+      "description": "clicking anywhere on the row (e.g. the title) reopens the tab",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › calls onReopen when the row body is clicked",
+      "line": 32,
+      "registeredAt": "2026-06-27T21:00:56Z",
+      "runner": "tests"
+    },
+    {
       "description": "clicking Reopen calls back with the row's urlKey",
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
@@ -140,7 +149,7 @@
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
       "key": "HistoryRow › falls back to a monogram tile when the site has no favicon",
-      "line": 38,
+      "line": 72,
       "registeredAt": "2026-06-27T14:09:20Z",
       "runner": "tests"
     },
@@ -149,7 +158,7 @@
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
       "key": "HistoryRow › omits the timestamp when none is present",
-      "line": 32,
+      "line": 66,
       "registeredAt": "2026-06-27T14:09:20Z",
       "runner": "tests"
     },
@@ -160,6 +169,33 @@
       "key": "HistoryRow › renders the title and a Reopen button",
       "line": 17,
       "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the Reopen button stops propagation so the row handler does not double-fire",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › reopens exactly once when the Reopen button is clicked",
+      "line": 40,
+      "registeredAt": "2026-06-27T21:00:56Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the row is keyboard-reachable — Enter reopens the tab",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › reopens the tab when Enter is pressed on the focused row",
+      "line": 48,
+      "registeredAt": "2026-06-27T21:00:56Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Space also reopens the tab without scrolling the page",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › reopens the tab when Space is pressed on the focused row",
+      "line": 57,
+      "registeredAt": "2026-06-27T21:00:56Z",
       "runner": "tests"
     },
     {
