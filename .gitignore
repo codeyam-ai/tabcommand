@@ -67,3 +67,9 @@ dev-dist/
 
 # Internal codeyam-editor skill (regenerated locally; not part of this app)
 .claude/skills/review-session/
+
+# Local-only env, caches, and infra scaffolding (never publish)
+.env
+.claude/hooks/__pycache__/
+.claude/settings.local.json
+docker-compose.cloud.yml
