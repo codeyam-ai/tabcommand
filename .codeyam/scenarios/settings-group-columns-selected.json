@@ -1,0 +1,23 @@
+{
+  "name": "Settings - Group Columns Selected",
+  "id": "b7ced6a1-6c82-4273-a5c3-5fd5c6dce62f",
+  "url": "/?isolate=Settings",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "loadDataSource": "\"system\"",
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60, \"autoCloseMinutes\": 120, \"columns\": 4}"
+    }
+  },
+  "componentName": "Settings",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".Settings-toggle"
+    }
+  ]
+}

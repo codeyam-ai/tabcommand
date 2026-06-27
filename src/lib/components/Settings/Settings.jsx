@@ -3,7 +3,7 @@ import './Settings.css';
 import React, { useEffect, useRef, useState } from 'react';
 import { Chrome } from '../../utils/Chrome';
 import { Icon } from '../Icon';
-import { WarnAtDefault, HeavyThresholdDefault, AutoCloseMinutes } from '../../../Constants';
+import { WarnAtDefault, HeavyThresholdDefault, AutoCloseMinutes, ColumnsDefault } from '../../../Constants';
 import formatAutoClose from '../../utils/formatAutoClose';
 
 // A compact sidebar settings affordance: a gear button that expands sliders
@@ -28,6 +28,7 @@ const Settings = () => {
     warnAt: WarnAtDefault,
     heavyThreshold: HeavyThresholdDefault,
     autoCloseMinutes: AutoCloseMinutes,
+    columns: ColumnsDefault,
   });
   const [source, setSource] = useState(null);
   const buttonRef = useRef();
@@ -125,6 +126,22 @@ const Settings = () => {
               onChange={(e) => update('autoCloseMinutes', e.target.value)}
             />
           </label>
+          <div className="Settings-row">
+            <span className="Settings-label">Group columns</span>
+            <div className="Settings-segment" role="group" aria-label="Group columns">
+              {[2, 3, 4].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={(settings.columns || ColumnsDefault) === n ? 'is-active' : ''}
+                  aria-pressed={(settings.columns || ColumnsDefault) === n}
+                  onClick={() => update('columns', n)}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

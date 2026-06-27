@@ -1,0 +1,559 @@
+{
+  "timestamp": "2026-06-27T23:19:20Z",
+  "title": "Group Column Count Setting",
+  "type": "feature",
+  "userRequest": "## Summary\n\nAdd a control to the Settings popover that lets the user choose how many\ncolumns of groups (`LabelCollection` cards) are shown in the center area: 2,\n3, or 4. The chosen count is the column count at full/comfortable width and\ncollapses responsively as the center pane gets narrower (the existing\nsingle-column collapse on very narrow widths is preserved). The choice\npersists in the existing `settings` storage key and takes effect live, like\nthe other settings. Default stays at 2 columns to match today's behavior.\n\n## Key Decisions\n\n- **Reuse the existing `settings` storage key** (not a new key) — `Settings.jsx`,\n  `Triage`, and `LoadMeter` already read/write it, and `Chrome.js` already\n  special-cases the `settings` key. Add a `columns` field alongside `warnAt`,\n  `heavyThreshold`, and `autoCloseMinutes`.\n- **Drive both the row chunking and the card width from one value.** Today\n  `Labels.jsx` chunks groups into rows of `chunkLength` (2, or 1 when narrow)\n  and `LabelCollection.css` hardcodes card width to `calc(50% - gap/2)`. These\n  two must agree, so the effective column count will feed both the chunk size\n  and a CSS variable that the card width is computed from.\n- **Width via a CSS custom property**, not per-count modifier classes — set\n  `--label-columns` on the `#Labels` container from the effective column count,\n  and compute `flex-basis`/`max-width` from it. Keeping `max-width` (rather than\n  letting `flex-grow` fill the row) means a lone card in the last row stays at\n  1/N width instead of stretching, matching today's 50%-max-width behavior.\n- **Segmented 2 / 3 / 4 button control** in the popover (per user choice),\n  rather than a range slider, matching the \"toggle\" intent.\n- **Responsive, treating the setting as the full-width count** (per user\n  choice). The setting is the maximum column count at comfortable width; as the\n  pane narrows the effective count steps down (and still collapses to a single\n  column at the existing narrow breakpoint). The persisted value is unchanged by\n  resizing — only the rendered/effective count adapts.\n- **Default of 2** (new `ColumnsDefault` constant) so existing users and the\n  `settings-default` scenario render exactly as before.\n\n## Implementation\n\n### 1. Add a Columns default constant\n\n**File**: `src/Constants.jsx`\n\nAdd `export const ColumnsDefault = 2;` near `WarnAtDefault` /\n`HeavyThresholdDefault` / `AutoCloseMinutes`.\n\n### 2. Add the segmented Columns control to Settings\n\n**File**: `src/lib/components/Settings/Settings.jsx`\n\n- Import `ColumnsDefault` from `../../../Constants`.\n- Seed `columns: ColumnsDefault` into the initial `settings` state object.\n- Render a new always-visible `Settings-row` (place it with the \"Auto-close\n  after\" row, which is also always shown — the Columns control is **not**\n  per-tab-load data, so it must NOT be gated behind `source === 'processes'`).\n- The control is a segmented group of three buttons labeled `2`, `3`, `4`. The\n  active button reflects `settings.columns`. Clicking a button calls the\n  existing `update('columns', value)` helper (which already coerces to `Number`\n  and persists via `Chrome.set`), so persistence and live propagation come for\n  free.\n- Use a row label like \"Group columns\".\n\n**File**: `src/lib/components/Settings/Settings.css`\n\nAdd styles for the segmented button group (e.g. `.Settings-segment` wrapper and\n`.Settings-segment button` / active state), following the existing popover\ntokens (`--border`, `--card-bg`, `--c-lime` accent used elsewhere in this\nfile). The control should fit the 214px panel width and align with the\n`Settings-row` grid.\n\n### 3. Read the setting and drive responsive column count in Labels\n\n**File**: `src/lib/components/Labels/Labels.jsx`\n\n- Read `settings` alongside the existing `Chrome.get('Labels1', ['labels',\n  'uxSettings'], ...)` call (add `'settings'` to the key list) to obtain the\n  configured `columns` value (fall back to `ColumnsDefault`). Store the\n  configured count in component state.\n- Subscribe to `chrome.storage.onChanged` for the `settings` key (the existing\n  listener already handles `labels` / `uxSettings`; extend it) so changing the\n  setting re-renders the grid live without reopening the page.\n- Replace the hardcoded `chunkLength` logic. The current `useLayoutEffect` uses\n  two media queries (`min-width: 900px` → 2, `max-width: 900px` → 1). Generalize\n  this so the **effective** `chunkLength` is the configured column count capped\n  by what the pane width can fit, stepping down to 1 at the existing narrow\n  breakpoint. Concretely: derive effective columns from `min(configuredColumns,\n  columnsThatFitAtCurrentWidth)`, where the per-width thresholds are computed\n  from the configured count (e.g. require roughly a comfortable minimum card\n  width per column). Keep the matchMedia-based approach so it stays test-able\n  and avoids layout thrash; recompute when either the viewport crosses a\n  breakpoint or the configured `columns` setting changes.\n- Set the effective column count as a CSS variable on the container:\n  `<div id=\"Labels\" className=\"Labels\" style={{ '--label-columns':\n  effectiveChunkLength }} ...>`. The existing `index` math\n  (`(chunkLength * chunkIndex) + index`) already keys off `chunkLength`, so\n  drag-reorder global indexing continues to work for any column count.\n\n### 4. Compute card width from the column count\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.css`\n\n- Replace the hardcoded two-column width:\n  - `flex: 1 1 calc(50% - (var(--gap) / 2));`\n  - `max-width: calc(50% - (var(--gap) / 2));`\n  with an N-column form driven by `--label-columns` (with a fallback of 2),\n  e.g. basis/`max-width` of\n  `calc((100% - (var(--label-columns) - 1) * var(--gap)) / var(--label-columns))`.\n- Leave the `.LabelCollections-selected .LabelCollection` override (full-width\n  expanded view) untouched — the expanded single-group view is independent of\n  the column count.\n\n## Reused existing code\n\n- `Settings` component and its `update(key, value)` + `Chrome.set` persistence\n  pattern from `src/lib/components/Settings/Settings.jsx` (glossary entry:\n  `Settings`) — the new control rides the same storage-write path.\n- The `settings` storage key already consumed by `Triage`, `LoadMeter`, and\n  special-cased in `src/lib/utils/Chrome/Chrome.js` — no new storage key needed.\n- The `chunkLength` chunking + `LabelCollections-row` Droppable rows in\n  `src/lib/components/Labels/Labels.jsx`, and the global drag index\n  `(chunkLength * chunkIndex) + index` — extended, not rewritten.\n- `--gap`, `--card-bg`, `--border`, `--c-lime` CSS tokens already used across\n  `LabelCollection.css` / `Settings.css` / `Labels.css`.\n\n## Scenarios to Demonstrate\n\n- Default (2 columns) — confirms existing layout and `settings-default` parity.\n- 3 columns selected — center area reflows group cards into three per row.\n- 4 columns selected — four per row; last row with fewer cards stays at 1/4\n  width (cards do not stretch to fill the row).\n- Setting change is live — switching 2 → 4 reflows immediately without a reload.\n- Responsive step-down — with 4 selected, a narrower center pane renders fewer\n  columns, collapsing to a single column at the narrow breakpoint.\n- Last-row partial fill — an odd number of groups (e.g. 5 groups at 3 columns)\n  renders a full first row and a 2-card second row at correct widths.\n- Settings popover on stable Chrome (`source !== 'processes'`) — the Columns\n  control still shows even though the per-tab-load sliders are hidden.",
+  "description": "Added a segmented 2/3/4 control to the Settings popover that chooses how many columns of group cards the Home center area shows. The choice persists in the existing settings storage key, takes effect live, defaults to 2, and steps down responsively as the pane narrows (keeping a lone last-row card at 1/N width). The responsive count logic was extracted into a pure, unit-tested effectiveColumns helper.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/group-column-count-setting.md\t.codeyam/plans/completed/group-column-count-setting.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-stable-chrome-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/Constants.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-four-columns.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-three-columns.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.codeyam/tmp/register-columns-seeded.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-group-columns-selected.json",
+      "status": "added"
+    },
+    {
+      "path": "core",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/effectiveColumns.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/effectiveColumns.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "History - Populated",
+      "screenshotPath": "history-populated--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Work",
+      "screenshotPath": "labelform-edit-work--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group",
+      "screenshotPath": "labelform-new-blank--desktop.png"
+    },
+    {
+      "name": "LabelForm - Reading",
+      "screenshotPath": "labelform-reading--desktop.png"
+    },
+    {
+      "name": "LabelForm - Shopping",
+      "screenshotPath": "labelform-shopping--desktop.png"
+    },
+    {
+      "name": "LabelForm - Social",
+      "screenshotPath": "labelform-social--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load - Stable Chrome Fallback",
+      "screenshotPath": "load-stable-chrome-fallback--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Load Page",
+      "screenshotPath": "load-page--desktop.png"
+    },
+    {
+      "name": "LoadMeter - High Load",
+      "screenshotPath": "loadmeter-high-load--desktop.png"
+    },
+    {
+      "name": "LoadMeter - No Data",
+      "screenshotPath": "loadmeter-no-data--desktop.png"
+    },
+    {
+      "name": "LoadMeter - System Fallback",
+      "screenshotPath": "loadmeter-system-fallback--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "SearchResults - Empty",
+      "screenshotPath": "searchresults-empty--desktop.png"
+    },
+    {
+      "name": "SearchResults - Labels Only",
+      "screenshotPath": "searchresults-labels-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Many Results",
+      "screenshotPath": "searchresults-many--desktop.png"
+    },
+    {
+      "name": "SearchResults - Matches",
+      "screenshotPath": "searchresults-matches--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Settings - Group Columns Selected",
+      "screenshotPath": "settings-group-columns-selected--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    },
+    {
+      "name": "Triage - Comfortable",
+      "screenshotPath": "triage-comfortable--desktop.png"
+    },
+    {
+      "name": "Triage - Running Hot",
+      "screenshotPath": "triage-running-hot--desktop.png"
+    },
+    {
+      "name": "Triage - Stable Chrome Hidden",
+      "screenshotPath": "triage-stable-chrome-hidden--desktop.png"
+    },
+    {
+      "name": "URL Details - Edit",
+      "screenshotPath": "url-details-edit--desktop.png"
+    },
+    {
+      "name": "URL Details - Unlabeled",
+      "screenshotPath": "url-details-unlabeled--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 108,
+    "passed": 108,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 108,
+        "passed": 108
+      }
+    ]
+  }
+}

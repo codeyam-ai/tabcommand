@@ -64,3 +64,39 @@
   accent-color: var(--c-lime);
   margin: 2px 0 0;
 }
+
+/* Segmented 2 / 3 / 4 column picker — sits in the row's right (auto) cell,
+   echoing the popover tokens used by the sliders above. */
+.Settings-segment {
+  display: inline-flex;
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-tile);
+  overflow: hidden;
+}
+
+.Settings-segment button {
+  border: none;
+  border-left: 0.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.Settings-segment button:first-child {
+  border-left: none;
+}
+
+.Settings-segment button:hover {
+  background: var(--c-raised);
+  color: var(--text-primary);
+}
+
+.Settings-segment button.is-active {
+  background: var(--c-lime);
+  color: var(--app-bg, #0b0b0b);
+}

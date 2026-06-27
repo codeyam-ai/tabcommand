@@ -1,6 +1,6 @@
 {
-  "feature": "hide-load-triage-and-settings-without-per-tab-data",
-  "maxStep": 25,
-  "version": 310,
-  "updatedAt": "2026-06-27T22:20:21.604072313+00:00"
+  "feature": "group-column-count-setting",
+  "maxStep": 23,
+  "version": 295,
+  "updatedAt": "2026-06-27T23:21:34.057234416+00:00"
 }

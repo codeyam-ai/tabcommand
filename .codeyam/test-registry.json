@@ -1441,6 +1441,33 @@
       "runner": "tests"
     },
     {
+      "description": "below the narrowest breakpoint the grid collapses to a single column",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "columnsForWidth › collapses to one column below the narrowest breakpoint",
+      "line": 21,
+      "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "at or above the widest breakpoint the pane fits the full four columns",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "columnsForWidth › fits four columns at desktop width and above",
+      "line": 6,
+      "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "each breakpoint steps the fit-count down by one as the width narrows",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "columnsForWidth › steps down through three and two columns",
+      "line": 13,
+      "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
       "description": "cpu present without memory fields reads memory as zero",
       "file": "src/lib/utils/deriveGaugeTotals.test.js",
       "format": "vitest",
@@ -1573,6 +1600,60 @@
       "key": "deriveUrlLabels › returns each label containing the urlKey",
       "line": 12,
       "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a wider-than-fits choice is capped to what the current width can show",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "effectiveColumns › caps the configured count to what the width fits",
+      "line": 37,
+      "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the fallback is itself still capped by a narrow viewport",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "effectiveColumns › caps the fallback default on a narrow viewport",
+      "line": 57,
+      "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a missing or invalid configured value falls back to the default of 2",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "effectiveColumns › falls back to the default for invalid input",
+      "line": 50,
+      "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the exported breakpoints stay ordered widest-first so the first match wins",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "effectiveColumns › keeps breakpoints ordered widest-first",
+      "line": 62,
+      "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a choice narrower than the width is never widened past the user's pick",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "effectiveColumns › never exceeds the configured count even on a wide viewport",
+      "line": 44,
+      "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "at a comfortable width the configured count renders exactly as chosen",
+      "file": "src/lib/utils/effectiveColumns.test.js",
+      "format": "vitest",
+      "key": "effectiveColumns › returns the configured count when the width fits it",
+      "line": 30,
+      "registeredAt": "2026-06-27T22:49:30Z",
       "runner": "tests"
     },
     {

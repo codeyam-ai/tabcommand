@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-27T21:51:25Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-27T22:50:03Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
@@ -44,12 +44,14 @@ buildUrlInfo :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDe
 clamp01 :: src/lib/components/LoadMeter/LoadMeter.jsx :: tags= :: test=src/lib/components/LoadMeter/LoadMeter.test.jsx
 closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 collectUrlKeys :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
+columnsForWidth :: src/lib/utils/effectiveColumns.js :: tags= :: test=src/lib/utils/effectiveColumns.test.js
 cpuUtilization :: src/lib/utils/deriveSystemTotals.js :: tags= :: test=src/lib/utils/deriveSystemTotals.test.js
 createChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
 defer :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
 deriveGaugeTotals :: src/lib/utils/deriveGaugeTotals.js :: tags= :: test=src/lib/utils/deriveGaugeTotals.test.js
 deriveSystemTotals :: src/lib/utils/deriveSystemTotals.js :: tags= :: test=src/lib/utils/deriveSystemTotals.test.js
 deriveUrlLabels :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDetails.test.js
+effectiveColumns :: src/lib/utils/effectiveColumns.js :: tags= :: test=src/lib/utils/effectiveColumns.test.js
 event :: src/lib/utils/event.js :: tags=
 faviconMonogram :: src/lib/utils/faviconMonogram.js :: tags= :: test=src/lib/utils/faviconMonogram.test.js
 formatAutoClose :: src/lib/utils/formatAutoClose.js :: tags= :: test=src/lib/utils/formatAutoClose.test.js

@@ -1,0 +1,25 @@
+{
+  "name": "Home - Four Columns",
+  "id": "ccd40103-8a8b-4516-adac-4b9a97002282",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start \\u2013 React\",\"favicon\":\"https://www.google.com/s2/favicons?domain=react.dev&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://www.amazon.com/cart": "{\"title\":\"Cart \\u2013 Amazon\",\"favicon\":\"https://www.google.com/s2/favicons?domain=amazon.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand \\u2014 GitHub\",\"favicon\":\"https://www.google.com/s2/favicons?domain=github.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.amazon.com/cart\",\"tabKey\":\"tab-303\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://twitter.com/home\",\"tabKey\":\"tab-304\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://arxiv.org/list/cs.AI/recent\",\"tabKey\":\"tab-305\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "autoClosed": "{}",
+      "url-https://twitter.com/home": "{\"title\":\"Home / X\",\"favicon\":\"https://www.google.com/s2/favicons?domain=twitter.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E07D1E\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/cart\"]},\"Social\":{\"title\":\"Social\",\"backgroundColor\":\"#C2278A\",\"position\":3,\"urlKeys\":[\"url-https://twitter.com/home\"]},\"Research\":{\"title\":\"Research\",\"backgroundColor\":\"#7C3AED\",\"position\":4,\"urlKeys\":[\"url-https://arxiv.org/list/cs.AI/recent\"]}}",
+      "settings": "{\"columns\":4}",
+      "url-https://arxiv.org/list/cs.AI/recent": "{\"title\":\"Artificial Intelligence \\u2013 arXiv\",\"favicon\":\"https://www.google.com/s2/favicons?domain=arxiv.org&sz=64\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://react.dev/learn\",\"url-https://www.amazon.com/cart\",\"url-https://twitter.com/home\",\"url-https://arxiv.org/list/cs.AI/recent\"]"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

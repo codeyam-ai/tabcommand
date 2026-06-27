@@ -3,16 +3,18 @@ import './Labels.css';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Droppable } from '@hello-pangea/dnd';
 import { LabelFormContainer, LabelCollection } from '..';
-import { ItemTypes } from '../../../Constants';
+import { ItemTypes, ColumnsDefault } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { effectiveColumns, COLUMN_BREAKPOINTS } from '../../utils/effectiveColumns';
 
 const Labels = () => {
   const labelsRef = useRef();
-  const [{ loading, labels, selectedLabel, chunkLength }, setState] = useState({
+  const [{ loading, labels, selectedLabel, chunkLength, columns }, setState] = useState({
     loading: true,
     labels: [],
     selectedLabel: null,
-    chunkLength: 2
+    chunkLength: 2,
+    columns: ColumnsDefault
   });
 
   const setPartialState = (updates) => {
@@ -79,12 +81,12 @@ const Labels = () => {
       }
     };
 
-    Chrome.get('Labels1', ['labels', 'uxSettings'], ({ labels, uxSettings }) => {
+    Chrome.get('Labels1', ['labels', 'uxSettings', 'settings'], ({ labels, uxSettings, settings }) => {
       update({ newLabels: labels, newSelectedLabelTitle: (uxSettings).selectedLabel });
       // The initial fetch has resolved — clear loading even when the result is
       // empty (where `update` short-circuits as "same"), so the empty-state
       // "Add Group" guidance renders for a brand-new user.
-      setPartialState({ loading: false });
+      setPartialState({ loading: false, columns: (settings || {}).columns || ColumnsDefault });
     });
 
     chrome.storage.onChanged.addListener(
@@ -107,6 +109,14 @@ const Labels = () => {
           }
         }
 
+        // Live-update the configured column count when the Settings control
+        // writes it; the layout effect below recomputes the effective count.
+        if (changes.settings) {
+          setPartialState({
+            columns: (changes.settings.newValue || {}).columns || ColumnsDefault
+          });
+        }
+
         if (Object.keys(updates).length > 0) {
           update(updates);
         }
@@ -123,29 +133,29 @@ const Labels = () => {
   useLayoutEffect(() => {
     if (!window.matchMedia) return;
 
-    // Two columns at comfortable widths (matching the target layout), collapsing
-    // to a single column once the center pane gets narrow.
-    const queries = [
-      "(min-width: 900px)",
-      "(max-width: 900px)"
-    ];
-    const handleMediaChange = (e) => {
-      const index = queries.indexOf(e.media);
-      if (e.matches) setPartialState({ chunkLength: index === 0 ? 2 : 1 });
+    // Effective columns = the configured count, capped by what the current
+    // viewport width can comfortably fit (see effectiveColumns). Recompute
+    // whenever the viewport crosses any breakpoint or the configured `columns`
+    // setting changes; the matchMedia listeners only trigger the recompute, the
+    // pure util does the math from window.innerWidth.
+    const recompute = () => {
+      setPartialState({ chunkLength: effectiveColumns(columns, window.innerWidth) });
     };
+    recompute();
 
-    for (const query of queries) {
-      const mediaQuery = window.matchMedia(query);
-      mediaQuery.addEventListener("change", handleMediaChange);
+    const mediaQueries = COLUMN_BREAKPOINTS.map(
+      (bp) => window.matchMedia(`(min-width: ${bp.min}px)`)
+    );
+    for (const mediaQuery of mediaQueries) {
+      mediaQuery.addEventListener("change", recompute);
     }
 
     return () => {
-      for (const query of queries) {
-        const mediaQuery = window.matchMedia(query);
-        mediaQuery.removeEventListener("change", handleMediaChange);
+      for (const mediaQuery of mediaQueries) {
+        mediaQuery.removeEventListener("change", recompute);
       }
     };
-  });
+  }, [columns]);
 
   const sortLabels = (labelsToSort) => {
     return [...labelsToSort].sort(
@@ -165,7 +175,12 @@ const Labels = () => {
   }
 
   return (
-    <div id="Labels" className="Labels" ref={labelsRef}>
+    <div
+      id="Labels"
+      className="Labels"
+      ref={labelsRef}
+      style={{ '--label-columns': chunkLength }}
+    >
       <div className="Labels-header">
         <span className="Labels-header-all">All Groups</span>
         <LabelFormContainer />

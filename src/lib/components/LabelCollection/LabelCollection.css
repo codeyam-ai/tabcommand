@@ -1,6 +1,10 @@
 .LabelCollection {
-  flex: 1 1 calc(50% - (var(--gap) / 2));
-  max-width: calc(50% - (var(--gap) / 2));
+  /* Width driven by the effective column count set on #Labels
+     (--label-columns). Keeping max-width (rather than letting flex-grow fill)
+     means a lone card in the last row stays at 1/N width instead of stretching.
+     Falls back to 2 columns when the variable is absent. */
+  flex: 1 1 calc((100% - (var(--label-columns, 2) - 1) * var(--gap)) / var(--label-columns, 2));
+  max-width: calc((100% - (var(--label-columns, 2) - 1) * var(--gap)) / var(--label-columns, 2));
   min-width: 0;
   margin: 0;
   background-color: var(--card-bg);

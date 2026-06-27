@@ -1,6 +1,6 @@
-# regenerated from dependency-graph.json on 2026-06-27T22:19:39Z; do not hand-edit
+# regenerated from dependency-graph.json on 2026-06-27T23:21:02Z; do not hand-edit
 src/lib/utils/chromeShim :: imports=0 :: imported_by=20
-src/Constants.jsx :: imports=0 :: imported_by=18
+src/Constants.jsx :: imports=0 :: imported_by=19
 src/lib/utils/Chrome :: imports=0 :: imported_by=18
 src/lib/components/Icon :: imports=0 :: imported_by=13
 src/lib/components :: imports=0 :: imported_by=9
@@ -11,7 +11,7 @@ src/lib/components/Icon/Icon.jsx :: imports=0 :: imported_by=3
 src/lib/components/LabelCollection/LabelCollection.jsx :: imports=5 :: imported_by=3
 src/lib/components/LabelForm/LabelForm.jsx :: imports=4 :: imported_by=3
 src/lib/components/LabelFormContainer/LabelFormContainer.jsx :: imports=2 :: imported_by=3
-src/lib/components/Labels/Labels.jsx :: imports=4 :: imported_by=3
+src/lib/components/Labels/Labels.jsx :: imports=5 :: imported_by=3
 src/lib/components/LoadMeter/LoadMeter.jsx :: imports=6 :: imported_by=3
 src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx :: imports=2 :: imported_by=3
 src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx :: imports=3 :: imported_by=3
@@ -47,6 +47,7 @@ src/lib/pages/UrlDetails/UrlDetails.jsx :: imports=6 :: imported_by=2
 src/lib/utils :: imports=0 :: imported_by=2
 src/lib/utils/buildSearchDocuments.js :: imports=0 :: imported_by=2
 src/lib/utils/dragReducer.js :: imports=1 :: imported_by=2
+src/lib/utils/effectiveColumns.js :: imports=1 :: imported_by=2
 src/lib/utils/faviconMonogram.js :: imports=0 :: imported_by=2
 src/lib/utils/formatAutoClose.js :: imports=0 :: imported_by=2
 src/lib/utils/historyBuckets.js :: imports=0 :: imported_by=2
@@ -186,6 +187,7 @@ src/lib/utils/chromeShim/chromeShim.test.js :: imports=1 :: imported_by=0
 src/lib/utils/deriveGaugeTotals.test.js :: imports=1 :: imported_by=0
 src/lib/utils/deriveSystemTotals.test.js :: imports=1 :: imported_by=0
 src/lib/utils/dragReducer.test.js :: imports=2 :: imported_by=0
+src/lib/utils/effectiveColumns.test.js :: imports=1 :: imported_by=0
 src/lib/utils/faviconMonogram.test.js :: imports=1 :: imported_by=0
 src/lib/utils/formatAutoClose.test.js :: imports=1 :: imported_by=0
 src/lib/utils/gaugeFillPercent.test.js :: imports=1 :: imported_by=0

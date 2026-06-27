@@ -340,6 +340,12 @@
     "testFile": "src/lib/utils/importExport.test.js"
   },
   {
+    "description": "Maps a viewport width in pixels to the most group columns the center pane can comfortably fit, using the widest-first COLUMN_BREAKPOINTS, returning 1 below the narrowest breakpoint. Used by effectiveColumns to cap the user's chosen count responsively.",
+    "filePath": "src/lib/utils/effectiveColumns.js",
+    "name": "columnsForWidth",
+    "testFile": "src/lib/utils/effectiveColumns.test.js"
+  },
+  {
     "description": "Internal helper of deriveSystemTotals: average per-core busy fraction = delta(kernel+user)/delta(total) across processors between two chrome.system.cpu samples. Returns 0 (never NaN) for missing/empty/single-sample input and for a non-advancing counter.",
     "filePath": "src/lib/utils/deriveSystemTotals.js",
     "name": "cpuUtilization",
@@ -385,6 +391,12 @@
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "deriveUrlLabels",
     "testFile": "src/lib/utils/urlDetails.test.js"
+  },
+  {
+    "description": "Computes the column count the groups grid should render: the user's configured count from settings, capped by what the current viewport width can comfortably fit, floored at 1. Falls back to ColumnsDefault for missing or invalid input. Drives the chunk size and the --label-columns card-width variable in Labels.",
+    "filePath": "src/lib/utils/effectiveColumns.js",
+    "name": "effectiveColumns",
+    "testFile": "src/lib/utils/effectiveColumns.test.js"
   },
   {
     "description": "Synthetic event factory: returns an event-shaped object with no-op stopPropagation/preventDefault spread with the given attributes, so code can feed a synthetic key into KeyDown.trigger (e.g. SearchResults triggering Escape after a click).",

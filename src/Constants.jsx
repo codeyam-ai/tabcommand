@@ -33,3 +33,8 @@ export const MaxAutoClosedTime = 1000 * 60 * 60 * 24 * 5;
 // heavyThreshold: per-tab load % at/above which a tab counts as "heavy".
 export const WarnAtDefault = 70;
 export const HeavyThresholdDefault = 60;
+
+// How many columns of group cards (LabelCollection) the center area shows at
+// comfortable width. Persisted under the `settings` key; user-selectable as
+// 2 / 3 / 4. Default 2 preserves the original layout.
+export const ColumnsDefault = 2;
