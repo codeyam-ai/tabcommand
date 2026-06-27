@@ -1,0 +1,979 @@
+{
+  "timestamp": "2026-06-27T16:11:51Z",
+  "title": "TabCommand CodeYam Redesign",
+  "type": "feature",
+  "userRequest": "pull from main for latest changes please",
+  "description": "Re-skinned the entire TabCommand UI in the CodeYam dark/lime design language on top of the existing theme system: a CSS-token re-skin (dark default + matching light theme), the two-ring Browser Load gauge, a load-aware Triage panel with a Heaviest-Tabs rail, a new History page, an add-group color wheel, a Settings popover for the load thresholds, a built-in inline-SVG icon set (replacing @ant-design/icons), and the new branded favicon. The data model is unchanged — chrome storage, the chrome shim, drag-to-organize, search, and the per-tab/process load math stay authoritative; only markup, CSS, and organizational surfaces changed. Extracted pure helpers loadLevel and bucketByDay (tested) to de-duplicate the gauge/triage and history-bucketing logic.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/capture.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-handlers.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-metrics.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-playwright.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-collapsed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-no-data--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-system--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadpertabnote-unavailable--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-excessive--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-severity--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-low-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-dark--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-light--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-long-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-notes--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-long--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-work-chip--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "index.html",
+      "status": "modified"
+    },
+    {
+      "path": "package-lock.json",
+      "status": "modified"
+    },
+    {
+      "path": "package.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/Constants.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_components.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/index.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/index.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/AppBrand/AppBrand.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/AppBrand/AppBrand.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favicon/Favicon.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Icon/Icon.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Icon/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelFormContainer/LabelFormContainer.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadMeterCaption/LoadMeterCaption.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadPerTabNote/LoadPerTabNote.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadProcesses/LoadProcesses.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadUrl/LoadUrl.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadUrl/LoadUrl.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Search/Search.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Search/Search.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Triage/Triage.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Triage/Triage.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Triage/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Url/Url.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/UrlField/UrlField.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/UrlLabel/UrlLabel.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/UrlLabel/UrlLabel.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/hooks/useTheme.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/hooks/useTheme.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/History/History.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/History/History.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/History/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/Load/Load.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/Load/Load.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/UrlDetails/UrlDetails.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/UrlDetails/UrlDetails.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/styles/theme.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/Chrome/Chrome.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/history-populated.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/historyrow-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/historyrow-monogram-fallback.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/historyrow-no-timestamp.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-light-theme.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-running-hot.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/icon-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/icon-history.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-monogram-fallback--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-no-timestamp--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-history--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/triage-comfortable.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/triage-running-hot.json",
+      "status": "added"
+    },
+    {
+      "path": "public/favicon.svg",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Settings/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UrlField/UrlField.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/historyBuckets.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/historyBuckets.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/loadLevel.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/loadLevel.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "AppBrand - Wordmark",
+      "screenshotPath": "appbrand-wordmark--desktop.png"
+    },
+    {
+      "name": "Favicon - Monogram Fallback",
+      "screenshotPath": "favicon-monogram-fallback--desktop.png"
+    },
+    {
+      "name": "Favicon - Monogram Figma",
+      "screenshotPath": "favicon-monogram-figma--desktop.png"
+    },
+    {
+      "name": "Favicon - Real Favicon",
+      "screenshotPath": "favicon-real-favicon--desktop.png"
+    },
+    {
+      "name": "History - Populated",
+      "screenshotPath": "history-populated--desktop.png"
+    },
+    {
+      "name": "HistoryRow - Default",
+      "screenshotPath": "historyrow-default--desktop.png"
+    },
+    {
+      "name": "HistoryRow - Monogram Fallback",
+      "screenshotPath": "historyrow-monogram-fallback--desktop.png"
+    },
+    {
+      "name": "HistoryRow - No Timestamp",
+      "screenshotPath": "historyrow-no-timestamp--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Icon - Default",
+      "screenshotPath": "icon-default--desktop.png"
+    },
+    {
+      "name": "Icon - History",
+      "screenshotPath": "icon-history--desktop.png"
+    },
+    {
+      "name": "Import / Export - Backup",
+      "screenshotPath": "import-export-backup--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Work",
+      "screenshotPath": "labelform-edit-work--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group",
+      "screenshotPath": "labelform-new-blank--desktop.png"
+    },
+    {
+      "name": "LabelForm - Reading",
+      "screenshotPath": "labelform-reading--desktop.png"
+    },
+    {
+      "name": "LabelForm - Shopping",
+      "screenshotPath": "labelform-shopping--desktop.png"
+    },
+    {
+      "name": "LabelForm - Social",
+      "screenshotPath": "labelform-social--desktop.png"
+    },
+    {
+      "name": "LabelFormContainer - Collapsed",
+      "screenshotPath": "labelformcontainer-collapsed--desktop.png"
+    },
+    {
+      "name": "LabelFormContainer - Expanded",
+      "screenshotPath": "labelformcontainer-expanded--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load - Stable Chrome Fallback",
+      "screenshotPath": "load-stable-chrome-fallback--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Load Page",
+      "screenshotPath": "load-page--desktop.png"
+    },
+    {
+      "name": "LoadMeter - High Load",
+      "screenshotPath": "loadmeter-high-load--desktop.png"
+    },
+    {
+      "name": "LoadMeter - No Data",
+      "screenshotPath": "loadmeter-no-data--desktop.png"
+    },
+    {
+      "name": "LoadMeter - System Fallback",
+      "screenshotPath": "loadmeter-system-fallback--desktop.png"
+    },
+    {
+      "name": "LoadMeterCaption - No Data",
+      "screenshotPath": "loadmetercaption-no-data--desktop.png"
+    },
+    {
+      "name": "LoadMeterCaption - System",
+      "screenshotPath": "loadmetercaption-system--desktop.png"
+    },
+    {
+      "name": "LoadPerTabNote - Unavailable",
+      "screenshotPath": "loadpertabnote-unavailable--desktop.png"
+    },
+    {
+      "name": "LoadProcesses - Active",
+      "screenshotPath": "loadprocesses-active--desktop.png"
+    },
+    {
+      "name": "LoadUrl - Excessive",
+      "screenshotPath": "loadurl-excessive--desktop.png"
+    },
+    {
+      "name": "LoadUrl - High Load",
+      "screenshotPath": "loadurl-high-load--desktop.png"
+    },
+    {
+      "name": "LoadUrl - High Severity",
+      "screenshotPath": "loadurl-high-severity--desktop.png"
+    },
+    {
+      "name": "LoadUrl - Idle",
+      "screenshotPath": "loadurl-idle--desktop.png"
+    },
+    {
+      "name": "LoadUrl - Low Load",
+      "screenshotPath": "loadurl-low-load--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "Search - Empty Query",
+      "screenshotPath": "search-empty-query--desktop.png"
+    },
+    {
+      "name": "SearchResults - Empty",
+      "screenshotPath": "searchresults-empty--desktop.png"
+    },
+    {
+      "name": "SearchResults - Labels Only",
+      "screenshotPath": "searchresults-labels-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Many Results",
+      "screenshotPath": "searchresults-many--desktop.png"
+    },
+    {
+      "name": "SearchResults - Matches",
+      "screenshotPath": "searchresults-matches--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    },
+    {
+      "name": "Triage - Comfortable",
+      "screenshotPath": "triage-comfortable--desktop.png"
+    },
+    {
+      "name": "Triage - Running Hot",
+      "screenshotPath": "triage-running-hot--desktop.png"
+    },
+    {
+      "name": "URL Details - Edit",
+      "screenshotPath": "url-details-edit--desktop.png"
+    },
+    {
+      "name": "URL Details - Unlabeled",
+      "screenshotPath": "url-details-unlabeled--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    },
+    {
+      "name": "UrlField - Empty",
+      "screenshotPath": "urlfield-empty--desktop.png"
+    },
+    {
+      "name": "UrlField - Long Title",
+      "screenshotPath": "urlfield-long-title--desktop.png"
+    },
+    {
+      "name": "UrlField - Notes",
+      "screenshotPath": "urlfield-notes--desktop.png"
+    },
+    {
+      "name": "UrlField - Title",
+      "screenshotPath": "urlfield-title--desktop.png"
+    },
+    {
+      "name": "UrlLabel - Long Title",
+      "screenshotPath": "urllabel-long--desktop.png"
+    },
+    {
+      "name": "UrlLabel - Reading",
+      "screenshotPath": "urllabel-reading--desktop.png"
+    },
+    {
+      "name": "UrlLabel - Work Chip",
+      "screenshotPath": "urllabel-work-chip--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 251,
+    "passed": 251,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 251,
+        "passed": 251
+      }
+    ]
+  }
+}

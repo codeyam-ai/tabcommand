@@ -167,8 +167,8 @@ const Labels = () => {
   return (
     <div id="Labels" className="Labels" ref={labelsRef}>
       <div className="Labels-header">
-        <LabelFormContainer />
         <span className="Labels-header-all">All Groups</span>
+        <LabelFormContainer />
       </div>
       <div className="LabelCollections">
         {(!loading && (!sortedLabels || !sortedLabels.length) && !selectedLabel) &&

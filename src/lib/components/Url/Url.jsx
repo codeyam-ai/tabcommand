@@ -2,7 +2,7 @@ import './Url.css';
 
 import React, { useEffect, useState } from 'react';
 
-import { CloseOutlined, PushpinOutlined, PushpinFilled, EditOutlined } from '@ant-design/icons';
+import { Icon } from '../Icon';
 import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
 import { summarizeProcessLoad } from '../../utils/processLoad';
@@ -189,7 +189,7 @@ const Url = ({
           data-tool-tip="Remove"
           title="Remove"
         >
-          <CloseOutlined className='Url-action-icon' />
+          <Icon name="close" size={14} className='Url-action-icon' />
         </div>
       }
 
@@ -197,18 +197,18 @@ const Url = ({
         <div className='Url-actions'>
           {(tabId && !tabCommandPinned) &&
             <div className='Url-action Url-pin' onClick={pin} data-tool-tip="Keep Open">
-              <PushpinOutlined className='Url-action-icon' />
+              <Icon name="pin" size={15} className='Url-action-icon' />
             </div>
           }
 
           {(tabId && tabCommandPinned) &&
             <div className='Url-action Url-pinned' onClick={pin} data-tool-tip="Unpin">
-              <PushpinFilled className='Url-action-icon' />
+              <Icon name="pin" size={15} className='Url-action-icon' />
             </div>
           }
 
           <div className='Url-action Url-edit' onClick={editUrl} data-tool-tip="Edit/Annotate">
-            <EditOutlined className='Url-action-icon' />
+            <Icon name="edit" size={15} className='Url-action-icon' />
           </div>
         </div>
       }
@@ -225,7 +225,7 @@ const Url = ({
       }
 
       {(tabCommandPinned && !showActions && !hover && !expanded) &&
-        <PushpinFilled className='Url-tabCommandPinned' />
+        <Icon name="pin" size={15} className='Url-tabCommandPinned' />
       }
 
       <div className='Url-title'>

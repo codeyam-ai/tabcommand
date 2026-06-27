@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import MiniSearch from 'minisearch'
 
 import { SearchResults } from '..'
+import { Icon } from '../Icon'
 
 import { KeyDown } from '../../utils';
 import { Chrome } from '../../utils/Chrome';
@@ -128,14 +129,16 @@ const Search = () => {
 
   return (
     <div className='Search'>
-      <input
-        id="Search-Input"
-        type="text"
-        value={searchText}
-        placeholder="&#xF002; Find Anything"
-        style={{fontFamily: "Arial, FontAwesome"}}
-        onChange={(e) => search(e.target.value)}
-      />
+      <div className='Search-inputWrap'>
+        <Icon name="search" size={16} className='Search-icon' />
+        <input
+          id="Search-Input"
+          type="text"
+          value={searchText}
+          placeholder="Find Anything"
+          onChange={(e) => search(e.target.value)}
+        />
+      </div>
       {(searchText && searchText.length > 0 && results) &&
         <div>
           <SearchResults

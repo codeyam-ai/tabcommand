@@ -3,6 +3,8 @@
 // `remove(from, keys)` — including the leading `from` debug-label arg and the
 // default-hydration rules. The underlying `chrome.storage.local` is the real
 // extension API in a packaged build and the in-app chromeShim everywhere else.
+import { WarnAtDefault, HeavyThresholdDefault } from '../../../Constants';
+
 const Chrome = {
   remove: (from, keys) => {
     chrome.storage.local.remove(keys);
@@ -26,6 +28,20 @@ const Chrome = {
         if ((keys === arrayKey || keys.indexOf(arrayKey) > -1) && !safeResults[arrayKey]) {
           safeResults[arrayKey] = [];
         }
+      }
+
+      // `theme` defaults to "dark" (the CodeYam default). `settings` hydrates the
+      // load tunables so every consumer reads concrete warnAt/heavyThreshold values.
+      if ((keys === 'theme' || keys.indexOf('theme') > -1) && safeResults.theme == null) {
+        safeResults.theme = 'dark';
+      }
+
+      if (keys === 'settings' || keys.indexOf('settings') > -1) {
+        safeResults.settings = {
+          warnAt: WarnAtDefault,
+          heavyThreshold: HeavyThresholdDefault,
+          ...(safeResults.settings || {}),
+        };
       }
 
       if (safeResults.previousLabels) {

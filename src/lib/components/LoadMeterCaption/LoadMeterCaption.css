@@ -1,16 +1,17 @@
 /* Honest, low-key label under the gauge: explains a 'system'-source gauge shows
-   whole-browser load, or that there is no load data at all on stable Chrome. */
+   whole-browser load, or that there is no load data at all on stable Chrome.
+   Mono numerics/label on theme tokens so it reads on either theme. */
 .LoadMeterCaption {
-  margin-top: 2px;
+  margin-top: 4px;
   text-align: center;
-  font-family: roboto, sans-serif;
+  font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.02em;
-  color: #858CA1;
-  opacity: 0.85;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
 }
 
 .LoadMeterCaption--none {
-  color: #5F6780;
+  color: var(--text-muted);
+  opacity: 0.8;
   font-style: italic;
 }

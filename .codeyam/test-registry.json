@@ -100,6 +100,42 @@
       "runner": "tests"
     },
     {
+      "description": "",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › calls onReopen with the urlKey when Reopen is clicked",
+      "line": 24,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › falls back to a monogram tile when the site has no favicon",
+      "line": 38,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › omits the timestamp when none is present",
+      "line": 32,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › renders the title and a Reopen button",
+      "line": 17,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
       "description": "pasting a valid export and clicking Import rebuilds labels + per-url objects and calls onComplete",
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
@@ -338,7 +374,7 @@
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
       "key": "LoadMeter › handles a processTotals storage change",
-      "line": 41,
+      "line": 50,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
       "runner": "tests"
     },
@@ -347,16 +383,25 @@
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
       "key": "LoadMeter › mounts with a loadDataSource present without throwing",
-      "line": 60,
+      "line": 71,
       "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeter › reads as Idle on first run",
+      "line": 30,
+      "registeredAt": "2026-06-27T14:09:20Z",
       "runner": "tests"
     },
     {
       "description": "mounting with seeded processTotals reads the value without throwing under jsdom (this exercises the jsdom guard around GradientPath — remove it and this fails)",
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
-      "key": "LoadMeter › reads seeded processTotals on mount without throwing",
-      "line": 31,
+      "key": "LoadMeter › reflects seeded processTotals in the rendered load %",
+      "line": 39,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
       "runner": "tests"
     },
@@ -364,7 +409,7 @@
       "description": "the gauge renders its CPU and Memory labels",
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
-      "key": "LoadMeter › renders the gauge labels",
+      "key": "LoadMeter › renders the gauge legend labels",
       "line": 22,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
       "runner": "tests"
@@ -490,7 +535,7 @@
       "description": "a missing favicon falls back to the bundled default image",
       "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
       "format": "vitest",
-      "key": "LoadUrl › falls back to the default favicon when none is provided",
+      "key": "LoadUrl › falls back to a monogram tile when no favicon is provided",
       "line": 22,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
       "runner": "tests"
@@ -500,7 +545,7 @@
       "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
       "format": "vitest",
       "key": "LoadUrl › omits the load readout when there is no sampled process data",
-      "line": 41,
+      "line": 40,
       "registeredAt": "2026-06-12T12:42:15.267517+00:00",
       "runner": "tests"
     },
@@ -518,7 +563,7 @@
       "file": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
       "format": "vitest",
       "key": "LoadUrl › shows the per-tab load readout when processes data is present",
-      "line": 30,
+      "line": 29,
       "registeredAt": "2026-06-12T12:42:15.267517+00:00",
       "runner": "tests"
     },
@@ -676,6 +721,15 @@
       "runner": "tests"
     },
     {
+      "description": "The History section is collapsed by default and expands when its title is clicked.",
+      "file": "src/lib/components/Tabs/Tabs.test.jsx",
+      "format": "vitest",
+      "key": "Tabs › navigates to the History page when the footer button is clicked",
+      "line": 91,
+      "registeredAt": "2026-06-09T17:34:02Z",
+      "runner": "tests"
+    },
+    {
       "description": "Each seeded active tab renders as a row showing its stored title.",
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
@@ -690,15 +744,6 @@
       "format": "vitest",
       "key": "Tabs › shows the empty-state explainer when there are no active tabs",
       "line": 33,
-      "registeredAt": "2026-06-09T17:34:02Z",
-      "runner": "tests"
-    },
-    {
-      "description": "The History section is collapsed by default and expands when its title is clicked.",
-      "file": "src/lib/components/Tabs/Tabs.test.jsx",
-      "format": "vitest",
-      "key": "Tabs › toggles the History section open when its title is clicked",
-      "line": 91,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -925,6 +970,51 @@
       "key": "applyDrag › rewrites positions when a group is reordered",
       "line": 74,
       "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/historyBuckets.test.js",
+      "format": "vitest",
+      "key": "bucketByDay › buckets a timestamp from today into Today",
+      "line": 11,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/historyBuckets.test.js",
+      "format": "vitest",
+      "key": "bucketByDay › buckets a timestamp from yesterday into Yesterday",
+      "line": 17,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/historyBuckets.test.js",
+      "format": "vitest",
+      "key": "bucketByDay › buckets older timestamps into Earlier this week",
+      "line": 23,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/historyBuckets.test.js",
+      "format": "vitest",
+      "key": "bucketByDay › exposes the bucket order",
+      "line": 34,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/historyBuckets.test.js",
+      "format": "vitest",
+      "key": "bucketByDay › treats a missing timestamp as Earlier this week",
+      "line": 28,
+      "registeredAt": "2026-06-27T14:09:20Z",
       "runner": "tests"
     },
     {
@@ -1522,6 +1612,42 @@
       "runner": "tests"
     },
     {
+      "description": "",
+      "file": "src/lib/utils/loadLevel.test.js",
+      "format": "vitest",
+      "key": "loadLevel › honors a custom warnAt threshold",
+      "line": 24,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/loadLevel.test.js",
+      "format": "vitest",
+      "key": "loadLevel › returns high at or above warnAt",
+      "line": 6,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/loadLevel.test.js",
+      "format": "vitest",
+      "key": "loadLevel › returns low below the medium band",
+      "line": 18,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "",
+      "file": "src/lib/utils/loadLevel.test.js",
+      "format": "vitest",
+      "key": "loadLevel › returns medium from warnAt*0.6 up to warnAt",
+      "line": 12,
+      "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
       "description": "focuses the existing TabCommand tab when one is already open",
       "file": "popup/popup.test.js",
       "format": "vitest",
@@ -2101,8 +2227,8 @@
       "description": "defaults to light and mirrors it onto the document element",
       "file": "src/lib/hooks/useTheme.test.jsx",
       "format": "vitest",
-      "key": "useTheme › defaults to light and sets data-theme on the document",
-      "line": 11,
+      "key": "useTheme › defaults to dark and sets data-theme on the document",
+      "line": 14,
       "registeredAt": "2026-06-26T01:28:59Z",
       "runner": "tests"
     },
@@ -2110,8 +2236,8 @@
       "description": "an explicit initial theme is honored",
       "file": "src/lib/hooks/useTheme.test.jsx",
       "format": "vitest",
-      "key": "useTheme › honors an explicit initial theme",
-      "line": 18,
+      "key": "useTheme › hydrates a persisted theme from storage",
+      "line": 24,
       "registeredAt": "2026-06-26T01:28:59Z",
       "runner": "tests"
     },
@@ -2119,8 +2245,8 @@
       "description": "toggling twice returns to the original theme",
       "file": "src/lib/hooks/useTheme.test.jsx",
       "format": "vitest",
-      "key": "useTheme › toggles back to light after two flips",
-      "line": 33,
+      "key": "useTheme › toggles back to dark after two flips",
+      "line": 51,
       "registeredAt": "2026-06-26T01:28:59Z",
       "runner": "tests"
     },
@@ -2128,8 +2254,8 @@
       "description": "toggling flips light to dark and updates the document attribute",
       "file": "src/lib/hooks/useTheme.test.jsx",
       "format": "vitest",
-      "key": "useTheme › toggles from light to dark",
-      "line": 25,
+      "key": "useTheme › toggles from dark to light and persists",
+      "line": 33,
       "registeredAt": "2026-06-26T01:28:59Z",
       "runner": "tests"
     }

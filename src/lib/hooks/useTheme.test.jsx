@@ -1,40 +1,59 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { installChromeShim } from '../utils/chromeShim';
 import { useTheme } from './useTheme';
 
 describe('useTheme', () => {
   beforeEach(() => {
+    window.localStorage.clear();
+    delete globalThis.chrome;
     delete document.documentElement.dataset.theme;
   });
 
-  // defaults to light and mirrors it onto the document element
-  it('defaults to light and sets data-theme on the document', () => {
+  // dark is the default (the CodeYam home) and mirrors onto the document element
+  it('defaults to dark and sets data-theme on the document', async () => {
+    installChromeShim();
     const { result } = renderHook(() => useTheme());
-    expect(result.current[0]).toBe('light');
+    expect(result.current[0]).toBe('dark');
+    await waitFor(() =>
+      expect(document.documentElement.dataset.theme).toBe('dark')
+    );
+  });
+
+  // a persisted theme in storage is hydrated on mount
+  it('hydrates a persisted theme from storage', async () => {
+    window.localStorage.setItem('theme', JSON.stringify('light'));
+    installChromeShim();
+    const { result } = renderHook(() => useTheme());
+    await waitFor(() => expect(result.current[0]).toBe('light'));
     expect(document.documentElement.dataset.theme).toBe('light');
   });
 
-  // an explicit initial theme is honored
-  it('honors an explicit initial theme', () => {
-    const { result } = renderHook(() => useTheme('dark'));
-    expect(result.current[0]).toBe('dark');
-    expect(document.documentElement.dataset.theme).toBe('dark');
-  });
-
-  // toggling flips light to dark and updates the document attribute
-  it('toggles from light to dark', () => {
-    const { result } = renderHook(() => useTheme('light'));
+  // toggling flips dark to light, updates the attribute, and persists the choice
+  it('toggles from dark to light and persists', async () => {
+    installChromeShim();
+    const { result } = renderHook(() => useTheme());
     act(() => result.current[1]());
-    expect(result.current[0]).toBe('dark');
-    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(result.current[0]).toBe('light');
+    expect(document.documentElement.dataset.theme).toBe('light');
+    await waitFor(
+      () =>
+        new Promise((resolve) =>
+          chrome.storage.local.get('theme', ({ theme }) => {
+            expect(theme).toBe('light');
+            resolve();
+          })
+        )
+    );
   });
 
   // toggling twice returns to the original theme
-  it('toggles back to light after two flips', () => {
-    const { result } = renderHook(() => useTheme('light'));
+  it('toggles back to dark after two flips', () => {
+    installChromeShim();
+    const { result } = renderHook(() => useTheme());
     act(() => result.current[1]());
     act(() => result.current[1]());
-    expect(result.current[0]).toBe('light');
-    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(result.current[0]).toBe('dark');
+    expect(document.documentElement.dataset.theme).toBe('dark');
   });
 });

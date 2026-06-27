@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { installChromeShim } from './lib/utils/chromeShim';
+import './lib/styles/theme.css';
 import './index.css';
 import CodeyamIsolate from './__codeyam_isolate';
 

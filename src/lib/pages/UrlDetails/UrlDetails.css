@@ -1,59 +1,94 @@
+/* The URL details / edit page in the CodeYam look. A Back link + tab-title H1,
+   then the stacked form (Title / Url / Favicon / Notes, styled by UrlField),
+   the removable Groups chips, and the Save / Cancel actions. */
 .UrlDetails {
-  padding: 30px;
+  height: 100vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 22px 28px 48px;
+  font-family: var(--font-sans);
 }
 
-/* The home link carries its own style here (rather than reusing
-   ImportExport-homeLink), matching the Load page's home link. */
 .UrlDetails-homeLink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
-  color: #1873E4;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--c-t3);
   cursor: pointer;
+  transition: color var(--t-fast);
 }
 
 .UrlDetails-homeLink:hover {
-  text-decoration: underline;
-}
-
-.UrlDetails .UrlDetails-form {
-  margin-left: 30px;
+  color: var(--c-t1);
 }
 
 .UrlDetails .UrlDetails-title {
-  margin: 30px 0 0 30px;
+  margin: 14px 0 22px;
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--c-t1);
+  word-break: break-word;
 }
 
-.UrlDetails .UrlDetails-form label > span {
-  display: block;
-  margin-bottom: 6px;
+.UrlDetails .UrlDetails-form {
+  max-width: 520px;
 }
 
-.UrlDetails p {
-  padding: 12px 0;
+/* Groups */
+.UrlDetails-groups {
+  margin-bottom: 24px;
 }
 
-.UrlDetails label {
-  font-weight: bold;
+.UrlDetails-groupChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.UrlDetails input,
-.UrlDetails textarea {
-  width: 60%;
-  margin-left: 12px;
+.UrlDetails-groupsEmpty {
+  font-size: 13px;
+  color: var(--c-t4);
 }
 
-.UrlDetails textarea {
-  height: 150px;
-  vertical-align: top;
+/* Actions */
+.UrlDetails-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .UrlDetails .UrlDetails-form-save {
   width: auto;
-  margin-right: 24px;
+  margin: 0;
+  padding: 9px 22px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: #0a0a0a;
+  background: var(--c-lime);
+  border: none;
+  border-radius: var(--r-row);
+  cursor: pointer;
+  transition: background var(--t-fast);
+}
+
+.UrlDetails .UrlDetails-form-save:hover {
+  background: var(--c-lime-hover);
 }
 
 .UrlDetails .UrlDetails-form-cancel {
+  font-size: 13px;
+  color: var(--c-t3);
   cursor: pointer;
+  transition: color var(--t-fast);
+}
+
+.UrlDetails .UrlDetails-form-cancel:hover {
+  color: var(--c-t1);
 }

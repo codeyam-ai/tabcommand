@@ -17,6 +17,8 @@ export const KNOWN_KEYS = [
   'activeTabs',
   'allUrls',
   'previousLabels',
+  'theme',
+  'settings',
 ];
 
 // Resolve the callback from a stub call's arguments regardless of arity — Chrome

@@ -1,0 +1,17 @@
+{
+  "name": "Triage - Comfortable",
+  "id": "7f33c16c-8686-4544-86e9-7d1e10810279",
+  "url": "/?isolate=Triage",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}",
+      "processTotals": "{\"cpu\": 18, \"privateMemory\": 700000000, \"jsMemoryUsed\": 200000000}"
+    }
+  },
+  "componentName": "Triage",
+  "scenarioType": "component"
+}

@@ -3,17 +3,39 @@
   position: relative;
 }
 
-.Search input {
-  font-size: 15px;
-  border-radius: 10px;
-  padding: 9px 12px;
+.Search-inputWrap {
+  position: relative;
+  display: inline-block;
+  width: 80%;
   margin: 20px 0;
+}
+
+/* Search glyph sits inside the pill, left-aligned and click-through. */
+.Search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--search-placeholder);
+  pointer-events: none;
+}
+
+.Search input {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  border-radius: var(--r-row);
+  padding: 9px 12px 9px 36px;
+  width: 100%;
   background-color: var(--search-bg);
   color: var(--search-text);
   border: 1px solid var(--search-border);
-  width: 80%;
   box-sizing: border-box;
   outline: none;
+  transition: border-color var(--t-fast);
+}
+
+.Search input:focus {
+  border-color: var(--brand-command);
 }
 
 .Search input::placeholder {

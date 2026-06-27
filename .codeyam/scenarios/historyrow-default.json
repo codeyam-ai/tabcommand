@@ -1,0 +1,11 @@
+{
+  "name": "HistoryRow - Default",
+  "id": "ef461623-1bd9-4f8a-87a1-ea4bdc51336c",
+  "url": "/?isolate=HistoryRow",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistoryRow",
+  "scenarioType": "component"
+}

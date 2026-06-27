@@ -138,6 +138,8 @@ describe('chromeShim', () => {
       'activeTabs',
       'allUrls',
       'previousLabels',
+      'theme',
+      'settings',
     ]);
   });
 });

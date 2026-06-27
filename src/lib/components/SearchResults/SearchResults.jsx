@@ -5,9 +5,9 @@ import PropTypes from 'prop-types';
 
 import { KeyDown, event } from '../../utils';
 
-import defaultFavicon from '../../../images/defaultFavicon.png'
 import { Pages } from '../../../Constants';
-import { EditOutlined } from '@ant-design/icons';
+import { Icon } from '../Icon';
+import { Favicon } from '../Favicon';
 import { Chrome } from '../../utils/Chrome';
 import searchNotesSnippet from '../../utils/searchNotesSnippet';
 
@@ -121,9 +121,9 @@ const SearchResults = ({ labels, urls }) => {
         onClick={(e) => handleClick(e, i)}
       >
         <div className='SearchResults-result-url-edit' onClick={editUrl}>
-          <EditOutlined />
+          <Icon name="edit" size={15} />
         </div>
-        <img src={url.favicon || defaultFavicon} />
+        <Favicon favicon={url.favicon} urlKey={url.id} title={url.urlTitle} />
         <div key={`searchResult-${url.id}-title`} className='SearchResults-result-title'>
           {url.urlTitle}
         </div>

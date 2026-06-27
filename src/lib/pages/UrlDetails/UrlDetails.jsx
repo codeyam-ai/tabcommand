@@ -1,11 +1,11 @@
 import './UrlDetails.css';
 
 import React, { useEffect, useState } from 'react';
-import { HomeFilled } from '@ant-design/icons';
 
 import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
 import { UrlField, UrlLabel } from '../../components';
+import { Icon } from '../../components/Icon';
 import { deriveUrlLabels, buildUrlInfo, removeUrlFromLabel } from '../../utils/urlDetails';
 
 // The URL Details page: a full-screen form for editing one saved URL — its
@@ -85,31 +85,44 @@ const UrlDetails = ({ urlKey }) => {
 
   return (
     <div className="UrlDetails">
-      <div className="UrlDetails-homeLink" onClick={goHome}>
-        <HomeFilled /> Home
-      </div>
+      <button className="UrlDetails-homeLink" onClick={goHome}>
+        <Icon name="arrowLeft" size={15} /> Home
+      </button>
 
-      <h2 className='UrlDetails-title'>
+      <h1 className='UrlDetails-title'>
         {title || url}
-      </h2>
+      </h1>
 
       <form className='UrlDetails-form' onSubmit={handleSubmit}>
         <UrlField label="Title" name="title" value={title} placeholder={title} onChange={handleChange} />
-        <UrlField label="Url" name="url" value={url} placeholder={url} onChange={handleChange} />
-        <UrlField label="Favicon" name="favicon" value={favicon} placeholder={favicon} onChange={handleChange} />
-        <UrlField label="Notes" name="notes" value={notes} placeholder="Notes" onChange={handleChange} multiline />
-        <p>
-          <label>
-            <span>Groups</span>
-            {urlLabels.map((labelTitle) => (
-              <UrlLabel key={`label-${labelTitle}`} title={labelTitle} onRemove={handleLabelClick} />
-            ))}
-          </label>
-        </p>
-        <input type="submit" className="UrlDetails-form-save" value="Save" />
-        <span className='UrlDetails-form-cancel' onClick={goHome}>
-          Cancel
-        </span>
+        <UrlField label="Url" name="url" value={url} placeholder={url} onChange={handleChange} mono />
+        <UrlField label="Favicon" name="favicon" value={favicon} placeholder={favicon} onChange={handleChange} mono />
+        <UrlField label="Notes" name="notes" value={notes} placeholder="Notes" onChange={handleChange} multiline mono />
+
+        <div className="UrlDetails-groups">
+          <span className="UrlField-label">Groups</span>
+          <div className="UrlDetails-groupChips">
+            {urlLabels.length === 0 ? (
+              <span className="UrlDetails-groupsEmpty">Not in any group yet.</span>
+            ) : (
+              urlLabels.map((labelTitle) => (
+                <UrlLabel
+                  key={`label-${labelTitle}`}
+                  title={labelTitle}
+                  color={labels[labelTitle] && labels[labelTitle].backgroundColor}
+                  onRemove={handleLabelClick}
+                />
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="UrlDetails-actions">
+          <input type="submit" className="UrlDetails-form-save" value="Save" />
+          <span className='UrlDetails-form-cancel' onClick={goHome}>
+            Cancel
+          </span>
+        </div>
       </form>
     </div>
   );

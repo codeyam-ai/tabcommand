@@ -129,57 +129,6 @@ function buildIframeHarness(url, { background = "transparent" } = {}) {
 </html>`;
 }
 
-const path = require("path");
-
-// The reserved route the editor serves the secure-context iframe harness from.
-// Mirrors `HARNESS_PATH` in crates/control-api/src/preview_proxy_route.rs — the
-// canonical source of the harness markup now lives in that Rust handler; the
-// `buildIframeHarness` template above survives only as the degraded fallback
-// below for when the harness origin can't be resolved.
-const HARNESS_PATH = "/__codeyam_harness";
-
-// Read `.codeyam/server-state.json` (cwd is the project dir — see the timing
-// log note above) and return its parsed object, or null when it is absent.
-function defaultReadServerState() {
-  const statePath = path.join(process.cwd(), ".codeyam", "server-state.json");
-  if (!fs.existsSync(statePath)) return null;
-  return JSON.parse(fs.readFileSync(statePath, "utf8"));
-}
-
-// Resolve the `localhost` origin that serves the iframe-harness route. The
-// harness is mounted on the editor's control-api listener, whose port is
-// recorded in `.codeyam/server-state.json` as `controlPort` (the same file the
-// top-level loader already reads for `appPort`). Returns
-// `http://localhost:<controlPort>` — a secure context the nested iframe
-// inherits — or null when the state file is missing/unreadable, in which case
-// the caller falls back to the legacy in-page `setContent` harness.
-// `readStateFile` is injectable so the resolver is unit-testable without disk.
-function resolveHarnessOrigin({ readStateFile = defaultReadServerState } = {}) {
-  try {
-    const state = readStateFile();
-    const port = state && state.controlPort;
-    if (typeof port === "number" && port > 0) {
-      return `http://localhost:${port}`;
-    }
-  } catch (_) {
-    /* missing/unreadable state — fall back to setContent */
-  }
-  return null;
-}
-
-// Build the top-level harness URL for a scenario `url` and background. The
-// editor-served harness document embeds `src` as the iframe URL, so the nested
-// scenario inherits the harness's secure context. The background rides along as
-// `bg`. Pure — `URLSearchParams` does the percent-encoding so a scenario URL
-// with its own query string survives intact. Pure.
-function buildHarnessUrl(harnessOrigin, url, background) {
-  const params = new URLSearchParams({ src: url });
-  if (background != null && background !== "") {
-    params.set("bg", String(background));
-  }
-  return `${harnessOrigin}${HARNESS_PATH}?${params.toString()}`;
-}
-
 async function collectContentState(target) {
   return target.evaluate(() => {
     const root = document.getElementById("root");
@@ -206,133 +155,6 @@ async function collectContentState(target) {
       loadedImageCount,
       mediaBboxCount,
     };
-  });
-}
-
-// Trip scroll-gated entrance animations before capture. Many web/visual
-// stacks reveal sections with an IntersectionObserver that flips an
-// `opacity:0` element to its final state once it scrolls into view. Captured
-// in isolation — where the app shell that wires those observers is absent —
-// or on a tall page captured at a fixed viewport, the observers never fire and
-// the content stays invisible, so the screenshot is blank. Scroll the document
-// end-to-end in steps to trip every observer, then return to the top so the
-// captured frame starts where the app does. Stack-agnostic: it drives the same
-// scroll a real user would, touching no framework API. A frame whose document
-// fits in (or is shorter than) the viewport still gets a nudge-and-restore so a
-// single-screen page's scroll-triggered reveal fires too. Returns the measured
-// document height (0 when there is nothing to scroll).
-async function scrollThroughDocument(target) {
-  return target.evaluate(() => {
-    const doc = document.scrollingElement || document.documentElement;
-    const total = Math.max(
-      (doc && doc.scrollHeight) || 0,
-      document.body ? document.body.scrollHeight : 0,
-    );
-    if (typeof window.scrollTo !== "function") return total;
-    const viewport = window.innerHeight || 0;
-    if (total <= viewport || total === 0) {
-      // Even a single-viewport page may gate a reveal on the first scroll
-      // event; a nudge-and-restore fires those observers without moving the
-      // captured frame off the top.
-      window.scrollTo(0, 1);
-      window.scrollTo(0, 0);
-      return total;
-    }
-    const stride = Math.max(1, Math.floor((total - viewport) / 8));
-    for (let y = 0; y <= total; y += stride) {
-      window.scrollTo(0, y);
-    }
-    window.scrollTo(0, 0);
-    return total;
-  });
-}
-
-// Sum the length of text that is actually PAINTED to the frame — text whose
-// element ancestor chain is not hidden by `display:none` / `visibility:hidden`
-// and is not collapsed to `opacity:0`, and which occupies a non-zero box. This
-// is the signal the blank-frame gate uses to catch a reveal-suppressed capture:
-// a frame whose DOM rendered text (so `bodyTextLength > 0`) but whose every
-// section is still sitting at the `opacity:0` start of an entrance animation
-// that never fired, leaving the screenshot blank. Counts text mid-transition
-// (any opacity above exactly 0) as visible, so a reveal that has begun is not
-// flagged. Returns `undefined` when the DOM-walking / computed-style APIs are
-// unavailable (e.g. a stubbed test target) so callers fall back to the legacy
-// DOM-presence behavior rather than treating an un-measurable frame as blank.
-async function collectVisibleTextLength(target) {
-  return target.evaluate(() => {
-    if (
-      typeof document.createTreeWalker !== "function" ||
-      typeof window.getComputedStyle !== "function" ||
-      typeof NodeFilter === "undefined"
-    ) {
-      return undefined;
-    }
-    const root = document.body || document.documentElement;
-    if (!root) return 0;
-    const isHidden = (el) => {
-      for (
-        let node = el;
-        node && node.nodeType === 1;
-        node = node.parentElement
-      ) {
-        const style = window.getComputedStyle(node);
-        if (!style) continue;
-        if (style.display === "none" || style.visibility === "hidden")
-          return true;
-        if (parseFloat(style.opacity) === 0) return true;
-      }
-      return false;
-    };
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    let total = 0;
-    let node;
-    while ((node = walker.nextNode())) {
-      const text = (node.nodeValue || "").trim();
-      if (!text) continue;
-      const el = node.parentElement;
-      if (!el || isHidden(el)) continue;
-      const rect = el.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) continue;
-      total += text.length;
-    }
-    return total;
-  });
-}
-
-// Inject a capture-only stylesheet that snaps entrance animations to their
-// FINAL frame: remove animation/transition timing and force the common
-// "hidden until revealed" symptoms (`opacity:0`, an entrance `transform`) back
-// to their resting values. This is the belt to `scrollThroughDocument`'s
-// suspenders — it covers pure-CSS keyframe entrances that are mid-flight or
-// stuck at an `opacity:0` start state even after the observers fired. It
-// targets the generic CSS symptom, not any framework's reveal class, so it
-// works for any stack. The caller gates this OFF when a scenario declares an
-// interactive state, so an intentionally animated/collapsed interactive frame
-// is never clobbered. Idempotent (a single injected style id) and best-effort.
-// Returns true when the style is present after the call.
-async function forceFinalVisualState(target) {
-  return target.evaluate(() => {
-    const STYLE_ID = "__codeyam_force_final_state";
-    if (
-      typeof document.getElementById === "function" &&
-      document.getElementById(STYLE_ID)
-    ) {
-      return true;
-    }
-    if (typeof document.createElement !== "function") return false;
-    const style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent =
-      "*, *::before, *::after {" +
-      "animation: none !important;" +
-      "transition: none !important;" +
-      "opacity: 1 !important;" +
-      "transform: none !important;" +
-      "}";
-    const head = document.head || document.documentElement;
-    if (!head || typeof head.appendChild !== "function") return false;
-    head.appendChild(style);
-    return true;
   });
 }
 
@@ -552,13 +374,9 @@ async function waitForStablePage(page, target, timeoutMs = 10000, loadingMarkers
 async function loadScenarioInIframe(
   page,
   url,
-  { background, preflight = assertAppPortReachable, harnessOrigin } = {},
+  { background, preflight = assertAppPortReachable } = {},
 ) {
   await preflight(url);
-  // `undefined` (the default) means "resolve from server-state"; an explicit
-  // value (including `null`) is honored as-is so tests can force either path.
-  const resolvedHarnessOrigin =
-    harnessOrigin !== undefined ? harnessOrigin : resolveHarnessOrigin();
   const navStarted = Date.now();
   const responsePromise = page
     .waitForResponse(
@@ -569,25 +387,9 @@ async function loadScenarioInIframe(
     )
     .catch(() => null);
 
-  if (resolvedHarnessOrigin) {
-    // Navigate the page TOP-LEVEL to the harness document served from the
-    // editor's `localhost` origin, so the ancestor document is a secure context
-    // and the nested scenario iframe inherits it (the Sveltia-class fix). The
-    // inner iframe `src` is still `url`, so the document-response probe above is
-    // unchanged.
-    await page.goto(buildHarnessUrl(resolvedHarnessOrigin, url, background), {
-      waitUntil: "domcontentloaded",
-    });
-  } else {
-    // Degraded fallback: no resolvable harness origin (server-state missing), so
-    // use the legacy in-page harness. The top-level document is then
-    // `about:blank` — NOT a secure context — so a secure-context-gated app may
-    // refuse to mount, but every non-secure-context scenario captures exactly as
-    // before.
-    await page.setContent(buildIframeHarness(url, { background }), {
-      waitUntil: "domcontentloaded",
-    });
-  }
+  await page.setContent(buildIframeHarness(url, { background }), {
+    waitUntil: "domcontentloaded",
+  });
 
   const frameHandle = await page.waitForSelector("#scenario-frame", {
     state: "attached",
@@ -622,59 +424,16 @@ async function loadScenarioTopLevel(
 ) {
   await preflight(url);
   const navStarted = Date.now();
-  try {
-    const response = await page.goto(url, {
-      waitUntil: "load",
-      timeout: 30000,
-    });
-    logCaptureTiming("navigate-toplevel", {
-      elapsedMs: Date.now() - navStarted,
-      status: response ? response.status() : null,
-      url,
-    });
-    return { frame: page.mainFrame(), response };
-  } catch (error) {
-    if (error.message && error.message.toLowerCase().includes("timeout")) {
-      let parsed = null;
-      try {
-        parsed = new URL(url);
-      } catch (_) {}
-      if (parsed) {
-        let appPort = null;
-        try {
-          const path = require("path");
-          const statePath = path.join(process.cwd(), ".codeyam", "server-state.json");
-          if (fs.existsSync(statePath)) {
-            const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
-            appPort = state.appPort;
-          }
-        } catch (_) {}
-
-        if (appPort) {
-          let appHealthy = false;
-          try {
-            await assertAppPortReachable(`http://127.0.0.1:${appPort}/`, { timeoutMs: 500 });
-            appHealthy = true;
-          } catch (_) {}
-
-          if (appHealthy) {
-            throw new Error(
-              `proxy navigation timed out: the proxy at 127.0.0.1:${parsed.port} did not respond within 30000ms. app healthy on :${appPort}, proxy dead on :${parsed.port}.`
-            );
-          } else {
-            throw new Error(
-              `proxy navigation timed out: the proxy at 127.0.0.1:${parsed.port} did not respond within 30000ms. app also unresponsive on :${appPort}.`
-            );
-          }
-        } else {
-          throw new Error(
-            `proxy navigation timed out: the proxy at 127.0.0.1:${parsed.port} did not respond within 30000ms. proxy dead/hung?`
-          );
-        }
-      }
-    }
-    throw error;
-  }
+  const response = await page.goto(url, {
+    waitUntil: "load",
+    timeout: 30000,
+  });
+  logCaptureTiming("navigate-toplevel", {
+    elapsedMs: Date.now() - navStarted,
+    status: response ? response.status() : null,
+    url,
+  });
+  return { frame: page.mainFrame(), response };
 }
 
 // Collect up to 20 distinct visible labels of interactive elements on the
@@ -742,35 +501,25 @@ async function performInteraction(frame, interaction, { timeoutMs = 5000 } = {})
     );
   }
 
-  try {
-    switch (action) {
-      case "click":
-        await locator.click({ timeout: timeoutMs });
-        break;
-      case "fill":
-        await locator.fill(value ?? "", { timeout: timeoutMs });
-        break;
-      case "press":
-        await locator.press(value || "Enter", { timeout: timeoutMs });
-        break;
-      case "hover":
-        // Reveals hover-only affordances (an action bar, a tooltip) — one of the
-        // most common ephemeral states a resting-render screenshot misses.
-        await locator.hover({ timeout: timeoutMs });
-        break;
-      default:
-        throw new Error(
-          `preview-interact: unknown action "${action}" (expected click | fill | press | hover)`,
-        );
-    }
-  } catch (error) {
-    const candidates = await collectInteractiveLabels(frame);
-    const candidateList =
-      candidates.length > 0 ? candidates.join(", ") : "(none found on page)";
-    throw new Error(
-      `preview-interact: action "${action}" failed against ${targetDesc}: ${error.message || String(error)}. ` +
-        `Candidate interactive labels: ${candidateList}`,
-    );
+  switch (action) {
+    case "click":
+      await locator.click({ timeout: timeoutMs });
+      break;
+    case "fill":
+      await locator.fill(value ?? "", { timeout: timeoutMs });
+      break;
+    case "press":
+      await locator.press(value || "Enter", { timeout: timeoutMs });
+      break;
+    case "hover":
+      // Reveals hover-only affordances (an action bar, a tooltip) — one of the
+      // most common ephemeral states a resting-render screenshot misses.
+      await locator.hover({ timeout: timeoutMs });
+      break;
+    default:
+      throw new Error(
+        `preview-interact: unknown action "${action}" (expected click | fill | press | hover)`,
+      );
   }
 }
 
@@ -849,13 +598,7 @@ module.exports = {
   assertAppPortReachable,
   escapeHtmlAttribute,
   buildIframeHarness,
-  HARNESS_PATH,
-  resolveHarnessOrigin,
-  buildHarnessUrl,
   collectContentState,
-  scrollThroughDocument,
-  collectVisibleTextLength,
-  forceFinalVisualState,
   collectImageStates,
   waitForImagesSettled,
   waitForAnimationsSettled,

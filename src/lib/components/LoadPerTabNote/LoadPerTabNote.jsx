@@ -2,6 +2,7 @@ import './LoadPerTabNote.css';
 
 import React, { useEffect, useState } from 'react';
 import { Chrome } from '../../utils/Chrome';
+import { Icon } from '../Icon';
 
 // The honest note shown on the Load page when per-tab CPU/memory data is
 // unavailable. Per-tab/per-process data only exists on Chrome's Dev channel
@@ -34,10 +35,13 @@ const LoadPerTabNote = () => {
 
   return (
     <div className='LoadPerTabNote'>
-      Per-tab CPU &amp; memory needs Chrome&rsquo;s Dev channel
-      (<code>chrome.processes</code>). On this build the gauge shows
-      whole-browser load only; per-tab bars and the process table are
-      unavailable.
+      <Icon name="info" size={16} className="LoadPerTabNote-icon" />
+      <span className="LoadPerTabNote-text">
+        Per-tab CPU &amp; memory needs Chrome&rsquo;s Dev channel
+        (<code>chrome.processes</code>). On this build the gauge shows
+        whole-browser load only; per-tab bars and the process table are
+        unavailable.
+      </span>
     </div>
   );
 };

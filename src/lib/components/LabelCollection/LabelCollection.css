@@ -98,7 +98,7 @@
 
 .LabelCollection-overUrl {
   border-radius: 12px;
-  border: 1px dashed #666;
+  border: 1px dashed var(--text-muted);
   height: 24px;
   width: 100%;
   margin-bottom: 12px;
@@ -108,7 +108,9 @@
   position: absolute;
   z-index: 10;
   width: 180px;
-  background-color: white;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border: 0.5px solid var(--border);
   padding: 12px;
   border-radius: 12px;
   top: 30px;
@@ -142,9 +144,11 @@
   margin-bottom: 0;
 }
 
-.LabelCollection-menu-actions button .anticon {
+.LabelCollection-menu-actions button .anticon,
+.LabelCollection-menu-actions button .Icon {
   margin-right: 3px;
   font-size: 15px;
+  vertical-align: middle;
 }
 
 .LabelCollection-empty {

@@ -1,10 +1,11 @@
 import './App.css';
 
 import React, { useEffect, useState } from 'react';
-import { Tabs, Labels, LoadMeter, Search, AppBrand, ThemeToggle } from '../../components';
+import { Tabs, Labels, LoadMeter, Search, AppBrand, ThemeToggle, Triage, Settings } from '../../components';
 import { Load } from '../Load';
 import { ImportExport } from '../ImportExport';
 import { UrlDetails } from '../UrlDetails';
+import { History } from '../History';
 import { ItemTypes, Pages } from '../../../Constants';
 
 import { DragDropContext } from '@hello-pangea/dnd';
@@ -16,6 +17,8 @@ import { useTheme } from '../../hooks/useTheme';
 const App = () => {
   const [page, setPage] = useState({ name: Pages.HOME });
   const [theme, toggleTheme] = useTheme();
+  const [reviewMode, setReviewMode] = useState(false);
+  const [counts, setCounts] = useState({ tabs: 0, groups: 0 });
 
   useEffect(() => {
     Chrome.get('App1', 'uxSettings', ({ uxSettings }) => {
@@ -23,6 +26,16 @@ const App = () => {
         setPage(uxSettings.page || { name: Pages.HOME });
       }
     });
+
+    const refreshCounts = () => {
+      Chrome.get('AppCounts', ['labels', 'activeTabs'], ({ labels, activeTabs }) => {
+        setCounts({
+          tabs: (activeTabs || []).length,
+          groups: Object.keys(labels || {}).length,
+        });
+      });
+    };
+    refreshCounts();
 
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
@@ -32,6 +45,7 @@ const App = () => {
           setPage(newValue.page || { name: Pages.HOME });
         }
       }
+      if (changes.labels || changes.activeTabs) refreshCounts();
     };
 
     chrome.storage.onChanged.addListener(handleChange);
@@ -75,20 +89,38 @@ const App = () => {
     });
   }
 
+  const isHome = page.name === Pages.HOME;
+
   return (
     <div className="App">
       <div className="App-sidebar">
         <div className="App-sidebar-header">
           <AppBrand onClick={() => changePage(Pages.HOME)} />
-          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          <div className="App-sidebar-tools">
+            {isHome && <Settings />}
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          </div>
         </div>
         <Search />
 
-        <div onClick={() => changePage(Pages.LOAD)}>
+        <div className="App-gauge" onClick={() => changePage(Pages.LOAD)}>
           <LoadMeter />
         </div>
 
+        {isHome && (
+          <Triage
+            reviewMode={reviewMode}
+            onToggleReview={() => setReviewMode((r) => !r)}
+          />
+        )}
+
         <div className='App-sidebar-footer'>
+          {isHome && (
+            <div className="App-sidebar-counts">
+              {counts.tabs} {counts.tabs === 1 ? 'tab' : 'tabs'} · {counts.groups}{' '}
+              {counts.groups === 1 ? 'group' : 'groups'}
+            </div>
+          )}
           <div
             className='App-sidebar-link'
             onClick={() => changePage(Pages.IMPORTEXPORT)}
@@ -107,11 +139,14 @@ const App = () => {
         {page.name === Pages.LOAD &&
           <Load />
         }
-        {page.name === Pages.HOME &&
+        {page.name === Pages.HISTORY &&
+          <History />
+        }
+        {isHome &&
           <DragDropContext onDragEnd={handleDrag} onDragStart={handleDragStart}>
             <div className="App-home">
               <Labels />
-              <Tabs />
+              <Tabs reviewMode={reviewMode} />
             </div>
           </DragDropContext>
         }

@@ -1,0 +1,11 @@
+{
+  "name": "HistoryRow - No Timestamp",
+  "id": "41bbf1c7-3662-46ae-9b5d-97db0fdc4511",
+  "url": "/?isolate=HistoryRow&variant=no-time",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistoryRow",
+  "scenarioType": "component"
+}

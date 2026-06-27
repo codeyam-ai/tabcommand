@@ -1,0 +1,16 @@
+{
+  "name": "Settings - Default",
+  "id": "a0e14f73-db55-4d6f-868b-9a5cb04416fa",
+  "url": "/?isolate=Settings",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}"
+    }
+  },
+  "componentName": "Settings",
+  "scenarioType": "component"
+}

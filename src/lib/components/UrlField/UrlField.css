@@ -1,0 +1,54 @@
+/* One labeled field in the UrlDetails edit form, in the CodeYam look. The
+   label sits above its control; controls use the search-surface tokens, a
+   --r-row radius, and a lime focus ring. `--mono` swaps to the monospace face
+   for url/favicon/notes. */
+.UrlField {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.UrlField-label {
+  display: block;
+  margin-bottom: 7px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--c-t3);
+}
+
+.UrlField-control {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--c-t1);
+  background: var(--c-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-row);
+  outline: none;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.UrlField-control::placeholder {
+  color: var(--c-t4);
+}
+
+.UrlField-control:focus {
+  border-color: var(--c-lime);
+  box-shadow: 0 0 0 2px rgba(199, 240, 74, 0.18);
+}
+
+.UrlField-control--mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.UrlField-textarea {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.5;
+}

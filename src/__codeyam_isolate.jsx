@@ -379,6 +379,72 @@ const ISOLATION_PROPS = {
       reading: { title: 'Reading', onRemove: noop },
     },
   },
+  // The local Lucide-style icon set. Default shows the search glyph; variants
+  // exercise a few representative glyphs (the icon is chosen by the `name` prop).
+  Icon: {
+    default: {
+      name: 'search',
+      size: 28,
+    },
+    variants: {
+      pin: { name: 'pin', size: 28 },
+      history: { name: 'history', size: 28 },
+      settings: { name: 'settings', size: 28 },
+    },
+  },
+  // One History list row. Default is a grouped tab with a close timestamp;
+  // variants show the no-favicon monogram fallback and a row with no timestamp.
+  HistoryRow: {
+    default: {
+      row: {
+        urlKey: 'url-https://news.ycombinator.com',
+        title: 'Hacker News',
+        favicon: 'https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=64',
+        color: '#1e9e57',
+        ts: 1782486000000,
+      },
+      onReopen: noop,
+    },
+    variants: {
+      monogram: {
+        row: {
+          urlKey: 'url-https://www.figma.com',
+          title: 'TabCommand UI – Figma',
+          favicon: '',
+          color: '#2f7de1',
+          ts: 1782400000000,
+        },
+        onReopen: noop,
+      },
+      'no-time': {
+        row: {
+          urlKey: 'url-https://overreacted.io',
+          title: 'overreacted — A blog by Dan Abramov',
+          favicon: '',
+          color: '#7c3aed',
+          ts: null,
+        },
+        onReopen: noop,
+      },
+    },
+  },
+  // The sidebar load-triage card. The load STATE (comfortable / running-hot)
+  // comes from each scenario's seeded `processTotals` + `settings`; these props
+  // drive only the shared review-mode toggle.
+  Triage: {
+    default: {
+      reviewMode: false,
+      onToggleReview: noop,
+    },
+    variants: {
+      review: { reviewMode: true, onToggleReview: noop },
+    },
+  },
+  // The sidebar settings popover. Propless — it reads/writes the `settings`
+  // storage key; each scenario seeds that key to show a slider position.
+  Settings: {
+    default: {},
+  },
 };
 
 // Resolve the prop set for an isolated component. `variant` picks an alternate

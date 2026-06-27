@@ -2,19 +2,22 @@ import './Load.css';
 
 import React, { useEffect, useState } from 'react';
 
-import { HomeFilled } from '@ant-design/icons'
-
 import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
 import { LoadProcesses, LoadUrl, LoadPerTabNote } from '../../components';
+import { Icon } from '../../components/Icon';
 
 // The Load page: a grid of the active tabs' URLs (seedable, driven by
 // `activeTabs` + the per-URL `url-<url>` objects) alongside a raw per-process
-// table (LoadProcesses). When per-tab data is unavailable (stable Chrome),
-// LoadPerTabNote explains the empty per-tab area. The sidebar LoadMeter gauge
-// links here; the Home link returns to the Home page.
+// table (LoadProcesses). A segmented toggle switches between the full
+// "Processes" view (per-tab bars + the per-process rail) and a "Chrome
+// fallback" view that explains per-tab stats need Chrome's Dev channel and
+// drops the bars. When per-tab data is unavailable (stable Chrome),
+// LoadPerTabNote independently explains the empty per-tab area. The sidebar
+// LoadMeter gauge links here; the Home link returns to the Home page.
 const Load = () => {
   const [urls, setUrls] = useState([]);
+  const [view, setView] = useState('processes');
 
   const goHome = (e) => {
     e.stopPropagation();
@@ -42,21 +45,61 @@ const Load = () => {
     });
   }, []);
 
+  const fallback = view === 'fallback';
+
   return (
     <div className="Load">
       <div className="Load-main">
-        <div className="Load-homeLink" onClick={goHome}>
-          <HomeFilled /> Home
+        <button className="Load-homeLink" onClick={goHome}>
+          <Icon name="arrowLeft" size={15} /> Home
+        </button>
+        <h1 className="Load-title">Load</h1>
+
+        <div className="Load-toggle" role="tablist" aria-label="Load data source">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!fallback}
+            className={`Load-toggle-btn ${!fallback ? 'is-active' : ''}`}
+            onClick={() => setView('processes')}
+          >
+            Processes
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={fallback}
+            className={`Load-toggle-btn ${fallback ? 'is-active' : ''}`}
+            onClick={() => setView('fallback')}
+          >
+            Chrome fallback
+          </button>
         </div>
-        <h2 className='Load-title'>Load</h2>
+
+        {fallback && (
+          <div className="Load-fallbackBanner">
+            <Icon name="info" size={16} className="Load-fallbackBanner-icon" />
+            <span>
+              Per-tab CPU &amp; memory stats need Chrome&rsquo;s Dev channel
+              (<code>chrome.processes</code>). On this build the gauge shows
+              whole-browser load only.
+            </span>
+          </div>
+        )}
+
         <LoadPerTabNote />
-        <div className='Load-details'>
+
+        <div className="Load-details">
           {urls.map((url) => (
-            <LoadUrl key={`Load-url-${url.urlKey}`} url={url} />
+            <LoadUrl
+              key={`Load-url-${url.urlKey}`}
+              url={url}
+              showLoad={!fallback}
+            />
           ))}
         </div>
       </div>
-      <LoadProcesses />
+      {!fallback && <LoadProcesses />}
     </div>
   );
 }
