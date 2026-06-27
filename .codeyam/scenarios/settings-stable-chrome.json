@@ -1,6 +1,6 @@
 {
-  "name": "Settings - Auto Close Control",
-  "id": "29b0b352-f95f-40f9-b368-4d6b5ac99eb7",
+  "name": "Settings - Stable Chrome",
+  "id": "d59c3f7a-1b84-4e02-a6d7-3c8f12905e64",
   "url": "/?isolate=Settings",
   "dimensions": [
     "Desktop"
@@ -9,7 +9,7 @@
   "browserState": {
     "localStorage": {
       "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}",
-      "loadDataSource": "\"processes\""
+      "loadDataSource": "\"system\""
     }
   },
   "componentName": "Settings",

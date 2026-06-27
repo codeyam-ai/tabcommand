@@ -1,6 +1,6 @@
 {
-  "name": "Triage - Comfortable",
-  "id": "7f33c16c-8686-4544-86e9-7d1e10810279",
+  "name": "Triage - Stable Chrome Hidden",
+  "id": "b7e3a1d4-2c9f-4e60-9a3b-1f6c8d502e71",
   "url": "/?isolate=Triage",
   "dimensions": [
     "Desktop"
@@ -8,9 +8,9 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
+      "processTotals": "{\"cpu\": 130, \"privateMemory\": 4200000000, \"jsMemoryUsed\": 1100000000}",
       "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}",
-      "processTotals": "{\"cpu\": 18, \"privateMemory\": 700000000, \"jsMemoryUsed\": 200000000}",
-      "loadDataSource": "\"processes\""
+      "loadDataSource": "\"system\""
     }
   },
   "componentName": "Triage",

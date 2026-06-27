@@ -12,7 +12,8 @@
       "processTotals": "{\"cpu\": 130, \"privateMemory\": 4200000000, \"jsMemoryUsed\": 1100000000}",
       "activeTabs": "[{\"urlKey\": \"url-https://news.ycombinator.com\", \"tabKey\": \"t1\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://twitter.com/home\", \"tabKey\": \"t2\", \"pinned\": false, \"tabCommandPinned\": false}]",
       "url-https://twitter.com/home": "{\"title\": \"Home / X\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"cpu\": 520000, \"privateMemory\": 7200000000, \"jsMemoryUsed\": 1}}",
-      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}"
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}",
+      "loadDataSource": "\"processes\""
     }
   },
   "componentName": "Triage",

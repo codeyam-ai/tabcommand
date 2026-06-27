@@ -23,6 +23,7 @@
       "url-https://twitter.com/home": "{\"title\": \"Home / X\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"cpu\": 540000, \"privateMemory\": 7400000000, \"jsMemoryUsed\": 1}}",
       "autoClosed": "{}",
       "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}",
+      "loadDataSource": "\"processes\"",
       "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"cpu\": 610000, \"privateMemory\": 8200000000, \"jsMemoryUsed\": 1}}",
       "url-https://www.amazon.com/wishlist": "{\"title\":\"Your Wish List – Amazon\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
     }

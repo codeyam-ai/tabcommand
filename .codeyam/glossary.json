@@ -189,7 +189,7 @@
     "testFile": "src/lib/components/SearchResults/SearchResults.test.jsx"
   },
   {
-    "description": "Sidebar gear popover with two range sliders (warnAt, heavyThreshold) persisted to the settings storage key. Anchored via fixed positioning so the sidebar's overflow cannot clip it; the load math it tunes lives in loadLevel.",
+    "description": "Sidebar gear popover with range sliders persisted to the settings storage key. 'Warn at' and 'Heavy tab >=' tune per-tab load and render ONLY when per-tab data exists (loadDataSource === 'processes'); on stable Chrome (system/none/unknown) they hide and only the universal 'Auto-close after' slider shows. Anchored via fixed positioning so the sidebar's overflow cannot clip it; the load math it tunes lives in loadLevel.",
     "filePath": "src/lib/components/Settings/Settings.jsx",
     "name": "Settings",
     "scenarios": [
@@ -218,7 +218,7 @@
     ]
   },
   {
-    "description": "Sidebar load-triage card (Home only) whose color tracks overall load vs settings.warnAt: red 'Running hot' with a 'Review N heavy tabs' CTA, amber 'Getting busy', or green 'Comfortable'. Counts heavy tabs (per-tab load >= heavyThreshold) and toggles the shared review mode. Pure load->level math is in loadLevel.",
+    "description": "Sidebar load-triage card (Home only) whose color tracks overall load vs settings.warnAt: red 'Running hot' with a 'Review N heavy tabs' CTA, amber 'Getting busy', or green 'Comfortable'. Counts heavy tabs (per-tab load >= heavyThreshold) and toggles the shared review mode. Renders ONLY when per-tab data exists (loadDataSource === 'processes'); hidden on stable Chrome (system/none/unknown), and the red high state is suppressed when no culprit tab crosses the threshold (heavyCount === 0). Pure load->level math is in loadLevel.",
     "filePath": "src/lib/components/Triage/Triage.jsx",
     "name": "Triage",
     "scenarios": [

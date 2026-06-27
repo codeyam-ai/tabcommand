@@ -8,7 +8,8 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}"
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}",
+      "loadDataSource": "\"processes\""
     }
   },
   "componentName": "Settings",

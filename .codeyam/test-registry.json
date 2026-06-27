@@ -766,6 +766,33 @@
       "runner": "tests"
     },
     {
+      "description": "Unknown source (marker not yet written): treat as \"no per-tab data\" — hide the two load sliders.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › hides the two load sliders before the marker is known",
+      "line": 55,
+      "registeredAt": "2026-06-27T21:53:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Stable Chrome (system source): the per-tab sliders hide; only Auto-close remains.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › hides the two load sliders on stable Chrome system source",
+      "line": 43,
+      "registeredAt": "2026-06-27T21:53:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Dev-channel source: all three sliders render, including the two per-tab controls.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › shows all three sliders on the processes source",
+      "line": 31,
+      "registeredAt": "2026-06-27T21:53:39Z",
+      "runner": "tests"
+    },
+    {
       "description": "Browser-pinned tabs are filtered out of the Active Tabs list.",
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
@@ -815,7 +842,7 @@
       "file": "src/lib/components/Triage/Triage.test.jsx",
       "format": "vitest",
       "key": "Triage › reads as Comfortable when load is well below warnAt",
-      "line": 24,
+      "line": 37,
       "registeredAt": "2026-06-27T16:54:02.653118+00:00",
       "runner": "tests"
     },
@@ -824,7 +851,7 @@
       "file": "src/lib/components/Triage/Triage.test.jsx",
       "format": "vitest",
       "key": "Triage › reads as Getting busy in the medium band",
-      "line": 32,
+      "line": 46,
       "registeredAt": "2026-06-27T16:54:02.653118+00:00",
       "runner": "tests"
     },
@@ -832,9 +859,36 @@
       "description": "cpu 120 / 150 = 80% — at/above warnAt 70 → \"Running hot\"",
       "file": "src/lib/components/Triage/Triage.test.jsx",
       "format": "vitest",
-      "key": "Triage › reads as Running hot at or above warnAt",
-      "line": 40,
+      "key": "Triage › reads as Running hot with a CTA when a heavy tab is the culprit",
+      "line": 55,
       "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "No marker set (legacy state) → renders nothing, no throw",
+      "file": "src/lib/components/Triage/Triage.test.jsx",
+      "format": "vitest",
+      "key": "Triage › renders nothing before the loadDataSource marker is known",
+      "line": 94,
+      "registeredAt": "2026-06-27T21:53:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "High load on stable Chrome ('system' source) → card hidden entirely",
+      "file": "src/lib/components/Triage/Triage.test.jsx",
+      "format": "vitest",
+      "key": "Triage › renders nothing when the source is not processes",
+      "line": 68,
+      "registeredAt": "2026-06-27T21:53:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "High load on the processes source but no tab over heavyThreshold (heavyCount === 0) → suppress the \"Running hot\" alarm; nothing to point at",
+      "file": "src/lib/components/Triage/Triage.test.jsx",
+      "format": "vitest",
+      "key": "Triage › suppresses Running hot when there is no culprit tab",
+      "line": 80,
+      "registeredAt": "2026-06-27T21:53:39Z",
       "runner": "tests"
     },
     {

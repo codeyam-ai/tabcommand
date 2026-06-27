@@ -1,0 +1,155 @@
+{
+  "timestamp": "2026-06-27T22:12:13Z",
+  "title": "Hide Load Triage & Settings Without Per-Tab Data",
+  "type": "feature",
+  "userRequest": "## Summary\n\nOn stable Chrome the `chrome.processes` API does not exist, so the service\nworker can only record whole-browser load (`loadDataSource: 'system'`) and never\nwrites per-URL `processes` records. Today the sidebar **Triage** card ignores\nthis: it still renders \"Running hot — **0** heavy tabs are driving load up. Close\na few to bring it back down.\", which is both nonsensical (it names zero culprits)\nand dishonest (we cannot identify heavy tabs at all). The **Settings** panel has\nthe same blind spot — it shows per-tab-oriented \"Warn at\" and \"Heavy tab ≥\"\nsliders that do nothing useful when per-tab data is unavailable. This change makes\nthe Triage card and the load-related Settings sliders appear **only when we\nactually have per-tab data** (`loadDataSource === 'processes'`), and on the Dev\nchannel suppresses the \"Running hot\" culprit message whenever no single tab\ncrosses the heavy threshold (`heavyCount === 0`). It follows the app's existing\n\"honest degradation\" pattern already used by `LoadMeterCaption` and\n`LoadPerTabNote`, which both branch on the same `loadDataSource` marker.\n\n## Key Decisions\n\n- **Gate on `loadDataSource === 'processes'`, not on a new flag** — this is the\n  canonical marker the service worker already writes (`processes` / `system` /\n  `none`), and the two sibling components (`LoadMeterCaption`, `LoadPerTabNote`)\n  already read it the same way. Reuse it rather than inventing a parallel signal.\n- **Triage hides entirely on `system` / `none` / unknown** — per the user:\n  whole-browser load alone isn't actionable without tab-specific detail, so the\n  whole card (including the green \"Comfortable\" / amber \"Getting busy\" states) is\n  suppressed when source is anything other than `processes`. Treat an unknown\n  (`null`) source as \"hide\" so the card never flashes in before we know the\n  channel, mirroring how `LoadPerTabNote`/`LoadMeterCaption` treat the marker.\n- **On Dev channel, hide the \"Running hot\" message when `heavyCount === 0`** —\n  per the user: if we can't point at a culprit tab, don't show the alarm. The red\n  high-load state renders only when `source === 'processes' && heavyCount > 0`.\n  The amber/green status states continue to render on the `processes` source\n  (they don't claim a culprit), so the card still gives a calm read when load is\n  fine.\n- **Settings hides BOTH the \"Warn at\" and \"Heavy tab ≥\" sliders off the\n  `processes` source** — per the user's selection. \"Auto-close after\" is\n  independent of per-tab data and always remains. So on stable Chrome the gear\n  opens to just the Auto-close control.\n- **Update existing scenarios to pin `loadDataSource: 'processes'`** — the\n  current `Triage` and `Settings` scenarios don't set the marker, so after this\n  change they would render empty. Adding the marker keeps them demonstrating the\n  full-fidelity state, and new scenarios cover the newly-hidden states.\n- **No service-worker change needed** — `initLoadSource()` already writes the\n  correct `loadDataSource` for every channel; this is purely a consumer-side\n  gating change in the UI.\n\n## Implementation\n\n### 1. Gate the Triage card on data source and a non-zero culprit count\n\n**File**: `src/lib/components/Triage/Triage.jsx`\n\n- Add `'loadDataSource'` to the keys read in the `Chrome.get('Triage1', ...)`\n  call and store it in component state alongside `load`, `heavyCount`, `warnAt`\n  (e.g. add `source` to the `useState` object and set it in `recompute`).\n- Extend the `chrome.storage.onChanged` watch so a change to\n  `changes.loadDataSource` triggers `read()` (it currently only re-reads on\n  `processTotals` / `settings` / `activeTabs`).\n- After computing `level`, gate rendering:\n  - If `source !== 'processes'` → `return null` (hides the whole card on stable\n    Chrome / `none` / before the marker is known).\n  - If `level === 'high'` (Running hot) **and** `heavyCount === 0` → `return null`\n    (we can't name a culprit, so suppress the alarm message).\n  - Otherwise render as today. The existing CTA guard\n    (`level === 'high' && heavyCount > 0`) stays; with the new high-state guard it\n    is now redundant but harmless — keep it for clarity, or simplify to\n    `level === 'high'` since that branch now implies `heavyCount > 0`.\n- Update the component's top-of-file doc comment to note it renders only on the\n  `processes` source and only in the high state when there is an identifiable\n  heavy tab, citing the same rationale as `LoadPerTabNote`.\n\n### 2. Hide the load-related Settings sliders without per-tab data\n\n**File**: `src/lib/components/Settings/Settings.jsx`\n\n- Read `'loadDataSource'` (extend the existing `Chrome.get('Settings1', ...)` —\n  it currently only reads `'settings'`; either widen that call or add a second\n  read) and track it in state, with a `chrome.storage.onChanged` listener so the\n  panel reacts if the marker changes mid-session (match the listener pattern in\n  `LoadMeterCaption`/`LoadPerTabNote`).\n- Render the **\"Warn at\"** and **\"Heavy tab ≥\"** `Settings-row` blocks only when\n  `source === 'processes'`. Always render the **\"Auto-close after\"** row.\n- Treat unknown (`null`) source as \"hide the two load rows\" so they don't flash\n  in then disappear.\n- Update the component's doc comment to record that the two load sliders are\n  Dev-channel-only while Auto-close is universal.\n\n### 3. Keep existing Triage/Settings scenarios rendering\n\n**Files**:\n- `.codeyam/scenarios/triage-running-hot.json`\n- `.codeyam/scenarios/triage-comfortable.json`\n- `.codeyam/scenarios/settings-default.json`\n- `.codeyam/scenarios/settings-auto-close-control.json`\n\nAdd `\"loadDataSource\": \"processes\"` to each scenario's\n`browserState.localStorage` so they continue to demonstrate the full-fidelity\nstate (the Triage card visible, all three Settings sliders visible). Without this\nthe components would render empty under the new gating.\n\n### 4. New scenarios for the hidden / degraded states\n\n**New files** under `.codeyam/scenarios/`:\n\n- `triage-stable-chrome-hidden.json` — `Triage` isolate with\n  `loadDataSource: 'system'`, high `processTotals`, and no per-URL `processes`\n  records. Demonstrates the card rendering nothing on stable Chrome.\n- `triage-high-no-culprit.json` — `Triage` isolate with\n  `loadDataSource: 'processes'`, a high `processTotals` (load ≥ warnAt), active\n  tabs whose per-URL `processes` all stay **below** `heavyThreshold` (so\n  `heavyCount === 0`). Demonstrates the suppressed \"Running hot\" message when no\n  tab is the culprit.\n- `settings-stable-chrome.json` — `Settings` isolate with\n  `loadDataSource: 'system'`. Demonstrates only the \"Auto-close after\" slider\n  showing, with \"Warn at\" and \"Heavy tab ≥\" hidden.\n\nModel the JSON shape on `triage-running-hot.json` / `settings-default.json`\n(same `componentName`, `scenarioType: \"component\"`, `dimensions: [\"Desktop\"]`,\nfresh `id`).\n\n### 5. Tests\n\n**Files**:\n- `src/lib/components/Triage/Triage.test.jsx`\n- `src/lib/components/Settings/Settings.test.jsx` (new if absent)\n\nExtend `Triage.test.jsx`: existing cases seed `processTotals` but no\n`loadDataSource`, so they must seed `loadDataSource: 'processes'` to keep\nasserting the visible states. Add cases:\n- `source: 'system'` with high load → card renders nothing (assert the title\n  text is absent).\n- `source: 'processes'`, high load, `heavyCount === 0` (active tabs with\n  sub-threshold per-URL `processes`) → \"Running hot\" is absent.\n- `source: 'processes'`, high load, one heavy tab → \"Running hot\" + \"Review …\n  heavy tab\" CTA present (the happy path).\n\nAdd Settings coverage: with `loadDataSource: 'processes'` all three sliders\nrender; with `'system'` only \"Auto-close after\" renders (\"Warn at\" / \"Heavy tab\n≥\" absent).\n\n## Reused existing code\n\n- `loadDataSource` storage marker written by `initLoadSource` /\n  `pollSystemLoad` / `processProcesses` in `service_worker.js` — the canonical\n  channel signal this plan gates on. No change to the worker.\n- `LoadPerTabNote` from `src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx`\n  (glossary entry: `LoadPerTabNote`) — the established pattern for branching UI\n  on `loadDataSource`; mirror its read + `onChanged` listener.\n- `LoadMeterCaption` from `src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx`\n  — second precedent for the same source-aware read.\n- `summarizeProcessLoad` from `src/lib/utils/processLoad.js` (glossary entry:\n  `summarizeProcessLoad`) — already used by Triage to derive `heavyCount`; the\n  `width >= heavyThreshold` test is unchanged.\n- `loadLevel` from `src/lib/utils/loadLevel.js` (glossary entry: `loadLevel`) —\n  the low/medium/high banding that selects the card state, unchanged.\n- `Chrome` helper from `src/lib/utils/Chrome` and `installChromeShim` from\n  `src/lib/utils/chromeShim` — used by the components and their tests.\n- `Triage` and `Settings` glossary entries — the components being modified.\n\n## Scenarios to Demonstrate\n\n- **Dev channel, identifiable culprit (happy path):** `loadDataSource:\n  'processes'`, load ≥ warnAt, one or more tabs over `heavyThreshold` → \"Running\n  hot — N heavy tabs … Close a few\" with the \"Review N heavy tabs\" CTA.\n- **Dev channel, calm:** `processes` source, low load → green \"Comfortable\" card\n  still shows.\n- **Dev channel, high load but no culprit:** `processes` source, load ≥ warnAt,\n  `heavyCount === 0` → Triage renders nothing (no false \"0 heavy tabs\" alarm).\n- **Stable Chrome:** `loadDataSource: 'system'`, high whole-browser load → Triage\n  card hidden entirely.\n- **Settings on Dev channel:** all three sliders (\"Warn at\", \"Heavy tab ≥\",\n  \"Auto-close after\") visible.\n- **Settings on stable Chrome:** only \"Auto-close after\" visible; the two load\n  sliders hidden.",
+  "description": "The sidebar Triage card and the per-tab Settings sliders now appear only when real per-tab data exists (loadDataSource === 'processes', Chrome's Dev channel). On stable Chrome (system/none/unknown) the Triage card hides entirely and the 'Warn at' / 'Heavy tab >=' sliders collapse to just 'Auto-close after'; even on the Dev channel the red 'Running hot' alarm is suppressed when no tab crosses the heavy threshold (heavyCount === 0), eliminating the dishonest '0 heavy tabs' message. Follows the existing honest-degradation pattern used by LoadPerTabNote and LoadMeterCaption; consumer-side only, no service-worker change.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/hide-load-triage-and-settings-without-per-tab-data.md\t.codeyam/plans/completed/hide-load-triage-and-settings-without-per-tab-data.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-running-hot.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-auto-close-control.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-default.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/triage-comfortable.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/triage-running-hot.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Triage/Triage.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Triage/Triage.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-stable-chrome-hidden--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-stable-chrome-hidden--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-stable-chrome.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/triage-stable-chrome-hidden.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.test.jsx",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    },
+    {
+      "name": "Triage - Comfortable",
+      "screenshotPath": "triage-comfortable--desktop.png"
+    },
+    {
+      "name": "Triage - Running Hot",
+      "screenshotPath": "triage-running-hot--desktop.png"
+    },
+    {
+      "name": "Triage - Stable Chrome Hidden",
+      "screenshotPath": "triage-stable-chrome-hidden--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 46,
+    "passed": 46,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 46,
+        "passed": 46
+      }
+    ]
+  }
+}

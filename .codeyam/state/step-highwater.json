@@ -1,6 +1,6 @@
 {
-  "feature": "clickable-history-rows",
-  "maxStep": 25,
-  "version": 84,
-  "updatedAt": "2026-06-27T21:16:51.749133239+00:00"
+  "feature": "hide-load-triage-and-settings-without-per-tab-data",
+  "maxStep": 23,
+  "version": 287,
+  "updatedAt": "2026-06-27T22:14:52.698710546+00:00"
 }

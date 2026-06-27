@@ -20,11 +20,22 @@ const pct = (value, base, max) => Math.max(0, Math.min(1, (value - base) / max))
 // (no button) below. "N heavy tabs" counts tabs whose per-tab load ≥
 // heavyThreshold. The CTA toggles review mode, which is owned by App and shared
 // with the Heaviest-Tabs rail section.
+//
+// The card renders ONLY when we actually have per-tab data
+// (`loadDataSource === 'processes'`, Chrome's Dev channel). On stable Chrome the
+// source is 'system'/'none' and we can't identify heavy tabs at all, so a triage
+// that names culprits would be dishonest — the card hides entirely (same
+// loadDataSource gate that LoadPerTabNote / LoadMeterCaption already follow).
+// Even on the 'processes' source the red "Running hot" state is suppressed when
+// `heavyCount === 0`: with no identifiable culprit there is nothing to point at,
+// so we don't raise the alarm. The amber/green status states still render — they
+// give a calm read without claiming a culprit.
 const Triage = ({ reviewMode, onToggleReview }) => {
-  const [{ load, heavyCount, warnAt }, setState] = useState({
+  const [{ load, heavyCount, warnAt, source }, setState] = useState({
     load: 0,
     heavyCount: 0,
     warnAt: WarnAtDefault,
+    source: null,
   });
 
   useEffect(() => {
@@ -47,11 +58,11 @@ const Triage = ({ reviewMode, onToggleReview }) => {
         if (summary && summary.width >= heavyThreshold) heavyCount++;
       }
 
-      setState({ load, heavyCount, warnAt });
+      setState({ load, heavyCount, warnAt, source: results.loadDataSource || null });
     };
 
     const read = () => {
-      Chrome.get('Triage1', ['processTotals', 'settings', 'activeTabs'], (base) => {
+      Chrome.get('Triage1', ['processTotals', 'settings', 'activeTabs', 'loadDataSource'], (base) => {
         const activeTabs = base.activeTabs || [];
         const urlKeys = activeTabs.map((t) => t.urlKey);
         if (!urlKeys.length) return recompute(base);
@@ -62,13 +73,19 @@ const Triage = ({ reviewMode, onToggleReview }) => {
     read();
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
-      if (changes.processTotals || changes.settings || changes.activeTabs) read();
+      if (changes.processTotals || changes.settings || changes.activeTabs || changes.loadDataSource) read();
     };
     chrome.storage.onChanged.addListener(handleChange);
     return () => chrome.storage.onChanged.removeListener(handleChange);
   }, []);
 
   const level = loadLevel(load, warnAt);
+
+  // Hide the whole card without per-tab data (stable Chrome / unknown source),
+  // and suppress the red high state when no tab is the culprit.
+  if (source !== 'processes') return null;
+  if (level === 'high' && heavyCount === 0) return null;
+
   const title =
     level === 'high' ? 'Running hot' : level === 'medium' ? 'Getting busy' : 'Comfortable';
   const body =
@@ -85,7 +102,7 @@ const Triage = ({ reviewMode, onToggleReview }) => {
         <span className="Triage-title">{title}</span>
       </div>
       <p className="Triage-body">{body}</p>
-      {level === 'high' && heavyCount > 0 && (
+      {level === 'high' && (
         <button className="Triage-cta" onClick={onToggleReview}>
           {reviewMode ? 'Done reviewing' : `Review ${heavyCount} heavy ${heavyCount === 1 ? 'tab' : 'tabs'}`}
         </button>
