@@ -53,6 +53,12 @@
     ]
   },
   {
+    "description": "History page component: lists every closed/visited tab grouped by Today / Yesterday / Earlier this week, each row colored by its group label and offering a Reopen action.",
+    "filePath": "src/lib/pages/History/History.jsx",
+    "name": "History",
+    "testFile": "src/lib/pages/History/History.test.jsx"
+  },
+  {
     "description": "One closed/visited tab row in the History list: a group-color dot, the tab favicon (monogram fallback via Favicon), the title with a full title+URL tooltip, a mono timestamp when known, and a Reopen action that calls back with the urlKey.",
     "filePath": "src/lib/components/HistoryRow/HistoryRow.jsx",
     "name": "HistoryRow",
@@ -191,6 +197,12 @@
     ]
   },
   {
+    "description": "Read-only textarea paired with a copy-to-clipboard button that shows a transient 'Copied' confirmation, used to display an import/export snapshot value.",
+    "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+    "name": "SnapshotField",
+    "testFile": "src/lib/pages/ImportExport/ImportExport.test.jsx"
+  },
+  {
     "description": "Home tab list: renders Active Tabs, Automatically Closed, and collapsible History sections from chrome.storage; splits tabs into label groups vs an ungrouped remainder; filters browser-pinned tabs and expired auto-closed entries. Each row is a draggable Url.",
     "filePath": "src/lib/components/Tabs/Tabs.jsx",
     "name": "Tabs",
@@ -257,6 +269,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Navigates from the History page back to the Home page by updating uxSettings.page via Chrome storage.",
+    "filePath": "src/lib/pages/History/History.jsx",
+    "name": "back",
+    "testFile": "src/lib/pages/History/History.test.jsx"
+  },
+  {
     "description": "Buckets a closed/visited tab timestamp (ms epoch) into the History page day groups — Today, Yesterday, or Earlier this week — relative to a passed-in now. A missing timestamp falls into Earlier this week so the tab still appears. Exports HISTORY_BUCKETS for render order.",
     "filePath": "src/lib/utils/historyBuckets.js",
     "name": "bucketByDay",
@@ -285,6 +303,12 @@
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "buildUrlInfo",
     "testFile": "src/lib/utils/urlDetails.test.js"
+  },
+  {
+    "description": "Clamps a number to the [0, 1] range, used to normalize CPU/memory ratios before rendering the load gauge.",
+    "filePath": "src/lib/components/LoadMeter/LoadMeter.jsx",
+    "name": "clamp01",
+    "testFile": "src/lib/components/LoadMeter/LoadMeter.test.jsx"
   },
   {
     "description": "Moves a closed tab's url key to the front of `allUrls`, persists the reordered list, and invokes an optional callback.",
@@ -504,6 +528,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Maps a load-bar width percentage to a CSS color variable (high >= 70, medium >= 40, otherwise light).",
+    "filePath": "src/lib/components/Tabs/Tabs.jsx",
+    "name": "loadColor",
+    "testFile": "src/lib/components/Tabs/Tabs.test.jsx"
+  },
+  {
     "description": "Maps an overall browser-load percentage onto the three triage/gauge severity bands (low/medium/high) given the user warnAt threshold; the medium band begins at warnAt*0.6. Shared by the LoadMeter gauge and the Triage panel so both color the same load identically. Distinct from summarizeProcessLoad which yields a per-tab level.",
     "filePath": "src/lib/utils/loadLevel.js",
     "name": "loadLevel",
@@ -536,6 +566,12 @@
       "util"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Scales a value within a [base, max] window to a clamped 0-100 percentage for the triage load bands.",
+    "filePath": "src/lib/components/Triage/Triage.jsx",
+    "name": "pct",
+    "testFile": "src/lib/components/Triage/Triage.test.jsx"
   },
   {
     "description": "One stable-Chrome sampling pass: reads chrome.system.cpu + chrome.system.memory, feeds the previous + current sample through deriveSystemTotals, and persists { processTotals, loadDataSource: 'system' }. On any thrown system call it degrades to loadDataSource 'none' and stops polling rather than crashing the worker.",

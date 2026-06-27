@@ -100,7 +100,34 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "a tab closed just now renders under the \"Today\" group with its title",
+      "file": "src/lib/pages/History/History.test.jsx",
+      "format": "vitest",
+      "key": "History › groups a recently closed tab under Today",
+      "line": 32,
+      "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the back button returns to the Home page via uxSettings",
+      "file": "src/lib/pages/History/History.test.jsx",
+      "format": "vitest",
+      "key": "History › navigates back to Home when the back button is clicked",
+      "line": 44,
+      "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "with nothing stored, the page shows its empty-state line",
+      "file": "src/lib/pages/History/History.test.jsx",
+      "format": "vitest",
+      "key": "History › shows the empty state when there is no history",
+      "line": 25,
+      "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "clicking Reopen calls back with the row's urlKey",
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
       "key": "HistoryRow › calls onReopen with the urlKey when Reopen is clicked",
@@ -109,7 +136,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "no favicon falls back to a colored monogram tile (no broken image)",
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
       "key": "HistoryRow › falls back to a monogram tile when the site has no favicon",
@@ -118,7 +145,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "a row without a timestamp simply omits the time, still rendering",
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
       "key": "HistoryRow › omits the timestamp when none is present",
@@ -127,7 +154,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "the row shows the tab title and a Reopen affordance",
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
       "key": "HistoryRow › renders the title and a Reopen button",
@@ -388,7 +415,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "with no stored processTotals the gauge reads as Idle (rings on track)",
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
       "key": "LoadMeter › reads as Idle on first run",
@@ -748,6 +775,33 @@
       "runner": "tests"
     },
     {
+      "description": "cpu 10 / 150 ≈ 6.7% — below the 42% medium floor → \"Comfortable\"",
+      "file": "src/lib/components/Triage/Triage.test.jsx",
+      "format": "vitest",
+      "key": "Triage › reads as Comfortable when load is well below warnAt",
+      "line": 24,
+      "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "cpu 75 / 150 = 50% — inside [42, 70) → \"Getting busy\"",
+      "file": "src/lib/components/Triage/Triage.test.jsx",
+      "format": "vitest",
+      "key": "Triage › reads as Getting busy in the medium band",
+      "line": 32,
+      "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "cpu 120 / 150 = 80% — at/above warnAt 70 → \"Running hot\"",
+      "file": "src/lib/components/Triage/Triage.test.jsx",
+      "format": "vitest",
+      "key": "Triage › reads as Running hot at or above warnAt",
+      "line": 40,
+      "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "With no stored title, the row displays the URL derived from urlKey.",
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
@@ -973,7 +1027,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "a timestamp since local midnight buckets into Today",
       "file": "src/lib/utils/historyBuckets.test.js",
       "format": "vitest",
       "key": "bucketByDay › buckets a timestamp from today into Today",
@@ -982,7 +1036,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "the prior calendar day buckets into Yesterday",
       "file": "src/lib/utils/historyBuckets.test.js",
       "format": "vitest",
       "key": "bucketByDay › buckets a timestamp from yesterday into Yesterday",
@@ -991,7 +1045,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "anything older than yesterday buckets into Earlier this week",
       "file": "src/lib/utils/historyBuckets.test.js",
       "format": "vitest",
       "key": "bucketByDay › buckets older timestamps into Earlier this week",
@@ -1000,7 +1054,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "the bucket order is exported for rendering",
       "file": "src/lib/utils/historyBuckets.test.js",
       "format": "vitest",
       "key": "bucketByDay › exposes the bucket order",
@@ -1009,7 +1063,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "a missing timestamp falls into Earlier this week so the tab still appears",
       "file": "src/lib/utils/historyBuckets.test.js",
       "format": "vitest",
       "key": "bucketByDay › treats a missing timestamp as Earlier this week",
@@ -1612,7 +1666,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "the threshold is configurable — a lower warnAt shifts the bands down",
       "file": "src/lib/utils/loadLevel.test.js",
       "format": "vitest",
       "key": "loadLevel › honors a custom warnAt threshold",
@@ -1621,7 +1675,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "at or above warnAt the whole-browser load is \"high\" (gauge/triage red)",
       "file": "src/lib/utils/loadLevel.test.js",
       "format": "vitest",
       "key": "loadLevel › returns high at or above warnAt",
@@ -1630,7 +1684,7 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "below warnAt*0.6 the load is comfortable (\"low\")",
       "file": "src/lib/utils/loadLevel.test.js",
       "format": "vitest",
       "key": "loadLevel › returns low below the medium band",
@@ -1639,12 +1693,12 @@
       "runner": "tests"
     },
     {
-      "description": "",
+      "description": "the medium band begins at warnAt * 0.6 and runs up to warnAt",
       "file": "src/lib/utils/loadLevel.test.js",
       "format": "vitest",
-      "key": "loadLevel › returns medium from warnAt*0.6 up to warnAt",
+      "key": "loadLevel › returns medium from warnAt_0.6 up to warnAt",
       "line": 12,
-      "registeredAt": "2026-06-27T14:09:20Z",
+      "registeredAt": "2026-06-27T16:54:02.653118+00:00",
       "runner": "tests"
     },
     {

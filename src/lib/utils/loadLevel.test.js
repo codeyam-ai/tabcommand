@@ -9,7 +9,7 @@ describe('loadLevel', () => {
   });
 
   // the medium band begins at warnAt * 0.6 and runs up to warnAt
-  it('returns medium from warnAt*0.6 up to warnAt', () => {
+  it('returns medium from warnAt_0.6 up to warnAt', () => {
     expect(loadLevel(42, 70)).toBe('medium'); // 70 * 0.6 = 42
     expect(loadLevel(69, 70)).toBe('medium');
   });

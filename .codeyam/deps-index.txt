@@ -1,7 +1,7 @@
-# regenerated from dependency-graph.json on 2026-06-27T16:08:24Z; do not hand-edit
+# regenerated from dependency-graph.json on 2026-06-27T16:54:43Z; do not hand-edit
+src/lib/utils/chromeShim :: imports=0 :: imported_by=19
+src/Constants.jsx :: imports=0 :: imported_by=18
 src/lib/utils/Chrome :: imports=0 :: imported_by=18
-src/Constants.jsx :: imports=0 :: imported_by=17
-src/lib/utils/chromeShim :: imports=0 :: imported_by=17
 src/lib/components/Icon :: imports=0 :: imported_by=13
 src/lib/components :: imports=0 :: imported_by=9
 src/lib/utils/processLoad.js :: imports=0 :: imported_by=5
@@ -20,6 +20,7 @@ src/lib/components/LoadUrl/LoadUrl.jsx :: imports=3 :: imported_by=3
 src/lib/components/Search/Search.jsx :: imports=7 :: imported_by=3
 src/lib/components/SearchResults/SearchResults.jsx :: imports=7 :: imported_by=3
 src/lib/components/Tabs/Tabs.jsx :: imports=7 :: imported_by=3
+src/lib/components/Triage/Triage.jsx :: imports=6 :: imported_by=3
 src/lib/components/Url/Url.jsx :: imports=6 :: imported_by=3
 src/lib/components/UrlField/UrlField.jsx :: imports=1 :: imported_by=3
 src/lib/components/UrlLabel/UrlLabel.jsx :: imports=2 :: imported_by=3
@@ -33,10 +34,10 @@ src/lib/components/HistoryRow/HistoryRow.jsx :: imports=2 :: imported_by=2
 src/lib/components/LoadMeterCaption :: imports=0 :: imported_by=2
 src/lib/components/Settings/Settings.jsx :: imports=4 :: imported_by=2
 src/lib/components/ThemeToggle/ThemeToggle.jsx :: imports=1 :: imported_by=2
-src/lib/components/Triage/Triage.jsx :: imports=6 :: imported_by=2
 src/lib/hooks/useTheme.js :: imports=1 :: imported_by=2
 src/lib/pages/App/App.jsx :: imports=10 :: imported_by=2
 src/lib/pages/History :: imports=0 :: imported_by=2
+src/lib/pages/History/History.jsx :: imports=5 :: imported_by=2
 src/lib/pages/ImportExport :: imports=0 :: imported_by=2
 src/lib/pages/ImportExport/ImportExport.jsx :: imports=4 :: imported_by=2
 src/lib/pages/Load :: imports=0 :: imported_by=2
@@ -52,6 +53,7 @@ src/lib/utils/importExport.js :: imports=0 :: imported_by=2
 src/lib/utils/searchNotesSnippet.js :: imports=0 :: imported_by=2
 src/lib/utils/segmentSearchResults.js :: imports=0 :: imported_by=2
 src/lib/utils/urlDetails.js :: imports=0 :: imported_by=2
+.claude/skills/review-session/scripts/extract-session-helpers.mjs :: imports=0 :: imported_by=1
 .claude/skills/review-session/scripts/find-last-session-helpers.mjs :: imports=0 :: imported_by=1
 manifest.json :: imports=0 :: imported_by=1
 src/__codeyam_components.js :: imports=22 :: imported_by=1
@@ -102,7 +104,6 @@ src/lib/pages :: imports=0 :: imported_by=1
 src/lib/pages/App :: imports=0 :: imported_by=1
 src/lib/pages/App/App.css :: imports=0 :: imported_by=1
 src/lib/pages/History/History.css :: imports=0 :: imported_by=1
-src/lib/pages/History/History.jsx :: imports=5 :: imported_by=1
 src/lib/pages/ImportExport/ImportExport.css :: imports=0 :: imported_by=1
 src/lib/pages/Load/Load.css :: imports=0 :: imported_by=1
 src/lib/pages/UrlDetails/UrlDetails.css :: imports=0 :: imported_by=1
@@ -116,8 +117,7 @@ src/lib/utils/gaugeFillPercent.js :: imports=0 :: imported_by=1
 .claude/hooks/_step_metadata.py :: imports=0 :: imported_by=0
 .claude/hooks/editor-pretool-hook.py :: imports=0 :: imported_by=0
 .claude/hooks/editor-step-hook.py :: imports=0 :: imported_by=0
-.claude/skills/review-session/scripts/extract-session-helpers.mjs :: imports=0 :: imported_by=0
-.claude/skills/review-session/scripts/extract-session.mjs :: imports=0 :: imported_by=0
+.claude/skills/review-session/scripts/extract-session.mjs :: imports=1 :: imported_by=0
 .claude/skills/review-session/scripts/find-last-session.mjs :: imports=1 :: imported_by=0
 eslint.config.mjs :: imports=0 :: imported_by=0
 popup/popup.js :: imports=0 :: imported_by=0
@@ -156,6 +156,7 @@ src/lib/components/Settings/index.js :: imports=1 :: imported_by=0
 src/lib/components/Tabs/Tabs.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/Tabs/index.js :: imports=1 :: imported_by=0
 src/lib/components/ThemeToggle/index.js :: imports=1 :: imported_by=0
+src/lib/components/Triage/Triage.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/Triage/index.js :: imports=1 :: imported_by=0
 src/lib/components/Url/Url.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/Url/index.js :: imports=1 :: imported_by=0
@@ -167,6 +168,7 @@ src/lib/components/index.js :: imports=22 :: imported_by=0
 src/lib/hooks/useTheme.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/App/App.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/App/index.js :: imports=1 :: imported_by=0
+src/lib/pages/History/History.test.jsx :: imports=3 :: imported_by=0
 src/lib/pages/History/index.js :: imports=1 :: imported_by=0
 src/lib/pages/ImportExport/ImportExport.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/ImportExport/index.js :: imports=1 :: imported_by=0

@@ -1,9 +1,10 @@
-# regenerated from glossary.json on 2026-06-27T15:56:11Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-27T16:46:11Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 CodeyamIsolate :: src/__codeyam_isolate.jsx :: tags=
 Favicon :: src/lib/components/Favicon/Favicon.jsx :: tags=
+History :: src/lib/pages/History/History.jsx :: tags= :: test=src/lib/pages/History/History.test.jsx
 HistoryRow :: src/lib/components/HistoryRow/HistoryRow.jsx :: tags= :: test=src/lib/components/HistoryRow/HistoryRow.test.jsx
 Icon :: src/lib/components/Icon/Icon.jsx :: tags=
 ImportExport :: src/lib/pages/ImportExport/ImportExport.jsx :: tags= :: test=src/lib/pages/ImportExport/ImportExport.test.jsx
@@ -22,6 +23,7 @@ LoadUrl :: src/lib/components/LoadUrl/LoadUrl.jsx :: tags= :: test=src/lib/compo
 Search :: src/lib/components/Search/Search.jsx :: tags= :: test=src/lib/components/Search/Search.test.jsx
 SearchResults :: src/lib/components/SearchResults/SearchResults.jsx :: tags= :: test=src/lib/components/SearchResults/SearchResults.test.jsx
 Settings :: src/lib/components/Settings/Settings.jsx :: tags=
+SnapshotField :: src/lib/pages/ImportExport/ImportExport.jsx :: tags= :: test=src/lib/pages/ImportExport/ImportExport.test.jsx
 Tabs :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
 ThemeToggle :: src/lib/components/ThemeToggle/ThemeToggle.jsx :: tags=
 Triage :: src/lib/components/Triage/Triage.jsx :: tags=
@@ -31,11 +33,13 @@ UrlField :: src/lib/components/UrlField/UrlField.jsx :: tags= :: test=src/lib/co
 UrlLabel :: src/lib/components/UrlLabel/UrlLabel.jsx :: tags= :: test=src/lib/components/UrlLabel/UrlLabel.test.jsx
 applyDrag :: src/lib/utils/dragReducer.js :: tags= :: test=src/lib/utils/dragReducer.test.js
 associateProcess :: service_worker.js :: tags=worker,ported-verbatim,processes,tabs :: test=service_worker.test.js
+back :: src/lib/pages/History/History.jsx :: tags= :: test=src/lib/pages/History/History.test.jsx
 bucketByDay :: src/lib/utils/historyBuckets.js :: tags= :: test=src/lib/utils/historyBuckets.test.js
 buildImportUpdates :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
 buildSearchDocuments :: src/lib/utils/buildSearchDocuments.js :: tags= :: test=src/lib/utils/buildSearchDocuments.test.js
 buildUrlDocuments :: src/lib/utils/buildSearchDocuments.js :: tags= :: test=src/lib/utils/buildSearchDocuments.test.js
 buildUrlInfo :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDetails.test.js
+clamp01 :: src/lib/components/LoadMeter/LoadMeter.jsx :: tags= :: test=src/lib/components/LoadMeter/LoadMeter.test.jsx
 closeUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 collectUrlKeys :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
 cpuUtilization :: src/lib/utils/deriveSystemTotals.js :: tags= :: test=src/lib/utils/deriveSystemTotals.test.js
@@ -60,10 +64,12 @@ initLoadSource :: service_worker.js :: tags= :: test=service_worker.test.js
 installChromeShim :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim :: test=src/lib/utils/chromeShim/chromeShim.test.js
 lastCallback :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,shim,helper :: test=src/lib/utils/chromeShim/chromeShim.test.js
 listenToProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes :: test=service_worker.test.js
+loadColor :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
 loadLevel :: src/lib/utils/loadLevel.js :: tags= :: test=src/lib/utils/loadLevel.test.js
 memoryUtilization :: src/lib/utils/deriveSystemTotals.js :: tags= :: test=src/lib/utils/deriveSystemTotals.test.js
 newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
+pct :: src/lib/components/Triage/Triage.jsx :: tags= :: test=src/lib/components/Triage/Triage.test.jsx
 pollSystemLoad :: service_worker.js :: tags= :: test=service_worker.test.js
 processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
 processesApiAvailable :: service_worker.js :: tags= :: test=service_worker.test.js
