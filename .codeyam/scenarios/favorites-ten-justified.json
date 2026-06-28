@@ -1,0 +1,27 @@
+{
+  "name": "Favorites - Ten Justified",
+  "id": "469b8137-f22f-4984-b4d1-0fd4512de3e9",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"visitCount\": 7}",
+      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"visitCount\": 11}",
+      "url-https://www.youtube.com/watch?v=dQw4w9": "{\"title\": \"Build a Chrome Extension \\u2014 YouTube\", \"favicon\": \"\", \"visitCount\": 4}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\": \"Inbox \\u2014 Gmail\", \"favicon\": \"\", \"visitCount\": 8}",
+      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"visitCount\": 9}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 14}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand-ui\", \"url-https://www.notion.so/Roadmap\", \"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://stackoverflow.com/questions/mv3-alarms\", \"url-https://www.youtube.com/watch?v=dQw4w9\", \"url-https://mail.google.com/mail/u/0\", \"url-https://linear.app/codeyam/board\", \"url-https://vercel.com/codeyam/deployments\", \"url-https://en.wikipedia.org/wiki/Tab_(interface)\"]",
+      "url-https://en.wikipedia.org/wiki/Tab_(interface)": "{\"title\": \"Tab (interface) \\u2014 Wikipedia\", \"favicon\": \"\", \"visitCount\": 3}",
+      "url-https://linear.app/codeyam/board": "{\"title\": \"Sprint Board \\u2014 Linear\", \"favicon\": \"\", \"visitCount\": 4}",
+      "url-https://stackoverflow.com/questions/mv3-alarms": "{\"title\": \"chrome.alarms in MV3 \\u2014 Stack Overflow\", \"favicon\": \"\", \"visitCount\": 5}",
+      "url-https://vercel.com/codeyam/deployments": "{\"title\": \"Deployments \\u2014 Vercel\", \"favicon\": \"\", \"visitCount\": 3}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"visitCount\": 6}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

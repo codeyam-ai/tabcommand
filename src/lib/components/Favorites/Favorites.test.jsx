@@ -153,6 +153,46 @@ describe('Favorites', () => {
     expect(screen.getByText('Alpha')).toBeInTheDocument();
   });
 
+  // A favorite open in a non-pinned tab (and still clearing the threshold after
+  // the open-tab discount) renders with the Favorites-item--open cue class; a
+  // closed favorite does not.
+  it('marks an open favorite with the Favorites-item--open class', async () => {
+    seed('allUrls', ['url-https://open.com', 'url-https://closed.com']);
+    // 3 visits - 1 open discount = 2, still clears MIN_VISITS, so it renders.
+    seed('url-https://open.com', { title: 'OpenSite', favicon: '', visitCount: 3 });
+    seed('url-https://closed.com', { title: 'ClosedSite', favicon: '', visitCount: 3 });
+    seed('activeTabs', [
+      { tabKey: 'tab-1', urlKey: 'url-https://open.com', pinned: false },
+    ]);
+    installChromeShim();
+
+    render(<Favorites />);
+
+    const openRow = (await screen.findByText('OpenSite')).closest(
+      '.Favorites-item'
+    );
+    const closedRow = screen.getByText('ClosedSite').closest('.Favorites-item');
+    expect(openRow).toHaveClass('Favorites-item--open');
+    expect(closedRow).not.toHaveClass('Favorites-item--open');
+  });
+
+  // The section fills up to 10 rows when that many sites qualify ("10 if
+  // justified" — the limit was raised from 5).
+  it('renders up to ten favorites when that many qualify', async () => {
+    const keys = Array.from({ length: 12 }, (_, i) => `url-https://s${i}.com`);
+    seed('allUrls', keys);
+    keys.forEach((key, i) =>
+      seed(key, { title: `Site ${i}`, favicon: '', visitCount: 5 })
+    );
+    installChromeShim();
+
+    render(<Favorites />);
+
+    await waitFor(() =>
+      expect(screen.getAllByLabelText('Remove from favorites')).toHaveLength(10)
+    );
+  });
+
   // An empty allUrls renders nothing (no header), keeping a fresh install clean.
   it('renders nothing when there are no favorites', async () => {
     seed('allUrls', []);

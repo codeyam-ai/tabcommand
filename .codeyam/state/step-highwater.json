@@ -1,6 +1,6 @@
 {
-  "feature": "settings-popup-open-above-and-center-on-gear",
-  "maxStep": 25,
-  "version": 258,
-  "updatedAt": "2026-06-28T16:13:16.724713875+00:00"
+  "feature": "dani--recency-weighted-favorites-with-open-cue",
+  "maxStep": 23,
+  "version": 305,
+  "updatedAt": "2026-06-28T17:20:40.903177264+00:00"
 }

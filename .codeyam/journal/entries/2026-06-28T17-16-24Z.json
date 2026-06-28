@@ -1,0 +1,207 @@
+{
+  "timestamp": "2026-06-28T17:16:24Z",
+  "title": "Recency-Weighted Favorites With Open Cue",
+  "type": "feature",
+  "userRequest": "## Summary\n\nMake the Favorites sidebar section read as \"yes, these are my favorite\nwebsites over the past month.\" Today Favorites ranks purely on a lifetime\n`visitCount` that never decays, so a site you hammered six months ago and\nabandoned still outranks one you use daily now. We will re-weight the\nexisting ranking so recency pulls genuinely-current sites to the top and\nlets stale heavy-use sites fade — **without** any service-worker data-model\nchange (no new stored fields). We also raise the list from 5 to up to 10\nentries (only ones that still clear the earned-their-place threshold, so\n\"10 if justified\"), and add a visual cue — a subtle accent-tinted row\nbackground — for any favorite that is currently open in a tab.\n\n## Key Decisions\n\n- **Re-weight, don't re-instrument.** Per the scope decision, we keep the\n  current data model (records carry only `{ url, title, favicon,\n  visitCount }`; there are no per-visit timestamps). Recency is derived from\n  each site's position in `allUrls` — the recency-ordered key array the\n  service worker already maintains (newest at index 0, capped at 250). This\n  is the same recency signal `rankFavorites` already uses as a tiebreak; we\n  promote it from pure tiebreak to a decay weight on the score. A true\n  rolling 30-day window would require recording visit timestamps in\n  `service_worker.js` and migrating existing records — deliberately out of\n  scope for this plan.\n- **Qualification stays frequency-based; only ordering changes.** The\n  minimum-visit gate (`MIN_VISITS = 2`, on the *effective* visit count after\n  the open-tab discount and variant aggregation) is what makes an entry\n  \"justified.\" We keep that gate untouched so \"10 if justified\" means \"up to\n  10 sites that each genuinely earned a place.\" The recency decay multiplies\n  the *score used for ordering*, not the qualification test — so a recent\n  one-off visit still can't sneak in, and a frequent site never silently\n  drops below threshold just because it's a little older.\n- **Recency decay is a bounded linear falloff with a floor**, so frequency\n  still matters: the newest qualifying site keeps full weight, the oldest\n  retained site keeps a `RECENCY_FLOOR` fraction (≈0.25) of its score rather\n  than collapsing to zero. This makes a daily-used recent site outrank a\n  long-abandoned heavy-use one, while a hugely-visited slightly-older site\n  isn't unfairly buried. Exact curve/floor is a tactical detail for the\n  editor; the contract is \"monotonic in recency, never zero, frequency still\n  dominates within a similar recency band.\"\n- **\"Open\" cue = open in a non-pinned tab.** Sites open in a Chrome-*pinned*\n  tab are already excluded from Favorites entirely, so the only favorites\n  that can render while open are the non-pinned ones already tracked in\n  `openKeys`. The cue therefore reuses that exact set — no new state. We\n  compute the flag inside `rankFavorites` during variant grouping (a site\n  may be open under a different cosmetic URL variant than the row's\n  representative), and surface it as an `isOpen` field on each returned row.\n- **Cue is a background color, per the request** — a subtle accent tint\n  built on the existing lime brand token (`--c-lime-fg` / `--brand-command`),\n  kept visually distinct from the existing hover background (`--c-raised`)\n  so an open row reads as highlighted even at rest and the hover affordance\n  still works.\n\n## Implementation\n\n### 1. Add recency-decay weighting and an `isOpen` flag to the ranking\n\n**File**: `src/lib/utils/rankFavorites.js`\n\n- Introduce a `RECENCY_FLOOR` constant (≈0.25) and a small pure helper that\n  maps a candidate's `index` (position in `allUrls`) and the total length to\n  a weight in `[RECENCY_FLOOR, 1]` — newest → 1, oldest retained → floor.\n  Keep it pure and trivially unit-testable, matching the file's existing\n  \"no storage, no DOM\" discipline.\n- In the final ranking, order by `effectiveVisits * recencyWeight(group.index,\n  allUrls.length)` descending, keeping the raw recency `index` as the\n  deterministic tiebreak (so equal weighted scores stay stable, preserving\n  the existing tiebreak contract).\n- **Leave the qualification filter on raw `effectiveVisits >= minVisits`** —\n  the decay must not change who qualifies, only the order.\n- During variant grouping, track whether *any* member of a group is in\n  `options.openKeys`; carry that onto the group and emit it as `isOpen` on\n  the returned row shape (alongside `urlKey`, `url`, `title`, `favicon`).\n  The open-tab visit discount already in place is unchanged — `isOpen` is\n  purely a render hint.\n- Update the file's header comment to describe the frequency × recency-decay\n  blend (the current comment says recency is only a tiebreak) and the new\n  `isOpen` field, so the glossary description regenerates accurately.\n\n### 2. Raise the limit to 10 and pass `isOpen` through to the row\n\n**File**: `src/lib/components/Favorites/Favorites.jsx`\n\n- Change `FAVORITES_LIMIT` from `5` to `10`. Because qualification is\n  unchanged, installs without 10 genuinely-earned favorites simply render\n  fewer rows — \"10 if justified.\"\n- Read `favorite.isOpen` from each ranked row and apply a modifier class\n  (e.g. `Favorites-item--open`) on the row `div` when true. No new storage\n  reads are needed — `openKeys` is already built here from `activeTabs` and\n  passed into `rankFavorites`, which now returns the flag.\n\n### 3. Style the \"already open\" row\n\n**File**: `src/lib/components/Favorites/Favorites.css`\n\n- Add a `.Favorites-item--open` rule giving a subtle accent-tinted\n  background derived from the lime brand token (`--c-lime-fg`) — e.g. a\n  low-opacity tint, optionally with a thin left accent stripe — chosen to\n  stay legible in both dark and light themes (both define `--c-lime-fg`).\n- Ensure it composes sensibly with `.Favorites-item:hover` (`--c-raised`):\n  hover should still give feedback on an open row, and the open tint must\n  remain visible at rest. Order/specificity should keep the open state\n  readable whether or not the row is hovered.\n\n### 4. Update unit tests for the new ranking and flag\n\n**File**: `src/lib/utils/rankFavorites.test.js`\n\n- Add a test: a more-recent, lower-frequency qualifying site outranks a\n  much-older, higher-frequency one once both clear the threshold —\n  demonstrating recency decay flips an order that frequency alone would not.\n- Add a test: the recency decay does **not** change qualification — a site\n  that clears `MIN_VISITS` still appears even when it's the oldest entry\n  (weight = floor, not zero).\n- Add a test: `isOpen` is `true` for a returned row whose site is in\n  `openKeys` (including when the open variant differs from the row's\n  representative URL) and `false` otherwise.\n- Re-check the existing \"ranks frequency-first\" and \"recency tiebreak\" tests\n  against the new weighted ordering; adjust expected orders only where the\n  decay legitimately changes them, and keep the de-dup, threshold,\n  open-discount, exclusion, and limit tests intact.\n\n### 5. Reflect the new behavior in the component test\n\n**File**: `src/lib/components/Favorites/Favorites.test.jsx`\n\n- Add/extend a test asserting that a favorite whose `urlKey` is in the\n  non-pinned `activeTabs` set renders with the `Favorites-item--open`\n  modifier class, and a non-open favorite does not.\n- Confirm the section now renders up to 10 rows when that many qualify.\n\n## Reused existing code\n\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — extended in place; already owns variant de-dup, the\n  open-tab discount via `openKeys`, the `minVisits` gate, and recency-as-\n  tiebreak. The plan promotes its existing recency signal to a weight.\n- `usableTitle` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `usableTitle`) — unchanged candidate filter.\n- `normalizeUrl` from `src/lib/utils/normalizeUrl.js` — unchanged; still the\n  basis for collapsing cosmetic URL variants (and now for grouping the\n  `isOpen` check across variants).\n- `Favorites` component from `src/lib/components/Favorites/Favorites.jsx`\n  (glossary entry: `Favorites`) — already derives `excludedKeys` (pinned +\n  hidden) and `openKeys` (non-pinned open) from `activeTabs`; we reuse\n  `openKeys` for both the existing discount and the new cue.\n- Existing Favorites scenarios under `.codeyam/scenarios/`\n  (`favorites-populated`, `favorites-frequency-boost`,\n  `favorites-open-tab-discounted`, `favorites-pinned-tab-excluded`,\n  `favorites-single-favorite`, `favorites-duplicate-urls-collapsed`) — the\n  baselines new scenarios extend and that should be re-verified for unchanged\n  intent.\n- Theme tokens `--c-lime-fg` / `--brand-command` and `--c-raised` from\n  `src/index.css` — reused for the open-row tint and to stay clear of the\n  hover background.\n\n## Scenarios to Demonstrate\n\n- **Ten justified favorites** — a rich install with ≥10 sites clearing the\n  visit threshold, showing the section fill to the new 10-row cap.\n- **Recent beats stale** — a daily-used recent site ranked above a\n  long-abandoned, higher-lifetime-count site, demonstrating recency decay\n  (the headline \"reflects my past month\" behavior).\n- **Favorite currently open is highlighted** — a qualifying favorite open in\n  a non-pinned tab rendered with the accent-tinted background, alongside\n  non-open rows for contrast.\n- **Open + frequent still ranks and is cued** — a site frequent enough to\n  survive the open-tab visit discount, shown both ranked and highlighted (so\n  the cue isn't confused with the discount that can drop borderline sites).\n- **Fewer than ten** — a modest install with only a few qualifying sites,\n  confirming \"10 if justified\" renders just the earned rows, not padding.\n- **Empty state** — an install with no site clearing the threshold renders\n  nothing (unchanged).",
+  "description": "Reworked the Favorites sidebar so it reads as the user's favorites over the recent past rather than all-time. Qualification stays frequency-based (the minimum-visit gate is unchanged), but ordering now multiplies each site's effective visit count by a recency-decay weight derived from its position in the recency-ordered allUrls array — falling linearly from 1 for the newest qualifying site to a 0.25 floor for the oldest retained — so a daily-used recent site outranks a long-abandoned heavy-use one while frequency still dominates within a similar recency band. Raised the cap from 5 to 10 (\"10 if justified\" — only sites clearing the threshold appear), and added an isOpen flag plus a subtle lime accent-tinted row background cue for any favorite currently open in a non-pinned tab. No service-worker data-model change: recency and the open cue are both derived from existing state (allUrls order and the non-pinned open-tab set).",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/dani--recency-weighted-favorites-with-open-cue.md\t.codeyam/plans/completed/dani--recency-weighted-favorites-with-open-cue.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-open-favorite-cued.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-ten-justified.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 345,
+    "passed": 345,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 345,
+        "passed": 345
+      }
+    ]
+  }
+}

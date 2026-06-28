@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-28T16:03:45Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-28T17:02:50Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
@@ -86,6 +86,7 @@ processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,m
 processesApiAvailable :: service_worker.js :: tags= :: test=service_worker.test.js
 pruneAutoClosed :: service_worker.js :: tags= :: test=service_worker.test.js
 rankFavorites :: src/lib/utils/rankFavorites.js :: tags= :: test=src/lib/utils/rankFavorites.test.js
+recencyWeight :: src/lib/utils/rankFavorites.js :: tags= :: test=src/lib/utils/rankFavorites.test.js
 removeUrlFromLabel :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDetails.test.js
 resolveIsolationProps :: src/__codeyam_isolate.jsx :: tags=
 resolveLabelUrls :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js

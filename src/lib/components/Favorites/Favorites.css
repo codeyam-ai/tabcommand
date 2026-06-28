@@ -34,6 +34,22 @@
   background-color: var(--c-raised);
 }
 
+/* "Already open in a tab" cue: a subtle accent tint built on the lime brand
+   token, kept distinct from the hover background (--c-raised) so an open row
+   reads as highlighted even at rest. A thin left accent stripe reinforces it.
+   color-mix keeps the tint legible against both the dark and light themes, which
+   each define their own --c-lime-fg. */
+.Favorites-item--open {
+  background-color: color-mix(in srgb, var(--c-lime-fg) 14%, transparent);
+  box-shadow: inset 2px 0 0 0 var(--c-lime-fg);
+}
+
+/* Hover still gives feedback on an open row, layered over the tint so the open
+   state stays readable whether or not the row is hovered. */
+.Favorites-item--open:hover {
+  background-color: color-mix(in srgb, var(--c-lime-fg) 22%, var(--c-raised));
+}
+
 .Favorites-item .Url-favicon,
 .Favorites-item .Url-favFallback {
   flex-shrink: 0;

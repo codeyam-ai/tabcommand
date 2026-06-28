@@ -161,11 +161,11 @@ States captured as runnable scenarios with codeyam-editor:
 
 ![Favorites - Frequency Boost](.codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png)
 
+### Favorites - Open Favorite Cued
+
+![Favorites - Open Favorite Cued](.codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png)
+
 ### Favorites - Open Tab Discounted
 
 ![Favorites - Open Tab Discounted](.codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png)
-
-### Favorites - Pinned Tab Excluded
-
-![Favorites - Pinned Tab Excluded](.codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png)
 <!-- codeyam:scenario-gallery:end -->

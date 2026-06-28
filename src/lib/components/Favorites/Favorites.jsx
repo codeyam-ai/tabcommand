@@ -7,13 +7,16 @@ import { rankFavorites } from '../../utils/rankFavorites';
 import { Favicon } from '../Favicon';
 import Icon from '../Icon/Icon';
 
-// The Favorites sidebar section: the user's genuinely most-visited sites, ranked
-// frequency-first (with a minimum-visit threshold and a currently-open-tab
-// discount) in the pure `rankFavorites` util. It reads `allUrls` (recency-ordered
-// keys) plus the corresponding `url-*` records from storage, stays live via
-// `chrome.storage.onChanged`, and — like SearchResults — focuses an already-open
-// tab on click or opens a new one. An empty install renders nothing.
-const FAVORITES_LIMIT = 5;
+// The Favorites sidebar section: the user's genuinely most-visited sites (up to
+// 10 that clear the minimum-visit threshold), ordered by a frequency × recency
+// blend in the pure `rankFavorites` util so the list reads as "my favorites over
+// the past month" rather than all-time. A favorite currently open in a non-pinned
+// tab is flagged `isOpen` and rendered with an accent-tinted background cue. It
+// reads `allUrls` (recency-ordered keys) plus the corresponding `url-*` records
+// from storage, stays live via `chrome.storage.onChanged`, and — like
+// SearchResults — focuses an already-open tab on click or opens a new one. An
+// empty install renders nothing.
+const FAVORITES_LIMIT = 10;
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
@@ -116,7 +119,10 @@ const Favorites = () => {
       {favorites.map((favorite) => (
         <div
           key={favorite.urlKey}
-          className="Favorites-item"
+          className={
+            'Favorites-item' +
+            (favorite.isOpen ? ' Favorites-item--open' : '')
+          }
           title={favorite.title}
           onClick={(e) => openFavorite(e, favorite)}
         >

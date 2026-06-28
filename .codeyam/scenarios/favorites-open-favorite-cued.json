@@ -1,0 +1,23 @@
+{
+  "name": "Favorites - Open Favorite Cued",
+  "id": "a4a97596-cfdc-4671-b77c-0661cb9ec150",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 12}",
+      "activeTabs": "[{\"tabKey\": \"tab-1\", \"urlKey\": \"url-https://www.notion.so/Roadmap\", \"pinned\": false}]",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"visitCount\": 5}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 8}",
+      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"visitCount\": 6}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"visitCount\": 3}",
+      "allUrls": "[\"url-https://www.notion.so/Roadmap\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand-ui\", \"url-https://react.dev/learn\", \"url-https://news.ycombinator.com\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\"]",
+      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"visitCount\": 9}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

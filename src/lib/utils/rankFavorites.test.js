@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { rankFavorites } from './rankFavorites';
 
-// rankFavorites ranks Favorites FREQUENCY-FIRST: it de-duplicates cosmetic URL
-// variants, sums their effective visits, drops sites below a minimum-visit
-// threshold, discounts currently-open tabs, and orders by effective visits with
-// recency as the tiebreak. These tests pin that contract.
+// rankFavorites QUALIFIES Favorites frequency-first (de-duplicate cosmetic URL
+// variants, sum effective visits, discount currently-open tabs, drop sites below
+// a minimum-visit threshold) and then ORDERS the survivors by a frequency ×
+// recency-decay blend, with recency (position in allUrls) as the deterministic
+// tiebreak for equal scores. Each row also carries an `isOpen` render hint. These
+// tests pin that contract.
 describe('rankFavorites', () => {
   const rec = (title, over = {}) => ({ title, favicon: '', ...over });
 
@@ -39,9 +41,9 @@ describe('rankFavorites', () => {
     expect(result.map((r) => r.title)).toEqual(['Popular', 'Fresh']);
   });
 
-  // With equal effective visit counts, recency (position in allUrls) is the
-  // deterministic tiebreak.
-  it('uses recency as the tiebreak when visit counts are equal', () => {
+  // With equal effective visit counts, the recency decay orders newest-first
+  // (and recency remains the deterministic tiebreak for any exact score tie).
+  it('orders newest-first when visit counts are equal', () => {
     const allUrls = ['url-new', 'url-mid', 'url-old'];
     const records = {
       'url-new': rec('New', { visitCount: 4 }),
@@ -176,7 +178,66 @@ describe('rankFavorites', () => {
         url: 'https://example.com/path',
         title: 'Example',
         favicon: 'icon.png',
+        isOpen: false,
       },
     ]);
+  });
+
+  // Recency decay flips an order frequency alone would not: a more-recent, LOWER
+  // -frequency site outranks a much-older, HIGHER-frequency one once both clear
+  // the threshold. (By raw count alone, Stale's 6 would beat Recent's 3.)
+  it('lets recency decay rank a recent lower-frequency site above a stale heavier one', () => {
+    const allUrls = ['url-recent', 'url-f1', 'url-f2', 'url-f3', 'url-stale'];
+    const records = {
+      'url-recent': rec('Recent', { visitCount: 3 }),
+      'url-stale': rec('Stale', { visitCount: 6 }),
+    };
+    const result = rankFavorites(allUrls, records);
+    expect(result.map((r) => r.title)).toEqual(['Recent', 'Stale']);
+  });
+
+  // The decay must not change WHO qualifies, only the order: the oldest retained
+  // site (recency weight at the floor, never zero) still appears as long as its
+  // RAW effective visits clear the threshold.
+  it('does not let recency decay drop an oldest-but-qualifying site', () => {
+    const allUrls = ['url-new', 'url-old'];
+    const records = {
+      'url-new': rec('New', { visitCount: 9 }),
+      'url-old': rec('Old', { visitCount: 2 }), // oldest -> weight = floor, not 0
+    };
+    const result = rankFavorites(allUrls, records);
+    expect(result.map((r) => r.title)).toEqual(['New', 'Old']);
+  });
+
+  // isOpen render hint: true for a row whose site is in openKeys, false otherwise.
+  // The site must still clear the threshold after the open-tab discount.
+  it('flags isOpen for an open favorite and not for a closed one', () => {
+    const allUrls = ['url-open', 'url-closed'];
+    const records = {
+      'url-open': rec('Open', { visitCount: 3 }), // 3 - 1 discount = 2, qualifies
+      'url-closed': rec('Closed', { visitCount: 3 }),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, {
+      openKeys: new Set(['url-open']),
+    });
+    const byTitle = Object.fromEntries(result.map((r) => [r.title, r.isOpen]));
+    expect(byTitle).toEqual({ Open: true, Closed: false });
+  });
+
+  // isOpen fires when ANY variant of a collapsed site is open, even if the open
+  // variant is not the representative row that renders.
+  it('flags isOpen when a non-representative variant is the open one', () => {
+    const allUrls = ['url-https://x.com/', 'url-https://x.com'];
+    const records = {
+      'url-https://x.com/': rec('X New', { visitCount: 2, url: 'https://x.com/' }),
+      'url-https://x.com': rec('X Old', { visitCount: 2, url: 'https://x.com' }),
+    };
+    // The older variant (not the representative) is the open one.
+    const result = rankFavorites(allUrls, records, 5, undefined, {
+      openKeys: new Set(['url-https://x.com']),
+    });
+    expect(result).toHaveLength(1);
+    expect(result[0].urlKey).toBe('url-https://x.com/'); // newest is representative
+    expect(result[0].isOpen).toBe(true);
   });
 });

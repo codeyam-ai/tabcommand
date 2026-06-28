@@ -136,6 +136,15 @@
       "runner": "tests"
     },
     {
+      "description": "A favorite open in a non-pinned tab (and still clearing the threshold after the open-tab discount) renders with the Favorites-item--open cue class; a closed favorite does not.",
+      "file": "src/lib/components/Favorites/Favorites.test.jsx",
+      "format": "vitest",
+      "key": "Favorites › marks an open favorite with the Favorites-item--open class",
+      "line": 159,
+      "registeredAt": "2026-06-28T16:59:53Z",
+      "runner": "tests"
+    },
+    {
       "description": "The recency-leaning blend lets a heavily-visited older site outrank a barely-newer one.",
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
@@ -158,7 +167,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › renders nothing when there are no favorites",
-      "line": 157,
+      "line": 197,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -169,6 +178,15 @@
       "key": "Favorites › renders the header and the ranked site titles",
       "line": 26,
       "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The section fills up to 10 rows when that many sites qualify (\"10 if justified\" — the limit was raised from 5).",
+      "file": "src/lib/components/Favorites/Favorites.test.jsx",
+      "format": "vitest",
+      "key": "Favorites › renders up to ten favorites when that many qualify",
+      "line": 181,
+      "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
     {
@@ -2201,7 +2219,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › collapses cosmetic URL variants into one row with summed counts",
-      "line": 83,
+      "line": 85,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -2210,7 +2228,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › derives url from the key when the record omits it, and shapes the row",
-      "line": 165,
+      "line": 167,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2219,8 +2237,17 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › discounts a currently-open tab, floored against the threshold",
-      "line": 107,
+      "line": 109,
       "registeredAt": "2026-06-28T14:43:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The decay must not change WHO qualifies, only the order: the oldest retained site (recency weight at the floor, never zero) still appears as long as its RAW effective visits clear the threshold.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › does not let recency decay drop an oldest-but-qualifying site",
+      "line": 202,
+      "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
     {
@@ -2228,7 +2255,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › drops keys without a usable record/title",
-      "line": 19,
+      "line": 21,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2237,8 +2264,44 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › drops sites below MIN_VISITS, includes them once they reach it",
-      "line": 57,
+      "line": 59,
       "registeredAt": "2026-06-28T14:43:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "isOpen render hint: true for a row whose site is in openKeys, false otherwise. The site must still clear the threshold after the open-tab discount.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › flags isOpen for an open favorite and not for a closed one",
+      "line": 214,
+      "registeredAt": "2026-06-28T16:59:53Z",
+      "runner": "tests"
+    },
+    {
+      "description": "isOpen fires when ANY variant of a collapsed site is open, even if the open variant is not the representative row that renders.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › flags isOpen when a non-representative variant is the open one",
+      "line": 229,
+      "registeredAt": "2026-06-28T16:59:53Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Recency decay flips an order frequency alone would not: a more-recent, LOWER -frequency site outranks a much-older, HIGHER-frequency one once both clear the threshold. (By raw count alone, Stale's 6 would beat Recent's 3.)",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › lets recency decay rank a recent lower-frequency site above a stale heavier one",
+      "line": 189,
+      "registeredAt": "2026-06-28T16:59:53Z",
+      "runner": "tests"
+    },
+    {
+      "description": "With equal effective visit counts, the recency decay orders newest-first (and recency remains the deterministic tiebreak for any exact score tie).",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › orders newest-first when visit counts are equal",
+      "line": 46,
+      "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
     {
@@ -2246,7 +2309,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › ranks frequency-first — higher visit count beats more-recent",
-      "line": 32,
+      "line": 34,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -2255,7 +2318,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › respects the limit",
-      "line": 145,
+      "line": 147,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2264,7 +2327,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › returns [] for empty or non-array allUrls",
-      "line": 12,
+      "line": 14,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2273,7 +2336,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › returns fewer than limit when there are fewer qualifying candidates",
-      "line": 157,
+      "line": 159,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2282,7 +2345,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › skips urlKeys present in excludedKeys",
-      "line": 126,
+      "line": 128,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -2291,16 +2354,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › treats a missing visitCount as 0, below the threshold",
-      "line": 71,
-      "registeredAt": "2026-06-28T10:02:28Z",
-      "runner": "tests"
-    },
-    {
-      "description": "With equal visit counts, recency order (position in allUrls) decides ranking.",
-      "file": "src/lib/utils/rankFavorites.test.js",
-      "format": "vitest",
-      "key": "rankFavorites › uses recency as the tiebreak when visit counts are equal",
-      "line": 44,
+      "line": 73,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },

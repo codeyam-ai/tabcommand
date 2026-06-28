@@ -22,15 +22,39 @@ import { normalizeUrl } from './normalizeUrl';
 //     minVisits — the minimum EFFECTIVE (post-discount, post-aggregation) visit
 //                 count a site must have to qualify. Defaults to MIN_VISITS.
 //
-// Ranking is FREQUENCY-FIRST: candidates are de-duplicated by normalized URL
-// (collapsing http/https/www/trailing-slash variants), their effective visit
-// counts summed across the merged variants, sites below `minVisits` dropped, and
-// the survivors ordered by effective visits descending with recency (position in
-// allUrls) as the deterministic tiebreak.
+// Each returned row also carries an `isOpen` flag: true when any variant of the
+// site is currently open in a non-pinned tab (i.e. its key is in
+// `options.openKeys`). It's a pure render hint for the "already open" cue and
+// does not affect ranking or qualification.
+//
+// Qualification is FREQUENCY-FIRST: candidates are de-duplicated by normalized
+// URL (collapsing http/https/www/trailing-slash variants), their effective visit
+// counts summed across the merged variants, and sites below `minVisits` dropped —
+// so a site only earns a place by being genuinely visited, never by being recent.
+// ORDERING then blends that frequency with a recency decay: the score is
+// `effectiveVisits * recencyWeight(index)`, where the weight falls off linearly
+// from 1 (newest qualifying site) to RECENCY_FLOOR (oldest retained) — never to
+// zero, so frequency still dominates within a similar recency band while a
+// daily-used recent site outranks a long-abandoned heavy-use one. Recency
+// (position in allUrls) remains the deterministic tiebreak for equal scores.
 const MIN_VISITS = 2;
+
+// The oldest retained site keeps this fraction of its frequency-based score
+// rather than collapsing to zero, so a hugely-visited slightly-older site is not
+// unfairly buried — frequency still matters, recency only tilts the order.
+const RECENCY_FLOOR = 0.25;
 
 const usableTitle = (record) =>
   record && typeof record.title === 'string' && record.title.length > 0;
+
+// Map a candidate's recency `index` (position in allUrls, newest = 0) to a weight
+// in [RECENCY_FLOOR, 1]: newest → 1, oldest retained → RECENCY_FLOOR, linear in
+// between. Pure and storage/DOM-free, like the rest of this module.
+const recencyWeight = (index, total) => {
+  if (total <= 1) return 1;
+  const t = index / (total - 1);
+  return 1 - t * (1 - RECENCY_FLOOR);
+};
 
 export function rankFavorites(
   allUrls,
@@ -56,9 +80,10 @@ export function rankFavorites(
     if (!usableTitle(record)) continue;
     // Discount a currently-open (non-pinned) tab's in-progress visit, floored at
     // 0 — a tab that's still open shouldn't have its visit padding the ranking.
-    const openCount = openKeys.has(urlKey) ? 1 : 0;
+    const isOpen = openKeys.has(urlKey);
+    const openCount = isOpen ? 1 : 0;
     const effectiveVisits = Math.max(0, (record.visitCount || 0) - openCount);
-    candidates.push({ urlKey, record, index, effectiveVisits });
+    candidates.push({ urlKey, record, index, effectiveVisits, isOpen });
   }
   if (candidates.length === 0) return [];
 
@@ -73,6 +98,9 @@ export function rankFavorites(
     const existing = groups.get(groupKey);
     if (existing) {
       existing.effectiveVisits += candidate.effectiveVisits;
+      // The cue fires if ANY variant of the site is open, even when the open
+      // variant isn't the representative row the group renders.
+      existing.isOpen = existing.isOpen || candidate.isOpen;
       // Candidates iterate in recency order, so the first-seen member already has
       // the lowest index; later members only add to the visit total.
     } else {
@@ -80,26 +108,32 @@ export function rankFavorites(
         representative: candidate,
         index: candidate.index,
         effectiveVisits: candidate.effectiveVisits,
+        isOpen: candidate.isOpen,
       });
     }
   }
 
-  // Keep only sites that have EARNED their place (enough effective visits), then
-  // order frequency-first with recency as the deterministic tiebreak.
+  // Keep only sites that have EARNED their place (enough RAW effective visits, so
+  // the recency decay never changes who qualifies — only the order), then sort by
+  // the frequency × recency-decay blend, with raw recency as the deterministic
+  // tiebreak for equal weighted scores.
   const qualifying = [...groups.values()].filter(
     (group) => group.effectiveVisits >= minVisits
   );
-  qualifying.sort(
-    (a, b) => b.effectiveVisits - a.effectiveVisits || a.index - b.index
-  );
+  const total = allUrls.length;
+  for (const group of qualifying) {
+    group.score = group.effectiveVisits * recencyWeight(group.index, total);
+  }
+  qualifying.sort((a, b) => b.score - a.score || a.index - b.index);
 
-  return qualifying.slice(0, limit).map(({ representative }) => {
+  return qualifying.slice(0, limit).map(({ representative, isOpen }) => {
     const { urlKey, record } = representative;
     return {
       urlKey,
       url: record.url || urlKey.replace(/^url-/, ''),
       title: record.title,
       favicon: record.favicon || '',
+      isOpen,
     };
   });
 }
