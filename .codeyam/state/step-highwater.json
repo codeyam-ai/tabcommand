@@ -1,6 +1,6 @@
 {
   "feature": "favorites-exclude-pinned-incognito-and-remove",
-  "maxStep": 24,
-  "version": 268,
-  "updatedAt": "2026-06-28T11:52:09.173510162+00:00"
+  "maxStep": 25,
+  "version": 275,
+  "updatedAt": "2026-06-28T11:52:29.414167061+00:00"
 }
