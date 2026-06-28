@@ -1,7 +1,7 @@
 import './App.css';
 
 import React, { useEffect, useState } from 'react';
-import { Tabs, Labels, LoadMeter, Search, AppBrand, ThemeToggle, Triage, Settings } from '../../components';
+import { Tabs, Labels, LoadMeter, Search, AppBrand, ThemeToggle, Triage, Settings, Favorites, SearchHint } from '../../components';
 import { Load } from '../Load';
 import { ImportExport } from '../ImportExport';
 import { UrlDetails } from '../UrlDetails';
@@ -103,18 +103,20 @@ const App = () => {
         </div>
         <Search />
 
-        <div className="App-gauge" onClick={() => changePage(Pages.LOAD)}>
-          <LoadMeter />
-        </div>
+        {isHome && <SearchHint />}
 
-        {isHome && (
-          <Triage
-            reviewMode={reviewMode}
-            onToggleReview={() => setReviewMode((r) => !r)}
-          />
-        )}
+        {isHome && <Favorites />}
 
         <div className='App-sidebar-footer'>
+          {isHome && (
+            <Triage
+              reviewMode={reviewMode}
+              onToggleReview={() => setReviewMode((r) => !r)}
+            />
+          )}
+          <div className="App-gauge" onClick={() => changePage(Pages.LOAD)}>
+            <LoadMeter />
+          </div>
           {isHome && (
             <div className="App-sidebar-counts">
               {counts.tabs} {counts.tabs === 1 ? 'tab' : 'tabs'} · {counts.groups}{' '}

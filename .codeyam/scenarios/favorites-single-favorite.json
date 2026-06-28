@@ -1,0 +1,17 @@
+{
+  "name": "Favorites - Single Favorite",
+  "id": "3aad5d0d-962e-490d-b0fd-d800d0e43b53",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 4}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\"]"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

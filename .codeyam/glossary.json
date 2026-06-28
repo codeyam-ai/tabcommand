@@ -1,6 +1,6 @@
 [
   {
-    "description": "Root React component and entry-point page of the TabCommand extension UI, mounted at / via React 18 createRoot. In this storage-spine build it reads seeded storage through the Chrome abstraction (Chrome.get on labels/activeTabs/allUrls) and renders a TEMPORARY on-screen diagnostic in App-content showing the counts (\"seeded: N labels · N active tabs · N urls\") beside the navy sidebar with the TabCommand logo. The diagnostic is removed by the home-and-tabs plan, which renders the real seeded UI. Real features (Tabs, Labels, Search, LoadMeter, page routing) arrive in later plans.",
+    "description": "Root React component and entry-point page of the TabCommand UI, mounted at / via React 18 createRoot. Reads uxSettings / labels / activeTabs / allUrls through the Chrome abstraction and reacts to chrome.storage.onChanged. Renders the sidebar — AppBrand, Settings + ThemeToggle tools, Search, the SearchHint line, the Favorites section, the load-aware Triage card (Home only), and a footer holding the relocated Browser Load gauge plus the tab/group counts and the Import/Export link — alongside a content area that routes between the Home grid (Labels + Tabs under a DragDropContext, persisted via the applyDrag reducer), Load, History, ImportExport, and UrlDetails pages.",
     "filePath": "src/lib/pages/App/App.jsx",
     "name": "App",
     "scenarios": [
@@ -50,6 +50,16 @@
       "favicon-real-favicon",
       "favicon-monogram-fallback",
       "favicon-monogram-figma"
+    ]
+  },
+  {
+    "description": "Sidebar section (Home only) listing the user's most-visited sites, ranked by the recency-leaning rankFavorites blend. Reads allUrls plus the matching url-* records from chrome.storage.local, stays live via chrome.storage.onChanged on allUrls / url-* keys, renders a Favicon + title per row, and on click focuses an already-open tab or opens a new one (mirrors SearchResults). Renders nothing when there are no favorites.",
+    "filePath": "src/lib/components/Favorites/Favorites.jsx",
+    "name": "Favorites",
+    "scenarios": [
+      "favorites-populated",
+      "favorites-frequency-boost",
+      "favorites-single-favorite"
     ]
   },
   {
@@ -179,6 +189,15 @@
     "testFile": "src/lib/components/Search/Search.test.jsx",
     "untestabilityReason": {
       "justification": "Layout-only stub — renders an empty div, no props or logic.",
+      "kind": "trivial-wrapper"
+    }
+  },
+  {
+    "description": "Static single-line muted hint rendered under the search bar on Home: tells the user they can just start typing to search. No props, no branching, single visual state.",
+    "filePath": "src/lib/components/SearchHint/SearchHint.jsx",
+    "name": "SearchHint",
+    "untestabilityReason": {
+      "justification": "presentation-only static text, no props or branching, single visual state",
       "kind": "trivial-wrapper"
     }
   },
@@ -650,6 +669,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Pure ranking for the Favorites sidebar section. Blends recency (dominant term, from a urlKey index position in the recency-ordered allUrls array) with visit frequency (visitCount normalized against the busiest candidate), weighted RECENCY_WEIGHT 0.7 / VISIT_WEIGHT 0.3 so recency leads but frequently-visited sites climb. Filters keys without a usable title, derives url from the key when absent, sorts deterministically with recency tiebreak, returns the top-limit lightweight rows for rendering.",
+    "filePath": "src/lib/utils/rankFavorites.js",
+    "name": "rankFavorites",
+    "testFile": "src/lib/utils/rankFavorites.test.js"
+  },
+  {
     "description": "Returns a new labels map with a urlKey spliced out of the named label's urlKeys (fresh array, input not mutated; unknown label returns the map unchanged). Backs the UrlDetails Groups-chip removal. Extracted from the page's handleLabelClick.",
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "removeUrlFromLabel",
@@ -787,6 +812,12 @@
       "metrics"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Predicate used by rankFavorites: true when a url record exists and has a non-empty string title, so favorite candidates without a renderable title are filtered out of the ranking.",
+    "filePath": "src/lib/utils/rankFavorites.js",
+    "name": "usableTitle",
+    "testFile": "src/lib/utils/rankFavorites.test.js"
   },
   {
     "description": "React hook owning the resolved light/dark theme. Resolves from three inputs: the saved themePreference storage key ['system' | 'light' | 'dark', default system], the live OS prefers-color-scheme tracked via matchMedia [dark fallback], and an in-memory temporary override set by the sun/moon toggle. Only the resolved value mirrors to the document element's data-theme attribute, which the CSS token layer keys off so the whole UI re-themes from one place. In system mode an OS day/night transition clears the override; a legacy theme:'light' migrates to a Day preference. Returns [theme, toggleTheme].",

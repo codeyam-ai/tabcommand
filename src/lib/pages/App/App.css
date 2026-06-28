@@ -34,7 +34,9 @@ body {
   gap: 8px;
 }
 
-/* Clickable Browser Load gauge → Load page. */
+/* Clickable Browser Load gauge → Load page. Now lives at the bottom of the
+   sidebar footer, above the counts + Import/Export link. Self-hides (renders
+   nothing) when per-tab load data is unavailable. */
 .App-gauge {
   cursor: pointer;
   display: flex;
@@ -42,9 +44,12 @@ body {
   padding: 4px 0 8px;
 }
 
-/* Load-aware triage card (Home only) sits under the gauge. */
-.App-sidebar > .Triage {
-  margin: 0 16px;
+/* Load-aware triage card (Home only) lives in the footer, just above the
+   relocated gauge and below the footer's top hairline. */
+.App-sidebar-footer .Triage {
+  align-self: stretch;
+  margin: 0 16px 8px;
+  text-align: left;
 }
 
 .App-sidebar-counts {
@@ -91,6 +96,14 @@ body {
   justify-content: center;
   gap: 6px;
   padding: 10px 0;
+}
+
+/* Separate the relocated gauge from the counts/link beneath it. */
+.App-sidebar-footer .App-gauge {
+  width: 100%;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
 }
 
 .App-sidebar-footer .App-sidebar-link {

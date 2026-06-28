@@ -100,6 +100,33 @@
       "runner": "tests"
     },
     {
+      "description": "The recency-leaning blend lets a heavily-visited older site outrank a barely-newer one.",
+      "file": "src/lib/components/Favorites/Favorites.test.jsx",
+      "format": "vitest",
+      "key": "Favorites › lets a frequently-visited older site climb above a barely-newer one",
+      "line": 41,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "An empty allUrls renders nothing (no header), keeping a fresh install clean.",
+      "file": "src/lib/components/Favorites/Favorites.test.jsx",
+      "format": "vitest",
+      "key": "Favorites › renders nothing when there are no favorites",
+      "line": 58,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Seeded allUrls + url-* records render the Favorites header and ranked titles.",
+      "file": "src/lib/components/Favorites/Favorites.test.jsx",
+      "format": "vitest",
+      "key": "Favorites › renders the header and the ranked site titles",
+      "line": 24,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
       "description": "a tab closed just now renders under the \"Today\" group with its title",
       "file": "src/lib/pages/History/History.test.jsx",
       "format": "vitest",
@@ -437,17 +464,8 @@
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
       "key": "LoadMeter › handles a processTotals storage change",
-      "line": 50,
+      "line": 59,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
-      "runner": "tests"
-    },
-    {
-      "description": "the gauge composes LoadMeterCaption and mounts without throwing when a loadDataSource is present",
-      "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
-      "format": "vitest",
-      "key": "LoadMeter › mounts with a loadDataSource present without throwing",
-      "line": 71,
-      "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
     {
@@ -455,7 +473,7 @@
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
       "key": "LoadMeter › reads as Idle on first run",
-      "line": 30,
+      "line": 37,
       "registeredAt": "2026-06-27T14:09:20Z",
       "runner": "tests"
     },
@@ -464,8 +482,26 @@
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
       "key": "LoadMeter › reflects seeded processTotals in the rendered load %",
-      "line": 39,
+      "line": 47,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the gauge composes LoadMeterCaption and mounts without throwing when a loadDataSource is present",
+      "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeter › renders nothing when loadDataSource is system without per-tab data",
+      "line": 81,
+      "registeredAt": "2026-06-25T18:41:51Z",
+      "runner": "tests"
+    },
+    {
+      "description": "No marker at all (legacy / pre-source state) also hides the gauge.",
+      "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+      "format": "vitest",
+      "key": "LoadMeter › renders nothing when no loadDataSource is set",
+      "line": 97,
+      "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
     {
@@ -473,7 +509,7 @@
       "file": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
       "format": "vitest",
       "key": "LoadMeter › renders the gauge legend labels",
-      "line": 22,
+      "line": 28,
       "registeredAt": "2026-06-12T11:53:39.107085+00:00",
       "runner": "tests"
     },
@@ -1978,6 +2014,87 @@
       "key": "popup.js › init › creates a pinned tab when none exists",
       "line": 61,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "The returned row shape: url derived from the key when absent, title + favicon passed through.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › derives url from the key when the record omits it, and shapes the row",
+      "line": 103,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Keys lacking a record, or whose record has no usable title, are filtered out.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › drops keys without a usable record/title",
+      "line": 19,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A large recency gap is NOT overcome by visits — recency is the dominant weight.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › keeps recency dominant when the recency gap is large",
+      "line": 58,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A tiny recency gap is overcome by a large visit-count gap (the frequency boost).",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › lets a high-visitCount older site out-rank a barely-newer one",
+      "line": 43,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "With equal visit counts, recency order (position in allUrls) decides ranking.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › ranks by recency when visit counts are equal",
+      "line": 31,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The limit argument caps how many favorites are returned.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › respects the limit",
+      "line": 84,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Empty or non-array input yields an empty list, never a throw.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › returns [] for empty or non-array allUrls",
+      "line": 12,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Fewer candidates than the limit returns all of them, not a padded list.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › returns fewer than limit when there are fewer candidates",
+      "line": 96,
+      "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A record with no visitCount field is scored as 0 and does not throw.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › treats a missing visitCount as 0",
+      "line": 71,
+      "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
     {

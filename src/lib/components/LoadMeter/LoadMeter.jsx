@@ -18,6 +18,11 @@ import { WarnAtDefault } from '../../../Constants';
 // path geometry, so it renders identically under jsdom (the unit tests assert the
 // data binding: processTotals → the rendered load % / legend).
 //
+// Visibility gate: the gauge only renders when per-tab resource data is available
+// (`loadDataSource === 'processes'`) — the same gate `Triage` (Triage.jsx:86) and
+// `LoadMeterCaption` follow. On stable Chrome ('system') or no-data ('none') there
+// is no tab-by-tab breakdown, so the whole gauge + legend + caption self-hides.
+//
 // Gauge ceilings — shared with Triage so "% of capacity" reads the same scale.
 const MAX = { cpu: 150, memory: 5 * 1024 * 1024 * 1024 };
 const MEM_FLOOR = 500 * 1024 * 1024;
@@ -37,6 +42,7 @@ const LoadMeter = () => {
     hasData: false,
   });
   const [warnAt, setWarnAt] = useState(WarnAtDefault);
+  const [source, setSource] = useState(null);
 
   useEffect(() => {
     const update = (processTotals, loaded) =>
@@ -50,6 +56,10 @@ const LoadMeter = () => {
       setWarnAt(result.settings?.warnAt ?? WarnAtDefault);
     });
 
+    Chrome.get('LoadMeter3', 'loadDataSource', (result) => {
+      setSource(result.loadDataSource || null);
+    });
+
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
       if (changes.processTotals) {
@@ -58,11 +68,17 @@ const LoadMeter = () => {
       if (changes.settings) {
         setWarnAt(changes.settings.newValue?.warnAt ?? WarnAtDefault);
       }
+      if (changes.loadDataSource) {
+        setSource(changes.loadDataSource.newValue || null);
+      }
     };
     chrome.storage.onChanged.addListener(handleChange);
 
     return () => chrome.storage.onChanged.removeListener(handleChange);
   }, []);
+
+  // Hide the gauge entirely without per-tab data (stable Chrome / unknown source).
+  if (source !== 'processes') return null;
 
   // 0..1 ring values, on the same ceilings the old gauge used.
   const cpuValue = clamp01(cpu / MAX.cpu);

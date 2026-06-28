@@ -1,0 +1,17 @@
+{
+  "name": "LoadMeter - Idle",
+  "id": "31884fe3-e353-49bb-9635-09b21c0b4689",
+  "url": "/?isolate=LoadMeter",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "loadDataSource": "\"processes\"",
+      "processTotals": "{\"cpu\": 6, \"network\": 12000, \"privateMemory\": 620000000, \"jsMemoryAllocated\": 480000000, \"jsMemoryUsed\": 360000000}"
+    }
+  },
+  "componentName": "LoadMeter",
+  "scenarioType": "component"
+}

@@ -312,7 +312,7 @@ async function newUrl(tabId, url) {
   return new Promise((resolve, reject) => {
     const updates = {};
     const urlKey = getUrlKey(url);
-    getLocalStorage(['allUrls', 'labels'], (result) => {
+    getLocalStorage(['allUrls', 'labels', urlKey], (result) => {
       const allUrls = result.allUrls || [];
       if (allUrls.indexOf(urlKey) === -1) {
         allUrls.unshift(urlKey);
@@ -333,6 +333,16 @@ async function newUrl(tabId, url) {
 
         updates.allUrls = allUrls.slice(0, 250);
       }
+
+      // Track how often each site is visited so Favorites can blend frequency
+      // with recency. Additive: existing url-* fields are preserved, and records
+      // without visitCount are treated as 0 everywhere downstream.
+      const urlRecord = result[urlKey] || { url };
+      updates[urlKey] = {
+        ...urlRecord,
+        visitCount: (urlRecord.visitCount || 0) + 1,
+      };
+
       resolve(updates)
     });
   });

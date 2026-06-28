@@ -153,19 +153,19 @@ States captured as runnable scenarios with codeyam-editor:
 
 ![Favicon - Real Favicon](.codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png)
 
+### Favorites - Frequency Boost
+
+![Favorites - Frequency Boost](.codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png)
+
+### Favorites - Populated
+
+![Favorites - Populated](.codeyam/scenarios/screenshots/favorites-populated--desktop.png)
+
+### Favorites - Single Favorite
+
+![Favorites - Single Favorite](.codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png)
+
 ### History - Populated
 
 ![History - Populated](.codeyam/scenarios/screenshots/history-populated--desktop.png)
-
-### HistoryRow - Default
-
-![HistoryRow - Default](.codeyam/scenarios/screenshots/historyrow-default--desktop.png)
-
-### HistoryRow - Monogram Fallback
-
-![HistoryRow - Monogram Fallback](.codeyam/scenarios/screenshots/historyrow-monogram-fallback--desktop.png)
-
-### HistoryRow - No Timestamp
-
-![HistoryRow - No Timestamp](.codeyam/scenarios/screenshots/historyrow-no-timestamp--desktop.png)
 <!-- codeyam:scenario-gallery:end -->

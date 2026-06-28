@@ -1,5 +1,6 @@
 import AppBrand from "./lib/components/AppBrand/AppBrand";
 import Favicon from "./lib/components/Favicon/Favicon";
+import Favorites from "./lib/components/Favorites/Favorites";
 import HistoryRow from "./lib/components/HistoryRow/HistoryRow";
 import Icon from "./lib/components/Icon/Icon";
 import LabelCollection from "./lib/components/LabelCollection/LabelCollection";
@@ -25,6 +26,7 @@ import UrlLabel from "./lib/components/UrlLabel/UrlLabel";
 export const components = {
   AppBrand: AppBrand,
   Favicon: Favicon,
+  Favorites: Favorites,
   HistoryRow: HistoryRow,
   Icon: Icon,
   LabelCollection: LabelCollection,

@@ -1,0 +1,22 @@
+{
+  "name": "Favorites - Frequency Boost",
+  "id": "27e0d966-3b30-481b-a54b-7d25575fe9eb",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://pad-2.example.com": "{\"title\": \"Old Blog Post\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 0}",
+      "url-https://www.stackoverflow.com/questions": "{\"title\": \"Stack Overflow \\u2014 Questions\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 40}",
+      "allUrls": "[\"url-https://pad-0.example.com\", \"url-https://pad-1.example.com\", \"url-https://www.stackoverflow.com/questions\", \"url-https://docs.python.org/3/library\", \"url-https://pad-2.example.com\", \"url-https://pad-3.example.com\", \"url-https://pad-4.example.com\", \"url-https://pad-5.example.com\"]",
+      "url-https://pad-0.example.com": "{\"title\": \"Twitter \\u2014 Home\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 1}",
+      "url-https://pad-3.example.com": "{\"title\": \"Archived Article\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 0}",
+      "url-https://docs.python.org/3/library": "{\"title\": \"Python Docs \\u2014 Library\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 35}",
+      "url-https://pad-1.example.com": "{\"title\": \"Gmail \\u2014 Inbox\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 1}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

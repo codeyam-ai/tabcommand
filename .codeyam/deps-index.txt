@@ -1,12 +1,13 @@
-# regenerated from dependency-graph.json on 2026-06-28T02:06:09Z; do not hand-edit
+# regenerated from dependency-graph.json on 2026-06-28T10:44:24Z; do not hand-edit
+src/lib/utils/chromeShim :: imports=0 :: imported_by=21
 src/Constants.jsx :: imports=0 :: imported_by=20
-src/lib/utils/chromeShim :: imports=0 :: imported_by=20
-src/lib/utils/Chrome :: imports=0 :: imported_by=18
+src/lib/utils/Chrome :: imports=0 :: imported_by=19
 src/lib/components/Icon :: imports=0 :: imported_by=13
 src/lib/components :: imports=0 :: imported_by=9
+src/lib/components/Favicon :: imports=0 :: imported_by=5
 src/lib/utils/processLoad.js :: imports=0 :: imported_by=5
-src/lib/components/Favicon :: imports=0 :: imported_by=4
 src/lib/components/Favicon/Favicon.jsx :: imports=2 :: imported_by=3
+src/lib/components/Favorites/Favorites.jsx :: imports=4 :: imported_by=3
 src/lib/components/Icon/Icon.jsx :: imports=0 :: imported_by=3
 src/lib/components/LabelCollection/LabelCollection.jsx :: imports=5 :: imported_by=3
 src/lib/components/LabelForm/LabelForm.jsx :: imports=4 :: imported_by=3
@@ -53,18 +54,21 @@ src/lib/utils/faviconMonogram.js :: imports=0 :: imported_by=2
 src/lib/utils/formatAutoClose.js :: imports=0 :: imported_by=2
 src/lib/utils/historyBuckets.js :: imports=0 :: imported_by=2
 src/lib/utils/importExport.js :: imports=0 :: imported_by=2
+src/lib/utils/rankFavorites.js :: imports=0 :: imported_by=2
 src/lib/utils/searchNotesSnippet.js :: imports=0 :: imported_by=2
 src/lib/utils/segmentSearchResults.js :: imports=0 :: imported_by=2
 src/lib/utils/urlDetails.js :: imports=0 :: imported_by=2
 .claude/skills/review-session/scripts/extract-session-helpers.mjs :: imports=0 :: imported_by=1
 .claude/skills/review-session/scripts/find-last-session-helpers.mjs :: imports=0 :: imported_by=1
 manifest.json :: imports=0 :: imported_by=1
-src/__codeyam_components.js :: imports=23 :: imported_by=1
+src/__codeyam_components.js :: imports=24 :: imported_by=1
 src/__codeyam_isolate.jsx :: imports=2 :: imported_by=1
 src/index.css :: imports=0 :: imported_by=1
 src/lib/components/AppBrand :: imports=0 :: imported_by=1
 src/lib/components/AppBrand/AppBrand.css :: imports=0 :: imported_by=1
 src/lib/components/Favicon/Favicon.css :: imports=0 :: imported_by=1
+src/lib/components/Favorites :: imports=0 :: imported_by=1
+src/lib/components/Favorites/Favorites.css :: imports=0 :: imported_by=1
 src/lib/components/HistoryRow :: imports=0 :: imported_by=1
 src/lib/components/HistoryRow/HistoryRow.css :: imports=0 :: imported_by=1
 src/lib/components/HistoryRow/index.js :: imports=1 :: imported_by=1
@@ -87,6 +91,9 @@ src/lib/components/LoadUrl :: imports=0 :: imported_by=1
 src/lib/components/LoadUrl/LoadUrl.css :: imports=0 :: imported_by=1
 src/lib/components/Search :: imports=0 :: imported_by=1
 src/lib/components/Search/Search.css :: imports=0 :: imported_by=1
+src/lib/components/SearchHint :: imports=0 :: imported_by=1
+src/lib/components/SearchHint/SearchHint.css :: imports=0 :: imported_by=1
+src/lib/components/SearchHint/SearchHint.jsx :: imports=1 :: imported_by=1
 src/lib/components/SearchResults :: imports=0 :: imported_by=1
 src/lib/components/SearchResults/SearchResults.css :: imports=0 :: imported_by=1
 src/lib/components/Settings :: imports=0 :: imported_by=1
@@ -131,6 +138,8 @@ src/__codeyam_component_scenarios.js :: imports=0 :: imported_by=0
 src/index.jsx :: imports=4 :: imported_by=0
 src/lib/components/AppBrand/index.js :: imports=1 :: imported_by=0
 src/lib/components/Favicon/index.js :: imports=1 :: imported_by=0
+src/lib/components/Favorites/Favorites.test.jsx :: imports=2 :: imported_by=0
+src/lib/components/Favorites/index.js :: imports=1 :: imported_by=0
 src/lib/components/HistoryRow/HistoryRow.test.jsx :: imports=1 :: imported_by=0
 src/lib/components/Icon/index.js :: imports=2 :: imported_by=0
 src/lib/components/LabelCollection/LabelCollection.test.jsx :: imports=2 :: imported_by=0
@@ -153,6 +162,7 @@ src/lib/components/LoadUrl/LoadUrl.test.jsx :: imports=1 :: imported_by=0
 src/lib/components/LoadUrl/index.js :: imports=1 :: imported_by=0
 src/lib/components/Search/Search.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/Search/index.js :: imports=1 :: imported_by=0
+src/lib/components/SearchHint/index.js :: imports=1 :: imported_by=0
 src/lib/components/SearchResults/SearchResults.test.jsx :: imports=3 :: imported_by=0
 src/lib/components/SearchResults/index.js :: imports=1 :: imported_by=0
 src/lib/components/Settings/Settings.test.jsx :: imports=2 :: imported_by=0
@@ -168,7 +178,7 @@ src/lib/components/UrlField/UrlField.test.jsx :: imports=1 :: imported_by=0
 src/lib/components/UrlField/index.js :: imports=1 :: imported_by=0
 src/lib/components/UrlLabel/UrlLabel.test.jsx :: imports=1 :: imported_by=0
 src/lib/components/UrlLabel/index.js :: imports=1 :: imported_by=0
-src/lib/components/index.js :: imports=22 :: imported_by=0
+src/lib/components/index.js :: imports=24 :: imported_by=0
 src/lib/hooks/useTheme.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/App/App.test.jsx :: imports=2 :: imported_by=0
 src/lib/pages/App/index.js :: imports=1 :: imported_by=0
@@ -198,6 +208,7 @@ src/lib/utils/importExport.test.js :: imports=1 :: imported_by=0
 src/lib/utils/index.js :: imports=2 :: imported_by=0
 src/lib/utils/loadLevel.test.js :: imports=1 :: imported_by=0
 src/lib/utils/processLoad.test.js :: imports=1 :: imported_by=0
+src/lib/utils/rankFavorites.test.js :: imports=1 :: imported_by=0
 src/lib/utils/searchNotesSnippet.test.js :: imports=1 :: imported_by=0
 src/lib/utils/segmentSearchResults.test.js :: imports=1 :: imported_by=0
 src/lib/utils/urlDetails.test.js :: imports=1 :: imported_by=0

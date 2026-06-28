@@ -20,3 +20,5 @@ export { Icon } from "./Icon";
 export { Triage } from "./Triage";
 export { Settings } from "./Settings";
 export { HistoryRow } from "./HistoryRow";
+export { Favorites } from "./Favorites";
+export { SearchHint } from "./SearchHint";

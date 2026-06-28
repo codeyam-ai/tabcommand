@@ -1,0 +1,48 @@
+/* Favorites: a compact, quiet sidebar section of the user's most-visited sites,
+   sitting just below the search hint. Styling mirrors the sidebar's muted
+   section-header + tidy favicon-row idiom (see SearchResults). */
+.Favorites {
+  margin: 48px 16px 12px;
+  text-align: left;
+}
+
+/* Section header mirrors the right-rail "Active Tabs" treatment: muted uppercase
+   mono with a hairline rule underneath (see Tabs-section-title). */
+.Favorites-header {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  border-bottom: 1px solid var(--border);
+}
+
+.Favorites-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  margin-bottom: 2px;
+  border-radius: var(--r-row);
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.Favorites-item:hover {
+  background-color: var(--c-raised);
+}
+
+.Favorites-item .Url-favicon,
+.Favorites-item .Url-favFallback {
+  flex-shrink: 0;
+}
+
+.Favorites-item-title {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}

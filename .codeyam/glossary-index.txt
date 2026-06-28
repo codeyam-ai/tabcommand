@@ -1,9 +1,10 @@
-# regenerated from glossary.json on 2026-06-27T23:56:43Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-28T10:40:52Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
 CodeyamIsolate :: src/__codeyam_isolate.jsx :: tags=
 Favicon :: src/lib/components/Favicon/Favicon.jsx :: tags=
+Favorites :: src/lib/components/Favorites/Favorites.jsx :: tags=
 History :: src/lib/pages/History/History.jsx :: tags= :: test=src/lib/pages/History/History.test.jsx
 HistoryRow :: src/lib/components/HistoryRow/HistoryRow.jsx :: tags= :: test=src/lib/components/HistoryRow/HistoryRow.test.jsx
 Icon :: src/lib/components/Icon/Icon.jsx :: tags=
@@ -21,6 +22,7 @@ LoadPerTabNote :: src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx :: tags=
 LoadProcesses :: src/lib/components/LoadProcesses/LoadProcesses.jsx :: tags= :: test=src/lib/components/LoadProcesses/LoadProcesses.test.jsx
 LoadUrl :: src/lib/components/LoadUrl/LoadUrl.jsx :: tags= :: test=src/lib/components/LoadUrl/LoadUrl.test.jsx
 Search :: src/lib/components/Search/Search.jsx :: tags= :: test=src/lib/components/Search/Search.test.jsx
+SearchHint :: src/lib/components/SearchHint/SearchHint.jsx :: tags=
 SearchResults :: src/lib/components/SearchResults/SearchResults.jsx :: tags= :: test=src/lib/components/SearchResults/SearchResults.test.jsx
 Settings :: src/lib/components/Settings/Settings.jsx :: tags=
 SettingsSegment :: src/lib/components/Settings/SettingsSegment.jsx :: tags=
@@ -81,6 +83,7 @@ pollSystemLoad :: service_worker.js :: tags= :: test=service_worker.test.js
 processProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes,metrics :: test=service_worker.test.js
 processesApiAvailable :: service_worker.js :: tags= :: test=service_worker.test.js
 pruneAutoClosed :: service_worker.js :: tags= :: test=service_worker.test.js
+rankFavorites :: src/lib/utils/rankFavorites.js :: tags= :: test=src/lib/utils/rankFavorites.test.js
 removeUrlFromLabel :: src/lib/utils/urlDetails.js :: tags= :: test=src/lib/utils/urlDetails.test.js
 resolveIsolationProps :: src/__codeyam_isolate.jsx :: tags=
 resolveLabelUrls :: src/lib/utils/importExport.js :: tags= :: test=src/lib/utils/importExport.test.js
@@ -98,5 +101,6 @@ update :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=servi
 updateActiveTabs :: service_worker.js :: tags=worker,ported-verbatim,tabs,storage :: test=service_worker.test.js
 updateTotals :: service_worker.js :: tags=worker,ported-verbatim,metrics :: test=service_worker.test.js
 urlUpdates :: service_worker.js :: tags=worker,ported-verbatim,metrics :: test=service_worker.test.js
+usableTitle :: src/lib/utils/rankFavorites.js :: tags= :: test=src/lib/utils/rankFavorites.test.js
 useTheme :: src/lib/hooks/useTheme.js :: tags= :: test=src/lib/hooks/useTheme.test.jsx
 validTab :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
