@@ -1,6 +1,5 @@
 ---
 name: codeyam-onboard
-autoApprove: true
 description: Onboard a project to codeyam-editor — greenfield, legacy migration, or repair. Drives end-to-end autonomously and writes an onboarding report.
 ---
 

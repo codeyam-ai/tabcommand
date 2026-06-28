@@ -1,26 +1,65 @@
 ---
 name: codeyam-audit
-autoApprove: true
+user-invocable: true
+disable-model-invocation: false
 description: |
-  Finalize the current branch outside the editor workflow. Lists any
-  deferred-finalize commits since the last successful finalize, runs
-  `codeyam-editor editor session-finalize`, and on failure groups the
-  audit findings by the deferred commit(s) that introduced them.
-  Use when you have accumulated deferred commits, did manual commits
-  outside the workflow, or just want to audit the current branch.
+  Bring the current branch into full codeyam alignment, finalize it
+  whole-repo, clean it for presentation, and drive it to merge-ready —
+  aggressive on deterministic drift, supervised on every judgment call,
+  with push / PR / merge human-gated. Idempotent and resumable. Also
+  offers a cheap report-only mode (what's misaligned + deferred-commit
+  attribution, touching nothing). Use it when you have accumulated
+  deferred commits, did manual commits outside the workflow, or just
+  want to align + finalize whatever HEAD currently is.
 ---
 
-# Audit and Finalize the Current Branch
+# Align, finalize, present, and drive the current branch to merge-ready
 
-Run `codeyam-editor editor session-finalize` on the current branch and surface deferred-commit attribution on failure.
+This skill is a thin, stable entry point. Its full operating procedure —
+the supported-stack gate, the ORIENT → align → finalize → presentability →
+merge-ready sequence, and the inlined gotchas — lives in the
+version-controlled sibling procedure so it can evolve through normal review
+instead of silent self-edits:
 
-## Critical Rule: Audit Only — Never Apply Fixes Autonomously
+**Read `.claude/skills/codeyam-audit/finalize-procedure.md` now and follow
+it.** Everything below is the contract; the procedure is the body.
 
-This skill **runs** the finalize and **reports** what it found. It does NOT silently fix audit failures. When findings appear, present them and stop — the user (or a follow-up workflow loop) decides how to fix.
+## Contract
 
-## Workflow
+- **Operate on the current branch** by default (the procedure's ORIENT step
+  reads `git branch --show-current`). The user need not name it.
+- **Aggressive on deterministic drift; supervised on judgment.** Apply the
+  mechanical alignment fixes autonomously (reconcile registry, refresh
+  tests / evidence / descriptions, sync capture scripts, refresh
+  screenshots, refresh the import graph). **Stop and ask** on every judgment
+  call: a bulk unregistered-entity wall (`SOURCE_HAS_UNREGISTERED`), an
+  ambiguous classification (fixture vs real, testable vs untestable), and
+  anything that deletes or rewrites content. No unsupervised
+  mass-registration or mass-deletion.
+- **Supported-stack gate — sync or bail loud, never half-sync.** Read
+  `.codeyam/stack.json` first. For a supported stack, drive to full sync.
+  For one the engine does not yet support, fail loud and actionable
+  (`/codeyam-audit does not yet fully support stack 'X'. Supported: ...`)
+  rather than reporting a partially-aligned repo as clean.
+- **Idempotent and resumable — relentless toward done.** Every run makes
+  progress and ends **either** at merge-ready **or** at a specific,
+  answerable question whose answer advances the next run. It never
+  bails-and-abandons mid-way and never leaves the repo half-aligned.
+- **Never rebase, amend, or force-push.** Assume the branch may be shared;
+  integrate a moved primary branch by **merging** it in. This is the one
+  unrecoverable rule.
+- **A green Fast-Commit session is NOT merge-ready.** The per-step gate is
+  diff-scoped; `session-finalize` is whole-repo-scoped. Trust
+  `verify-full-finalize`, not the session's green steps.
+- **Outward actions are human-gated.** Pushing the branch, opening the PR,
+  and merging the PR each require explicit user confirmation. Red CI is
+  never waved off — root-cause it from its failing-job log before any
+  "flake/infra" label (procedure step 8a).
+- **Report-only mode** is the explicit cheap path: list what's misaligned +
+  the deferred-commit attribution and stop, touching nothing (procedure's
+  "Report-only mode" section).
 
-### Step 1 — Preflight
+## Preflight
 
 Confirm the project is initialized for codeyam-editor:
 
@@ -31,77 +70,12 @@ codeyam-editor editor config-show >/dev/null 2>&1 || {
 }
 ```
 
-If the check fails, tell the user to run `/codeyam-onboard` and stop. Do not proceed.
+If it fails, tell the user to run `/codeyam-onboard` and stop.
 
-### Step 2 — Summarize the debt
+## Run
 
-Run `codeyam-editor editor finalize-debt show --format json` and parse the result. The JSON shape is:
-
-```json
-{
-  "lastFinalizedSha": "9ab37c2",
-  "deferred": [
-    {"sha": "abc1234...", "shortSha": "abc1234", "subject": "feat: foo", "deferredAt": "2026-05-20T08:14:00Z"}
-  ]
-}
-```
-
-Then present via `AskUserQuestion`:
-
-- **Zero deferred** — option list: `[Run finalize anyway (~7 min), Cancel]`. Question text: "Branch has no deferred commits. Run a full finalize anyway?"
-- **Some deferred** — option list: `[Finalize now (~7 min), Cancel]`. Question text names the count and lists each `shortSha — "subject"` line so the user sees what's about to be cleared.
-
-If the user picks Cancel, stop. Do not advance.
-
-### Step 3 — Run finalize
-
-If the user confirmed:
-
-```bash
-codeyam-editor editor pre-commit-sync
-```
-
-If `pre-commit-sync` fails (queue tenure unhealthy, remote ahead, etc.), surface the exact error verbatim and stop — do **not** retry or work around the bail. Every queue bail names its own recovery command; quote that command to the user.
-
-Then run:
-
-```bash
-codeyam-editor editor session-finalize 2>&1 | tee /tmp/codeyam-audit-finalize.log
-```
-
-### Step 4 — Report
-
-**On success** (exit 0): tell the user the finalize passed and the deferred-debt index has been cleared. If commits were deferred, note that the trailers remain in commit history as audit trail (visible via `git log --grep="^Codeyam-Finalize: deferred"`).
-
-**On failure** (non-zero exit): re-run `codeyam-editor editor audit --format json` to get the structured failure list with the new `attribution[]` field. The shape:
-
-```json
-{
-  "passed": false,
-  "failures": [{"id": "REGISTRY_TEST_NOT_WIRED", "items": ["..."], "fixCommand": "..."}],
-  "attribution": [{"id": "REGISTRY_TEST_NOT_WIRED", "item": "...", "introducedIn": "abc1234...", "causedByHead": true, "causedByForeignClone": false}]
-}
-```
-
-Intersect each `attribution[].introducedIn` SHA with the `deferred[].sha` list from Step 2. Group findings by attributed deferred commit and present:
-
-> Finalize failed: N findings across M invariants.
->
-> - **abc1234** ("feat: foo") — 3 findings (REGISTRY_TEST_NOT_WIRED)
-> - **def5678** ("feat: bar") — 4 findings (CANONICAL_JSON_FORM)
-> - **Unattributed** — 1 finding (pre-existing or no deferred commit touched it)
->
-> Suggested fixes follow each finding's `fixCommand` in the audit JSON.
-
-End the turn. The user (or another workflow / skill) follows up to apply fixes.
-
-### Step 5 — Re-invocation
-
-The skill is idempotent. After the user fixes a failure, they re-invoke `/codeyam-audit` to re-run the finalize. There is no skill-internal loop — the user explicitly decides when to retry.
-
-## What NOT to do
-
-- **Do not edit source to "fix" audit findings autonomously.** Report and stop; let the user direct the fix.
-- **Do not bypass queue-tenure bails.** Every bail names its recovery command. Quote it verbatim and stop.
-- **Do not skip Step 1's preflight.** A project without `.codeyam/` cannot run finalize; the friendly redirect to `/codeyam-onboard` saves a confusing error.
-- **Do not invoke `session-finalize` from inside the editor workflow.** Use the workflow's own Finalize step there. This skill is the explicit "outside the workflow" entry point.
+Work through `.claude/skills/codeyam-audit/finalize-procedure.md` top to
+bottom. Then run its final **Reflect & self-improve** step: route durable
+lessons to a `memory/` file and structural gaps to a proposed plan/diff
+against the procedure file — never a silent edit to this `SKILL.md`. If the
+run was clean, say "nothing new learned" and write nothing.

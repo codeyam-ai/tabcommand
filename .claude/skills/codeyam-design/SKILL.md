@@ -1,6 +1,5 @@
 ---
 name: codeyam-design
-autoApprove: true
 description: |
   Inline design-exploration helper. Reads the user's product description
   and any uploaded design assets, derives a brief-specific design read,

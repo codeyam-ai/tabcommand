@@ -1,6 +1,5 @@
 ---
 name: codeyam-plan
-autoApprove: true
 description: |
   Plan a new feature or bug fix. Asks what you want to build/fix, investigates
   the codebase for context, writes a structured plan to .codeyam/plans/, and
@@ -26,7 +25,7 @@ The only files you may write are:
 - `.codeyam/plans/<slug>.md` (the plan itself)
 - `git add` / `git commit` of that plan file (and **only** that plan file — never `git add -A`, never a bare `git commit` that would sweep in unrelated staged work). This is the plan-creation commit specifically — it must contain only the plan file. The feature-commit step at the end of the editor workflow has a different rule: it auto-commits all non-gitignored leftovers.
 
-The one read-only CLI call this skill makes is `codeyam-editor editor last-plan-prefix` in Step 2 (to suggest the most recent prefix). It prints to stdout and changes nothing — it is not an "implementation" command.
+The one read-only CLI call this skill makes is `codeyam-editor editor plan-prefixes` in Step 2 (to offer every prefix used before as a one-click option). It prints to stdout and changes nothing — it is not an "implementation" command.
 
 ## Workflow
 
@@ -46,29 +45,21 @@ Take the user's response as the plan basis and move to the name-prefix step (Ste
 
 ### Step 2: Ask about a name prefix
 
-A prefix tags the plan's filename and title by author or work item — developer initials (`jc`), a feature code (`auth`), or a ticket number (`PROJ-123`). Default the suggestion to whatever the most recent plan used, then ask:
+A prefix tags the plan's filename and title by author or work item — developer initials (`jc`), a feature code (`auth`), or a ticket number (`PROJ-123`). The question is **always** a one-click `AskUserQuestion` menu, so the user never has to type a prefix to answer it:
 
-1. Run `codeyam-editor editor last-plan-prefix` and capture its trimmed stdout as `lastPrefix`. It prints the prefix of the single most-recently-created plan (scanning both the queue and `.codeyam/plans/completed/`), or nothing when that newest plan has no prefix — or there are no plans yet.
+1. Run `codeyam-editor editor plan-prefixes` and capture its trimmed, newline-delimited stdout as `priorPrefixes` (an ordered list, most-recent-first). It prints every distinct prefix any plan has used (scanning both the queue and `.codeyam/plans/completed/`), de-duplicated, or nothing when no plan carries a prefix — or there are no plans yet. The first line equals the legacy `last-plan-prefix` output.
 
-2. **If `lastPrefix` is non-empty**, use `AskUserQuestion` — this is the one place in this skill where the structured menu is right, because there's now a concrete prior prefix to anchor the options:
+2. **Always** use `AskUserQuestion` — there is no plain-text fallback branch:
    - Question: "Would you like to prefix the plan's filename and title?"
-   - Option 1 (Recommended): label = the `lastPrefix` value (e.g. `improve32`), description = "Reuse the prefix from your most recent plan."
-   - Option 2: label = "None", description = "No prefix — derive the filename and title from the description alone."
-   - The auto-injected **Other** field lets the user type a different prefix.
+   - One option per entry in `priorPrefixes`, in order, **capped at the 3 most-recent** (an `AskUserQuestion` menu allows at most 4 options and the last slot is reserved for "None"). Mark the **first** option "(Recommended)" with description = "Reuse the prefix from your most recent plan."; give the rest description = "Reuse a prefix you've used before."
+   - A final option: label = "None", description = "No prefix — derive the filename and title from the description alone."
+   - The auto-injected **Other** field lets the user type any prefix not shown (including one beyond the 3-most-recent cap).
 
-   Interpret the answer: Option 1 → use `lastPrefix`; "None" → no prefix; an **Other** reply → the trimmed typed value as the prefix.
+   When `priorPrefixes` is empty, the menu still renders with just the "None" option (plus the **Other** field) — so the question is always answerable with a single click and the user is never forced to type.
 
-3. **If `lastPrefix` is empty** (no plans, or the newest plan has no prefix), do **NOT** use the AskUserQuestion tool — same reason as Step 1: with no prior prefix to suggest, a prefix is just freeform text, not a fixed multiple-choice menu. Output the prompt below as plain assistant text and stop, waiting for the user's reply in the next turn:
+   Interpret the answer: a listed prefix → that prefix; "None" → no prefix; an **Other** reply → the trimmed typed value as the prefix.
 
-   > **Would you like to prefix the plan's filename and title?**
-   >
-   > For example your developer initials (`jc`), a feature code (`auth`), or a
-   > ticket number (`PROJ-123`). Reply with the prefix to use, or reply `no` to
-   > skip.
-
-   Interpret the reply: a negative or empty reply (`no`, `none`, `skip`, or blank) → **no prefix**, proceed with today's behavior; any other reply → the trimmed text as the **prefix**.
-
-4. In **every** branch, strip any double-quote (`"`) characters from the resulting prefix before carrying it into the "Write the plan file" step (Step 5), so both the `title:` and the new `prefix:` frontmatter lines stay valid YAML.
+3. Strip any double-quote (`"`) characters from the resulting prefix before carrying it into the "Write the plan file" step (Step 5), so both the `title:` and the new `prefix:` frontmatter lines stay valid YAML.
 
 Then move on to investigation (Step 3).
 
@@ -156,11 +147,13 @@ Create `.codeyam/plans/<slug>.md` using the Write tool.
 
 **Slug:** Derive from the title — lowercase, alphanumeric + hyphens only. Example: "Session Recovery UX" becomes `session-recovery-ux.md`.
 
-- **With a name prefix** (from Step 2): prepend the slugified prefix —
-  `<slugify(prefix)>-<slugify(base title)>`. Slugify both halves the same way
-  (lowercase, alphanumeric + hyphens), so punctuation in the prefix — including
-  the title's colon separator — is normalized away. Example: prefix `PROJ-123` +
-  title "Dark Mode Toggle" → `proj-123-dark-mode-toggle.md`.
+- **With a name prefix** (from Step 2): prepend the slugified prefix joined to
+  the base title with a **double hyphen** (`--`) —
+  `<slugify(prefix)>--<slugify(base title)>`. Slugify each half the same way
+  (lowercase, alphanumeric + hyphens) and join the two halves with `--`, so the
+  prefix boundary stays visible in the filename even when the prefix itself
+  contains a single hyphen. Example: prefix `PROJ-123` + title "Dark Mode
+  Toggle" → `proj-123--dark-mode-toggle.md`.
 - **Without a prefix**: derive from the title exactly as above. Example: title
   "Dark Mode Toggle" → `dark-mode-toggle.md`.
 
@@ -216,21 +209,24 @@ and Explore steps to fast-path through to Confirm.
 
 **Frontmatter fields:**
 - `title` (required) — Feature name. Becomes the `--feature` value in the editor.
-  **With a name prefix** (from Step 2), write it as `"<prefix>: <base title>"`:
+  **With a name prefix** (from Step 2), write it as `"<prefix> -- <base title>"`:
   the prefix verbatim (as the user typed it, with any double-quotes stripped), a
-  colon, a single space, then the base title. The prefix is kept readable here —
-  only the filename slug normalizes it. Example: prefix `PROJ-123` + "Dark Mode
-  Toggle" → `title: "PROJ-123: Dark Mode Toggle"`. **Without a prefix**, it's
-  just the feature name, e.g. `title: "Dark Mode Toggle"`.
+  space, a double hyphen, a space, then the base title. The ` -- ` delimiter
+  makes the prefix visually distinct from the title (far harder to miss than a
+  bare colon). The prefix is kept readable here — only the filename slug
+  normalizes it. Example: prefix `PROJ-123` + "Dark Mode Toggle" →
+  `title: "PROJ-123 -- Dark Mode Toggle"`. **Without a prefix**, it's just the
+  feature name, e.g. `title: "Dark Mode Toggle"`.
 - `mode` (required) — `"ui"` or `"backend"`. Default to `"ui"` unless the change is purely backend.
 - `createdAt` (required) — ISO 8601 UTC timestamp of when the plan was created.
 - `source` (required) — Always `"manual"` for this skill.
 - `prefix` (optional) — The author/work-item prefix, written **verbatim** (any
   double-quotes stripped) when Step 2 produced one. This is the canonical record
-  of the prefix — `editor last-plan-prefix` reads it back to seed the next
-  plan's default. The title's colon is NOT a reliable delimiter (many titles
-  legitimately contain a colon), which is why the prefix is stored explicitly
-  here. **Omit the line entirely when no prefix was chosen.**
+  of the prefix — `editor plan-prefixes` (and `editor last-plan-prefix`) read it
+  back to seed the next plan's options. The title's ` -- ` separator is NOT
+  parsed to recover the prefix (a title could legitimately contain ` -- `),
+  which is why the prefix is stored explicitly here. **Omit the line entirely
+  when no prefix was chosen.**
 - `order` (optional) — Positive integer. Controls queue position in the Plan tab.
   Missing/tied plans fall back to ascending `createdAt` (first-created first).
   Usually set via the UI drag or `editor plan-reorder`, not written by hand.
@@ -241,12 +237,12 @@ and Explore steps to fast-path through to Confirm.
   (`dependsOn: foo`) is also accepted and parsed as a single-element list.
 
 **Worked example (prefixed):** prefix `PROJ-123` + title "Dark Mode Toggle"
-produces these coupled lines / paths — note the title's colon and the slug's
-lack of one:
+produces these coupled lines / paths — note the ` -- ` in the title and the
+`--` join in the slug:
 
 ```
-file:   .codeyam/plans/proj-123-dark-mode-toggle.md
-title:  "PROJ-123: Dark Mode Toggle"
+file:   .codeyam/plans/proj-123--dark-mode-toggle.md
+title:  "PROJ-123 -- Dark Mode Toggle"
 prefix: "PROJ-123"
 ```
 

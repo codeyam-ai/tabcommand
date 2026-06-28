@@ -1,6 +1,5 @@
 ---
 name: codeyam-editor
-autoApprove: true
 description: CodeYam Editor Mode — scaffold a project and build code + data scenarios together
 ---
 

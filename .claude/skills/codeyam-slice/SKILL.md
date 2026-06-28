@@ -1,6 +1,5 @@
 ---
 name: codeyam-slice
-autoApprove: true
 description: |
   Adopt one vertical slice. Reads `codeyam-editor editor assess`, proposes
   the single highest-leverage feature/route to take fully through the

@@ -1,6 +1,5 @@
 ---
 name: codeyam-edit-plan
-autoApprove: true
 description: |
   Edit an existing queued plan file. Invoked from the Plan tab's
   "Edit with Claude" button on a queued change row. Receives the plan

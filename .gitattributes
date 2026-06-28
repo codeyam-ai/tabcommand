@@ -9,3 +9,4 @@
 .codeyam/state/provider-auth-verdict.json merge=ours
 .codeyam/mocks/catalog.json merge=ours
 .codeyam/state/session-results-snapshot.json merge=ours
+.codeyam/scenarios/screenshots/*.png.hash merge=ours

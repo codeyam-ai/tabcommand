@@ -1,6 +1,5 @@
 ---
 name: codeyam-prototype
-autoApprove: true
 description: |
   Drive a full prototyping session. Ask what the user wants to build, then
   edit any files needed to bring it to life — components, scenarios, even
