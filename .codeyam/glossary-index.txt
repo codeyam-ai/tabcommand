@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-28T14:44:58Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-28T16:03:45Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js

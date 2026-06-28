@@ -218,7 +218,7 @@
     "testFile": "src/lib/components/SearchResults/SearchResults.test.jsx"
   },
   {
-    "description": "Sidebar gear popover of preferences. Always-visible controls: a Theme Day/Night/System segmented control writing the themePreference storage key [read by useTheme], an Auto-close-after slider, and a Group-columns 2/3/4 segmented control persisted to the settings storage key. The 'Warn at' and 'Heavy tab >=' load sliders render ONLY when per-tab data exists [loadDataSource === 'processes']; on stable Chrome they hide. Anchored via fixed positioning so the sidebar's overflow cannot clip it. Both segmented controls compose the shared SettingsSegment sub-component.",
+    "description": "Sidebar gear popover of preferences. Always-visible controls: a Theme Day/Night/System segmented control writing the themePreference storage key [read by useTheme], an Auto-close-after slider, and a Group-columns 2/3/4 segmented control persisted to the settings storage key. The Warn at and Heavy tab >= load sliders render ONLY when per-tab data exists [loadDataSource === processes]; on stable Chrome they hide. The gear sits at the top of the sidebar header, so the panel opens DOWNWARD and is centered on the gear, clamped into the viewport; it is rendered through a portal to document.body so the header transform cannot become the containing block for its fixed positioning [which would break placement and let content paint over it]. Both segmented controls compose the shared SettingsSegment sub-component.",
     "filePath": "src/lib/components/Settings/Settings.jsx",
     "name": "Settings",
     "scenarios": [

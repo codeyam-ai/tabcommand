@@ -847,11 +847,47 @@
       "runner": "tests"
     },
     {
+      "description": "The gear sits at the top of the sidebar, so the panel opens DOWNWARD: its top edge anchors 6px below the gear's bottom.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › anchors the panel top just below the gear",
+      "line": 139,
+      "registeredAt": "2026-06-28T15:45:17Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The panel is centered on the gear's horizontal midpoint: gear center is left + width/2 = 315; subtracting half the panel width (107) gives 208.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › centers the panel on the gear horizontally",
+      "line": 146,
+      "registeredAt": "2026-06-28T15:45:17Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A gear near the left edge would push a centered panel off-screen; the left guard clamps the panel to a minimum of 8px from the viewport's left edge.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › clamps the panel to the left viewport edge",
+      "line": 153,
+      "registeredAt": "2026-06-28T15:45:17Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A gear near the right edge would overflow; the right guard clamps the panel so its right edge stays 8px inside the viewport: innerWidth - PANEL_WIDTH - 8.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › clamps the panel to the right viewport edge",
+      "line": 161,
+      "registeredAt": "2026-06-28T15:45:17Z",
+      "runner": "tests"
+    },
+    {
       "description": "Defaults to System (pressed) when no preference is stored.",
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
       "key": "Settings › defaults the theme control to System when no preference is stored",
-      "line": 78,
+      "line": 102,
       "registeredAt": "2026-06-27T23:53:19Z",
       "runner": "tests"
     },
@@ -860,7 +896,7 @@
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
       "key": "Settings › hides the two load sliders before the marker is known",
-      "line": 55,
+      "line": 79,
       "registeredAt": "2026-06-27T21:53:39Z",
       "runner": "tests"
     },
@@ -869,7 +905,7 @@
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
       "key": "Settings › hides the two load sliders on stable Chrome system source",
-      "line": 43,
+      "line": 67,
       "registeredAt": "2026-06-27T21:53:39Z",
       "runner": "tests"
     },
@@ -878,7 +914,7 @@
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
       "key": "Settings › persists the selected theme preference to storage",
-      "line": 97,
+      "line": 121,
       "registeredAt": "2026-06-27T23:53:19Z",
       "runner": "tests"
     },
@@ -887,7 +923,7 @@
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
       "key": "Settings › reflects the stored theme preference",
-      "line": 87,
+      "line": 111,
       "registeredAt": "2026-06-27T23:53:19Z",
       "runner": "tests"
     },
@@ -896,8 +932,17 @@
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
       "key": "Settings › renders the Day/Night/System theme control regardless of loadDataSource",
-      "line": 66,
+      "line": 90,
       "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The panel renders through a portal to document.body so the sidebar header's transform can't become its containing block (which would break fixed positioning) — it must NOT be nested inside the .Settings wrapper.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › renders the panel in a portal outside the Settings wrapper",
+      "line": 170,
+      "registeredAt": "2026-06-28T15:45:17Z",
       "runner": "tests"
     },
     {
@@ -905,7 +950,7 @@
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
       "key": "Settings › shows all three sliders on the processes source",
-      "line": 31,
+      "line": 55,
       "registeredAt": "2026-06-27T21:53:39Z",
       "runner": "tests"
     },

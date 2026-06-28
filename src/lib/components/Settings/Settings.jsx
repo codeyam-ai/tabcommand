@@ -1,6 +1,7 @@
 import './Settings.css';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Chrome } from '../../utils/Chrome';
 import { Icon } from '../Icon';
 import SettingsSegment from './SettingsSegment';
@@ -59,15 +60,23 @@ const Settings = () => {
   }, []);
 
   // Anchor the panel to the gear via fixed positioning so the sidebar's
-  // overflow (a scroll container) can't clip it. Right-align to the gear, then
-  // clamp into the viewport.
+  // overflow (a scroll container) can't clip it. These are viewport coordinates
+  // (from getBoundingClientRect), so the panel is rendered through a portal to
+  // document.body (see render) — escaping the sidebar header's translateY
+  // transform, which would otherwise become the containing block for the fixed
+  // panel and apply these coords relative to the header instead of the viewport.
+  // The gear lives at the very top of the sidebar header, so the panel opens
+  // downward (the only direction with room) and is centered on the button's
+  // horizontal midpoint, then clamped into the viewport so it never overflows
+  // the left or right edge.
   const toggleOpen = () => {
     setOpen((o) => {
       if (!o && buttonRef.current) {
         const r = buttonRef.current.getBoundingClientRect();
+        const left = r.left + r.width / 2 - PANEL_WIDTH / 2;
         setCoords({
           top: r.bottom + 6,
-          left: Math.max(8, r.right - PANEL_WIDTH),
+          left: Math.max(8, Math.min(left, window.innerWidth - PANEL_WIDTH - 8)),
         });
       }
       return !o;
@@ -99,7 +108,7 @@ const Settings = () => {
         <Icon name="settings" size={15} />
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
           className="Settings-panel"
           style={{ top: coords.top, left: coords.left }}
@@ -167,7 +176,8 @@ const Settings = () => {
               options={[2, 3, 4].map((n) => ({ value: n, label: n }))}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

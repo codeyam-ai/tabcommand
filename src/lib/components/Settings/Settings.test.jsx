@@ -14,6 +14,30 @@ const openPanel = async () => {
   fireEvent.click(screen.getByLabelText('Load settings'));
 };
 
+// Width of the popover panel, mirrored from Settings.jsx's PANEL_WIDTH — the
+// anchor math centers a panel of this width on the gear.
+const PANEL_WIDTH = 214;
+
+// Open the panel with a stubbed gear rect + viewport width so the anchor math
+// (which reads getBoundingClientRect / window.innerWidth, both zero in jsdom by
+// default) runs against known geometry. Returns the portaled panel element.
+const openPanelWithRect = async ({ left, width, top, bottom }, innerWidth = 1440) => {
+  installChromeShim();
+  render(<Settings />);
+  await act(async () => { await Promise.resolve(); });
+  const button = screen.getByLabelText('Load settings');
+  button.getBoundingClientRect = () => ({
+    left, width, top, bottom,
+    right: left + width,
+    height: bottom - top,
+    x: left, y: top,
+    toJSON: () => ({}),
+  });
+  Object.defineProperty(window, 'innerWidth', { value: innerWidth, configurable: true, writable: true });
+  fireEvent.click(button);
+  return document.querySelector('.Settings-panel');
+};
+
 // The gear expands a panel of sliders. "Warn at" and "Heavy tab ≥" are per-tab
 // controls, so they show ONLY on the 'processes' loadDataSource (Chrome's Dev
 // channel). "Auto-close after" is independent of per-tab data and always shows.
@@ -108,5 +132,45 @@ describe('Settings', () => {
         resolve();
       })
     );
+  });
+
+  // The gear sits at the top of the sidebar, so the panel opens DOWNWARD: its
+  // top edge anchors 6px below the gear's bottom.
+  it('anchors the panel top just below the gear', async () => {
+    const panel = await openPanelWithRect({ left: 300, width: 30, top: 50, bottom: 80 });
+    expect(panel.style.top).toBe('86px'); // bottom (80) + 6
+  });
+
+  // The panel is centered on the gear's horizontal midpoint: gear center is
+  // left + width/2 = 315; subtracting half the panel width (107) gives 208.
+  it('centers the panel on the gear horizontally', async () => {
+    const panel = await openPanelWithRect({ left: 300, width: 30, top: 50, bottom: 80 });
+    expect(panel.style.left).toBe('208px'); // 300 + 15 - 107
+  });
+
+  // A gear near the left edge would push a centered panel off-screen; the left
+  // guard clamps the panel to a minimum of 8px from the viewport's left edge.
+  it('clamps the panel to the left viewport edge', async () => {
+    const panel = await openPanelWithRect({ left: 5, width: 30, top: 50, bottom: 80 });
+    // 5 + 15 - 107 = -87, clamped up to 8.
+    expect(panel.style.left).toBe('8px');
+  });
+
+  // A gear near the right edge would overflow; the right guard clamps the panel
+  // so its right edge stays 8px inside the viewport: innerWidth - PANEL_WIDTH - 8.
+  it('clamps the panel to the right viewport edge', async () => {
+    const panel = await openPanelWithRect({ left: 1400, width: 30, top: 50, bottom: 80 }, 1440);
+    // 1400 + 15 - 107 = 1308, clamped down to 1440 - 214 - 8 = 1218.
+    expect(panel.style.left).toBe(`${1440 - PANEL_WIDTH - 8}px`);
+  });
+
+  // The panel renders through a portal to document.body so the sidebar header's
+  // transform can't become its containing block (which would break fixed
+  // positioning) — it must NOT be nested inside the .Settings wrapper.
+  it('renders the panel in a portal outside the Settings wrapper', async () => {
+    const panel = await openPanelWithRect({ left: 300, width: 30, top: 50, bottom: 80 });
+    expect(panel).not.toBeNull();
+    expect(panel.closest('.Settings')).toBeNull();
+    expect(panel.parentElement).toBe(document.body);
   });
 });

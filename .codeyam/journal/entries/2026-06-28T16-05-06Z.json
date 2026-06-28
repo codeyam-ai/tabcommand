@@ -1,0 +1,135 @@
+{
+  "timestamp": "2026-06-28T16:05:06Z",
+  "title": "Settings Popup \u2014 Open Below & Center On Gear",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe sidebar Settings popover currently opens **downward** from the gear button, so it overlaps and hides the Search input and the first tab group below it. It is also **left-clamped** to the gear's right edge, so it reads as left-aligned to the button rather than centered. This change flips the panel to open **upward** \u2014 fully visible above the search input and groups \u2014 and horizontally **centers** it on the gear so the button sits directly under the middle of the popover.\n\n## Key Decisions\n\n- **Anchor the panel's bottom edge above the button, not its top edge below it.** The current code sets `top: r.bottom + 6`, which grows the panel downward over the search field. Switching to a `bottom` anchor (`bottom: window.innerHeight - r.top + 6`) makes the panel grow upward from just above the gear. Using `bottom` rather than computing `top - panelHeight` avoids needing to measure the panel's rendered height (which varies because the two per-tab sliders are conditionally rendered) \u2014 the browser lays it out upward automatically and it stays fully visible.\n- **Center horizontally on the gear instead of right-aligning.** Replace `left: Math.max(8, r.right - PANEL_WIDTH)` with `left: r.left + r.width / 2 - PANEL_WIDTH / 2`, so the button's horizontal center matches the panel's center. Keep a viewport clamp so it never runs off the left/right edge.\n- **Keep `position: fixed`.** Fixed positioning is still required so the sidebar's scroll/overflow container can't clip the popover; only the anchor edges change.\n\n## Implementation\n\n### 1. Compute an upward, centered anchor when opening\n\n**File**: `src/lib/components/Settings/Settings.jsx`\n\nIn `toggleOpen` (the `getBoundingClientRect` block), change the `setCoords` call so the panel anchors above and centered on the gear:\n\n- Replace the `top`/`left` computation with a `bottom`/`left` pair:\n  - `bottom: window.innerHeight - r.top + 6` \u2014 anchors the panel's bottom edge 6px above the top of the gear button so it opens upward.\n  - `left: r.left + r.width / 2 - PANEL_WIDTH / 2` \u2014 centers the panel on the button's horizontal midpoint.\n  - Clamp `left` into the viewport with both a left and right guard, e.g. `Math.max(8, Math.min(left, window.innerWidth - PANEL_WIDTH - 8))`, so the centered panel never overflows either edge on a narrow popup.\n- Update the `coords` state shape from `{ top, left }` to `{ bottom, left }` (initial state at the top of the component and the `useState` default).\n\n### 2. Apply the new anchor edges to the panel style\n\n**File**: `src/lib/components/Settings/Settings.jsx`\n\nUpdate the inline `style` on the `.Settings-panel` div (currently `style={{ top: coords.top, left: coords.left }}`) to use the bottom anchor: `style={{ bottom: coords.bottom, left: coords.left }}`. Since `.Settings-panel` is `position: fixed`, `bottom` is measured from the viewport bottom and the panel grows upward from there.\n\n### 3. Update the explanatory comment\n\n**File**: `src/lib/components/Settings/Settings.jsx`\n\nRevise the comment above `toggleOpen` (lines ~61\u201363) that currently says \"Right-align to the gear, then clamp into the viewport.\" to describe the new behavior: anchor the panel **above** the gear (open upward so it never covers the search input / groups) and **center** it on the button, then clamp into the viewport.\n\n## Reused existing code\n\n- `Settings` component from `src/lib/components/Settings/Settings.jsx` (glossary entry: `Settings`) \u2014 the popover whose anchor math is being changed. Note its docstring already states it is \"Anchored via fixed positioning so the sidebar's overflow cannot clip it.\"\n- `PANEL_WIDTH` constant (already defined in `Settings.jsx`) \u2014 reused for the centering offset.\n- `.Settings-panel` rule in `src/lib/components/Settings/Settings.css` \u2014 no CSS change needed; it already uses `position: fixed` with a fixed `width: 214px` matching `PANEL_WIDTH`, so switching the inline anchor from `top` to `bottom` is sufficient.\n- `Settings.test.jsx` \u2014 existing tests assert only which rows render, not positioning, so they continue to pass unchanged. No `getBoundingClientRect` is exercised in jsdom (it returns zeros), so the new math is purely additive at runtime.\n\n## Scenarios to Demonstrate\n\n- **Open with all three sliders (processes source)** \u2014 tallest panel; confirm it opens fully above the gear and the Search input below remains uncovered.\n- **Open with only Auto-close (stable Chrome / system source)** \u2014 shorter panel; confirm it still anchors just above the gear and stays centered.\n- **Centered alignment** \u2014 gear button sits directly beneath the horizontal center of the open popover.\n- **Edge case: gear near the right edge of the sidebar** \u2014 centered panel clamps inside the viewport's right edge rather than overflowing.\n- **Edge case: gear near the left edge** \u2014 left clamp keeps the panel \u2265 8px from the viewport's left edge.",
+  "description": "Repositioned the sidebar Settings popover so it opens downward from the gear and is horizontally centered on it (the gear sits at the very top of the sidebar header, so the planned upward open would have rendered off-screen), with viewport clamps so it never overflows either edge. The panel is now rendered through a portal to document.body: the sidebar header carries a translateY transform, which had been silently becoming the containing block for the panels position:fixed \u2014 mis-anchoring it and letting the group cards paint over it. The portal restores true viewport-relative positioning, fixes the centering, and makes the popover render on top of the search box and group cards. Added 5 unit tests covering the centered/clamped anchor math and the portal placement; recaptured the Settings component scenarios and added a Home app scenario showing the open popover over rich content.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/settings-popup-open-above-and-center-on-gear.md\t.codeyam/plans/completed/settings-popup-open-above-and-center-on-gear.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-settings-popover-open.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    },
+    {
+      "name": "Settings - Group Columns Selected",
+      "screenshotPath": "settings-group-columns-selected--desktop.png"
+    },
+    {
+      "name": "Settings - Day Mode Accent",
+      "screenshotPath": "settings-day-mode-accent--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 49,
+    "passed": 49,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 49,
+        "passed": 49
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 {
-  "feature": "favorites-dedup-and-frequency-ranking",
-  "maxStep": 25,
-  "version": 62,
-  "updatedAt": "2026-06-28T15:15:34.724650275+00:00"
+  "feature": "settings-popup-open-above-and-center-on-gear",
+  "maxStep": 23,
+  "version": 236,
+  "updatedAt": "2026-06-28T16:09:42.530032108+00:00"
 }
