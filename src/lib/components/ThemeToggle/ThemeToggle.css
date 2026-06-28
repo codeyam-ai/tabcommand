@@ -1,7 +1,7 @@
-/* Light/dark toggle, aligned with the logo at the right edge of the sidebar. */
+/* Light/dark toggle. The sidebar header owns the right inset via its
+   padding-right (16px) and pushes the tools right with space-between, so the
+   toggle carries no horizontal margins of its own. */
 .App-themeToggle {
-  margin-left: auto;
-  margin-right: 14px;
   flex-shrink: 0;
   width: 28px;
   height: 28px;

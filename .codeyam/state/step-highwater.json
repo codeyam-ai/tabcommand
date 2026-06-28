@@ -1,6 +1,6 @@
 {
-  "feature": "favorites-exclude-pinned-incognito-and-remove",
-  "maxStep": 25,
-  "version": 275,
-  "updatedAt": "2026-06-28T11:52:29.414167061+00:00"
+  "feature": "sidebar-header-align-tools-with-logo",
+  "maxStep": 23,
+  "version": 473,
+  "updatedAt": "2026-06-28T12:54:50.351894155+00:00"
 }

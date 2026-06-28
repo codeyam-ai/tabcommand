@@ -25,13 +25,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-right: 14px;
+  padding-right: 16px;
 }
 
+/* AppBrand is top-heavy (18px top vs 6px bottom padding), so the logo's glyph
+   center sits 6px below the header's box center. Translate the tools down by
+   that exact amount to line their midline up with the logo. A transform is used
+   instead of margin-top because align-items:center reabsorbs a top margin into
+   the centering, leaving the buttons short of the logo's midline. */
 .App-sidebar-tools {
   display: flex;
   align-items: center;
   gap: 8px;
+  transform: translateY(6px);
 }
 
 /* Clickable Browser Load gauge → Load page. Now lives at the bottom of the

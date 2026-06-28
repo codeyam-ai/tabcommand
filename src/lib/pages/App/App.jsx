@@ -97,8 +97,8 @@ const App = () => {
         <div className="App-sidebar-header">
           <AppBrand onClick={() => changePage(Pages.HOME)} />
           <div className="App-sidebar-tools">
-            {isHome && <Settings />}
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
+            {isHome && <Settings />}
           </div>
         </div>
         <Search />

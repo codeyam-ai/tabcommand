@@ -1,0 +1,271 @@
+{
+  "timestamp": "2026-06-28T12:52:53Z",
+  "title": "Sidebar Header — Align Tools With Logo & Equalize Side Spacing",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe top of the left sidebar looks messy: the Settings gear and ThemeToggle\nbuttons don't line up vertically with the `tabcommand` logo, and they sit much\nfarther from the sidebar's right edge than the logo sits from the left edge.\nFix the header so the buttons are vertically centered on the logo and the inset\non the right (sidebar right edge → rightmost button) equals the inset on the\nleft (sidebar left edge → logo), giving the header a balanced, tidy appearance.\nThis is a CSS-only change — no markup or component logic changes.\n\n## Key Decisions\n\n- **Equalize side spacing to 16px.** The logo's left inset is the `AppBrand`'s\n  `padding-left: 16px`. Make the rightmost button's inset match it at `16px`.\n  Considered shrinking the logo's left padding instead, but matching the right\n  side to the existing 16px keeps the established left edge that the Search box\n  and Favorites below it already align to.\n- **Let the header own the right inset; strip it from the ThemeToggle.**\n  `ThemeToggle.css` currently sets `margin-right: 14px` *and* the header sets\n  `padding-right: 14px`, so the real right gap is ~28px (doubled) — the root\n  cause of the lopsided spacing. Spacing is a layout concern that belongs to the\n  sidebar header, not to a reusable toggle component, so remove the toggle's own\n  `margin-right` (and its now-redundant `margin-left: auto`) and let the header's\n  padding be the single source of truth.\n- **Vertically center the buttons on the logo, not on the logo's padded box.**\n  `AppBrand` has asymmetric vertical padding (`18px` top / `6px` bottom), so with\n  the header's `align-items: center` the buttons center on the full padded box\n  and end up ~6px above the logo's actual glyph center. Nudge the tools down so\n  their centers line up with the logo monogram/wordmark. Keep the logo's existing\n  padding untouched so the vertical rhythm between the logo and the Search box\n  below is preserved.\n\n## Implementation\n\n### 1. Equalize the header's right inset and align the tools vertically\n\n**File**: `src/lib/pages/App/App.css`\n\n- In `.App-sidebar-header`, change `padding-right: 14px` to `padding-right: 16px`\n  so the right inset matches the logo's 16px left inset. Keep\n  `justify-content: space-between` and `align-items: center`.\n- Make the tools line up with the logo's glyph center. Because `AppBrand` is\n  top-heavy (18px top vs 6px bottom padding), the logo's visual center is ~6px\n  below the header's box center. Add a small top offset to `.App-sidebar-tools`\n  (e.g. `margin-top: ~6px`, final value to be eyeballed against the live\n  preview) so the 28–30px buttons center on the logo rather than floating above\n  it. Confirm against the running app that the gear/toggle midline matches the\n  logo midline.\n\n### 2. Remove the duplicated right margin from the ThemeToggle\n\n**File**: `src/lib/components/ThemeToggle/ThemeToggle.css`\n\nIn `.App-themeToggle`, remove `margin-right: 14px` and `margin-left: auto`. The\nheader's `space-between` already pushes the tools to the right edge, and the\nheader's `padding-right` (now 16px) owns the right inset. Keep the toggle's\n`width`/`height`/border/background — only the margins are removed. Update the\nstale comment (\"aligned with the logo at the right edge of the sidebar\") if it\nno longer describes the rule. After this, the rightmost button's distance from\nthe sidebar's right edge equals the logo's distance from the left edge.\n\n### 3. (If needed) confirm the Settings gear doesn't add its own inset\n\n**File**: `src/lib/components/Settings/Settings.css`\n\nThe Settings gear (`.Settings-toggle`, 30×30) sits left of the ThemeToggle\ninside `.App-sidebar-tools` with the header's `gap: 8px` between them. It has no\nhorizontal margins today, so no change is expected — but verify it contributes\nno extra left/right margin that would throw off the centered group. Only adjust\nif a stray margin is found.\n\n## Reused existing code\n\n- `AppBrand` from `src/lib/components/AppBrand/AppBrand.jsx` — the logo whose\n  16px left inset defines the target spacing; left unchanged.\n- `.App-sidebar-header` / `.App-sidebar-tools` rules in\n  `src/lib/pages/App/App.css` — the existing fl/space-between header layout being\n  tuned.\n- `ThemeToggle` (`.App-themeToggle`) from\n  `src/lib/components/ThemeToggle/ThemeToggle.css` and `Settings`\n  (`.Settings-toggle`) from `src/lib/components/Settings/Settings.css` — the two\n  buttons being aligned.\n\n## Scenarios to Demonstrate\n\n- **Home page (both buttons):** Settings gear + ThemeToggle visible; buttons\n  vertically centered on the logo, with the right inset visually equal to the\n  logo's left inset.\n- **Non-home page (toggle only):** On a page where `isHome` is false, only the\n  ThemeToggle renders; it should still sit at the correct right inset and align\n  with the logo.\n- **Light vs dark theme:** Header looks balanced in both themes (button borders\n  and logo colors differ, alignment must hold).\n- **Logo→tools alignment closeup:** A zoomed view of the header confirming the\n  gear/toggle midline matches the logo midline (the specific defect being fixed).",
+  "description": "Fixed the left-sidebar header so the dark-mode toggle and Settings gear are vertically centered on the tabcommand logo and the right inset matches the logo's 16px left inset. Removed the ThemeToggle's duplicated margin-right/margin-left:auto so the header's padding-right is the single source of truth for the right inset, and used transform: translateY(6px) on the tools group to land its midline on the logo glyph (align-items:center reabsorbs a top margin, so a transform was needed). Also swapped the button order so the theme toggle sits left and the Settings gear sits at the right edge. CSS-only plus a one-line JSX reorder; all 37 tests pass and the audit is clean.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/sidebar-header-align-tools-with-logo.md\t.codeyam/plans/completed/sidebar-header-align-tools-with-logo.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-dark--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-dark--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-light--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-light--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/ThemeToggle/ThemeToggle.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "ThemeToggle - Dark",
+      "screenshotPath": "themetoggle-dark--desktop.png"
+    },
+    {
+      "name": "ThemeToggle - Light",
+      "screenshotPath": "themetoggle-light--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 37,
+    "passed": 37,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 37,
+        "passed": 37
+      }
+    ]
+  }
+}
