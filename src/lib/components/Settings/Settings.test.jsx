@@ -173,4 +173,48 @@ describe('Settings', () => {
     expect(panel.closest('.Settings')).toBeNull();
     expect(panel.parentElement).toBe(document.body);
   });
+
+  // The Auto-close slider decouples raw position from the stored value: the
+  // far-right notch (raw 495, one step past the 480-min max) is the Off
+  // position. Dragging there persists autoCloseMinutes: 0 — the stored/disabled
+  // value the Closer engine treats as off — not the raw 495.
+  it('persists Off as autoCloseMinutes 0 when the slider is dragged to the far-right notch', async () => {
+    seed('settings', { autoCloseMinutes: 120 });
+    installChromeShim();
+    await openPanel();
+
+    const slider = document.querySelector('.Settings-autoclose input[type="range"]');
+    fireEvent.change(slider, { target: { value: '495' } });
+
+    await act(async () => { await Promise.resolve(); });
+    await new Promise((resolve) =>
+      chrome.storage.local.get('settings', ({ settings }) => {
+        expect(settings.autoCloseMinutes).toBe(0);
+        resolve();
+      })
+    );
+  });
+
+  // A stored Off (autoCloseMinutes 0) parks the thumb at the far-right Off notch
+  // (raw position 495), so Off reads as "past the max", not at the left end.
+  it('positions the thumb at the far-right Off notch when autoCloseMinutes is 0', async () => {
+    seed('settings', { autoCloseMinutes: 0 });
+    installChromeShim();
+    await openPanel();
+
+    const slider = document.querySelector('.Settings-autoclose input[type="range"]');
+    expect(slider.value).toBe('495');
+  });
+
+  // A stored positive interval maps the thumb directly to that minute value and
+  // the readout formats it (120 -> "2 hr").
+  it('positions the thumb at the stored minute value when auto-close is on', async () => {
+    seed('settings', { autoCloseMinutes: 120 });
+    installChromeShim();
+    await openPanel();
+
+    const slider = document.querySelector('.Settings-autoclose input[type="range"]');
+    expect(slider.value).toBe('120');
+    expect(screen.getByText('2 hr')).toBeInTheDocument();
+  });
 });

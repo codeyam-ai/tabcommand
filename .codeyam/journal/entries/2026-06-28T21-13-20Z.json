@@ -1,0 +1,171 @@
+{
+  "timestamp": "2026-06-28T21:13:20Z",
+  "title": "Discoverable Off Zone for Auto-Close Slider",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe Settings popover already lets you disable auto-closing — but it's\nundiscoverable. Today the \"Auto-close after\" slider's left end (`min=\"0\"`)\nis the Off position, and \"Off\" only appears in the value readout once you've\nalready dragged all the way to zero. Users naturally look for \"off\" *beyond*\nthe maximum time (\"never auto-close\" = wait forever), not before the minimum,\nso they never find it and assume there's no way to turn it off. This plan\nmoves the Off position to the **far right** of the slider and gives it a\nclearly delineated, labeled zone on the track so it reads as an obvious,\ndeliberate option. The stored model and engine are unchanged: Off still\npersists as `autoCloseMinutes === 0`, which `formatAutoClose` renders as\n\"Off\" and the Closer engine treats as disabled — only the slider's\nposition↔value mapping and presentation change.\n\n## Key Decisions\n\n- **Off lives at the far right, not the left** — this matches the user's\n  mental model (\"beyond the max time limit = never close\"). The slider's real\n  time range now runs left→right from the shortest interval up to the maximum,\n  with one extra notch past the maximum reserved for Off.\n- **Keep `0` as the stored/disabled value** — `service_worker.js`\n  (`autoCloseThresholdMinutes`) and `formatAutoClose.js` already treat `<= 0`\n  as disabled. We only decouple the slider's raw position from the stored\n  minutes; we do NOT change storage, the engine, or the format helper's logic.\n  This means existing users who previously set Off (stored `0`) automatically\n  show Off at the new right-end position — no migration needed.\n- **The left end becomes the shortest real interval (15 min), not 0** — since\n  `0` now maps to the far-right Off notch, keeping `min=\"0\"` would create a\n  second, redundant \"Off\" at the left. Raise `min` to `15` so every left-side\n  position is a real duration.\n- **A delineated visual zone, per the user's request** — rather than a bare\n  end-label, add a visually distinct region (a divider line plus a subtly\n  shaded band and an \"Off\" caption) at the right end of the track, so it's\n  obvious before you drag there that the far right means disabled.\n- **Considered and rejected**: a separate on/off toggle/checkbox. It adds a\n  second control for one concept and doesn't match the \"off is past the max\"\n  intuition the user described. The remap keeps a single control.\n\n## Implementation\n\n### 1. Remap the Auto-close slider position ↔ stored value\n\n**File**: `src/lib/components/Settings/Settings.jsx`\n\nIn the \"Auto-close after\" `<label className=\"Settings-row\">` block\n(currently lines 158–169):\n\n- Change the range input to `min=\"15\"`, `max=\"495\"`, `step=\"15\"`. The `495`\n  is `480` (8 hr, the real max) plus one `15`-minute step that serves as the\n  Off sentinel notch at the far right.\n- Decouple the displayed position from the stored value:\n  - **value (store → position)**: when `settings.autoCloseMinutes > 0`, use it\n    directly; otherwise (disabled / `0` / non-positive) position the thumb at\n    `495` (far-right Off). e.g. a small local helper or inline expression:\n    `settings.autoCloseMinutes > 0 ? settings.autoCloseMinutes : 495`.\n  - **onChange (position → store)**: read the raw slider value; if it is at the\n    Off sentinel (`>= 495`), call `update('autoCloseMinutes', 0)`; otherwise\n    `update('autoCloseMinutes', raw)`. The existing `update` helper already\n    coerces with `Number(...)`, so passing `0` persists Off correctly.\n- The value readout (`<span className=\"Settings-value\">`) keeps calling\n  `formatAutoClose(settings.autoCloseMinutes)`, so it shows \"Off\" when the\n  thumb is in the Off notch and the formatted time otherwise — no change there.\n- Wrap the `<input type=\"range\">` in a small positioned container (e.g.\n  `<span className=\"Settings-autoclose\">`) so the Off-zone overlay and end\n  captions (next step) can be layered over the track. Keep the wrapper inside\n  the existing `.Settings-row` grid so layout is preserved.\n- Add the delineated Off zone markup inside that wrapper: a right-aligned\n  region (`.Settings-autoclose-off`) carrying the divider + shaded band + an\n  \"Off\" caption, plus optional end captions under the track (left: shortest\n  interval such as \"15 min\"; right: \"Off\"). Mark it `aria-hidden` since the\n  live value readout and the input's own value already convey state to AT.\n\nAlso update the component's header comment (lines ~17–23) which currently\ndescribes the gear opening \"to just 'Auto-close after'\": clarify that the\nAuto-close slider's right end is the Off position with a delineated zone.\n\n### 2. Style the delineated Off zone\n\n**File**: `src/lib/components/Settings/Settings.css`\n\nAdd styles for the new wrapper and overlay, reusing existing popover tokens\n(`var(--border)`, `var(--c-lime)`, `var(--text-secondary)`, `var(--font-mono)`)\nso it matches the other controls:\n\n- `.Settings-autoclose` — `position: relative;` track wrapper spanning the\n  full row width (mirror the existing `.Settings-row input[type='range']`\n  full-width rule).\n- `.Settings-autoclose-off` — an absolutely-positioned band pinned to the\n  right end of the track with a left-edge divider line (`border-left`), a\n  subtle background tint, and a small mono \"Off\" caption. It must sit visually\n  behind/around the native thumb (use `pointer-events: none` so it never\n  intercepts drags). Width should be generous enough to read as a distinct\n  zone (the Off notch is the rightmost ~3% of the value range, so the band\n  should be a fixed, slightly wider strip — e.g. a small fixed px width — so\n  the label fits, rather than exactly one step wide).\n- Optional `.Settings-autoclose-caption` end labels row beneath the slider\n  (left/right justified) for \"15 min\" … \"Off\".\n\nKeep additions minimal; the file is currently 115 lines and unconstrained.\n\n### 3. Documentation comment touch-up (no logic change)\n\n**File**: `src/lib/utils/formatAutoClose.js`\n\nThe header comment says \"0 is the 'Off' end of the slider\". Update the wording\nto \"0 is the Off position (now the far-right end) of the slider\" so the comment\nmatches the new UI. The function body and return values are unchanged.\n\n## Reused existing code\n\n- `formatAutoClose` from `src/lib/utils/formatAutoClose.js` (glossary entry:\n  `formatAutoClose`) — already renders `0` / non-positive as \"Off\"; reused\n  verbatim for the value readout.\n- `autoCloseThresholdMinutes` / `isAutoCloseEligible` / `autoCloseSweep` in\n  `service_worker.js` (glossary entries of the same names) — already treat a\n  stored `0` as disabled; no change required, confirming the remap is\n  UI-only.\n- `update(key, value)` helper in `Settings.jsx` — reused for persisting the\n  remapped value (it coerces with `Number(...)` and writes the `settings`\n  storage key).\n- `AutoCloseMinutes` default (`120`) from `src/Constants.jsx` — ensures the\n  slider defaults to a real interval (2 hr), not Off.\n- Existing scenario `settings-auto-close-control.json` (and `settings-default`)\n  under `.codeyam/scenarios/` — the demonstration surface for the Auto-close\n  control; extend/add scenarios below.\n\n## Tests to update\n\n- `src/lib/utils/formatAutoClose.test.js` — existing assertions\n  (`formatAutoClose(0) === 'Off'`, negatives/non-numeric → \"Off\") remain valid\n  and should keep passing unchanged; they document the stored-value contract\n  the remap relies on.\n- `service_worker.test.js` (`autoCloseThresholdMinutes`) — unchanged contract\n  (`0` → disabled); confirm still green.\n- If a Settings component/interaction test exists, add coverage that the\n  far-right notch persists `autoCloseMinutes: 0` and that a stored `0`\n  positions the thumb at the Off end.\n\n## Scenarios to Demonstrate\n\n- **Default (auto-close on)** — `autoCloseMinutes: 120`, thumb mid-track,\n  value reads \"2 hr\", the Off zone clearly visible at the right but not\n  selected.\n- **Off selected** — `autoCloseMinutes: 0`, thumb resting in the delineated\n  right-end Off zone, value reads \"Off\".\n- **Shortest interval** — `autoCloseMinutes: 15`, thumb at the far left, value\n  reads \"15 min\" (demonstrates the left end is now a real duration, not Off).\n- **Maximum interval** — `autoCloseMinutes: 480`, thumb just before the Off\n  zone, value reads \"8 hr\" (shows the boundary between the time range and Off).\n- **Stable Chrome (no per-tab data)** — `loadDataSource: 'system'`, so the\n  \"Warn at\" / \"Heavy tab ≥\" sliders are hidden and Auto-close (with its new\n  Off zone) is the primary load control.",
+  "description": "Moved the Auto-close slider's Off position to the far right in a delineated, labeled zone (divider, lime-tinted band, and an Off caption with 15 min / Off end labels), matching the user's mental model that beyond the maximum time means never close. The slider's raw position is decoupled from the stored value (min 15, max 495 with the 495 sentinel notch mapping to Off), while storage and the Closer engine are unchanged: Off still persists as autoCloseMinutes === 0. Added three Settings remap tests and three component scenarios (Off, shortest 15 min, maximum 8 hr).",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/discoverable-off-zone-for-auto-close-slider.md\t.codeyam/plans/completed/discoverable-off-zone-for-auto-close-slider.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/formatAutoClose.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-maximum--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-maximum--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-off--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-off--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-shortest--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-shortest--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-auto-close-maximum.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-auto-close-off.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-auto-close-shortest.json",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Maximum",
+      "screenshotPath": "settings-auto-close-maximum--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Off",
+      "screenshotPath": "settings-auto-close-off--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Shortest",
+      "screenshotPath": "settings-auto-close-shortest--desktop.png"
+    },
+    {
+      "name": "Settings - Day Mode Accent",
+      "screenshotPath": "settings-day-mode-accent--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Settings - Group Columns Selected",
+      "screenshotPath": "settings-group-columns-selected--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 58,
+    "passed": 58,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 58,
+        "passed": 58
+      }
+    ]
+  }
+}

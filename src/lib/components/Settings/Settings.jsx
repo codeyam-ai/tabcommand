@@ -21,6 +21,11 @@ import formatAutoClose from '../../utils/formatAutoClose';
 // hidden — the gear opens to just "Auto-close after", which is independent of
 // per-tab data and always shows. Same loadDataSource gate that LoadPerTabNote /
 // LoadMeterCaption / Triage follow.
+//
+// The "Auto-close after" slider's right end is the Off position, set off by a
+// delineated, labeled zone on the track. Off persists as autoCloseMinutes === 0
+// (the stored/disabled value), but the slider's raw position is remapped so 0
+// shows at the far right rather than the left — see the Auto-close block below.
 const PANEL_WIDTH = 214;
 
 const Settings = () => {
@@ -158,14 +163,30 @@ const Settings = () => {
           <label className="Settings-row">
             <span className="Settings-label">Auto-close after</span>
             <span className="Settings-value">{formatAutoClose(settings.autoCloseMinutes)}</span>
-            <input
-              type="range"
-              min="0"
-              max="480"
-              step="15"
-              value={settings.autoCloseMinutes}
-              onChange={(e) => update('autoCloseMinutes', e.target.value)}
-            />
+            {/* The slider's raw position is decoupled from the stored value: the
+                real time range runs 15 min → 480 min (8 hr) left→right, and one
+                extra step past the max (the 495 sentinel) is the far-right Off
+                notch. A stored 0 (disabled) parks the thumb in that Off notch;
+                landing on the notch persists 0. Storage/engine still key off 0,
+                so this is a UI-only remap. */}
+            <span className="Settings-autoclose">
+              <input
+                type="range"
+                min="15"
+                max="495"
+                step="15"
+                value={settings.autoCloseMinutes > 0 ? settings.autoCloseMinutes : 495}
+                onChange={(e) => {
+                  const raw = Number(e.target.value);
+                  update('autoCloseMinutes', raw >= 495 ? 0 : raw);
+                }}
+              />
+              <span className="Settings-autoclose-off" aria-hidden="true">Off</span>
+              <span className="Settings-autoclose-caption" aria-hidden="true">
+                <span>15 min</span>
+                <span>Off</span>
+              </span>
+            </span>
           </label>
           <div className="Settings-row">
             <span className="Settings-label">Group columns</span>

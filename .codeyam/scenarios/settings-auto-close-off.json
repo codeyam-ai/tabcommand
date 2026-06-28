@@ -1,0 +1,23 @@
+{
+  "name": "Settings - Auto Close Off",
+  "id": "3f9ce42e-8bf4-4605-955f-0d5d419917f3",
+  "url": "/?isolate=Settings",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60, \"autoCloseMinutes\": 0}",
+      "loadDataSource": "\"processes\""
+    }
+  },
+  "componentName": "Settings",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".Settings-toggle"
+    }
+  ]
+}

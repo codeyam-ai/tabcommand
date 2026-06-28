@@ -1,0 +1,23 @@
+{
+  "name": "Settings - Auto Close Maximum",
+  "id": "54daeb0d-a92c-474a-8742-ad5ad8270b62",
+  "url": "/?isolate=Settings",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "loadDataSource": "\"processes\"",
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60, \"autoCloseMinutes\": 480}"
+    }
+  },
+  "componentName": "Settings",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".Settings-toggle"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
-  "feature": "stop-navigate-out-tab-group-capture",
-  "maxStep": 25,
-  "version": 253,
-  "updatedAt": "2026-06-28T19:05:42.267844391+00:00"
+  "feature": "discoverable-off-zone-for-auto-close-slider",
+  "maxStep": 23,
+  "version": 228,
+  "updatedAt": "2026-06-28T21:16:48.473614617+00:00"
 }

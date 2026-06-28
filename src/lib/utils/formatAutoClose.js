@@ -1,5 +1,6 @@
 // Formats the auto-close inactivity threshold (in minutes) for the Settings
-// "Auto-close after" control. 0 is the "Off" end of the slider — the Closer
+// "Auto-close after" control. 0 is the Off position (now the far-right end) of
+// the slider — the Closer
 // engine treats <= 0 (and any non-positive / non-finite value) as disabled, so
 // this renders "Off". Otherwise show whole minutes under an hour ("45 min"), or
 // hours with one decimal only when not a whole number ("2 hr", "1.5 hr").

@@ -928,12 +928,39 @@
       "runner": "tests"
     },
     {
+      "description": "The Auto-close slider decouples raw position from the stored value: the far-right notch (raw 495, one step past the 480-min max) is the Off position. Dragging there persists autoCloseMinutes: 0 — the stored/disabled value the Closer engine treats as off — not the raw 495.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › persists Off as autoCloseMinutes 0 when the slider is dragged to the far-right notch",
+      "line": 181,
+      "registeredAt": "2026-06-28T21:01:36Z",
+      "runner": "tests"
+    },
+    {
       "description": "Selecting an option persists themePreference to storage.",
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
       "key": "Settings › persists the selected theme preference to storage",
       "line": 121,
       "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A stored Off (autoCloseMinutes 0) parks the thumb at the far-right Off notch (raw position 495), so Off reads as \"past the max\", not at the left end.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › positions the thumb at the far-right Off notch when autoCloseMinutes is 0",
+      "line": 200,
+      "registeredAt": "2026-06-28T21:01:36Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A stored positive interval maps the thumb directly to that minute value and the readout formats it (120 -> \"2 hr\").",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › positions the thumb at the stored minute value when auto-close is on",
+      "line": 211,
+      "registeredAt": "2026-06-28T21:01:36Z",
       "runner": "tests"
     },
     {

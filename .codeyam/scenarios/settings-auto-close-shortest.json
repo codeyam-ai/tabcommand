@@ -1,0 +1,23 @@
+{
+  "name": "Settings - Auto Close Shortest",
+  "id": "91b52661-a94c-45ca-8385-44c9e3e93506",
+  "url": "/?isolate=Settings",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60, \"autoCloseMinutes\": 15}",
+      "loadDataSource": "\"processes\""
+    }
+  },
+  "componentName": "Settings",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".Settings-toggle"
+    }
+  ]
+}
