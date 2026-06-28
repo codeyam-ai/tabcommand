@@ -1,0 +1,17 @@
+{
+  "name": "Settings - Day Mode Accent",
+  "id": "11306053-4493-432e-8067-39f6fb807ee7",
+  "url": "/?isolate=Settings&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "Settings",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".Settings-toggle"
+    }
+  ]
+}

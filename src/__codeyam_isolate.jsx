@@ -528,10 +528,30 @@ class IsolationErrorBoundary extends React.Component {
 export default function CodeyamIsolate() {
   const params = new URLSearchParams(window.location.search);
   const isolate = params.get('isolate');
+  const variant = params.get('variant');
+  const theme = params.get('theme');
+
+  // When a scenario requests an explicit theme (`?theme=light|dark`), mirror it
+  // to the document's `data-theme` attribute so the CSS token layer themes the
+  // isolated component exactly as the full app does. The App's useTheme owns
+  // this normally, but an isolated leaf never mounts useTheme, so without this
+  // an isolated component always renders the default (dark) tokens. An absent
+  // or unrecognized param leaves the attribute untouched — existing scenarios
+  // are unchanged.
+  React.useEffect(() => {
+    if (theme !== 'light' && theme !== 'dark') return undefined;
+    const root = document.documentElement;
+    const prev = root.getAttribute('data-theme');
+    root.setAttribute('data-theme', theme);
+    return () => {
+      if (prev === null) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', prev);
+    };
+  }, [theme]);
+
   if (!isolate) {
     return <App />;
   }
-  const variant = params.get('variant');
 
   const Component = components[isolate];
   if (!Component) {
@@ -558,7 +578,10 @@ export default function CodeyamIsolate() {
         justifyContent: 'center',
         padding: 24,
         boxSizing: 'border-box',
-        background: '#fff',
+        // Match the active theme's surface when one is requested, so a themed
+        // capture reads as a real app surface; default to white otherwise.
+        background:
+          theme === 'light' || theme === 'dark' ? 'var(--app-bg)' : '#fff',
       }}
     >
       <IsolationErrorBoundary name={isolate}>

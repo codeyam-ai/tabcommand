@@ -98,11 +98,11 @@ body {
   padding: 4px;
   font-size: 11.5px;
   font-weight: 500;
-  color: var(--c-lime);
+  color: var(--c-lime-fg);
 }
 
 .App-sidebar-footer .App-sidebar-link:hover {
-  color: var(--c-lime-hover);
+  color: var(--c-lime-fg-hover);
 }
 
 #backgroundOverlay {

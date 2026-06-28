@@ -71,7 +71,7 @@
 }
 
 .Url-actions .Url-action.Url-pinned {
-  color: var(--c-lime);
+  color: var(--c-lime-fg);
 }
 
 .Url-actions .Url-action .Url-action-icon {
@@ -82,7 +82,7 @@
   float: right;
   font-size: 15px;
   margin-top: 3px;
-  color: var(--c-lime);
+  color: var(--c-lime-fg);
 }
 
 .Url-stats {

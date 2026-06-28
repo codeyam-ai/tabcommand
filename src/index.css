@@ -24,6 +24,11 @@
   --brand-tab: #f2f2f2;
   --brand-command: #c7f04a;
 
+  /* Lime accent as a FOREGROUND (links/icons/text). Equals the brand lime in
+     dark mode so dark renders unchanged; darkens in light mode for contrast. */
+  --c-lime-fg: #c7f04a;
+  --c-lime-fg-hover: #a9d437;
+
   /* Lines & inputs */
   --border: rgba(255, 255, 255, 0.08);
   --search-bg: #161616;
@@ -61,6 +66,11 @@
 
   --brand-tab: #1a1a1a;
   --brand-command: #3a3a3a;
+
+  /* Darker, higher-contrast green for lime-as-foreground on light surfaces
+     (page/sidebar/raised). Anchored to the existing --c-group-1 green. */
+  --c-lime-fg: #1a8f4d;
+  --c-lime-fg-hover: #147a40;
 
   --border: rgba(0, 0, 0, 0.10);
   --search-bg: #ffffff;

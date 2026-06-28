@@ -54,7 +54,7 @@
 .Settings-value {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--c-lime);
+  color: var(--c-lime-fg);
   text-align: right;
 }
 

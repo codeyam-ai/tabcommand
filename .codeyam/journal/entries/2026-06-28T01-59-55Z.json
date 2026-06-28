@@ -1,0 +1,335 @@
+{
+  "timestamp": "2026-06-28T01:59:55Z",
+  "title": "Day-Mode Lime Accent Contrast",
+  "type": "feature",
+  "userRequest": "## Summary\n\nIn day (light) mode the lime \"highlighter green\" accent (`--c-lime: #c7f04a`)\nis too subtle. It's a single color defined as constant across both themes in\n`theme.css`, so it carries from the near-black dark surfaces — where it pops —\nonto the light surfaces (`#fafafa` page, `#f4f4f4` sidebar, `#eee` raised),\nwhere lime-on-grey is barely legible. The most visible offenders are the\n**Import/Export** link in the sidebar footer and the **pin** icons on URL rows;\nthe Settings value readout uses the same accent. This plan introduces a\ntheme-aware *foreground* variant of the lime accent that darkens to a\nhigher-contrast green in day mode, and repoints every place lime is used as a\ntext/icon color at it — while leaving the bright lime *fills* on solid CTA\nbuttons (Import, Save, range slider) untouched, since those carry dark text and\nalready read fine in day mode.\n\n## Key Decisions\n\n- **New foreground token, not a global lime change** — `--c-lime` is used both\n  as a foreground color (links/icons/text) and as a solid fill behind dark text\n  on CTA buttons. Darkening `--c-lime` globally would muddy those button fills.\n  Instead add a dedicated foreground token (`--c-lime-fg` + hover\n  `--c-lime-fg-hover`) that equals the current lime in dark mode and a darker,\n  higher-contrast green in light mode. This satisfies the user's \"foreground\n  only\" scope choice.\n- **Define the new token in `src/index.css`** — that file already hosts the\n  theme-aware semantic layer with both `:root,[data-theme=\"dark\"]` and\n  `[data-theme=\"light\"]` blocks. `--c-lime` itself stays in `theme.css` as the\n  constant brand lime (still used for button fills); the new theme-varying\n  foreground token belongs alongside the other per-theme tokens in `index.css`.\n- **Day-mode green value** — start with `#1a8f4d` for `--c-lime-fg` and a\n  slightly darker `#147a40` for the hover, both chosen to clear AA contrast on\n  the light surfaces (page/sidebar/raised). Reuse/relationship to the existing\n  `--c-group-1: #1e9e57` green keeps the palette coherent; the editor may\n  fine-tune the exact hex to hit the contrast target on the smallest text\n  (the 11.5px sidebar link).\n- **Dark mode is unchanged** — `--c-lime-fg` resolves to `var(--c-lime)` in the\n  dark block, so the dark theme renders pixel-identical to today.\n\n## Implementation\n\n### 1. Add the theme-aware foreground accent tokens\n\n**File**: `src/index.css`\n\n- In the `:root, [data-theme=\"dark\"]` block, add `--c-lime-fg: #c7f04a;` and\n  `--c-lime-fg-hover: #a9d437;` (mirroring the current dark lime + hover so dark\n  mode is unchanged).\n- In the `[data-theme=\"light\"]` block, add `--c-lime-fg: #1a8f4d;` and\n  `--c-lime-fg-hover: #147a40;` (darker, higher-contrast greens for light\n  surfaces).\n\n### 2. Strengthen the Import/Export sidebar link\n\n**File**: `src/lib/pages/App/App.css`\n\n- `.App-sidebar-footer .App-sidebar-link` — change `color: var(--c-lime)` to\n  `color: var(--c-lime-fg)`.\n- `.App-sidebar-footer .App-sidebar-link:hover` — change\n  `color: var(--c-lime-hover)` to `color: var(--c-lime-fg-hover)`.\n\n### 3. Strengthen the pin icons on URL rows\n\n**File**: `src/lib/components/Url/Url.css`\n\n- `.Url-actions .Url-action.Url-pinned` — change `color: var(--c-lime)` to\n  `color: var(--c-lime-fg)`.\n- `.Url-tabCommandPinned` — change `color: var(--c-lime)` to\n  `color: var(--c-lime-fg)`.\n\n### 4. Strengthen the Settings value readout\n\n**File**: `src/lib/components/Settings/Settings.css`\n\n- `.Settings-value` — change `color: var(--c-lime)` to `color: var(--c-lime-fg)`.\n- Leave the `accent-color: var(--c-lime)` on the range input (line 64) and the\n  `background: var(--c-lime)` fill (line 100) as-is — those are fills, not\n  foreground text.\n\n### 5. Leave solid lime fills untouched (verification note)\n\nThese intentionally keep `var(--c-lime)` / `var(--c-lime-hover)` because they're\nfilled CTAs with dark text and read fine in day mode — confirm none are changed:\n`UrlDetails.css` (74, 82), `LabelForm.css` (186, 196), `ImportExport.css`\n(100, 108), `Settings.css` (64, 100), `UrlField.css` (41 border), and the\n`--brand-command`-based usages (search-match highlight, wordmark, focus rings),\nwhich are already gray (not lime) in light mode and out of scope here.\n\n## Reused existing code\n\n- Theme token layer in `src/index.css` — the existing\n  `:root,[data-theme=\"dark\"]` / `[data-theme=\"light\"]` structure is where the\n  new `--c-lime-fg` tokens slot in, matching every other theme-varying token.\n- `--c-lime` / `--c-lime-hover` from `src/lib/styles/theme.css` — kept as the\n  constant brand lime for button fills; the new foreground token references the\n  dark value to stay in sync.\n- `--c-group-1: #1e9e57` (theme.css) — existing palette green that anchors the\n  chosen day-mode foreground green for coherence.\n- Components affected (glossary entries): `App` (`src/lib/pages/App/App.jsx`),\n  `Url` (`src/lib/components/Url/Url.jsx`), `Settings`\n  (`src/lib/components/Settings/Settings.jsx`).\n\n## Scenarios to Demonstrate\n\n- **Day mode — sidebar footer**: Import/Export link now renders in a legible\n  darker green against the light sidebar, clearly readable and clickable.\n- **Day mode — pinned URL row**: a URL pinned in TabCommand shows its pin\n  icon / pinned action in the stronger green, no longer washed out on the light\n  card.\n- **Day mode — Settings**: the Settings value readout reads clearly in the\n  darker green.\n- **Night mode — regression check**: the same surfaces in dark mode look\n  identical to before (lime `#c7f04a`), confirming the change is light-mode only.\n- **Solid CTA buttons (both themes)**: Import button, Save button, and range\n  slider keep the bright lime fill with dark text — unchanged.",
+  "description": "In day (light) mode the brand lime accent was too subtle on light surfaces, washing out lime-on-grey foreground text and icons. Added a theme-aware --c-lime-fg / --c-lime-fg-hover token in src/index.css that resolves to the brand lime (#c7f04a) in night mode and a darker, higher-contrast green (#1a8f4d) in day mode, then repointed the three foreground lime usages to it: the Import/Export sidebar link, the URL pin icons, and the Settings value readout. Solid lime CTA fills (active segment, slider, columns pill, Import/Save buttons) were intentionally left on the bright brand lime since they carry dark text and read fine. Also added a theme param to the component-isolation harness so isolated components can render in day mode, captured a new settings-day-mode-accent scenario showing the darker-green readout, and differentiated the home-grouped scenario into a distinct 4-group workspace.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/day-mode-lime-accent-contrast.md\t.codeyam/plans/completed/day-mode-lime-accent-contrast.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-grouped.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/index.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.css",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settings-day-mode-accent.json",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Day Mode Accent",
+      "screenshotPath": "settings-day-mode-accent--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Settings - Group Columns Selected",
+      "screenshotPath": "settings-group-columns-selected--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 301,
+    "passed": 301,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 301,
+        "passed": 301
+      }
+    ]
+  }
+}
