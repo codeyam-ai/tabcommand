@@ -1,0 +1,24 @@
+{
+  "claimStartedAt": "2026-06-28T18:40:27Z",
+  "completedAt": "2026-06-28T18:59:03Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "machine": "codeyam-editor-codeyam-editor-4",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "stop-navigate-out-tab-group-capture",
+    "sessionId": "",
+    "startedAt": "2026-06-28T18:40:27Z"
+  },
+  "createdAt": "2026-06-28T18:28:46Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js"
+  ],
+  "journalTimestamp": "2026-06-28T18:59:03Z",
+  "mode": "ui",
+  "planFile": "completed/stop-navigate-out-tab-group-capture.md",
+  "slug": "stop-navigate-out-tab-group-capture",
+  "title": "Stop Navigate-Out Tab-Group Capture"
+}

@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-06-28T18:59:03Z",
+  "title": "Stop Navigate-Out Tab-Group Capture",
+  "type": "feature",
+  "userRequest": "## Summary\n\nURLs are being added to tab-group labels that the user never put there — often\npages they navigated to *today*. Root cause: when a tab that is parked in a\nnamed group navigates to a new URL, the service worker tries to ungroup it, but\n`chrome.tabs.ungroup` is async. In the same `onUpdated` turn, `newUrl(...)` runs\n`updateActiveTabs()`, which writes an `activeTabs` entry built from the live tab —\ncarrying the **new URL** but the **stale old groupId** (the ungroup hasn't landed\nyet). That storage write triggers `groupTabs()`, which sees a tab \"in\" the old\ngroup and **permanently pushes the new URL into that group's label**. The\nexisting removal path (`changeInfo.groupId === -1`) is racy and uses a\nnon-normalized key, so it frequently fails to undo the bad add. This plan closes\nthe capture window so a tab on its way *out* of a group is never recorded into\nit, and makes the removal path's key matching reliable.\n\n## Key Decisions\n\n- **Suppress capture during a pending ungroup rather than reorder the async\n  work.** Reordering `onUpdated` (awaiting `ungroup` before `newUrl`) wouldn't\n  help: `groupTabs` also runs from the independent `chrome.storage.onChanged`\n  listener, so the only robust guard is to make `groupTabs`/the group-change\n  handler refuse to capture a tab whose ungroup is in flight. We track pending\n  ungroups in an in-memory `Set` of tab ids in the worker.\n- **Also guard on URL/group consistency as a backstop.** Even setting the race\n  aside, a capture should only happen when the tab's stored URL is the one that\n  actually belongs in that group. We additionally skip capture when the tab's\n  navigation just changed its URL in the same cycle (the `closeUrl` /\n  `oldTabUrl` signal already present in `onUpdated`). The pending-ungroup Set is\n  the primary fix; this is defense in depth.\n- **Normalize the removal-path key to `getUrlKey(tab.url)`.** The\n  `changeInfo.groupId === -1` cleanup currently builds `url-${tab.url}` inline,\n  which does NOT strip the `#fragment` the way `getUrlKey` does, so cleanup\n  silently misses any hashed URL. Switching to `getUrlKey(tab.url)` makes\n  removal match what `groupTabs` actually stored. This is a small, isolated\n  correctness fix worth doing regardless of the race.\n- **Keep the passive sync behavior for genuinely-grouped tabs.** We do NOT\n  remove `groupTabs`'s ability to record URLs for tabs that truly sit in a\n  group — that's the intended Chrome-group ↔ label sync. We only stop it from\n  recording tabs that are mid-exit.\n\n## Implementation\n\n### 1. Track in-flight ungroups\n\n**File**: `service_worker.js`\n\nAdd a module-level `const pendingUngroups = new Set();` near the existing\n`let removing;` worker state (top of file, ~line 5).\n\nIn the `onUpdated` handler, where a navigated grouped tab is ungrouped\n(currently `service_worker.js:78-80`):\n\n```js\nif (tab.groupId > -1) {\n  pendingUngroups.add(tab.id);\n  chrome.tabs.ungroup(tab.id, () => {\n    void (chrome.runtime && chrome.runtime.lastError);\n    pendingUngroups.delete(tab.id);\n  });\n}\n```\n\nUse the ungroup callback to clear the flag once Chrome has actually applied the\nchange (mirrors the swallow-lastError pattern already used in `autoCloseSweep`).\nIf `chrome.tabs.ungroup` in the test stub doesn't invoke a callback, clear the\nflag defensively (see test note below) — but prefer the callback form so the\nwindow is exactly the async gap.\n\n### 2. Refuse to capture a tab whose ungroup is pending\n\n**File**: `service_worker.js`\n\nIn `groupTabs()` (the grouped branch at `service_worker.js:783-808`), before the\nlabel push, skip tabs that are mid-ungroup:\n\n```js\nif (pendingUngroups.has(parseTabId(activeTab))) continue;\n```\n\nPlace it right after the `if (!group || group.title === \"~~~ CLOSING ~~~\") continue;`\nguard so a tab leaving a group is never recorded into it. `parseTabId` already\nexists (`service_worker.js:667`) and turns `tab-<id>` into the integer id.\n\nApply the same guard in `handleActiveTabsGroupChanges()` (the add path around\n`service_worker.js:702-709`): if the tab's id is in `pendingUngroups`, skip the\n`labels[newGroup.title].urlKeys.push(...)`.\n\n### 3. Normalize the removal-path key\n\n**File**: `service_worker.js`\n\nIn the `changeInfo.groupId === -1` branch (`service_worker.js:106`), replace the\ninline key with the normalized helper so cleanup matches stored keys:\n\n```js\nconst urlKeyIndex = label.urlKeys.indexOf(getUrlKey(tab.url));\n```\n\n`getUrlKey` is defined at `service_worker.js:583`. This fixes silent cleanup\nmisses for any URL containing a `#fragment`.\n\n### 4. Harden the add path against a missing label (latent throw)\n\n**File**: `service_worker.js`\n\nWhile in `handleActiveTabsGroupChanges()` (`service_worker.js:702-717`): the\ncurrent code computes `const label = labels[newGroup.title] || { urlKeys: [] }`\nbut then pushes to `labels[newGroup.title].urlKeys`, which throws if that label\ndoesn't exist yet. Seed it before pushing:\n\n```js\nif (newGroup) {\n  labels[newGroup.title] ||= { title: newGroup.title, urlKeys: [], color: mapColors(newGroup.color) };\n  const label = labels[newGroup.title];\n  if (label.urlKeys.indexOf(newTab.urlKey) === -1 && !pendingUngroups.has(parseTabId(newTab))) {\n    label.urlKeys.push(newTab.urlKey);\n    changed = true;\n  }\n}\n```\n\nNote `mapColors` is currently a local inside `groupTabs`; if reused here, lift it\nto a module-level helper or inline the color (the editor workflow can decide the\ncleanest factoring — the requirement is just \"don't throw when the label is\nabsent\"). Guard the `oldGroup` removal at `service_worker.js:711-717` the same\nway (skip if `labels[oldGroup.title]` is undefined).\n\n### 5. Tests\n\n**File**: `service_worker.test.js`\n\nAdd cases under the existing `groupTabs` and `handleActiveTabsGroupChanges`\ndescribe blocks (`service_worker.test.js:401,411`):\n\n- **Navigate-out is not captured**: simulate a tab whose id is in\n  `pendingUngroups`, with `activeTab.groupId` still pointing at a real group;\n  assert `groupTabs` does NOT push its urlKey into `labels[title].urlKeys`.\n- **Genuinely-grouped tab is still captured**: same setup but id NOT pending;\n  assert the urlKey IS added (guards against over-suppressing).\n- **Removal matches normalized key**: a label holding `getUrlKey(url)` for a\n  URL with a `#fragment`; drive the `groupId === -1` path and assert the key is\n  removed (would fail before the `getUrlKey` change).\n- **Add path tolerates a missing label**: `handleActiveTabsGroupChanges` with a\n  `newGroup.title` absent from `labels`; assert it seeds the label and does not\n  throw.\n\nThe test harness strips imports and evaluates the worker source, exposing\ninternals via `fns` (`service_worker.test.js:64-74`). If `pendingUngroups` needs\nto be reachable from tests, expose it the same way the other internals are\nsurfaced, or drive it through the public `onUpdated` listener so the Set is\npopulated naturally. The `chrome.tabs.ungroup` stub may need to invoke its\ncallback so the pending flag clears — extend the existing chrome mock\naccordingly.\n\n## Reused existing code\n\n- `getUrlKey` from `service_worker.js` (glossary entry: `getUrlKey`) — normalize\n  removal keys to match stored ones.\n- `parseTabId` from `service_worker.js:667` — derive integer tab id from a\n  `tab-<id>` key for the `pendingUngroups` lookup.\n- `groupTabs` from `service_worker.js` (glossary entry: `groupTabs`) — the\n  passive group→label sync we are guarding.\n- `handleActiveTabsGroupChanges` from `service_worker.js` (glossary entry:\n  `handleActiveTabsGroupChanges`) — the groupId-change add/remove path.\n- `getTabGroup` / `trackGroup` from `service_worker.js` (glossary entries:\n  `getTabGroup`, `trackGroup`) — group-title resolution used by the capture\n  paths.\n- The swallow-`lastError` callback pattern from `autoCloseSweep`\n  (`service_worker.js:295-298`) — reuse for the `ungroup` callback.\n\n## Scenarios to Demonstrate\n\n- **Happy path — navigate out of a group**: a tab in group \"Work\" navigates from\n  `a.com` to `b.com`; `b.com` does NOT appear in the \"Work\" label, and the tab\n  is ungrouped. (The bug: `b.com` gets captured into \"Work\".)\n- **Genuine grouping still works**: a tab that actually belongs to group \"Work\"\n  has its URL recorded into the \"Work\" label as before (no regression in the\n  intended sync).\n- **Hashed-URL cleanup**: a URL like `docs.com/page#section` that was captured\n  into a label is correctly removed when the tab leaves the group (previously\n  the fragment mismatch left it stranded).\n- **Missing-label add path**: a tab moves into a group whose title has no\n  existing label; the label is seeded and the URL added without throwing.\n- **Empty state**: no groups / no labels — `groupTabs` and the change handler\n  run without error and add nothing.\n- **Edge — rapid re-navigation**: a grouped tab navigates twice in quick\n  succession; neither destination URL is captured into the old group.",
+  "description": "Fixed a bug where URLs you navigated to while leaving a named tab group were permanently captured into that group label, caused by the async chrome.tabs.ungroup race in the service worker. The fix tracks in-flight ungroups in a pendingUngroups Set and makes both capture paths (groupTabs and handleActiveTabsGroupChanges) refuse to record a tab that is mid-exit; it also normalizes the removal key via getUrlKey so hashed-URL cleanup works and hardens the add path against a missing label. Covered by 7 new unit tests (52 passing).",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/stop-navigate-out-tab-group-capture.md\t.codeyam/plans/completed/stop-navigate-out-tab-group-capture.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    }
+  ],
+  "testResults": {
+    "total": 52,
+    "passed": 52,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 52,
+        "passed": 52
+      }
+    ]
+  }
+}

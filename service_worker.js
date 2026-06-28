@@ -3,6 +3,13 @@ import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 let defaultWindowId;
 let listening = true;
 let removing;
+// Tab ids whose `chrome.tabs.ungroup` is in flight. A navigated tab leaving a
+// named group is added here before the async ungroup and removed in its
+// callback; while present, the capture paths (`groupTabs` /
+// `handleActiveTabsGroupChanges`) must refuse to record the tab into the group
+// it is on its way out of, otherwise the new URL is permanently pushed into the
+// old group's label during the async gap.
+const pendingUngroups = new Set();
 
 // The LoadMeter gauge's scale, mirrored from src/lib/components/LoadMeter so the
 // system fallback normalizes to the same 0→max range the gauge already renders.
@@ -76,7 +83,11 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       closeUrl(oldTabUrl.urlKey);
 
       if (tab.groupId > -1) {
-        chrome.tabs.ungroup(tab.id);
+        pendingUngroups.add(tab.id);
+        chrome.tabs.ungroup(tab.id, () => {
+          void (chrome.runtime && chrome.runtime.lastError);
+          pendingUngroups.delete(tab.id);
+        });
       }
     }
     // This branch records the navigation directly (it does not pass through
@@ -103,7 +114,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         const label = labels[labelTitle];
         if (label) {
           if (checkRemoving()) return true;
-          const urlKeyIndex = label.urlKeys.indexOf(`url-${tab.url}`);
+          const urlKeyIndex = label.urlKeys.indexOf(getUrlKey(tab.url));
           if (urlKeyIndex > -1) {
             label.urlKeys.splice(urlKeyIndex, 1)
 
@@ -584,6 +595,25 @@ function getUrlKey(url) {
   return `url-${url.split('#')[0]}`;
 }
 
+// Bidirectional Chrome group-color <-> hex map. Lifted to module scope so both
+// `groupTabs` (group.color -> hex when seeding a label) and
+// `handleActiveTabsGroupChanges` (seeding a missing label on the add path) share
+// one definition. Passing a hex returns the named color and vice versa.
+function mapColors(labelColor) {
+  const map = {
+    '#5F6367': 'grey',
+    '#1873E4': 'blue',
+    '#DA2F25': 'red',
+    '#E47415': 'yellow',
+    '#1F8E43': 'green',
+    '#D01882': 'pink',
+    '#9334E2': 'purple',
+    '#007B82': 'cyan'
+  };
+  for (const key of Object.keys(map)) map[map[key]] = key;
+  return map[labelColor];
+}
+
 function validTab(tab) {
   // Incognito visits are intentionally never persisted — they must leave no
   // trace in history/activeTabs, so they can never surface in Search or
@@ -700,15 +730,26 @@ async function handleActiveTabsGroupChanges(changes) {
 
       let changed = false;
       if (newGroup) {
-        const label = labels[newGroup.title] || { urlKeys: [] };
-        const index = label.urlKeys.indexOf(newTab.urlKey);
-        if (index === -1) {
-          labels[newGroup.title].urlKeys.push(newTab.urlKey);
+        // Seed the label before pushing — the old `|| { urlKeys: [] }` fallback
+        // was never written back, so pushing into `labels[newGroup.title]` threw
+        // when the label did not exist yet.
+        labels[newGroup.title] ||= {
+          title: newGroup.title,
+          urlKeys: [],
+          color: mapColors(newGroup.color)
+        };
+        const label = labels[newGroup.title];
+        // Skip a tab mid-ungroup for the same reason as in `groupTabs`.
+        if (
+          label.urlKeys.indexOf(newTab.urlKey) === -1 &&
+          !pendingUngroups.has(parseTabId(newTab))
+        ) {
+          label.urlKeys.push(newTab.urlKey);
           changed = true;
         }
       }
 
-      if (oldGroup) {
+      if (oldGroup && labels[oldGroup.title]) {
         const index = labels[oldGroup.title].urlKeys.indexOf(newTab.urlKey);
         if (index > -1) {
           labels[oldGroup.title].urlKeys.splice(index, 1);
@@ -722,21 +763,6 @@ async function handleActiveTabsGroupChanges(changes) {
 }
 
 async function groupTabs(activeTabs, labels) {
-  const mapColors = (labelColor) => {
-    const map = {
-      '#5F6367': 'grey',
-      '#1873E4': 'blue',
-      '#DA2F25': 'red',
-      '#E47415': 'yellow',
-      '#1F8E43': 'green',
-      '#D01882': 'pink',
-      '#9334E2': 'purple',
-      '#007B82': 'cyan'
-    };
-    for (const key of Object.keys(map)) map[map[key]] = key;
-    return map[labelColor]
-  }
-
   const groupLabeledTab = async (tabs, label) => {
     const unpinnedTabIds = [];
     for (const tab of tabs) {
@@ -788,6 +814,10 @@ async function groupTabs(activeTabs, labels) {
       );
 
       if (!group || group.title === "~~~ CLOSING ~~~") continue;
+      // A tab whose ungroup is in flight is on its way OUT of this group — its
+      // stored URL is the destination it navigated to, not a member of the
+      // group. Never record it, or the new URL gets stranded in the old label.
+      if (pendingUngroups.has(parseTabId(activeTab))) continue;
 
       const label = labels[group.title];
 

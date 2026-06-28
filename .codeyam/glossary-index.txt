@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-28T17:02:50Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-28T18:53:15Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
@@ -76,6 +76,7 @@ lastCallback :: src/lib/utils/chromeShim/chromeShim.js :: tags=utility,storage,s
 listenToProcesses :: service_worker.js :: tags=worker,ported-verbatim,processes :: test=service_worker.test.js
 loadColor :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
 loadLevel :: src/lib/utils/loadLevel.js :: tags= :: test=src/lib/utils/loadLevel.test.js
+mapColors :: service_worker.js :: tags= :: test=service_worker.test.js
 memoryUtilization :: src/lib/utils/deriveSystemTotals.js :: tags= :: test=src/lib/utils/deriveSystemTotals.test.js
 newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
 normalizeUrl :: src/lib/utils/normalizeUrl.js :: tags= :: test=src/lib/utils/normalizeUrl.test.js

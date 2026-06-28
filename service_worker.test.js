@@ -70,7 +70,7 @@ function loadWorker(chrome) {
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
              newUrl, closeUrl, processProcesses, updateTotals, associateProcess,
-             tabUpdates, urlUpdates, getUrlKey, validTab, getTabGroup,
+             tabUpdates, urlUpdates, getUrlKey, validTab, getTabGroup, mapColors,
              getLocalStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs,
              initLoadSource, processesApiAvailable, systemApiAvailable,
              startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad,
@@ -80,6 +80,7 @@ function loadWorker(chrome) {
         get groups() { return groups; },
         get samples() { return samples; },
         get processesIndex() { return processesIndex; },
+        get pendingUngroups() { return pendingUngroups; },
       }
     };`
   );
@@ -111,6 +112,26 @@ describe('service_worker.js', () => {
     it('prefixes with url- and strips the fragment', () => {
       expect(fns.getUrlKey('https://a.com/p')).toBe('url-https://a.com/p');
       expect(fns.getUrlKey('https://a.com/p#section')).toBe('url-https://a.com/p');
+    });
+  });
+
+  describe('mapColors', () => {
+    // maps a Chrome named color to its hex value (used when seeding a label's color)
+    it('maps a named color to hex', () => {
+      expect(fns.mapColors('blue')).toBe('#1873E4');
+      expect(fns.mapColors('grey')).toBe('#5F6367');
+    });
+
+    // maps a hex value back to its Chrome named color (used when grouping from a label)
+    it('maps a hex value back to a named color', () => {
+      expect(fns.mapColors('#1F8E43')).toBe('green');
+      expect(fns.mapColors('#007B82')).toBe('cyan');
+    });
+
+    // an unknown color (neither a known name nor hex) resolves to undefined
+    it('returns undefined for an unknown color', () => {
+      expect(fns.mapColors('chartreuse')).toBeUndefined();
+      expect(fns.mapColors('#ABCDEF')).toBeUndefined();
     });
   });
 
@@ -406,6 +427,31 @@ describe('service_worker.js', () => {
       ).resolves.toBeUndefined();
       expect(chrome.storage.local.set).not.toHaveBeenCalled();
     });
+
+    // The add path must seed a label that does not exist yet rather than throwing
+    // on `labels[title].urlKeys.push` (the previous `|| { urlKeys: [] }` fallback
+    // was never written back).
+    it('seeds a missing label on the add path without throwing', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) =>
+        cb(id === 5 ? { id: 5, title: 'NewGroup', color: 'blue' }
+                    : { id: 2, title: 'OldGroup', color: 'red' })
+      );
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ labels: {} }));
+
+      await expect(
+        fns.handleActiveTabsGroupChanges({
+          oldValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: 2, pinned: false }],
+          newValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: 5, pinned: false }],
+        })
+      ).resolves.not.toThrow();
+
+      const written = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.labels);
+      expect(written.labels.NewGroup.urlKeys).toContain('url-z');
+      // The seeded label carries the group's color, mapped to hex via mapColors.
+      expect(written.labels.NewGroup.color).toBe('#1873E4');
+    });
   });
 
   describe('groupTabs', () => {
@@ -420,6 +466,70 @@ describe('service_worker.js', () => {
     it('ignores pinned tabs', async () => {
       await fns.groupTabs([{ tabKey: 'tab-1', urlKey: 'url-y', pinned: true, groupId: 2 }], {});
       expect(chrome.tabs.group).not.toHaveBeenCalled();
+    });
+
+    // A tab on its way OUT of a group (ungroup in flight) must never be recorded
+    // into the group it is leaving — this is the core navigate-out bug fix.
+    it('does not capture a tab whose ungroup is pending', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      state.pendingUngroups.add(7);
+      const labels = { Work: { title: 'Work', urlKeys: [] } };
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://b.com', pinned: false, groupId: 5 }],
+        labels
+      );
+      expect(labels.Work.urlKeys).not.toContain('url-https://b.com');
+    });
+
+    // Guards against over-suppression: a tab that genuinely sits in a group is
+    // still recorded into that group's label.
+    it('captures a genuinely grouped tab', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      const labels = { Work: { title: 'Work', urlKeys: [] } };
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://b.com', pinned: false, groupId: 5 }],
+        labels
+      );
+      expect(labels.Work.urlKeys).toContain('url-https://b.com');
+    });
+  });
+
+  describe('onUpdated group removal', () => {
+    // Sets the module-level `labels` by driving the storage.onChanged listener,
+    // which mirrors how the worker keeps `labels` in sync at runtime.
+    const setLabels = (chrome, labelsObj) => {
+      const onChanged = chrome.storage.onChanged.addListener.mock.calls[0][0];
+      onChanged({ labels: { newValue: labelsObj, oldValue: {} } }, 'local');
+    };
+
+    // The cleanup path keys removal off getUrlKey(tab.url), which strips the
+    // #fragment. A label storing the normalized key must be cleaned even when the
+    // tab's live URL still carries a fragment (the inline `url-${tab.url}` form
+    // missed these).
+    it('removes a hashed URL using the normalized key when a tab leaves a group', async () => {
+      chrome.storage.local.get.mockImplementation((query, cb) => {
+        const keys = typeof query === 'string' ? [query] : Array.isArray(query) ? query : Object.keys(query);
+        const res = {};
+        for (const k of keys) {
+          if (k === 'activeTabs') {
+            res.activeTabs = [{ tabKey: 'tab-3', urlKey: 'url-https://docs.com/page', groupId: 5 }];
+          } else if (k === 'allUrls') res.allUrls = [];
+          else if (k === 'autoClosed') res.autoClosed = {};
+          else if (k === 'labels') res.labels = {};
+        }
+        cb(res);
+      });
+      chrome.tabs.query.mockImplementation((_q, cb) => cb && cb([]));
+
+      const labelsObj = { Work: { title: 'Work', urlKeys: ['url-https://docs.com/page'] } };
+      setLabels(chrome, labelsObj);
+      fns.trackGroup({ id: 5, title: 'Work' });
+
+      const onUpdated = chrome.tabs.onUpdated.addListener.mock.calls[0][0];
+      await onUpdated(3, { groupId: -1 }, { id: 3, url: 'https://docs.com/page#section' });
+
+      // labelsObj is the same reference held module-level, so the splice is visible here.
+      expect(labelsObj.Work.urlKeys).not.toContain('url-https://docs.com/page');
     });
   });
 

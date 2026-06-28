@@ -1,6 +1,6 @@
 {
-  "feature": "dani--recency-weighted-favorites-with-open-cue",
-  "maxStep": 25,
-  "version": 328,
-  "updatedAt": "2026-06-28T17:24:22.671432247+00:00"
+  "feature": "stop-navigate-out-tab-group-capture",
+  "maxStep": 23,
+  "version": 230,
+  "updatedAt": "2026-06-28T19:01:26.365441064+00:00"
 }

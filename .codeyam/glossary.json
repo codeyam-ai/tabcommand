@@ -516,7 +516,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Reconciles Chrome tab groups against the labels model: groups labeled tabs (creating/coloring groups as needed) and ungroups tabs that no longer belong to any label, skipping pinned tabs.",
+    "description": "Reconciles Chrome tab groups against the labels model: groups labeled tabs (creating/coloring groups as needed) and ungroups tabs that no longer belong to any label, skipping pinned tabs. Refuses to record a tab whose ungroup is in flight (in pendingUngroups) so a tab navigating out of a group is never captured into it.",
     "filePath": "service_worker.js",
     "name": "groupTabs",
     "tags": [
@@ -528,7 +528,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Diffs old vs new activeTabs to reconcile label membership when a tab moves between groups, adding/removing its url key from the affected labels; no-ops without a previous value.",
+    "description": "Diffs old vs new activeTabs to reconcile label membership when a tab moves between groups, adding/removing its url key from the affected labels; seeds a missing destination label instead of throwing, skips tabs whose ungroup is pending, and no-ops without a previous value.",
     "filePath": "service_worker.js",
     "name": "handleActiveTabsGroupChanges",
     "tags": [
@@ -613,6 +613,12 @@
     "filePath": "src/lib/utils/loadLevel.js",
     "name": "loadLevel",
     "testFile": "src/lib/utils/loadLevel.test.js"
+  },
+  {
+    "description": "Bidirectional Chrome group-color map: converts a named tab-group color to its hex value and vice versa. Lifted to module scope so both groupTabs and handleActiveTabsGroupChanges can color a seeded label.",
+    "filePath": "service_worker.js",
+    "name": "mapColors",
+    "testFile": "service_worker.test.js"
   },
   {
     "description": "Internal helper of deriveSystemTotals: system memory pressure = (capacity - availableCapacity)/capacity, clamped 0..1. Returns 0 (never NaN) when the info object or capacity is missing.",
