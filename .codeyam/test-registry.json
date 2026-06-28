@@ -383,7 +383,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › removeUrl removes the url from the group urlKeys",
-      "line": 68,
+      "line": 91,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -394,6 +394,15 @@
       "key": "LabelCollection › renders the group title and its member urls",
       "line": 32,
       "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "tabs sharing a title get a url subtitle; uniquely-titled tabs stay clean",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › shows url subtitles only for tabs whose title collides with a sibling",
+      "line": 68,
+      "registeredAt": "2026-06-28T22:25:29.394904+00:00",
       "runner": "tests"
     },
     {
@@ -1117,6 +1126,24 @@
       "runner": "tests"
     },
     {
+      "description": "without showUrl, the subtitle is absent (unique titles stay clean)",
+      "file": "src/lib/components/Url/Url.test.jsx",
+      "format": "vitest",
+      "key": "Url › omits the url subtitle by default",
+      "line": 134,
+      "registeredAt": "2026-06-28T22:25:29.394904+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "with showUrl, a dimmed host/path subtitle appears beneath the title so same-titled siblings can be told apart",
+      "file": "src/lib/components/Url/Url.test.jsx",
+      "format": "vitest",
+      "key": "Url › renders a url subtitle when showUrl is set",
+      "line": 122,
+      "registeredAt": "2026-06-28T22:25:29.394904+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "Without a urlKey, Url renders an empty node (no .Url row).",
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
@@ -1139,7 +1166,7 @@
       "file": "src/lib/components/Url/Url.test.jsx",
       "format": "vitest",
       "key": "Url › reveals the action row on hover",
-      "line": 121,
+      "line": 144,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },

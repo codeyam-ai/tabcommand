@@ -64,6 +64,29 @@ describe('LabelCollection', () => {
     expect(inactive).not.toHaveTextContent('OpenTab');
   });
 
+  // tabs sharing a title get a url subtitle; uniquely-titled tabs stay clean
+  it('shows url subtitles only for tabs whose title collides with a sibling', async () => {
+    seed('url-https://codeyam.com', { title: 'CodeYam', favicon: '' });
+    seed('url-https://app.codeyam.com', { title: 'CodeYam', favicon: '' });
+    seed('url-https://example.com', { title: 'Example', favicon: '' });
+    installChromeShim();
+
+    const { container } = renderCollection({
+      title: 'Work',
+      backgroundColor: '#1873E4',
+      urlKeys: ['url-https://codeyam.com', 'url-https://app.codeyam.com', 'url-https://example.com']
+    });
+
+    await screen.findByText('Example');
+
+    await waitFor(() => {
+      const subtitles = [...container.querySelectorAll('.Url-subtitle')].map((el) => el.textContent);
+      expect(subtitles.sort()).toEqual(['app.codeyam.com', 'codeyam.com']);
+    });
+    // the uniquely-titled row has no subtitle
+    expect(container.querySelectorAll('.Url-subtitle')).toHaveLength(2);
+  });
+
   // removing a url drops it from the group's urlKeys in storage
   it('removeUrl removes the url from the group urlKeys', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);

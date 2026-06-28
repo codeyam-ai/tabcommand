@@ -16,14 +16,16 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
       currentUrlKeys,
       currentBackgroundColor,
       menuDisplayed,
-      activeTabs
+      activeTabs,
+      titleMap
     }, setState] = useState(
       {
         currentTitle: title,
         currentUrlKeys: urlKeys || [],
         currentBackgroundColor: backgroundColor,
         menuDisplayed: false,
-        activeTabs: []
+        activeTabs: [],
+        titleMap: {}
       }
     );
 
@@ -36,6 +38,12 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
       };
     });
   };
+
+  // Displayed title for a url record: its page title, or the bare URL when the
+  // title is missing. Mirrors the fallback in Url's render so collision detection
+  // matches what the user actually sees.
+  const displayedTitle = (urlKey, record) =>
+    (record && record.title) || urlKey.replace(/^url-/, '');
 
   useEffect(() => {
     Chrome.get('LabelCollection1', 'activeTabs', (result) => {
@@ -56,11 +64,43 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
       if (changes.activeTabs) {
         setPartialState({ activeTabs: changes.activeTabs.newValue });
       }
+
+      // A tab's title can load/change after the card mounts; keep titleMap fresh
+      // so the ambiguity check (and its subtitles) react. Functional setState
+      // avoids a stale closure over currentUrlKeys.
+      const urlChanges = Object.keys(changes).filter((key) => key.startsWith('url-'));
+      if (urlChanges.length) {
+        setState((prev) => {
+          const relevant = urlChanges.filter((key) => prev.currentUrlKeys.includes(key));
+          if (!relevant.length) return prev;
+          const newTitleMap = { ...prev.titleMap };
+          for (const key of relevant) {
+            newTitleMap[key] = displayedTitle(key, changes[key].newValue);
+          }
+          return { ...prev, titleMap: newTitleMap };
+        });
+      }
     };
     chrome.storage.onChanged.addListener(handleChange);
 
     return () => chrome.storage.onChanged.removeListener(handleChange);
   }, []);
+
+  // Load the displayed title for every url in this group so we can spot titles
+  // shared by 2+ tabs. Re-runs whenever the group's url set changes.
+  useEffect(() => {
+    if (!currentUrlKeys || !currentUrlKeys.length) {
+      setPartialState({ titleMap: {} });
+      return;
+    }
+    Chrome.get('LabelCollectionTitles', currentUrlKeys, (records) => {
+      const newTitleMap = {};
+      for (const urlKey of currentUrlKeys) {
+        newTitleMap[urlKey] = displayedTitle(urlKey, records[urlKey]);
+      }
+      setPartialState({ titleMap: newTitleMap });
+    });
+  }, [currentUrlKeys]);
 
   const deleteLabel = async (event) => {
     event.stopPropagation();
@@ -135,6 +175,18 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
   const inactiveUrls = completeUrlKeys.filter(
     (urlKey => activeTabs.filter((tab) => tab.urlKey === urlKey).length === 0)
   );
+
+  // Titles shared by 2+ tabs in this group are ambiguous; those rows get a URL
+  // subtitle so they can be told apart. Unique titles stay clean.
+  const titleCounts = {};
+  for (const urlKey of currentUrlKeys || []) {
+    const t = titleMap[urlKey];
+    if (t) titleCounts[t] = (titleCounts[t] || 0) + 1;
+  }
+  const isAmbiguous = (urlKey) => {
+    const t = titleMap[urlKey];
+    return !!t && titleCounts[t] > 1;
+  };
 
   const menu = () => (
     <div
@@ -213,6 +265,7 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
                         dragHandleProps={dragProvided.dragHandleProps}
                         showLoad={true}
                         expanded={expanded}
+                        showUrl={isAmbiguous(urlKey)}
                         onRemove={(event) => removeUrl(event, urlKey)}
                         urlKey={urlKey}
                       />
@@ -237,6 +290,7 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
                         draggableProps={dragProvided.draggableProps}
                         dragHandleProps={dragProvided.dragHandleProps}
                         expanded={expanded}
+                        showUrl={isAmbiguous(urlKey)}
                         onRemove={(event) => removeUrl(event, urlKey)}
                         urlKey={urlKey}
                       />

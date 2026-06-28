@@ -28,6 +28,19 @@
   -webkit-text-fill-color: transparent;
 }
 
+/* Dimmed host/path shown only when a sibling tab shares the same title, so
+   otherwise-identical rows can be told apart. Indented to line up under the
+   title text, past the favicon. */
+.Url .Url-subtitle {
+  margin-left: 22px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .Url-actions,
 .Url-stats {
   float: right;

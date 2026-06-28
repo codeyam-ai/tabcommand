@@ -117,6 +117,29 @@ describe('Url', () => {
     expect(container.querySelector('.Url')).not.toBeInTheDocument();
   });
 
+  // with showUrl, a dimmed host/path subtitle appears beneath the title so
+  // same-titled siblings can be told apart
+  it('renders a url subtitle when showUrl is set', async () => {
+    seed('url-https://app.codeyam.com/fleet', { title: 'CodeYam', favicon: '' });
+    installChromeShim();
+    const { container } = render(<Url urlKey="url-https://app.codeyam.com/fleet" showUrl={true} />);
+
+    await screen.findByText('CodeYam');
+    const subtitle = container.querySelector('.Url-subtitle');
+    expect(subtitle).toBeInTheDocument();
+    expect(subtitle.textContent).toBe('app.codeyam.com/fleet');
+  });
+
+  // without showUrl, the subtitle is absent (unique titles stay clean)
+  it('omits the url subtitle by default', async () => {
+    seed('url-https://app.codeyam.com/fleet', { title: 'CodeYam', favicon: '' });
+    installChromeShim();
+    const { container } = render(<Url urlKey="url-https://app.codeyam.com/fleet" />);
+
+    await screen.findByText('CodeYam');
+    expect(container.querySelector('.Url-subtitle')).not.toBeInTheDocument();
+  });
+
   // hovering reveals the action row (edit, etc.)
   it('reveals the action row on hover', async () => {
     seed('url-https://react.dev', { title: 'React', favicon: '' });

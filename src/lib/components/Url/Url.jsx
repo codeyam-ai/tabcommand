@@ -19,10 +19,24 @@ const Url = ({
   showLoad,
   closed,
   onRemove,
+  showUrl,
   encourageDrag }) => {
   if (!urlKey) return (<div></div>);
 
   const url = () => urlKey.replace(/^url-/, '');
+
+  // Compact, human-readable form of the URL (host + path, no protocol/query) used
+  // as a subtitle to tell apart sibling tabs that share an identical title.
+  const displayUrl = () => {
+    const raw = url();
+    try {
+      const u = new URL(raw);
+      const path = u.pathname === '/' ? '' : u.pathname;
+      return u.hostname.replace(/^www\./, '') + path;
+    } catch {
+      return raw.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    }
+  };
 
   const setPartialState = (updates) => {
     if (Object.keys(updates).length === 0) return;
@@ -232,6 +246,10 @@ const Url = ({
         <Favicon favicon={favicon} urlKey={urlKey} title={title} />
         {title || url()}
       </div>
+
+      {showUrl &&
+        <div className='Url-subtitle' title={url()}>{displayUrl()}</div>
+      }
     </div>
   );
 }
