@@ -28,8 +28,11 @@
 }
 
 .LabelCollection-urls-active {
-  background-color: var(--card-bg);
+  background-color: var(--c-raised);
+  border-left: 2px solid var(--c-lime-fg);
+  border-radius: 8px;
   padding: 8px;
+  margin-bottom: 8px;
   overflow: hidden;
 }
 

@@ -1,0 +1,11 @@
+{
+  "name": "LabelSectionHeader - Many Open Tabs",
+  "id": "95b3161b-0652-4a44-9826-ccb47a77987c",
+  "url": "/?isolate=LabelSectionHeader&variant=many",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelSectionHeader",
+  "scenarioType": "component"
+}

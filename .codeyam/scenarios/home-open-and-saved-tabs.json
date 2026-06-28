@@ -1,0 +1,30 @@
+{
+  "name": "Home - Open and Saved Tabs",
+  "id": "e9e86602-fce4-40f5-b296-1b6fa89318bd",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://linear.app/codeyam/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://css-tricks.com/snippets/css/a-guide-to-flexbox\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\"]},\"Social\":{\"title\":\"Social\",\"backgroundColor\":\"#D01882\",\"position\":3,\"urlKeys\":[\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\"]}}",
+      "url-https://css-tricks.com/snippets/css/a-guide-to-flexbox": "{\"title\":\"A Complete Guide to Flexbox – CSS-Tricks\",\"favicon\":\"https://www.google.com/s2/favicons?domain=css-tricks.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"https://www.google.com/s2/favicons?domain=notion.so&sz=64\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://linear.app/codeyam/tabcommand\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://css-tricks.com/snippets/css/a-guide-to-flexbox\",\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\",\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\"]",
+      "url-https://www.amazon.com/wishlist": "{\"title\":\"Your Wish List – Amazon\",\"favicon\":\"https://www.google.com/s2/favicons?domain=amazon.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "autoClosed": "{}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-303\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://twitter.com/home\",\"tabKey\":\"tab-304\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.reddit.com/r/programming\",\"tabKey\":\"tab-305\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "url-https://www.reddit.com/r/programming": "{\"title\":\"r/programming\",\"favicon\":\"https://www.google.com/s2/favicons?domain=reddit.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://www.etsy.com/favorites": "{\"title\":\"Favorites – Etsy\",\"favicon\":\"https://www.google.com/s2/favicons?domain=etsy.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"https://www.google.com/s2/favicons?domain=figma.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://linear.app/codeyam/tabcommand": "{\"title\":\"TabCommand — Linear backlog\",\"favicon\":\"https://www.google.com/s2/favicons?domain=linear.app&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://www.google.com/s2/favicons?domain=github.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"https://www.google.com/s2/favicons?domain=react.dev&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://twitter.com/home": "{\"title\":\"Home / X\",\"favicon\":\"https://www.google.com/s2/favicons?domain=twitter.com&sz=64\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx"
+}

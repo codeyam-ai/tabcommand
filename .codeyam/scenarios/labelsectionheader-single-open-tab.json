@@ -1,0 +1,11 @@
+{
+  "name": "LabelSectionHeader - Single Open Tab",
+  "id": "ab8e2a5a-0775-4a34-afa9-7af30ff27a2e",
+  "url": "/?isolate=LabelSectionHeader&variant=single",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelSectionHeader",
+  "scenarioType": "component"
+}

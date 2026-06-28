@@ -316,9 +316,13 @@ const ISOLATION_PROPS = {
       index: 0,
       draggable: false,
       title: 'Work',
+      // Two open tabs (seeded into `activeTabs`) plus two saved-only tabs, so
+      // the card exercises both the OPEN section and the plain saved section.
       urlKeys: [
         'url-https://github.com/codeyam/tabcommand',
         'url-https://www.figma.com/file/tabcommand',
+        'url-https://linear.app/codeyam/tabcommand',
+        'url-https://www.notion.so/codeyam/tabcommand-spec',
       ],
       backgroundColor: '#1873E4',
       expanded: true,
@@ -334,6 +338,25 @@ const ISOLATION_PROPS = {
         urlKeys: [],
         backgroundColor: '#707071',
         expanded: true,
+      },
+    },
+  },
+  LabelSectionHeader: {
+    // Typical case: the "Open" section header over a handful of open tabs.
+    default: {
+      label: 'Open',
+      count: 2,
+    },
+    variants: {
+      // Boundary: a single open tab — the count reads "1".
+      single: {
+        label: 'Open',
+        count: 1,
+      },
+      // Boundary: a large group with many open tabs (two-digit count).
+      many: {
+        label: 'Open',
+        count: 12,
       },
     },
   },

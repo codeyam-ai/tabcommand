@@ -128,6 +128,16 @@
     "testFile": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx"
   },
   {
+    "description": "A small uppercase section header used inside a group card to demarcate a subset of Url rows. Renders a lime live-status dot, the section label, and a compact count pushed to the right. Purely presentational; the parent decides when to render it.",
+    "filePath": "src/lib/components/LabelSectionHeader/LabelSectionHeader.jsx",
+    "name": "LabelSectionHeader",
+    "scenarios": [
+      "labelsectionheader-open-section",
+      "labelsectionheader-single-open-tab",
+      "labelsectionheader-many-open-tabs"
+    ]
+  },
+  {
     "description": "The groups area filling the Home center: reads the labels map + uxSettings from chrome.storage, sorts groups by title then position, pins the selected label expanded above the grid, and chunks the rest into responsive horizontal Droppable rows of LabelCollection. Shows the Add Group CTA when empty.",
     "filePath": "src/lib/components/Labels/Labels.jsx",
     "name": "Labels",

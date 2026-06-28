@@ -1,0 +1,219 @@
+{
+  "timestamp": "2026-06-28T14:12:44Z",
+  "title": "Demarcate Open Tabs Within Group Cards",
+  "type": "feature",
+  "userRequest": "## Summary\n\nInside a group card (`LabelCollection`), URLs whose tab is currently open are\nalready sorted above the saved-only URLs, but the two sections look identical —\nsame `--card-bg` background, no labels — so a user can't tell at a glance which\nof the group's tabs are actually open right now. Add a clear demarcation: a\nsmall \"OPEN\" subheader (with a count) above the open tabs, and a distinct tinted\nbackground + accent styling for that open section. Saved-only tabs stay plain\nbelow, with no extra header (per the chosen \"Header + tinted section\" design).\n\n## Key Decisions\n\n- **Reuse the existing active/inactive split.** `LabelCollection` already\n  computes `activeUrls` (urlKeys with a matching `activeTabs` entry) and\n  `inactiveUrls`, and renders them into `.LabelCollection-urls-active` /\n  `.LabelCollection-urls-inactive`. No data/logic change is needed — this is\n  purely a presentational addition (a header element + CSS).\n- **Header only on the open section.** Chosen over labeling both sections. The\n  \"OPEN\" header renders only when `activeUrls.length > 0`; the saved section\n  stays unlabeled so quiet/empty groups don't gain visual noise.\n- **Tint via existing theme tokens.** Use `--c-raised` (the established\n  \"slightly raised surface\" token already used for `.Url-hover`,\n  `Favorites`, `HistoryRow`) for the open section's background, and the lime\n  identity accent (`--c-lime-fg`) for the header dot/label, so it reads as\n  \"active\" and stays correct in both light and dark themes. No new color\n  variables.\n- **Count comes from `activeUrls.length`**, mirroring the existing card-title\n  count badge pattern (`.LabelCollection-count`).\n\n## Implementation\n\n### 1. Add an \"OPEN\" subheader above the active section\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\nIn the `content()` render (around the `activeUrls.length > 0` block, ~lines\n199–222), prepend a header element inside `.LabelCollection-urls-active` (or\nimmediately above it within the same conditional) showing a small accent dot,\nthe word \"OPEN\", and the open-tab count:\n\n```jsx\n{activeUrls.length > 0 &&\n  <div className='LabelCollection-urls-active'>\n    <div className='LabelCollection-section-header LabelCollection-section-open'>\n      <span className='LabelCollection-section-dot' />\n      <span className='LabelCollection-section-label'>Open</span>\n      <span className='LabelCollection-section-count'>{activeUrls.length}</span>\n    </div>\n    {activeUrls.map((urlKey) => ( /* unchanged Draggable/Url */ ))}\n  </div>\n}\n```\n\nKeep the `inactiveUrls` block unchanged (no header).\n\n### 2. Style the open section: tint + header\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.css`\n\n- Change `.LabelCollection-urls-active` from `background-color: var(--card-bg)`\n  to a tinted surface using `var(--c-raised)`, and add a subtle rounded\n  container feel (e.g. `border-radius`, and/or a left accent border in\n  `--c-lime-fg`) so the open tabs read as a distinct grouped block. Keep the\n  existing `padding: 8px`.\n- Add `.LabelCollection-section-header` — a small fl/ex row: tiny uppercase\n  label, muted/letter-spaced type (`font-size: 10–11px`, `text-transform:\n  uppercase`, `letter-spacing`, `color: var(--text-muted)` or `--c-lime-fg`\n  for the open variant), `display: flex; align-items: center; gap: 6px`, a\n  small bottom margin.\n- Add `.LabelCollection-section-dot` — a small (6–7px) `--c-lime-fg` filled\n  circle (`border-radius: 50%`) used as the \"live/open\" indicator.\n- Add `.LabelCollection-section-count` — a compact count, styled like a smaller\n  echo of `.LabelCollection-count` (translucent/accent pill or plain muted\n  number), pushed via `margin-left: auto` or a gap.\n- Ensure the tinted `.LabelCollection-urls-active` still sits correctly inside\n  the scrollable `.LabelCollection-urls` container and doesn't break the\n  `.UrlOver` drag-over background or the selected/expanded layout\n  (`.LabelCollections-selected ...`).\n\n### 3. (Optional, within scope) Per-row open affordance\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.css`\n\nIf the section tint alone feels weak, give the open `Url` rows a marginally\nstronger resting surface (they currently only tint on `.Url-hover`). Prefer a\ncontainer-scoped rule (`.LabelCollection-urls-active .Url { ... }`) over editing\n`Url.css`, so the change stays local to group cards and doesn't affect `Url`\nusage elsewhere (Favorites, Triage, search results). Keep hover behavior intact.\n\n## Reused existing code\n\n- `LabelCollection` from `src/lib/components/LabelCollection/LabelCollection.jsx`\n  (glossary entry: `LabelCollection`) — already derives `activeUrls` /\n  `inactiveUrls` from `activeTabs`; the plan only adds presentation.\n- `Url` from `src/lib/components/Url/Url.jsx` (glossary entry: `Url`) — rendered\n  unchanged inside each section.\n- Theme tokens `--c-raised`, `--c-lime-fg`, `--text-muted`, `--card-bg` from\n  `src/index.css` / `src/lib/styles/theme.css` — reused for the tint, accent\n  dot/label, and counts; no new variables introduced.\n- Existing count-badge pattern `.LabelCollection-count` in\n  `LabelCollection.css` — mirrored for the section count.\n\n## Scenarios to Demonstrate\n\n- **Mixed group** — a group with both open and saved tabs: \"OPEN\" header + count\n  over a tinted block of open rows, plain saved rows below (the happy path).\n- **All tabs open** — every member has a live tab: full card is the tinted open\n  section with header; no plain section.\n- **No tabs open** — all members saved-only: no \"OPEN\" header, no tint; card\n  looks as it does today.\n- **Single open tab** — header shows count \"1\"; verify singular reads cleanly.\n- **Empty group** — unchanged \"Drag tabs…\" empty state, no header.\n- **Light and dark themes** — confirm the tint and lime accent have adequate\n  contrast and the open section is clearly distinct from the card body in both.\n- **Selected/expanded group** — the demarcation still looks right in the\n  expanded (`.LabelCollections-selected`) full-width layout.",
+  "description": "Open tabs within a group card are now visually demarcated from saved-only tabs: open tabs sit in a tinted block (raised surface + lime left accent) under a small lime OPEN subheader with a live count, while saved-only tabs stay plain below with no header. Extracted the header into a reusable LabelSectionHeader component (label + count props) covered by three isolated scenarios (counts 1, 2, 12), and added a Home - Open and Saved Tabs app scenario showing mixed, all-saved, and all-open groups on the real page. Reuses the existing activeUrls/inactiveUrls split in LabelCollection — purely presentational, no data or logic change.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/skills/codeyam-audit/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-design/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-edit-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-editor/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-onboard/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-prototype/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-slice/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/capture.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/demarcate-open-tabs-within-group-cards.md\t.codeyam/plans/completed/demarcate-open-tabs-within-group-cards.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollection-work-group.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".gitattributes",
+      "status": "modified"
+    },
+    {
+      "path": ".gitignore",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_components.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/finalize-procedure.md",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-open-and-saved-tabs.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelsectionheader-many-open-tabs.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelsectionheader-open-section.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelsectionheader-single-open-tab.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-many-open-tabs--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-many-open-tabs--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-open-section--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-open-section--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-single-open-tab--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-single-open-tab--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelSectionHeader/LabelSectionHeader.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelSectionHeader/LabelSectionHeader.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelSectionHeader/index.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelSectionHeader - Many Open Tabs",
+      "screenshotPath": "labelsectionheader-many-open-tabs--desktop.png"
+    },
+    {
+      "name": "LabelSectionHeader - Open Section",
+      "screenshotPath": "labelsectionheader-open-section--desktop.png"
+    },
+    {
+      "name": "LabelSectionHeader - Single Open Tab",
+      "screenshotPath": "labelsectionheader-single-open-tab--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 320,
+    "passed": 320,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 320,
+        "passed": 320
+      }
+    ]
+  }
+}

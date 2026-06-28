@@ -3,7 +3,7 @@ import './LabelCollection.css';
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
-import { Url, LabelForm } from '..';
+import { Url, LabelForm, LabelSectionHeader } from '..';
 import { Icon } from '../Icon';
 
 import { ItemTypes } from '../../../Constants';
@@ -198,6 +198,7 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
 
             {activeUrls.length > 0 &&
               <div className='LabelCollection-urls-active'>
+                <LabelSectionHeader label='Open' count={activeUrls.length} />
                 {activeUrls.map((urlKey) => (
                   <Draggable
                     key={`${index}-LabelCollection-urls-${title}-${urlKey}`}

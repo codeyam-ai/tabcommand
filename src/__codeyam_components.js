@@ -6,6 +6,7 @@ import Icon from "./lib/components/Icon/Icon";
 import LabelCollection from "./lib/components/LabelCollection/LabelCollection";
 import LabelForm from "./lib/components/LabelForm/LabelForm";
 import LabelFormContainer from "./lib/components/LabelFormContainer/LabelFormContainer";
+import LabelSectionHeader from "./lib/components/LabelSectionHeader/LabelSectionHeader";
 import Labels from "./lib/components/Labels/Labels";
 import LoadMeter from "./lib/components/LoadMeter/LoadMeter";
 import LoadMeterCaption from "./lib/components/LoadMeterCaption/LoadMeterCaption";
@@ -32,6 +33,7 @@ export const components = {
   LabelCollection: LabelCollection,
   LabelForm: LabelForm,
   LabelFormContainer: LabelFormContainer,
+  LabelSectionHeader: LabelSectionHeader,
   Labels: Labels,
   LoadMeter: LoadMeter,
   LoadMeterCaption: LoadMeterCaption,

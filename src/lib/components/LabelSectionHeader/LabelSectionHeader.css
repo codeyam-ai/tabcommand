@@ -1,0 +1,35 @@
+/* Small uppercase section header above a subset of Url rows. */
+.LabelSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-lime-fg);
+}
+
+/* Lime "live" indicator dot. */
+.LabelSectionHeader-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--c-lime-fg);
+}
+
+/* Compact count, pushed to the right edge of the header. */
+.LabelSectionHeader-count {
+  margin-left: auto;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: 8px;
+  background-color: rgba(199, 240, 74, 0.18);
+  color: var(--c-lime-fg);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+}

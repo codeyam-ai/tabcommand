@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-28T11:38:57Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-28T14:00:04Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
@@ -14,6 +14,7 @@ KeyDown :: src/lib/utils/KeyDown.js :: tags= :: test=src/lib/utils/KeyDown.test.
 LabelCollection :: src/lib/components/LabelCollection/LabelCollection.jsx :: tags= :: test=src/lib/components/LabelCollection/LabelCollection.test.jsx
 LabelForm :: src/lib/components/LabelForm/LabelForm.jsx :: tags= :: test=src/lib/components/LabelForm/LabelForm.test.jsx
 LabelFormContainer :: src/lib/components/LabelFormContainer/LabelFormContainer.jsx :: tags= :: test=src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx
+LabelSectionHeader :: src/lib/components/LabelSectionHeader/LabelSectionHeader.jsx :: tags=
 Labels :: src/lib/components/Labels/Labels.jsx :: tags= :: test=src/lib/components/Labels/Labels.test.jsx
 Load :: src/lib/pages/Load/Load.jsx :: tags= :: test=src/lib/pages/Load/Load.test.jsx
 LoadMeter :: src/lib/components/LoadMeter/LoadMeter.jsx :: tags= :: test=src/lib/components/LoadMeter/LoadMeter.test.jsx

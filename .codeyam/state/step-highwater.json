@@ -1,6 +1,6 @@
 {
-  "feature": "sidebar-header-align-tools-with-logo",
-  "maxStep": 25,
-  "version": 495,
-  "updatedAt": "2026-06-28T12:58:28.825251665+00:00"
+  "feature": "demarcate-open-tabs-within-group-cards",
+  "maxStep": 23,
+  "version": 71,
+  "updatedAt": "2026-06-28T14:14:35.755487020+00:00"
 }

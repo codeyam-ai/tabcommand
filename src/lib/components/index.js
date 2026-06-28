@@ -6,6 +6,7 @@ export { ThemeToggle } from "./ThemeToggle";
 export { LabelForm } from "./LabelForm";
 export { LabelFormContainer } from "./LabelFormContainer";
 export { LabelCollection } from "./LabelCollection";
+export { LabelSectionHeader } from "./LabelSectionHeader";
 export { Labels } from "./Labels";
 export { LoadMeter } from "./LoadMeter";
 export { LoadMeterCaption } from "./LoadMeterCaption";

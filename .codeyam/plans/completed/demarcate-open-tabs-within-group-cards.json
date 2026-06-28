@@ -1,0 +1,42 @@
+{
+  "claimStartedAt": "2026-06-28T13:41:55Z",
+  "completedAt": "2026-06-28T14:12:44Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "machine": "codeyam-editor-codeyam-editor-4",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "demarcate-open-tabs-within-group-cards",
+    "sessionId": "",
+    "startedAt": "2026-06-28T13:41:55Z"
+  },
+  "createdAt": "2026-06-28T00:00:00Z",
+  "deliverables": [
+    ".claude/skills/codeyam-audit/SKILL.md",
+    ".claude/skills/codeyam-audit/finalize-procedure.md",
+    ".claude/skills/codeyam-design/SKILL.md",
+    ".claude/skills/codeyam-edit-plan/SKILL.md",
+    ".claude/skills/codeyam-editor/SKILL.md",
+    ".claude/skills/codeyam-onboard/SKILL.md",
+    ".claude/skills/codeyam-plan/SKILL.md",
+    ".claude/skills/codeyam-prototype/SKILL.md",
+    ".claude/skills/codeyam-slice/SKILL.md",
+    ".gitattributes",
+    ".gitignore",
+    "src/__codeyam_component_scenarios.js",
+    "src/__codeyam_components.js",
+    "src/__codeyam_isolate.jsx",
+    "src/lib/components/LabelCollection/LabelCollection.css",
+    "src/lib/components/LabelCollection/LabelCollection.jsx",
+    "src/lib/components/LabelSectionHeader/LabelSectionHeader.css",
+    "src/lib/components/LabelSectionHeader/LabelSectionHeader.jsx",
+    "src/lib/components/LabelSectionHeader/index.js",
+    "src/lib/components/index.js"
+  ],
+  "journalTimestamp": "2026-06-28T14:12:44Z",
+  "mode": "ui",
+  "planFile": "completed/demarcate-open-tabs-within-group-cards.md",
+  "slug": "demarcate-open-tabs-within-group-cards",
+  "title": "Demarcate Open Tabs Within Group Cards"
+}

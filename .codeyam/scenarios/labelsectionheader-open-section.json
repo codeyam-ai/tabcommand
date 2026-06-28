@@ -1,0 +1,11 @@
+{
+  "name": "LabelSectionHeader - Open Section",
+  "id": "4a7594de-6eae-4005-879c-c6c29d4829fa",
+  "url": "/?isolate=LabelSectionHeader",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelSectionHeader",
+  "scenarioType": "component"
+}
