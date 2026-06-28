@@ -7,10 +7,10 @@ import { rankFavorites } from '../../utils/rankFavorites';
 import { Favicon } from '../Favicon';
 import Icon from '../Icon/Icon';
 
-// The Favorites sidebar section: the user's most-visited sites, ranked by a
-// blend of recency and visit frequency (recency-leaning) in the pure
-// `rankFavorites` util. It reads `allUrls` (recency-ordered keys) plus the
-// corresponding `url-*` records from storage, stays live via
+// The Favorites sidebar section: the user's genuinely most-visited sites, ranked
+// frequency-first (with a minimum-visit threshold and a currently-open-tab
+// discount) in the pure `rankFavorites` util. It reads `allUrls` (recency-ordered
+// keys) plus the corresponding `url-*` records from storage, stays live via
 // `chrome.storage.onChanged`, and — like SearchResults — focuses an already-open
 // tab on click or opens a new one. An empty install renders nothing.
 const FAVORITES_LIMIT = 5;
@@ -38,9 +38,19 @@ const Favorites = () => {
               .map((tab) => tab.urlKey),
             ...(favoritesHidden || []),
           ]);
+          // Sites open in a NON-pinned tab are discounted (not excluded): their
+          // in-progress visit shouldn't pad the ranking while the tab is open, so
+          // Favorites doesn't just mirror the currently-open tabs.
+          const openKeys = new Set(
+            (activeTabs || [])
+              .filter((tab) => !tab.pinned)
+              .map((tab) => tab.urlKey)
+          );
           Chrome.get('Favorites2', keys, (records) => {
             setFavorites(
-              rankFavorites(keys, records, FAVORITES_LIMIT, excludedKeys)
+              rankFavorites(keys, records, FAVORITES_LIMIT, excludedKeys, {
+                openKeys,
+              })
             );
           });
         }

@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-28T14:00:04Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-28T14:44:58Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
@@ -78,6 +78,7 @@ loadColor :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/component
 loadLevel :: src/lib/utils/loadLevel.js :: tags= :: test=src/lib/utils/loadLevel.test.js
 memoryUtilization :: src/lib/utils/deriveSystemTotals.js :: tags= :: test=src/lib/utils/deriveSystemTotals.test.js
 newUrl :: service_worker.js :: tags=worker,ported-verbatim,storage :: test=service_worker.test.js
+normalizeUrl :: src/lib/utils/normalizeUrl.js :: tags= :: test=src/lib/utils/normalizeUrl.test.js
 parseTabId :: service_worker.js :: tags=worker,ported-verbatim,util :: test=service_worker.test.js
 pct :: src/lib/components/Triage/Triage.jsx :: tags= :: test=src/lib/components/Triage/Triage.test.jsx
 pollSystemLoad :: service_worker.js :: tags= :: test=service_worker.test.js

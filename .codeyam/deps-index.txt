@@ -1,4 +1,4 @@
-# regenerated from dependency-graph.json on 2026-06-28T14:25:25Z; do not hand-edit
+# regenerated from dependency-graph.json on 2026-06-28T15:11:25Z; do not hand-edit
 src/lib/utils/chromeShim :: imports=0 :: imported_by=21
 src/Constants.jsx :: imports=0 :: imported_by=20
 src/lib/utils/Chrome :: imports=0 :: imported_by=19
@@ -55,7 +55,8 @@ src/lib/utils/faviconMonogram.js :: imports=0 :: imported_by=2
 src/lib/utils/formatAutoClose.js :: imports=0 :: imported_by=2
 src/lib/utils/historyBuckets.js :: imports=0 :: imported_by=2
 src/lib/utils/importExport.js :: imports=0 :: imported_by=2
-src/lib/utils/rankFavorites.js :: imports=0 :: imported_by=2
+src/lib/utils/normalizeUrl.js :: imports=0 :: imported_by=2
+src/lib/utils/rankFavorites.js :: imports=1 :: imported_by=2
 src/lib/utils/searchNotesSnippet.js :: imports=0 :: imported_by=2
 src/lib/utils/segmentSearchResults.js :: imports=0 :: imported_by=2
 src/lib/utils/urlDetails.js :: imports=0 :: imported_by=2
@@ -211,6 +212,7 @@ src/lib/utils/humanReadableNumber.test.js :: imports=1 :: imported_by=0
 src/lib/utils/importExport.test.js :: imports=1 :: imported_by=0
 src/lib/utils/index.js :: imports=2 :: imported_by=0
 src/lib/utils/loadLevel.test.js :: imports=1 :: imported_by=0
+src/lib/utils/normalizeUrl.test.js :: imports=1 :: imported_by=0
 src/lib/utils/processLoad.test.js :: imports=1 :: imported_by=0
 src/lib/utils/rankFavorites.test.js :: imports=1 :: imported_by=0
 src/lib/utils/searchNotesSnippet.test.js :: imports=1 :: imported_by=0

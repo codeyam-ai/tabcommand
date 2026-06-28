@@ -53,7 +53,7 @@
     ]
   },
   {
-    "description": "Sidebar section (Home only) listing the user's most-visited sites, ranked by the recency-leaning rankFavorites blend. Reads allUrls plus the matching url-* records from chrome.storage.local, and also reads activeTabs and favoritesHidden to build an excludedKeys set: sites open in a Chrome-pinned tab and user-removed sites are dropped from the list. Stays live via chrome.storage.onChanged on allUrls / url-* / activeTabs / favoritesHidden. Renders a Favicon + title per row plus a hover-revealed remove control that adds the site's urlKey to favoritesHidden (hiding it from Favorites while keeping it in Search/History). On row click focuses an already-open tab or opens a new one (mirrors SearchResults). Renders nothing when there are no favorites.",
+    "description": "Sidebar section listing the user's genuinely most-visited sites, ranked FREQUENCY-FIRST by the pure rankFavorites util. Reads allUrls plus the matching url-* records from chrome.storage.local, and also reads activeTabs and favoritesHidden. Builds an excludedKeys set, sites open in a Chrome-pinned tab and user-removed sites are dropped entirely, AND an openKeys set of non-pinned active-tab urlKeys passed to rankFavorites so a site currently open in a non-pinned tab has its in-progress visit discounted rather than excluded. Stays live via chrome.storage.onChanged on allUrls / url-* / activeTabs / favoritesHidden. Renders a Favicon plus title per row plus a hover-revealed remove control that adds the site's urlKey to favoritesHidden, hiding it from Favorites while keeping it in Search/History. On row click focuses an already-open tab or opens a new one. Renders nothing when there are no qualifying favorites.",
     "filePath": "src/lib/components/Favorites/Favorites.jsx",
     "name": "Favorites",
     "scenarios": [
@@ -632,6 +632,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Pure URL-normalization helper that produces a canonical grouping key for de-duplicating Favorites rows. Collapses cosmetic variants onto one key: drops the scheme so http and https are equivalent, lowercases the host and strips a leading www., strips a trailing slash from the path, and drops the fragment, while PRESERVING the query string and distinct paths. Defensive: a non-parseable URL falls back to the trimmed raw string so callers never throw. Used by rankFavorites to merge slash/www/protocol variants of the same site.",
+    "filePath": "src/lib/utils/normalizeUrl.js",
+    "name": "normalizeUrl",
+    "testFile": "src/lib/utils/normalizeUrl.test.js"
+  },
+  {
     "description": "Extracts the integer Chrome tab id from a `tab-<n>` storage key.",
     "filePath": "service_worker.js",
     "name": "parseTabId",
@@ -679,7 +685,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Pure ranking for the Favorites sidebar section. Blends recency (dominant term, from a urlKey index position in the recency-ordered allUrls array) with visit frequency (visitCount normalized against the busiest candidate), weighted RECENCY_WEIGHT 0.7 / VISIT_WEIGHT 0.3 so recency leads but frequently-visited sites climb. Accepts an optional excludedKeys Set whose urlKeys are skipped (used to drop sites open in a Chrome-pinned tab or removed by the user). Filters keys without a usable title, derives url from the key when absent, sorts deterministically with recency tiebreak, returns the top-limit lightweight rows for rendering.",
+    "description": "Pure FREQUENCY-FIRST ranking for the Favorites sidebar section. For each candidate computes an effective visit count: visitCount minus a discount for a currently-open non-pinned tab via options.openKeys, floored at 0. De-duplicates candidates by normalizeUrl so http/https/www/trailing-slash variants of the same site collapse to one row, summing their effective visits with the most-recent variant as the representative. Drops any site whose summed effective visits is below options.minVisits, default MIN_VISITS=2, so one-off visits never appear. Orders survivors by effective visits descending with recency, the urlKey index position in the recency-ordered allUrls array, as the deterministic tiebreak. Accepts an optional excludedKeys Set whose urlKeys are skipped entirely, used to drop sites open in a Chrome-pinned tab or removed by the user. Filters keys without a usable title, derives url from the key when absent, returns the top-limit lightweight rows for rendering. The old RECENCY_WEIGHT/VISIT_WEIGHT recency-dominant blend has been removed.",
     "filePath": "src/lib/utils/rankFavorites.js",
     "name": "rankFavorites",
     "testFile": "src/lib/utils/rankFavorites.test.js"

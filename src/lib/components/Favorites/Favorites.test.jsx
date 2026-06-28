@@ -5,8 +5,10 @@ import { installChromeShim } from '../../utils/chromeShim';
 import Favorites from './Favorites';
 
 // Favorites reads allUrls + the matching url-* records from storage and renders
-// the recency-leaning ranked list (scoring lives in rankFavorites, unit-tested
-// separately). These tests cover the seeded-render path and the empty state.
+// the frequency-first ranked list (scoring lives in rankFavorites, unit-tested
+// separately). Seeded counts clear MIN_VISITS (2) so rows actually render. These
+// tests cover the seeded-render path, exclusion/discount, removal, dedup, and the
+// empty state.
 describe('Favorites', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -22,11 +24,11 @@ describe('Favorites', () => {
 
   // Seeded allUrls + url-* records render the Favorites header and ranked titles.
   it('renders the header and the ranked site titles', async () => {
-    // newest-first recency order; equal visit counts so recency drives order.
+    // newest-first recency order; equal visit counts so recency is the tiebreak.
     seed('allUrls', ['url-https://a.com', 'url-https://b.com', 'url-https://c.com']);
-    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 1 });
-    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 1 });
-    seed('url-https://c.com', { title: 'Charlie', favicon: '', visitCount: 1 });
+    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 3 });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 3 });
+    seed('url-https://c.com', { title: 'Charlie', favicon: '', visitCount: 3 });
     installChromeShim();
 
     render(<Favorites />);
@@ -37,14 +39,11 @@ describe('Favorites', () => {
     expect(screen.getByText('Charlie')).toBeInTheDocument();
   });
 
-  // The recency-leaning blend lets a heavily-visited older site outrank a barely-newer one.
-  it('lets a frequently-visited older site climb above a barely-newer one', async () => {
-    // Adjacent deep in a long recency list (tiny recency gap) but a large visit
-    // gap, so the popular older site climbs above the barely-newer one.
-    const filler = Array.from({ length: 80 }, (_, i) => `url-pad-${i}`);
-    const allUrls = [...filler.slice(0, 30), 'url-https://fresh.com', 'url-https://popular.com', ...filler.slice(30)];
-    seed('allUrls', allUrls);
-    seed('url-https://fresh.com', { title: 'Fresh', favicon: '', visitCount: 0 });
+  // Frequency-first: a heavily-visited older site outranks a barely-newer,
+  // less-visited one.
+  it('ranks a frequently-visited older site above a barely-newer one', async () => {
+    seed('allUrls', ['url-https://fresh.com', 'url-https://popular.com']);
+    seed('url-https://fresh.com', { title: 'Fresh', favicon: '', visitCount: 2 });
     seed('url-https://popular.com', { title: 'Popular', favicon: '', visitCount: 40 });
     installChromeShim();
 
@@ -54,12 +53,26 @@ describe('Favorites', () => {
     expect(items[0]).toHaveTextContent('Popular');
   });
 
-  // A site open in a Chrome-pinned tab is excluded from Favorites (pinned tabs
-  // are already always-available, so they shouldn't take a Favorites slot).
+  // Two storage keys that normalize to the same site (trailing-slash variant)
+  // render as a SINGLE collapsed row.
+  it('collapses cosmetic URL duplicates into one row', async () => {
+    seed('allUrls', ['url-https://dup.com/', 'url-https://dup.com']);
+    seed('url-https://dup.com/', { title: 'Dup', favicon: '', visitCount: 1 });
+    seed('url-https://dup.com', { title: 'Dup', favicon: '', visitCount: 1 });
+    installChromeShim();
+
+    render(<Favorites />);
+
+    // Summed effective visits (1+1=2) clears MIN_VISITS; only one row renders.
+    await waitFor(() => expect(screen.getAllByText('Dup')).toHaveLength(1));
+  });
+
+  // A site open in a Chrome-pinned tab is excluded entirely (pinned tabs are
+  // already always-available, so they shouldn't take a Favorites slot).
   it('excludes a site open in a Chrome-pinned tab', async () => {
     seed('allUrls', ['url-https://a.com', 'url-https://b.com']);
-    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 1 });
-    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 1 });
+    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 3 });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 3 });
     // Bravo is open in a pinned tab; Alpha in an unpinned one.
     seed('activeTabs', [
       { tabKey: 'tab-1', urlKey: 'url-https://a.com', pinned: false },
@@ -73,11 +86,29 @@ describe('Favorites', () => {
     expect(screen.queryByText('Bravo')).not.toBeInTheDocument();
   });
 
+  // A site open in a NON-pinned tab has its in-progress visit discounted: visited
+  // twice but open once → effective 1 < MIN_VISITS, so it drops out. A pinned tab
+  // remains fully excluded (as above), and an unaffected site still renders.
+  it('discounts a site open in a non-pinned tab below the threshold', async () => {
+    seed('allUrls', ['url-https://open.com', 'url-https://closed.com']);
+    seed('url-https://open.com', { title: 'OpenSite', favicon: '', visitCount: 2 });
+    seed('url-https://closed.com', { title: 'ClosedSite', favicon: '', visitCount: 2 });
+    seed('activeTabs', [
+      { tabKey: 'tab-1', urlKey: 'url-https://open.com', pinned: false },
+    ]);
+    installChromeShim();
+
+    render(<Favorites />);
+
+    expect(await screen.findByText('ClosedSite')).toBeInTheDocument();
+    expect(screen.queryByText('OpenSite')).not.toBeInTheDocument();
+  });
+
   // A urlKey listed in favoritesHidden (user-removed) is excluded from Favorites.
   it('excludes a site present in favoritesHidden', async () => {
     seed('allUrls', ['url-https://a.com', 'url-https://b.com']);
-    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 1 });
-    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 1 });
+    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 3 });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 3 });
     seed('favoritesHidden', ['url-https://a.com']);
     installChromeShim();
 
@@ -91,8 +122,8 @@ describe('Favorites', () => {
   // disappears, while a plain row click still opens/focuses the tab.
   it('removes a favorite via the × and still opens a tab on a plain row click', async () => {
     seed('allUrls', ['url-https://a.com', 'url-https://b.com']);
-    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 1 });
-    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 1 });
+    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 3 });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 3 });
     installChromeShim();
     const createSpy = vi.spyOn(globalThis.chrome.tabs, 'create');
 

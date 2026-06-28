@@ -1,0 +1,187 @@
+{
+  "timestamp": "2026-06-28T15:09:39Z",
+  "title": "Favorites: De-duplicate URLs & Rank by Earned Frequency",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe Favorites sidebar section repeats the \"same\" site multiple times and is\nordered recency-first, so it reads like recent history rather than a list of\ngenuinely favorite sites. URLs are keyed as `url-<url-without-#hash>`, so two\nURLs that differ only by a trailing slash, `http`/`https`, or `www` become\ndistinct keys and render as separate, visually-identical rows. `rankFavorites`\nnever collapses them and orders by a recency-dominant blend\n(`RECENCY_WEIGHT 0.7 / VISIT_WEIGHT 0.3`).\n\nThis change makes each site appear **once** (URL-normalized), orders Favorites\n**frequency-first** (most-visited at the top, recency as the tiebreak), and adds\ntwo guards so Favorites reflects *earned* preference rather than current\nactivity: (1) a **minimum-visit threshold** so one-off visits never appear, and\n(2) a **currently-open-tab discount** so a tab that's still open doesn't have its\nin-progress visit padding the ranking (preventing Favorites from just mirroring\nthe open tabs).\n\n## Key Decisions\n\n- **Normalize, then de-duplicate** — collapse URLs that differ only by trailing\n  slash, `#fragment` (already stripped at key creation), or `http`/`https`/`www`.\n  Query strings are preserved (genuinely different pages stay distinct). A new\n  pure `normalizeUrl` util produces the grouping key. Chosen over exact-string\n  dedup (wouldn't catch the slash/www/protocol variants the user is seeing) and\n  over one-row-per-domain (too aggressive — would hide distinct pages of the same\n  site).\n- **Frequency-first ordering with recency tiebreak** — sort by aggregated\n  effective visit count descending, then by recency (position in `allUrls`).\n  Replaces the recency-dominant 0.7/0.3 blend, which is what made Favorites read\n  like recent history. The `RECENCY_WEIGHT`/`VISIT_WEIGHT` blend is removed.\n- **Minimum-visit threshold (`MIN_VISITS`, default 2)** — a site must have at\n  least 2 *effective* (post-discount, post-aggregation) visits to qualify. This\n  is the concrete mechanism for \"don't let sites visited just once show up at the\n  top\" — a once-visited site simply isn't a favorite yet. Knob lives in\n  `rankFavorites`; surfaced as a tunable constant.\n- **Currently-open-tab discount** — for each candidate, subtract the number of\n  currently-open, non-pinned tabs pointing at that key from its visit count\n  before thresholding/ranking (floored at 0). This is the \"the visit shouldn't\n  count yet while the tab is open\" requirement. Pinned tabs remain *fully\n  excluded* (existing behavior); non-pinned open tabs are *discounted* (still\n  eligible as favorites once they've been visited enough across closed sessions).\n- **Aggregate counts across collapsed duplicates** — when slash/www/protocol\n  variants merge, their effective visit counts are summed so the site gets credit\n  for all variants, and the most-recent variant is the representative row\n  (its `urlKey`/`url` are what the row opens and renders).\n- **Ranking stays pure & in `rankFavorites`** — all new logic (discount,\n  aggregate, threshold, sort) lives in the pure util so it remains unit-testable\n  with no storage/DOM. `Favorites.jsx` only gathers the new inputs (open keys)\n  and passes them in.\n\n## Implementation\n\n### 1. Add a pure URL-normalization util\n\n**New file**: `src/lib/utils/normalizeUrl.js`\n\nExport `normalizeUrl(url)` returning a canonical grouping key for de-duplication:\n\n- Lowercase the scheme and host.\n- Treat `http` and `https` as equivalent (drop the scheme from the key, or map\n  both to a single sentinel).\n- Strip a leading `www.` from the host.\n- Strip a trailing slash from the path (but keep `/` for a bare-root path\n  consistently — pick one canonical form, e.g. no trailing slash).\n- Drop the `#fragment` (defensive; keys already strip it via `getUrlKey`).\n- **Preserve** the query string.\n- Be defensive: if the input isn't a parseable URL, fall back to the trimmed raw\n  string so nothing throws (mirrors how `rankFavorites` already tolerates\n  key-derived URLs). Prefer the `URL` constructor with a try/catch fallback.\n\nAdd a glossary-worthy doc comment describing the contract (what is and isn't\ncollapsed), matching the house style of the other `src/lib/utils` helpers.\n\n### 2. Add unit tests for the normalizer\n\n**New file**: `src/lib/utils/normalizeUrl.test.js`\n\nCover: trailing-slash equivalence, `http` vs `https`, `www.` vs bare host,\nfragment stripping, query strings kept distinct, case-insensitive host, and the\nnon-URL fallback (no throw).\n\n### 3. Rework ranking: discount, aggregate, threshold, frequency-first sort\n\n**File**: `src/lib/utils/rankFavorites.js`\n\n- Change the signature to accept the new inputs without breaking the pure\n  contract. Suggested: an options object as the 5th parameter, e.g.\n  `rankFavorites(allUrls, urlRecords, limit = 5, excludedKeys, options = {})`\n  where `options` carries `{ openKeys = new Set(), minVisits = MIN_VISITS }`.\n  (Editor may choose positional params instead; keep it readable.)\n- Introduce `const MIN_VISITS = 2;` and **remove** `RECENCY_WEIGHT` /\n  `VISIT_WEIGHT` and the blended-score math.\n- Build candidates as today (skip `excludedKeys`, require `usableTitle`, keep\n  original index for recency).\n- Compute each candidate's **effective visit count**:\n  `max(0, (record.visitCount || 0) - openCount)` where `openCount` is the number\n  of `openKeys` entries equal to this `urlKey`. (If `openKeys` is a `Set`,\n  subtract 1 when present; if callers can pass duplicates, accept a count map —\n  pick the simplest shape that lets `Favorites.jsx` express \"open in N non-pinned\n  tabs\". A `Set` + subtract-1 is acceptable for v1; note the simplification.)\n- **Group** candidates by `normalizeUrl(record.url || urlKey-without-prefix)`.\n  For each group: representative = the lowest-index (most-recent) member;\n  group recency = that min index; group effective visits = **sum** of members'\n  effective counts.\n- **Threshold**: drop any group whose summed effective visits `< minVisits`.\n- **Sort** groups by effective visits descending, then by recency (index asc)\n  as a deterministic tiebreak.\n- `slice(0, limit)` and map to the existing row shape\n  (`{ urlKey, url, title, favicon }`) using the representative member, so the\n  returned contract (and `Favorites.jsx` rendering) is unchanged.\n\n### 4. Update ranking unit tests for the new contract\n\n**File**: `src/lib/utils/rankFavorites.test.js`\n\nThe current tests pin recency-dominant behavior and single-visit records — they\nwill no longer hold. Replace/extend with tests for the new contract:\n\n- Frequency-first ordering (higher visitCount ranks above a more-recent\n  lower-count site).\n- Recency tiebreak when effective visit counts are equal.\n- `MIN_VISITS` threshold: a single-visit site is excluded; bump it to the\n  threshold and it appears.\n- De-duplication: `https://x.com`, `https://x.com/`, `http://www.x.com` collapse\n  to one row, counts summed, most-recent variant as representative.\n- Open-tab discount: a site visited twice but open in one tab drops to effective\n  1 and falls below threshold; an unrelated open key doesn't affect others.\n- Preserve existing edge cases that still apply: empty/non-array input → `[]`,\n  drop keys without a usable title, `excludedKeys` suppression, `limit` cap,\n  fewer-than-limit returns all, row shape / url-from-key derivation.\n\n### 5. Feed open-tab info into the ranking from the component\n\n**File**: `src/lib/components/Favorites/Favorites.jsx`\n\n- Keep the existing `excludedKeys` (pinned tabs + `favoritesHidden`) unchanged.\n- Additionally derive `openKeys` from `activeTabs`: the `urlKey`s of\n  **non-pinned** active tabs (pinned are already excluded entirely). Pass it into\n  `rankFavorites` via the new options arg, along with `minVisits` if surfaced as\n  a component-level constant.\n- No change needed to the `chrome.storage.onChanged` reload triggers — it already\n  reloads on `activeTabs` changes, which is exactly when `openKeys` shifts.\n- Rendering, click-to-open, and the remove (×) control are unchanged (they key\n  off the representative `urlKey`/`url`, which the util still returns).\n\n### 6. Update component tests\n\n**File**: `src/lib/components/Favorites/Favorites.test.jsx`\n\n- Existing tests seed `visitCount: 1`; under `MIN_VISITS = 2` those rows would no\n  longer render. Bump seeded counts to at least the threshold so the\n  render/exclude/remove tests still exercise their intent.\n- Update the \"frequently-visited older site climbs\" test to assert the stronger\n  frequency-first ordering.\n- Add a test: two storage keys that normalize to the same site render a **single**\n  row.\n- Add a test: a site open in a **non-pinned** tab has its current visit discounted\n  (e.g. visited twice, open once → drops below threshold and is hidden), while a\n  pinned tab stays fully excluded as before.\n\n### 7. Refresh the Favorites scenarios\n\n**Files**: `.codeyam/scenarios/favorites-*.json`\n\n- Audit each scenario's seeded `visitCount`s against `MIN_VISITS = 2`;\n  `favorites-populated` already uses 2/3/5/8 (fine), but verify\n  `favorites-single-favorite` and any 1-visit fixtures so they still render under\n  the new threshold.\n- Add a **duplicate-URL** scenario: seed `url-https://github.com/codeyam` and\n  `url-https://github.com/codeyam/` (or a `www`/`http` variant) and demonstrate a\n  single collapsed row.\n- Add an **open-tab-discount** scenario: a site visited exactly at the threshold\n  that is currently open in a non-pinned tab, demonstrating it drops out of\n  Favorites until the tab closes.\n- Re-register/refresh via the editor scenario tooling rather than hand-editing\n  ids.\n\n## Reused existing code\n\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — the pure ranking util being reworked; keeps its row-shape\n  contract so downstream rendering is untouched.\n- `usableTitle` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `usableTitle`) — reused unchanged for candidate filtering.\n- `Favorites` from `src/lib/components/Favorites/Favorites.jsx` (glossary entry:\n  `Favorites`) — already reads `activeTabs` and builds an exclusion set and\n  reloads on `activeTabs` changes; extended to also derive `openKeys`.\n- Existing `excludedKeys` construction (pinned tabs + `favoritesHidden`) in\n  `Favorites.jsx` — preserved; the open-tab discount is additive and distinct\n  from pinned-tab exclusion.\n- `getUrlKey` (`service_worker.js`) — confirms keys already strip `#hash`, so\n  `normalizeUrl` only needs to handle slash/`www`/protocol/query (no\n  service-worker change required for this fix).\n\n## Scenarios to Demonstrate\n\n- **Duplicate collapse** — `https://github.com/codeyam`, `.../codeyam/`, and\n  `http://www.github.com/codeyam` present as one row, visit counts summed.\n- **Frequency-first ordering** — a frequently-visited older site sits above a\n  recently-visited but rarely-visited one.\n- **One-off excluded** — a site visited exactly once does not appear at all (no\n  longer leaks in as \"recent history\").\n- **Open-tab discount** — a site visited twice but currently open in a non-pinned\n  tab drops out (effective count 1 < threshold); after the tab closes it returns.\n- **Pinned still fully excluded** — existing pinned-tab exclusion behavior\n  unchanged.\n- **Populated (rich data)** — several qualifying favorites ranked by earned\n  frequency.\n- **Empty state** — fresh install / nothing above threshold renders nothing.",
+  "description": "Reworked the Favorites sidebar so it reflects earned preference rather than recent history. A new pure normalizeUrl util collapses cosmetic URL variants (http/https, www, trailing slash, fragment) so the same site appears once, and rankFavorites was rewritten to rank frequency-first (most-visited at top, recency as the tiebreak) with a minimum-visit threshold (2) that hides one-off visits and a currently-open-tab discount so an in-progress visit doesn't pad the ranking. Favorites.jsx now feeds in the non-pinned open-tab keys; pinned tabs stay fully excluded. Covered by new/updated unit tests and eight Favorites component scenarios including duplicate-collapse and open-tab-discount.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/favorites-dedup-and-frequency-ranking.md\t.codeyam/plans/completed/favorites-dedup-and-frequency-ranking.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-duplicate-urls-collapsed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-open-tab-discounted.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/normalizeUrl.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/normalizeUrl.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 334,
+    "passed": 334,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 334,
+        "passed": 334
+      }
+    ]
+  }
+}

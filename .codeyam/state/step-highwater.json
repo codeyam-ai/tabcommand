@@ -1,6 +1,6 @@
 {
-  "feature": "demarcate-open-tabs-within-group-cards",
-  "maxStep": 25,
-  "version": 78,
-  "updatedAt": "2026-06-28T14:26:01.597841606+00:00"
+  "feature": "favorites-dedup-and-frequency-ranking",
+  "maxStep": 23,
+  "version": 58,
+  "updatedAt": "2026-06-28T15:11:39.624958674+00:00"
 }

@@ -1,0 +1,22 @@
+{
+  "name": "Favorites - Open Tab Discounted",
+  "id": "825b9cf8-ddce-463a-a86f-1fe4ace73e3e",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 8}",
+      "activeTabs": "[{\"tabKey\": \"tab-1\", \"urlKey\": \"url-https://news.ycombinator.com\", \"pinned\": false}]",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 2}",
+      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"visitCount\": 5}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"visitCount\": 3}",
+      "allUrls": "[\"url-https://news.ycombinator.com\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://www.notion.so/Roadmap\", \"url-https://www.figma.com/file/tabcommand-ui\", \"url-https://react.dev/learn\"]",
+      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"visitCount\": 6}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

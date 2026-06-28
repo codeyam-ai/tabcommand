@@ -153,19 +153,19 @@ States captured as runnable scenarios with codeyam-editor:
 
 ![Favicon - Real Favicon](.codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png)
 
+### Favorites - Duplicate URLs Collapsed
+
+![Favorites - Duplicate URLs Collapsed](.codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png)
+
 ### Favorites - Frequency Boost
 
 ![Favorites - Frequency Boost](.codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png)
 
+### Favorites - Open Tab Discounted
+
+![Favorites - Open Tab Discounted](.codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png)
+
 ### Favorites - Pinned Tab Excluded
 
 ![Favorites - Pinned Tab Excluded](.codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png)
-
-### Favorites - Populated
-
-![Favorites - Populated](.codeyam/scenarios/screenshots/favorites-populated--desktop.png)
-
-### Favorites - Remove Control Revealed
-
-![Favorites - Remove Control Revealed](.codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png)
 <!-- codeyam:scenario-gallery:end -->
