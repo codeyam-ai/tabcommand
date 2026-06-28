@@ -445,6 +445,49 @@ const ISOLATION_PROPS = {
   Settings: {
     default: {},
   },
+  // The shared segmented button-group used inside the Settings popover. Default
+  // is the full-width Theme control (Day / Night / System) with System active;
+  // variants show a different active position and the inline numeric Group-
+  // columns picker (the non-full shape with a different option count).
+  SettingsSegment: {
+    default: {
+      ariaLabel: 'Theme',
+      full: true,
+      value: 'system',
+      onChange: noop,
+      options: [
+        { value: 'light', label: 'Day' },
+        { value: 'dark', label: 'Night' },
+        { value: 'system', label: 'System' },
+      ],
+    },
+    variants: {
+      // Theme control with the first option (Day) active instead of System.
+      'day-active': {
+        ariaLabel: 'Theme',
+        full: true,
+        value: 'light',
+        onChange: noop,
+        options: [
+          { value: 'light', label: 'Day' },
+          { value: 'dark', label: 'Night' },
+          { value: 'system', label: 'System' },
+        ],
+      },
+      // The inline (non-full) Group-columns picker: numeric labels, 3 options.
+      columns: {
+        ariaLabel: 'Group columns',
+        full: false,
+        value: 3,
+        onChange: noop,
+        options: [
+          { value: 2, label: 2 },
+          { value: 3, label: 3 },
+          { value: 4, label: 4 },
+        ],
+      },
+    },
+  },
 };
 
 // Resolve the prop set for an isolated component. `variant` picks an alternate

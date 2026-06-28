@@ -38,3 +38,10 @@ export const HeavyThresholdDefault = 60;
 // comfortable width. Persisted under the `settings` key; user-selectable as
 // 2 / 3 / 4. Default 2 preserves the original layout.
 export const ColumnsDefault = 2;
+
+// The user's theme preference, persisted under the `themePreference` storage key
+// (owned by useTheme): 'system' follows the OS prefers-color-scheme, 'light' /
+// 'dark' pin the theme. Default 'system' so fresh users match their OS out of
+// the box; when matchMedia is unavailable, 'system' resolves to dark (the
+// CodeYam home).
+export const ThemePreferenceDefault = 'system';

@@ -18,15 +18,10 @@
       "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://mail.google.com/mail/u/0\",\"url-https://news.ycombinator.com\"]",
       "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\"]}}",
       "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"https://www.google.com/s2/favicons?domain=figma.com&sz=64\",\"processes\":{\"samples\":0}}",
-      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"https://www.google.com/s2/favicons?domain=notion.so&sz=64\",\"processes\":{\"samples\":0}}"
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"https://www.google.com/s2/favicons?domain=notion.so&sz=64\",\"processes\":{\"samples\":0}}",
+      "themePreference": "\"dark\""
     }
   },
   "scenarioType": "application",
-  "pageFilePath": "src/lib/pages/App/App.jsx",
-  "interactions": [
-    {
-      "action": "click",
-      "selector": ".App-themeToggle"
-    }
-  ]
+  "pageFilePath": "src/lib/pages/App/App.jsx"
 }

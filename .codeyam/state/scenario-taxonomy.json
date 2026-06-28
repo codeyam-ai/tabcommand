@@ -87,8 +87,7 @@
         "reason": "No failure path renders differently on the Home view."
       },
       "key-interaction": {
-        "status": "n-a",
-        "reason": "This feature's Home interaction (click the LoadMeter gauge to open Load) is shown in the demo-flow filmstrip; drag-to-organize is covered by the prior Labels plan."
+        "status": "added"
       }
     },
     "Load": {

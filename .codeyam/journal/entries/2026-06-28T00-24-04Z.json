@@ -1,0 +1,639 @@
+{
+  "timestamp": "2026-06-28T00:24:04Z",
+  "title": "Theme Preference: Day, Night, or Follow System",
+  "type": "feature",
+  "userRequest": "## Summary\n\nToday the light/dark theme is a single binary value: `useTheme` stores `'light'`\nor `'dark'` in the `theme` storage key, the sun/moon `ThemeToggle` flips it, and\ndark is the hard-coded default. Add a user-configurable **theme preference** with\nthree values — **Day** (light), **Night** (dark), or **System** (follow the OS\n`prefers-color-scheme`, updating live when the OS transitions between day and\nnight). The preference lives in the Settings gear panel. The sun/moon toggle stays\nas a quick **temporary override**: clicking it flips the displayed theme without\nchanging the saved preference. The override is in-memory only, so it naturally\nresets when the popup reopens; additionally, in **System** mode an actual OS\nday/night transition clears the override so the display snaps back to following the\nsystem. The default preference for users who haven't chosen one becomes **System**.\n\n## Key Decisions\n\n- **New `themePreference` storage key, owned by `useTheme`** — a string\n  `'system' | 'light' | 'dark'`, default `'system'`. Kept as its own top-level\n  storage key (not folded into the `settings` object) so the existing\n  `useTheme` ownership stays intact and the Settings panel can read/write it\n  directly, with `chrome.storage.onChanged` keeping both surfaces in sync (the\n  same cross-surface pattern `useTheme` already uses for `theme`).\n- **Resolved theme = override ?? (preference === 'system' ? systemTheme : preference)** —\n  `useTheme` derives the actual `data-theme` value from three inputs: the saved\n  preference, the live system theme, and an in-memory temporary override. Only\n  the resolved value is mirrored to `document.documentElement.dataset.theme`, so\n  the whole token layer keeps re-theming from one place.\n- **Toggle becomes a temporary, non-persisted override** — clicking `ThemeToggle`\n  sets an in-memory override instead of writing storage. \"At least temporarily\n  override\" is satisfied because the override always survives within the open\n  popup and is dropped when the popup is recreated on reopen.\n- **System transition clears the override** — the `matchMedia` `change` handler\n  updates the system theme *and* clears any active override, so in System mode a\n  real OS day→night flip returns control to the system (per the requested\n  behavior). In Day/Night mode there is nothing to follow, so the override simply\n  lasts the session.\n- **`matchMedia` guarded with a `'dark'` fallback** — mirror `Labels.jsx`'s\n  `if (!window.matchMedia) return;` guard. When `matchMedia` is unavailable\n  (chrome shim / jsdom test env), the system theme falls back to `'dark'` (the\n  CodeYam home), which keeps the \"System default resolves to dark\" behavior\n  identical to today's default in those environments.\n- **Default flips to System** — new users match their OS out of the box. A light\n  migration seeds `themePreference` from a legacy `theme` value (`'light'`/\n  `'dark'`) when present, so a user who previously toggled to light keeps an\n  explicit Day preference instead of silently jumping to System.\n- **Selector lives in the Settings gear panel** — a compact 3-way segmented\n  control (Day / Night / System), always visible (it is independent of the\n  `loadDataSource === 'processes'` per-tab-data gate that hides the Warn/Heavy\n  sliders).\n\n## Implementation\n\n### 1. Rework `useTheme` to resolve preference + system + override\n\n**File**: `src/lib/hooks/useTheme.js`\n\n- Track three pieces of state: `preference` (`'system' | 'light' | 'dark'`,\n  default `'system'`), `systemTheme` (`'light' | 'dark'`), and `override`\n  (`null | 'light' | 'dark'`, in-memory only).\n- On mount, hydrate `preference` from the `themePreference` storage key. If that\n  key is absent but a legacy `theme` value of `'light'`/`'dark'` exists, seed the\n  preference from it (and optionally persist the migrated `themePreference`).\n- Add a `matchMedia('(prefers-color-scheme: dark)')` effect (guarded like\n  `Labels.jsx`): set `systemTheme` from `mq.matches`, listen for `change`, and in\n  the handler update `systemTheme` **and** clear `override`. Fall back to\n  `systemTheme = 'dark'` when `matchMedia` is unavailable.\n- Keep the `chrome.storage.onChanged` listener; extend it to react to\n  `themePreference` changes (update `preference`, clear `override`) in addition to\n  the existing `theme` handling.\n- Compute `resolvedTheme = override ?? (preference === 'system' ? systemTheme : preference)`\n  and mirror that to `document.documentElement.dataset.theme`.\n- Change `toggleTheme` to set an in-memory override\n  (`resolvedTheme === 'light' ? 'dark' : 'light'`) instead of writing storage.\n- Preserve the public return shape `[theme, toggleTheme]` (where `theme` is the\n  resolved value) so `App` and `ThemeToggle` need no changes.\n\n### 2. Add the theme-preference selector to the Settings panel\n\n**File**: `src/lib/components/Settings/Settings.jsx`\n\n- Add `themePreference` to the panel's local state, hydrated from the\n  `themePreference` storage key in the existing `Settings1` `Chrome.get`, and\n  followed via the existing `onChanged` handler.\n- Render a compact 3-way segmented control (Day / Night / System) in the panel,\n  **outside** the `source === 'processes'` gate so it always shows. A new\n  string-valued update handler (separate from the numeric `update`, which coerces\n  with `Number(...)`) writes the choice via `Chrome.set({ themePreference })`.\n- Keep the existing Auto-close and (gated) Warn/Heavy slider rows unchanged.\n\n**File**: `src/lib/components/Settings/Settings.css`\n\n- Add styles for the segmented control (active/inactive segment states), matching\n  the existing `Settings-row` / token-driven look.\n\n### 3. Add the default constant\n\n**File**: `src/Constants.jsx`\n\n- Add `export const ThemePreferenceDefault = 'system';` (alongside\n  `WarnAtDefault` / `HeavyThresholdDefault`) and reference it from `useTheme` and\n  `Settings` so the default has one source of truth.\n\n### 4. Update tests\n\n**File**: `src/lib/hooks/useTheme.test.jsx`\n\n- Update the existing cases for the new model: default preference `'system'`\n  with no `matchMedia` resolves to `'dark'` (data-theme assertion still holds);\n  hydrate from `themePreference` rather than `theme`; the toggle now flips the\n  resolved theme in-memory **without** writing storage (replace the storage\n  persistence assertion); two flips still return to the base resolved theme.\n- Add cases with a mocked `matchMedia`: preference `'light'`/`'dark'` resolves\n  directly; preference `'system'` follows `matchMedia` and a `change` event both\n  updates the resolved theme and clears an active override; changing\n  `themePreference` in storage updates the resolved theme and clears an override.\n\n**File**: `src/lib/components/Settings/Settings.test.jsx`\n\n- Add cases: the panel renders the Day/Night/System control; selecting an option\n  persists `themePreference` to storage; the control reflects the current stored\n  preference; the control is visible regardless of `loadDataSource`.\n\n## Reused existing code\n\n- `useTheme` from `src/lib/hooks/useTheme.js` (glossary entry: `useTheme`) — the\n  hook being extended to own the preference + override resolution.\n- `ThemeToggle` from `src/lib/components/ThemeToggle/ThemeToggle.jsx` (glossary\n  entry: `ThemeToggle`) — unchanged; reused as the temporary-override button.\n- `Settings` from `src/lib/components/Settings/Settings.jsx` (glossary entry:\n  `Settings`) — the gear panel that gains the 3-way selector.\n- `Chrome` from `src/lib/utils/Chrome/Chrome.js` (glossary entry: `Chrome`) — the\n  storage get/set wrapper used for `themePreference`.\n- The `window.matchMedia` add/remove-listener pattern in\n  `src/lib/components/Labels/Labels.jsx` (including the `if (!window.matchMedia)`\n  guard) — the template for the `prefers-color-scheme` effect.\n\n## Scenarios to Demonstrate\n\n- **System mode, OS in day** — preference System, system reports light → display\n  is light (Day).\n- **System mode, OS in night** — preference System, system reports dark → display\n  is dark (Night).\n- **System transition while open** — preference System; OS flips day→night and the\n  display follows live.\n- **Day preference** — preference Day pins the display light regardless of OS.\n- **Night preference** — preference Night pins the display dark regardless of OS.\n- **Temporary override** — with preference Night, clicking the sun/moon toggle\n  flips to light for the session; preference in Settings still reads Night.\n- **Override cleared by system transition** — System mode with an active toggle\n  override; an OS day/night transition drops the override and follows the system.\n- **Default for a fresh user** — no stored preference → System selected by default.\n- **Migration** — a legacy `theme: 'light'` value seeds a Day preference on first\n  load.",
+  "description": "Replaced the binary light/dark toggle with a three-way theme preference. useTheme now resolves the active theme from a saved themePreference storage key (system/light/dark, default System), the live OS prefers-color-scheme via matchMedia (dark fallback), and an in-memory toggle override; a Day/Night/System segmented control was added to the Settings panel and factored into a reusable SettingsSegment component. The sun/moon toggle is now a temporary, non-persisted override that an OS day/night transition clears in System mode, and legacy theme values migrate to a Day preference.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/theme-preference-day-night-system.md\t.codeyam/plans/completed/theme-preference-day-night-system.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-dark-mode.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labels-populated.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-no-data--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-system-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-stable-chrome-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/Constants.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_components.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/Settings.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Settings/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/hooks/useTheme.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/hooks/useTheme.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-temporary-theme-override.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-group-columns-inline--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-group-columns-inline--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-theme-day-active--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-theme-day-active--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-theme-system-active--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-theme-system-active--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settingssegment-group-columns-inline.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settingssegment-theme-day-active.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/settingssegment-theme-system-active.json",
+      "status": "added"
+    },
+    {
+      "path": "core",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/Settings/SettingsSegment.jsx",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "History - Populated",
+      "screenshotPath": "history-populated--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Work",
+      "screenshotPath": "labelform-edit-work--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group",
+      "screenshotPath": "labelform-new-blank--desktop.png"
+    },
+    {
+      "name": "LabelForm - Reading",
+      "screenshotPath": "labelform-reading--desktop.png"
+    },
+    {
+      "name": "LabelForm - Shopping",
+      "screenshotPath": "labelform-shopping--desktop.png"
+    },
+    {
+      "name": "LabelForm - Social",
+      "screenshotPath": "labelform-social--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load - Stable Chrome Fallback",
+      "screenshotPath": "load-stable-chrome-fallback--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Load Page",
+      "screenshotPath": "load-page--desktop.png"
+    },
+    {
+      "name": "LoadMeter - High Load",
+      "screenshotPath": "loadmeter-high-load--desktop.png"
+    },
+    {
+      "name": "LoadMeter - No Data",
+      "screenshotPath": "loadmeter-no-data--desktop.png"
+    },
+    {
+      "name": "LoadMeter - System Fallback",
+      "screenshotPath": "loadmeter-system-fallback--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "SearchResults - Empty",
+      "screenshotPath": "searchresults-empty--desktop.png"
+    },
+    {
+      "name": "SearchResults - Labels Only",
+      "screenshotPath": "searchresults-labels-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Many Results",
+      "screenshotPath": "searchresults-many--desktop.png"
+    },
+    {
+      "name": "SearchResults - Matches",
+      "screenshotPath": "searchresults-matches--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Settings - Group Columns Selected",
+      "screenshotPath": "settings-group-columns-selected--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    },
+    {
+      "name": "SettingsSegment - Group Columns (inline)",
+      "screenshotPath": "settingssegment-group-columns-inline--desktop.png"
+    },
+    {
+      "name": "SettingsSegment - Theme (Day active)",
+      "screenshotPath": "settingssegment-theme-day-active--desktop.png"
+    },
+    {
+      "name": "SettingsSegment - Theme (System active)",
+      "screenshotPath": "settingssegment-theme-system-active--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    },
+    {
+      "name": "Triage - Comfortable",
+      "screenshotPath": "triage-comfortable--desktop.png"
+    },
+    {
+      "name": "Triage - Running Hot",
+      "screenshotPath": "triage-running-hot--desktop.png"
+    },
+    {
+      "name": "Triage - Stable Chrome Hidden",
+      "screenshotPath": "triage-stable-chrome-hidden--desktop.png"
+    },
+    {
+      "name": "URL Details - Edit",
+      "screenshotPath": "url-details-edit--desktop.png"
+    },
+    {
+      "name": "URL Details - Unlabeled",
+      "screenshotPath": "url-details-unlabeled--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 301,
+    "passed": 301,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 301,
+        "passed": 301
+      }
+    ]
+  }
+}

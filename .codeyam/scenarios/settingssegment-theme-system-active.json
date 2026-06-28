@@ -1,0 +1,11 @@
+{
+  "name": "SettingsSegment - Theme (System active)",
+  "id": "b235e146-225b-4d0e-aebe-2764552556aa",
+  "url": "/?isolate=SettingsSegment",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SettingsSegment",
+  "scenarioType": "component"
+}

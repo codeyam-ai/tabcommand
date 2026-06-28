@@ -1,6 +1,6 @@
-# regenerated from dependency-graph.json on 2026-06-27T23:29:59Z; do not hand-edit
+# regenerated from dependency-graph.json on 2026-06-28T00:25:09Z; do not hand-edit
+src/Constants.jsx :: imports=0 :: imported_by=20
 src/lib/utils/chromeShim :: imports=0 :: imported_by=20
-src/Constants.jsx :: imports=0 :: imported_by=19
 src/lib/utils/Chrome :: imports=0 :: imported_by=18
 src/lib/components/Icon :: imports=0 :: imported_by=13
 src/lib/components :: imports=0 :: imported_by=9
@@ -19,7 +19,8 @@ src/lib/components/LoadProcesses/LoadProcesses.jsx :: imports=2 :: imported_by=3
 src/lib/components/LoadUrl/LoadUrl.jsx :: imports=3 :: imported_by=3
 src/lib/components/Search/Search.jsx :: imports=7 :: imported_by=3
 src/lib/components/SearchResults/SearchResults.jsx :: imports=7 :: imported_by=3
-src/lib/components/Settings/Settings.jsx :: imports=5 :: imported_by=3
+src/lib/components/Settings/Settings.jsx :: imports=6 :: imported_by=3
+src/lib/components/Settings/SettingsSegment.jsx :: imports=0 :: imported_by=3
 src/lib/components/Tabs/Tabs.jsx :: imports=7 :: imported_by=3
 src/lib/components/Triage/Triage.jsx :: imports=6 :: imported_by=3
 src/lib/components/Url/Url.jsx :: imports=6 :: imported_by=3
@@ -34,7 +35,7 @@ src/lib/components/AppBrand/AppBrand.jsx :: imports=1 :: imported_by=2
 src/lib/components/HistoryRow/HistoryRow.jsx :: imports=2 :: imported_by=2
 src/lib/components/LoadMeterCaption :: imports=0 :: imported_by=2
 src/lib/components/ThemeToggle/ThemeToggle.jsx :: imports=1 :: imported_by=2
-src/lib/hooks/useTheme.js :: imports=1 :: imported_by=2
+src/lib/hooks/useTheme.js :: imports=2 :: imported_by=2
 src/lib/pages/App/App.jsx :: imports=10 :: imported_by=2
 src/lib/pages/History :: imports=0 :: imported_by=2
 src/lib/pages/History/History.jsx :: imports=5 :: imported_by=2
@@ -58,7 +59,7 @@ src/lib/utils/urlDetails.js :: imports=0 :: imported_by=2
 .claude/skills/review-session/scripts/extract-session-helpers.mjs :: imports=0 :: imported_by=1
 .claude/skills/review-session/scripts/find-last-session-helpers.mjs :: imports=0 :: imported_by=1
 manifest.json :: imports=0 :: imported_by=1
-src/__codeyam_components.js :: imports=22 :: imported_by=1
+src/__codeyam_components.js :: imports=23 :: imported_by=1
 src/__codeyam_isolate.jsx :: imports=2 :: imported_by=1
 src/index.css :: imports=0 :: imported_by=1
 src/lib/components/AppBrand :: imports=0 :: imported_by=1
@@ -155,7 +156,7 @@ src/lib/components/Search/index.js :: imports=1 :: imported_by=0
 src/lib/components/SearchResults/SearchResults.test.jsx :: imports=3 :: imported_by=0
 src/lib/components/SearchResults/index.js :: imports=1 :: imported_by=0
 src/lib/components/Settings/Settings.test.jsx :: imports=2 :: imported_by=0
-src/lib/components/Settings/index.js :: imports=1 :: imported_by=0
+src/lib/components/Settings/index.js :: imports=2 :: imported_by=0
 src/lib/components/Tabs/Tabs.test.jsx :: imports=2 :: imported_by=0
 src/lib/components/Tabs/index.js :: imports=1 :: imported_by=0
 src/lib/components/ThemeToggle/index.js :: imports=1 :: imported_by=0

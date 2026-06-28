@@ -22,7 +22,8 @@
       "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\",\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\",\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\",\"url-https://news.ycombinator.com\"]",
       "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
       "url-https://www.reddit.com/r/programming": "{\"title\":\"r/programming\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "themePreference": "\"dark\""
     }
   },
   "scenarioType": "application",

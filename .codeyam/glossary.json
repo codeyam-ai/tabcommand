@@ -189,11 +189,21 @@
     "testFile": "src/lib/components/SearchResults/SearchResults.test.jsx"
   },
   {
-    "description": "Sidebar gear popover with range sliders persisted to the settings storage key. 'Warn at' and 'Heavy tab >=' tune per-tab load and render ONLY when per-tab data exists (loadDataSource === 'processes'); on stable Chrome (system/none/unknown) they hide and only the universal 'Auto-close after' slider shows. Anchored via fixed positioning so the sidebar's overflow cannot clip it; the load math it tunes lives in loadLevel.",
+    "description": "Sidebar gear popover of preferences. Always-visible controls: a Theme Day/Night/System segmented control writing the themePreference storage key [read by useTheme], an Auto-close-after slider, and a Group-columns 2/3/4 segmented control persisted to the settings storage key. The 'Warn at' and 'Heavy tab >=' load sliders render ONLY when per-tab data exists [loadDataSource === 'processes']; on stable Chrome they hide. Anchored via fixed positioning so the sidebar's overflow cannot clip it. Both segmented controls compose the shared SettingsSegment sub-component.",
     "filePath": "src/lib/components/Settings/Settings.jsx",
     "name": "Settings",
     "scenarios": [
       "settings-default"
+    ]
+  },
+  {
+    "description": "Reusable segmented button-group used inside the Settings popover. Presentational only: renders one button per option, marks the active one via aria-pressed, and calls onChange with the value on click. The full flag selects the full-width Theme variant whose segments stretch evenly; omitted it is the inline digit picker. Used by both the Theme Day/Night/System control and the Group-columns control.",
+    "filePath": "src/lib/components/Settings/SettingsSegment.jsx",
+    "name": "SettingsSegment",
+    "scenarios": [
+      "settingssegment-theme-system-active",
+      "settingssegment-theme-day-active",
+      "settingssegment-group-columns-inline"
     ]
   },
   {
@@ -779,7 +789,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "React hook owning the light/dark theme: keeps the active theme in state and mirrors it to the document element's data-theme attribute, which the CSS token layer keys off so the whole UI re-themes from one place. Returns [theme, toggleTheme].",
+    "description": "React hook owning the resolved light/dark theme. Resolves from three inputs: the saved themePreference storage key ['system' | 'light' | 'dark', default system], the live OS prefers-color-scheme tracked via matchMedia [dark fallback], and an in-memory temporary override set by the sun/moon toggle. Only the resolved value mirrors to the document element's data-theme attribute, which the CSS token layer keys off so the whole UI re-themes from one place. In system mode an OS day/night transition clears the override; a legacy theme:'light' migrates to a Day preference. Returns [theme, toggleTheme].",
     "filePath": "src/lib/hooks/useTheme.js",
     "name": "useTheme",
     "testFile": "src/lib/hooks/useTheme.test.jsx"

@@ -100,3 +100,16 @@
   background: var(--c-lime);
   color: var(--app-bg, #0b0b0b);
 }
+
+/* Full-width variant (Day / Night / System): spans both grid columns and
+   distributes the three segments evenly across the panel width. */
+.Settings-segment-full {
+  grid-column: 1 / -1;
+  display: flex;
+  margin-top: 2px;
+}
+
+.Settings-segment-full button {
+  flex: 1;
+  text-align: center;
+}

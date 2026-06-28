@@ -3,7 +3,8 @@ import './Settings.css';
 import React, { useEffect, useRef, useState } from 'react';
 import { Chrome } from '../../utils/Chrome';
 import { Icon } from '../Icon';
-import { WarnAtDefault, HeavyThresholdDefault, AutoCloseMinutes, ColumnsDefault } from '../../../Constants';
+import SettingsSegment from './SettingsSegment';
+import { WarnAtDefault, HeavyThresholdDefault, AutoCloseMinutes, ColumnsDefault, ThemePreferenceDefault } from '../../../Constants';
 import formatAutoClose from '../../utils/formatAutoClose';
 
 // A compact sidebar settings affordance: a gear button that expands sliders
@@ -31,17 +32,27 @@ const Settings = () => {
     columns: ColumnsDefault,
   });
   const [source, setSource] = useState(null);
+  // The theme preference lives in its own `themePreference` storage key (owned by
+  // useTheme), read/written directly here and kept in sync via onChanged.
+  const [themePreference, setThemePreference] = useState(ThemePreferenceDefault);
   const buttonRef = useRef();
 
   useEffect(() => {
-    Chrome.get('Settings1', ['settings', 'loadDataSource'], ({ settings, loadDataSource }) => {
+    Chrome.get('Settings1', ['settings', 'loadDataSource', 'themePreference'], ({ settings, loadDataSource, themePreference }) => {
       if (settings) setSettings((s) => ({ ...s, ...settings }));
       setSource(loadDataSource || null);
+      if (themePreference === 'system' || themePreference === 'light' || themePreference === 'dark') {
+        setThemePreference(themePreference);
+      }
     });
 
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
       if (changes.loadDataSource) setSource(changes.loadDataSource.newValue || null);
+      if (changes.themePreference) {
+        const next = changes.themePreference.newValue;
+        if (next === 'system' || next === 'light' || next === 'dark') setThemePreference(next);
+      }
     };
     chrome.storage.onChanged.addListener(handleChange);
     return () => chrome.storage.onChanged.removeListener(handleChange);
@@ -69,6 +80,13 @@ const Settings = () => {
     Chrome.set('Settings2', { settings: next });
   };
 
+  // The theme preference is a string in its own storage key, separate from the
+  // numeric `settings` bundle that `update` coerces with Number(...).
+  const updateThemePreference = (value) => {
+    setThemePreference(value);
+    Chrome.set('Settings3', { themePreference: value });
+  };
+
   return (
     <div className={`Settings ${open ? 'Settings-open' : ''}`}>
       <button
@@ -86,6 +104,20 @@ const Settings = () => {
           className="Settings-panel"
           style={{ top: coords.top, left: coords.left }}
         >
+          <div className="Settings-row">
+            <span className="Settings-label">Theme</span>
+            <SettingsSegment
+              ariaLabel="Theme"
+              full
+              value={themePreference}
+              onChange={updateThemePreference}
+              options={[
+                { value: 'light', label: 'Day' },
+                { value: 'dark', label: 'Night' },
+                { value: 'system', label: 'System' },
+              ]}
+            />
+          </div>
           {source === 'processes' && (
             <>
               <label className="Settings-row">
@@ -128,19 +160,12 @@ const Settings = () => {
           </label>
           <div className="Settings-row">
             <span className="Settings-label">Group columns</span>
-            <div className="Settings-segment" role="group" aria-label="Group columns">
-              {[2, 3, 4].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={(settings.columns || ColumnsDefault) === n ? 'is-active' : ''}
-                  aria-pressed={(settings.columns || ColumnsDefault) === n}
-                  onClick={() => update('columns', n)}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
+            <SettingsSegment
+              ariaLabel="Group columns"
+              value={settings.columns || ColumnsDefault}
+              onChange={(n) => update('columns', n)}
+              options={[2, 3, 4].map((n) => ({ value: n, label: n }))}
+            />
           </div>
         </div>
       )}

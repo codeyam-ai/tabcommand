@@ -766,6 +766,15 @@
       "runner": "tests"
     },
     {
+      "description": "Defaults to System (pressed) when no preference is stored.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › defaults the theme control to System when no preference is stored",
+      "line": 78,
+      "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
       "description": "Unknown source (marker not yet written): treat as \"no per-tab data\" — hide the two load sliders.",
       "file": "src/lib/components/Settings/Settings.test.jsx",
       "format": "vitest",
@@ -781,6 +790,33 @@
       "key": "Settings › hides the two load sliders on stable Chrome system source",
       "line": 43,
       "registeredAt": "2026-06-27T21:53:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Selecting an option persists themePreference to storage.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › persists the selected theme preference to storage",
+      "line": 97,
+      "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The control reflects the currently stored preference.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › reflects the stored theme preference",
+      "line": 87,
+      "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The Day / Night / System theme control renders, independent of loadDataSource.",
+      "file": "src/lib/components/Settings/Settings.test.jsx",
+      "format": "vitest",
+      "key": "Settings › renders the Day/Night/System theme control regardless of loadDataSource",
+      "line": 66,
+      "registeredAt": "2026-06-27T23:53:19Z",
       "runner": "tests"
     },
     {
@@ -2593,39 +2629,84 @@
       "runner": "tests"
     },
     {
-      "description": "defaults to light and mirrors it onto the document element",
+      "description": "The default preference is 'system'; with no matchMedia it falls back to dark (the CodeYam home) and mirrors onto the document element.",
       "file": "src/lib/hooks/useTheme.test.jsx",
       "format": "vitest",
-      "key": "useTheme › defaults to dark and sets data-theme on the document",
-      "line": 14,
-      "registeredAt": "2026-06-26T01:28:59Z",
+      "key": "useTheme › defaults to system, resolves dark without matchMedia, and sets data-theme",
+      "line": 45,
+      "registeredAt": "2026-06-27T23:53:19Z",
       "runner": "tests"
     },
     {
-      "description": "an explicit initial theme is honored",
+      "description": "System preference follows matchMedia, and a `change` event updates the resolved theme live AND clears any active override.",
       "file": "src/lib/hooks/useTheme.test.jsx",
       "format": "vitest",
-      "key": "useTheme › hydrates a persisted theme from storage",
-      "line": 24,
-      "registeredAt": "2026-06-26T01:28:59Z",
+      "key": "useTheme › follows matchMedia in system mode and a change clears the override",
+      "line": 122,
+      "registeredAt": "2026-06-27T23:53:19Z",
       "runner": "tests"
     },
     {
-      "description": "toggling twice returns to the original theme",
+      "description": "A persisted themePreference is hydrated on mount and pins the resolved theme.",
       "file": "src/lib/hooks/useTheme.test.jsx",
       "format": "vitest",
-      "key": "useTheme › toggles back to dark after two flips",
-      "line": 51,
-      "registeredAt": "2026-06-26T01:28:59Z",
+      "key": "useTheme › hydrates a persisted themePreference from storage",
+      "line": 55,
+      "registeredAt": "2026-06-27T23:53:19Z",
       "runner": "tests"
     },
     {
-      "description": "toggling flips light to dark and updates the document attribute",
+      "description": "Migration: an explicit legacy `theme: 'light'` seeds a Day (light) preference.",
       "file": "src/lib/hooks/useTheme.test.jsx",
       "format": "vitest",
-      "key": "useTheme › toggles from dark to light and persists",
-      "line": 33,
-      "registeredAt": "2026-06-26T01:28:59Z",
+      "key": "useTheme › migrates a legacy light theme to a light preference",
+      "line": 64,
+      "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Changing themePreference in storage updates the resolved theme and clears an active override (cross-surface sync from the Settings panel).",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › reacts to a themePreference storage change and clears the override",
+      "line": 142,
+      "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Listener cleanup: the matchMedia change listener is removed on unmount.",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › removes the matchMedia listener on unmount",
+      "line": 162,
+      "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "An explicit light/dark preference resolves directly, ignoring the system.",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › resolves an explicit light preference regardless of system theme",
+      "line": 112,
+      "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Toggling twice returns to the base resolved theme.",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › returns to the base resolved theme after two flips",
+      "line": 101,
+      "registeredAt": "2026-06-27T23:53:19Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The toggle is a temporary in-memory override: it flips the resolved theme WITHOUT writing the preference (or any theme value) to storage.",
+      "file": "src/lib/hooks/useTheme.test.jsx",
+      "format": "vitest",
+      "key": "useTheme › toggles the resolved theme in-memory without persisting",
+      "line": 82,
+      "registeredAt": "2026-06-27T23:53:19Z",
       "runner": "tests"
     }
   ],

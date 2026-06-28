@@ -1,0 +1,11 @@
+{
+  "name": "SettingsSegment - Theme (Day active)",
+  "id": "dbce7747-774d-4bc0-a66b-a342d8ae2e97",
+  "url": "/?isolate=SettingsSegment&variant=day-active",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SettingsSegment",
+  "scenarioType": "component"
+}

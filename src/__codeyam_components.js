@@ -14,6 +14,7 @@ import LoadUrl from "./lib/components/LoadUrl/LoadUrl";
 import Search from "./lib/components/Search/Search";
 import SearchResults from "./lib/components/SearchResults/SearchResults";
 import Settings from "./lib/components/Settings/Settings";
+import SettingsSegment from "./lib/components/Settings/SettingsSegment";
 import Tabs from "./lib/components/Tabs/Tabs";
 import ThemeToggle from "./lib/components/ThemeToggle/ThemeToggle";
 import Triage from "./lib/components/Triage/Triage";
@@ -38,6 +39,7 @@ export const components = {
   Search: Search,
   SearchResults: SearchResults,
   Settings: Settings,
+  SettingsSegment: SettingsSegment,
   Tabs: Tabs,
   ThemeToggle: ThemeToggle,
   Triage: Triage,

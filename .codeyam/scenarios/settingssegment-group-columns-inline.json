@@ -1,0 +1,11 @@
+{
+  "name": "SettingsSegment - Group Columns (inline)",
+  "id": "36274c07-261f-46f6-ad1f-d12f5f407f6f",
+  "url": "/?isolate=SettingsSegment&variant=columns",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SettingsSegment",
+  "scenarioType": "component"
+}

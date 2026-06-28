@@ -61,4 +61,52 @@ describe('Settings', () => {
     expect(screen.queryByText('Warn at')).not.toBeInTheDocument();
     expect(screen.queryByText('Heavy tab ≥')).not.toBeInTheDocument();
   });
+
+  // The Day / Night / System theme control renders, independent of loadDataSource.
+  it('renders the Day/Night/System theme control regardless of loadDataSource', async () => {
+    seed('loadDataSource', 'system');
+    installChromeShim();
+    await openPanel();
+
+    expect(screen.getByText('Theme')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Day' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Night' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'System' })).toBeInTheDocument();
+  });
+
+  // Defaults to System (pressed) when no preference is stored.
+  it('defaults the theme control to System when no preference is stored', async () => {
+    installChromeShim();
+    await openPanel();
+
+    expect(screen.getByRole('button', { name: 'System' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Day' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  // The control reflects the currently stored preference.
+  it('reflects the stored theme preference', async () => {
+    seed('themePreference', 'dark');
+    installChromeShim();
+    await openPanel();
+
+    expect(screen.getByRole('button', { name: 'Night' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'System' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  // Selecting an option persists themePreference to storage.
+  it('persists the selected theme preference to storage', async () => {
+    installChromeShim();
+    await openPanel();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Day' }));
+    expect(screen.getByRole('button', { name: 'Day' })).toHaveAttribute('aria-pressed', 'true');
+
+    await act(async () => { await Promise.resolve(); });
+    await new Promise((resolve) =>
+      chrome.storage.local.get('themePreference', ({ themePreference }) => {
+        expect(themePreference).toBe('light');
+        resolve();
+      })
+    );
+  });
 });

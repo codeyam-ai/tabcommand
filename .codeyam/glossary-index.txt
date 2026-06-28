@@ -1,4 +1,4 @@
-# regenerated from glossary.json on 2026-06-27T22:50:03Z; do not hand-edit
+# regenerated from glossary.json on 2026-06-27T23:56:43Z; do not hand-edit
 App :: src/lib/pages/App/App.jsx :: tags=component,page,entry-point :: test=src/lib/pages/App/App.test.jsx
 AppBrand :: src/lib/components/AppBrand/AppBrand.jsx :: tags=
 Chrome :: src/lib/utils/Chrome/Chrome.js :: tags=utility,storage,ported-verbatim :: test=src/lib/utils/Chrome/Chrome.test.js
@@ -23,6 +23,7 @@ LoadUrl :: src/lib/components/LoadUrl/LoadUrl.jsx :: tags= :: test=src/lib/compo
 Search :: src/lib/components/Search/Search.jsx :: tags= :: test=src/lib/components/Search/Search.test.jsx
 SearchResults :: src/lib/components/SearchResults/SearchResults.jsx :: tags= :: test=src/lib/components/SearchResults/SearchResults.test.jsx
 Settings :: src/lib/components/Settings/Settings.jsx :: tags=
+SettingsSegment :: src/lib/components/Settings/SettingsSegment.jsx :: tags=
 SnapshotField :: src/lib/pages/ImportExport/ImportExport.jsx :: tags= :: test=src/lib/pages/ImportExport/ImportExport.test.jsx
 Tabs :: src/lib/components/Tabs/Tabs.jsx :: tags= :: test=src/lib/components/Tabs/Tabs.test.jsx
 ThemeToggle :: src/lib/components/ThemeToggle/ThemeToggle.jsx :: tags=
