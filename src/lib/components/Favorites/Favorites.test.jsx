@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { installChromeShim } from '../../utils/chromeShim';
 import Favorites from './Favorites';
 
@@ -52,6 +52,74 @@ describe('Favorites', () => {
 
     const items = await screen.findAllByText(/Fresh|Popular/);
     expect(items[0]).toHaveTextContent('Popular');
+  });
+
+  // A site open in a Chrome-pinned tab is excluded from Favorites (pinned tabs
+  // are already always-available, so they shouldn't take a Favorites slot).
+  it('excludes a site open in a Chrome-pinned tab', async () => {
+    seed('allUrls', ['url-https://a.com', 'url-https://b.com']);
+    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 1 });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 1 });
+    // Bravo is open in a pinned tab; Alpha in an unpinned one.
+    seed('activeTabs', [
+      { tabKey: 'tab-1', urlKey: 'url-https://a.com', pinned: false },
+      { tabKey: 'tab-2', urlKey: 'url-https://b.com', pinned: true },
+    ]);
+    installChromeShim();
+
+    render(<Favorites />);
+
+    expect(await screen.findByText('Alpha')).toBeInTheDocument();
+    expect(screen.queryByText('Bravo')).not.toBeInTheDocument();
+  });
+
+  // A urlKey listed in favoritesHidden (user-removed) is excluded from Favorites.
+  it('excludes a site present in favoritesHidden', async () => {
+    seed('allUrls', ['url-https://a.com', 'url-https://b.com']);
+    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 1 });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 1 });
+    seed('favoritesHidden', ['url-https://a.com']);
+    installChromeShim();
+
+    render(<Favorites />);
+
+    expect(await screen.findByText('Bravo')).toBeInTheDocument();
+    expect(screen.queryByText('Alpha')).not.toBeInTheDocument();
+  });
+
+  // Clicking the hover × writes the urlKey into favoritesHidden and the row
+  // disappears, while a plain row click still opens/focuses the tab.
+  it('removes a favorite via the × and still opens a tab on a plain row click', async () => {
+    seed('allUrls', ['url-https://a.com', 'url-https://b.com']);
+    seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 1 });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 1 });
+    installChromeShim();
+    const createSpy = vi.spyOn(globalThis.chrome.tabs, 'create');
+
+    render(<Favorites />);
+
+    // Plain click on the Alpha row opens a tab (no activeTabs entry → create).
+    const alpha = await screen.findByText('Alpha');
+    fireEvent.click(alpha);
+    await waitFor(() => expect(createSpy).toHaveBeenCalled());
+    // ...and a plain row click does NOT hide the favorite.
+    expect(
+      JSON.parse(window.localStorage.getItem('favoritesHidden') || 'null')
+    ).toBeNull();
+
+    // Clicking Bravo's × hides it: it lands in favoritesHidden and the row drops.
+    const removeButtons = screen.getAllByLabelText('Remove from favorites');
+    // Rows render in ranked order [Alpha, Bravo]; remove the second (Bravo).
+    fireEvent.click(removeButtons[1]);
+
+    await waitFor(() =>
+      expect(screen.queryByText('Bravo')).not.toBeInTheDocument()
+    );
+    expect(
+      JSON.parse(window.localStorage.getItem('favoritesHidden'))
+    ).toContain('url-https://b.com');
+    // Alpha remains.
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
   });
 
   // An empty allUrls renders nothing (no header), keeping a fresh install clean.

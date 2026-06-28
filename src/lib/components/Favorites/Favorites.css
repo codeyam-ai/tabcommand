@@ -46,3 +46,37 @@
   text-overflow: ellipsis;
   font-size: 13px;
 }
+
+/* Hover-to-remove ×: pushed to the right edge, hidden until the row is hovered
+   so the section stays quiet at rest. flex-shrink: 0 keeps it from collapsing
+   when the title is long; reserving its width keeps the row height stable so
+   the × appearing doesn't shift layout. */
+.Favorites-item-remove {
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.12s ease, color 0.12s ease;
+}
+
+.Favorites-item:hover .Favorites-item-remove {
+  opacity: 1;
+}
+
+.Favorites-item-remove:hover {
+  color: var(--text-primary);
+}
+
+/* Keep the control reachable/visible for keyboard users even without hover. */
+.Favorites-item-remove:focus-visible {
+  opacity: 1;
+  outline: 1px solid var(--border);
+  border-radius: var(--r-row);
+}

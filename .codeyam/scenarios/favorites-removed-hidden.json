@@ -1,0 +1,23 @@
+{
+  "name": "Favorites - Removed Hidden",
+  "id": "8a77d9f8-17e1-4dd2-817e-90be479fd8d3",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand-ui\", \"url-https://www.notion.so/Roadmap\", \"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://news.ycombinator.com\"]",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 8}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 2}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 3}",
+      "favoritesHidden": "[\"url-https://www.figma.com/file/tabcommand-ui\"]",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 12}",
+      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 6}",
+      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 5}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

@@ -9,6 +9,9 @@
 //   urlRecords — a map of `urlKey -> record`. Records carry { title, favicon,
 //                visitCount? }; missing visitCount is treated as 0.
 //   limit      — how many favorites to return (default 5).
+//   excludedKeys — an optional Set of `urlKey`s to suppress from the result
+//                (e.g. sites already open in a Chrome-pinned tab, or ones the
+//                user has explicitly removed from Favorites). Defaults to empty.
 //
 // Scoring: recency is the DOMINANT term. Each candidate's recency is its
 // normalized position in `allUrls` (newest = 1, oldest = 0); its frequency is
@@ -22,9 +25,10 @@ const VISIT_WEIGHT = 0.3;
 const usableTitle = (record) =>
   record && typeof record.title === 'string' && record.title.length > 0;
 
-export function rankFavorites(allUrls, urlRecords, limit = 5) {
+export function rankFavorites(allUrls, urlRecords, limit = 5, excludedKeys) {
   if (!Array.isArray(allUrls) || allUrls.length === 0) return [];
   const records = urlRecords || {};
+  const excluded = excludedKeys || new Set();
 
   // Candidates are the recency-ordered keys that actually have a renderable
   // record. We keep each candidate's original index so recency reflects the full
@@ -32,6 +36,7 @@ export function rankFavorites(allUrls, urlRecords, limit = 5) {
   const candidates = [];
   for (let index = 0; index < allUrls.length; index++) {
     const urlKey = allUrls[index];
+    if (excluded.has(urlKey)) continue;
     const record = records[urlKey];
     if (!usableTitle(record)) continue;
     candidates.push({ urlKey, record, index });

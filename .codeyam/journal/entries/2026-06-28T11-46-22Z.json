@@ -1,0 +1,171 @@
+{
+  "timestamp": "2026-06-28T11:46:22Z",
+  "title": "Favorites: Exclude Pinned & Incognito URLs, Add Remove",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThree refinements to the sidebar **Favorites** section so it only surfaces sites\nthe user actually wants there. (1) A site currently open in a **Chrome-pinned\ntab** is excluded from Favorites — pinned tabs are already always-available, so\nthey shouldn't take a Favorites slot. (2) URLs visited in **incognito mode** are\nnever recorded into browsing history at all, so they can never appear in\nFavorites (or anywhere else). (3) The user can **remove** a site from Favorites:\nhovering a row reveals an **×** on the right; clicking it hides that URL from\nFavorites permanently (without deleting it from search/history). All three are\ndriven through the existing pure `rankFavorites` ranking and the component's live\n`chrome.storage.onChanged` reload, so the section updates instantly.\n\n## Key Decisions\n\n- **Exclude pinned via `activeTabs`, not a record flag** — \"pinned\" is the native\n  Chrome tab state (`tab.pinned`), already mirrored onto `activeTabs[].pinned`\n  with a matching `urlKey` by `updateActiveTabs` in the service worker. Favorites\n  computes the set of pinned `urlKey`s from `activeTabs` at load time and passes\n  them as exclusions. This keeps exclusion live (re-pinning/unpinning a tab\n  re-ranks) and needs no new persisted state. (Confirmed with the user this means\n  Chrome-pinned tabs, not the app's `tabCommandPinned` thumbtack.)\n- **Incognito = never record, rather than record-and-filter** — the privacy-correct\n  behavior is to leave no trace of incognito browsing, so we stop incognito\n  visits from entering `allUrls` / `url-*` at the source in the service worker\n  instead of storing them with a flag and filtering later. Note this affects\n  *future* visits only; pre-existing records carry no incognito marker and are\n  indistinguishable, which is acceptable.\n- **Remove = hide, not delete** — a separate `favoritesHidden` storage key (array\n  of `urlKey`s) records user-removed favorites. The URL stays in `allUrls` /\n  `url-*` so it still appears in Search and History; it's only suppressed from\n  the Favorites section. A dedicated key avoids mutating the visit-tracking\n  `url-*` records and is trivial to unit-test.\n- **One unified exclusion path in `rankFavorites`** — both pinned `urlKey`s and\n  hidden `urlKey`s are merged into a single `excludedKeys` set passed to the pure\n  ranking function, which skips any candidate in the set. Keeps all\n  exclusion/scoring logic pure and unit-tested in one place.\n\n## Implementation\n\n### 1. Add an `excludedKeys` parameter to the ranking\n\n**File**: `src/lib/utils/rankFavorites.js`\n\nExtend the signature to `rankFavorites(allUrls, urlRecords, limit = 5, excludedKeys)`\nwhere `excludedKeys` is a `Set` of `urlKey`s (default to an empty set when\nomitted, so existing callers/tests are unaffected). In the candidate-collection\nloop, skip any `urlKey` present in `excludedKeys` (alongside the existing\n`usableTitle` check). All downstream scoring/sorting is unchanged. Update the\nheader doc comment to mention the new exclusion input.\n\n### 2. Exclude pinned tabs and hidden URLs in the Favorites component\n\n**File**: `src/lib/components/Favorites/Favorites.jsx`\n\nIn the `load` routine, additionally read `activeTabs` and `favoritesHidden` from\nstorage (extend the existing `Chrome.get` calls — e.g. read\n`['allUrls', 'activeTabs', 'favoritesHidden']` up front, then the `url-*` records\nas today). Build a single `excludedKeys` Set as the union of:\n\n- `urlKey`s of `activeTabs` entries with `pinned === true`, and\n- every `urlKey` in `favoritesHidden` (default `[]`).\n\nPass that set as the new 4th argument to `rankFavorites`.\n\nExtend the `handleChange` listener so a change to `activeTabs` **or**\n`favoritesHidden` also triggers `load()` (today it only reloads on `allUrls` /\n`url-*`), so pinning a tab or removing a favorite re-ranks immediately.\n\n### 3. Add the hover-to-remove \"×\" control\n\n**File**: `src/lib/components/Favorites/Favorites.jsx`\n\nRender a remove button inside each `.Favorites-item`, after the title, using the\nexisting `Icon` component with `name=\"close\"` (the line-style × already defined\nin `src/lib/components/Icon/Icon.jsx`). Wrap it so it's reachable by keyboard and\nlabeled (e.g. `aria-label=\"Remove from favorites\"` / `title=\"Remove from favorites\"`).\n\nAdd a `removeFavorite(e, favorite)` handler that calls `e.stopPropagation()` (so\nthe row's `onClick` open-behavior doesn't fire), reads `favoritesHidden`, appends\n`favorite.urlKey` if not already present, and writes it back via `chrome.storage.local.set`.\nThe existing `onChanged` reload (extended in step 2) will drop the row.\n\n**File**: `src/lib/components/Favorites/Favorites.css`\n\nAdd styling for the remove button: hidden by default (`opacity: 0`) and revealed\non `.Favorites-item:hover` (`opacity: 1`), pushed to the right (the title already\nhas `min-width: 0; overflow: hidden`, so give the button `flex-shrink: 0` and\n`margin-left: auto`). Use muted color with a hover emphasis consistent with the\nsidebar idiom. Ensure the row keeps a stable height so the × appearing doesn't\nshift layout.\n\n### 4. Stop recording incognito visits in the service worker\n\n**File**: `service_worker.js`\n\nTwo coordinated guards:\n\n- In `validTab(tab)`, add `&& !tab.incognito` so incognito tabs are treated as\n  invalid everywhere it's consulted (`tabUpdates` → no `url-*` process record;\n  `updateActiveTabs` → filtered out of `activeTabs`).\n- In the `chrome.tabs.onUpdated` listener, the `changeInfo.url` branch calls\n  `newUrl(tabId, changeInfo.url)` directly (it does not pass through `validTab`).\n  Guard that branch with `!tab.incognito` so an incognito navigation never gets\n  added to `allUrls` and never bumps `visitCount`.\n\nAdd a brief comment noting incognito visits are intentionally not persisted.\n\n### 5. Tests\n\n**File**: `src/lib/utils/rankFavorites.test.js`\n\nAdd a case proving `excludedKeys` removes matching `urlKey`s from the result\n(and that omitting the argument preserves current behavior).\n\n**File**: `src/lib/components/Favorites/Favorites.test.jsx`\n\nAdd cases: (a) a URL open in a pinned `activeTabs` entry is absent from the\nrendered list; (b) a `urlKey` present in seeded `favoritesHidden` is absent;\n(c) clicking the hover × on a row writes that `urlKey` into `favoritesHidden`\nand the row disappears, while a plain row click still opens/focuses the tab.\n\n**File**: `service_worker.test.js`\n\nAdd a case proving an `onUpdated` navigation on an incognito tab does **not**\nadd the `urlKey` to `allUrls` or create/increment its `url-*` `visitCount`,\nwhile a normal-tab navigation still does.\n\n## Reused existing code\n\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — extended with the `excludedKeys` filter; all scoring reused.\n- `Favorites` component from `src/lib/components/Favorites/Favorites.jsx`\n  (glossary entry: `Favorites`) — its `Chrome.get` load + `chrome.storage.onChanged`\n  live-reload pattern is extended, not replaced.\n- `Icon` from `src/lib/components/Icon/Icon.jsx` — reuse the existing `close` (×)\n  glyph for the remove control.\n- `Favicon` from `src/lib/components/Favicon` — unchanged, still rendered per row.\n- `activeTabs` records (with `urlKey` + `pinned`) produced by `updateActiveTabs`\n  in `service_worker.js` — reused as the source of which URLs are pinned.\n- `validTab` / `newUrl` in `service_worker.js` — the recording chokepoints where\n  the incognito guards are added.\n- `installChromeShim` from `src/lib/utils/chromeShim` — reused storage shim for\n  the component/service-worker tests.\n\n## Scenarios to Demonstrate\n\n- **Populated, nothing excluded** — several ranked favorites render as today\n  (happy path with realistic titles/favicons).\n- **A favorite is open in a Chrome-pinned tab** — that site is omitted from the\n  list; the remaining favorites fill the slots.\n- **Hover reveals the ×** — hovering a row shows the remove control on the right;\n  it's hidden otherwise.\n- **Remove a favorite** — clicking × hides that site (it's gone from Favorites on\n  reload) while it remains available in Search/History.\n- **Incognito visit** — a URL visited only in incognito never appears in\n  Favorites (and is not recorded at all).\n- **Empty / all-excluded state** — when no qualifying favorites remain (none, or\n  all pinned/hidden), the section renders nothing, keeping the sidebar clean.",
+  "description": "Refined the sidebar Favorites section so it surfaces only sites the user wants there. Sites open in a Chrome-pinned tab are now excluded (they are already always-available), and incognito visits are never recorded into history at all (the service worker guards validTab and the onUpdated URL branch). Each Favorites row gains a hover-revealed × that hides the site from Favorites via a new favoritesHidden storage key while keeping it in Search and History. All three exclusions flow through a single excludedKeys set passed to the pure rankFavorites ranking, so the list re-ranks instantly via the existing chrome.storage.onChanged reload.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/favorites-exclude-pinned-incognito-and-remove.md\t.codeyam/plans/completed/favorites-exclude-pinned-incognito-and-remove.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-pinned-tab-excluded.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-remove-control-revealed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-removed-hidden.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 98,
+    "passed": 98,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 98,
+        "passed": 98
+      }
+    ]
+  }
+}

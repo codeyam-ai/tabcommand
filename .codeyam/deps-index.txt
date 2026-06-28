@@ -1,4 +1,4 @@
-# regenerated from dependency-graph.json on 2026-06-28T10:47:45Z; do not hand-edit
+# regenerated from dependency-graph.json on 2026-06-28T11:48:10Z; do not hand-edit
 src/lib/utils/chromeShim :: imports=0 :: imported_by=21
 src/Constants.jsx :: imports=0 :: imported_by=20
 src/lib/utils/Chrome :: imports=0 :: imported_by=19
@@ -6,9 +6,9 @@ src/lib/components/Icon :: imports=0 :: imported_by=13
 src/lib/components :: imports=0 :: imported_by=9
 src/lib/components/Favicon :: imports=0 :: imported_by=5
 src/lib/utils/processLoad.js :: imports=0 :: imported_by=5
+src/lib/components/Icon/Icon.jsx :: imports=0 :: imported_by=4
 src/lib/components/Favicon/Favicon.jsx :: imports=2 :: imported_by=3
-src/lib/components/Favorites/Favorites.jsx :: imports=4 :: imported_by=3
-src/lib/components/Icon/Icon.jsx :: imports=0 :: imported_by=3
+src/lib/components/Favorites/Favorites.jsx :: imports=5 :: imported_by=3
 src/lib/components/LabelCollection/LabelCollection.jsx :: imports=5 :: imported_by=3
 src/lib/components/LabelForm/LabelForm.jsx :: imports=4 :: imported_by=3
 src/lib/components/LabelFormContainer/LabelFormContainer.jsx :: imports=2 :: imported_by=3

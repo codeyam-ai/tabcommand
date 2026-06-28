@@ -1,6 +1,6 @@
 {
-  "feature": "sidebar-favorites-and-load-meter-relocation",
-  "maxStep": 25,
-  "version": 941,
-  "updatedAt": "2026-06-28T10:48:23.097482284+00:00"
+  "feature": "favorites-exclude-pinned-incognito-and-remove",
+  "maxStep": 23,
+  "version": 248,
+  "updatedAt": "2026-06-28T11:48:43.047397731+00:00"
 }

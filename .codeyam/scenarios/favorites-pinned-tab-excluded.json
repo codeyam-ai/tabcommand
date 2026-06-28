@@ -1,0 +1,23 @@
+{
+  "name": "Favorites - Pinned Tab Excluded",
+  "id": "68287512-8460-41c7-b099-153b17d4ea6e",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 3}",
+      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 6}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 8}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 12}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 2}",
+      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 5}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand-ui\", \"url-https://www.notion.so/Roadmap\", \"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://news.ycombinator.com\"]",
+      "activeTabs": "[{\"tabKey\": \"tab-1\", \"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"pinned\": true}]"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

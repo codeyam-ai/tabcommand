@@ -127,6 +127,74 @@ describe('service_worker.js', () => {
       expect(fns.validTab({ url: 'devtools://devtools/x' })).toBe(false);
       expect(fns.validTab({ url: 'chrome-extension://abc/index.html' })).toBe(false);
     });
+
+    // incognito tabs are invalid everywhere validTab is consulted, so their
+    // visits never reach activeTabs or the url-* process records.
+    it('rejects incognito tabs', () => {
+      expect(fns.validTab({ url: 'https://secret.com', incognito: true })).toBe(false);
+    });
+  });
+
+  // Incognito navigations must leave no trace: the onUpdated handler's direct
+  // changeInfo.url recording path (which bypasses validTab) is guarded so an
+  // incognito navigation never enters allUrls or bumps visitCount, while a
+  // normal-tab navigation still records as before.
+  describe('onUpdated incognito guard', () => {
+    // A storage mock that answers each query shape with sensible empties so the
+    // handler (and the newUrl it may call) can run to completion.
+    const emptyStorage = (chrome) => {
+      chrome.storage.local.get.mockImplementation((query, cb) => {
+        const keys =
+          typeof query === 'string'
+            ? [query]
+            : Array.isArray(query)
+            ? query
+            : Object.keys(query);
+        const res = {};
+        for (const k of keys) {
+          if (k === 'allUrls') res.allUrls = [];
+          else if (k === 'activeTabs') res.activeTabs = [];
+          else if (k === 'autoClosed') res.autoClosed = {};
+          else if (k === 'labels') res.labels = {};
+          // url-* keys stay absent (undefined), as on a first visit.
+        }
+        cb(res);
+      });
+      chrome.tabs.query.mockImplementation((_q, cb) => cb([]));
+    };
+
+    const getHandler = (chrome) =>
+      chrome.tabs.onUpdated.addListener.mock.calls[0][0];
+
+    // Did any storage write add this urlKey to allUrls (i.e. record the visit)?
+    const recordedAllUrls = (chrome, urlKey) =>
+      chrome.storage.local.set.mock.calls.some(
+        (c) => Array.isArray(c[0].allUrls) && c[0].allUrls.includes(urlKey)
+      );
+
+    // A normal navigation records the url; the incognito one must not.
+    it('records a normal-tab navigation but not an incognito one', async () => {
+      emptyStorage(chrome);
+      const onUpdated = getHandler(chrome);
+
+      // Normal tab navigating to a new URL → recorded into allUrls.
+      chrome.storage.local.set.mockClear();
+      await onUpdated(
+        1,
+        { url: 'https://normal.com' },
+        { id: 1, url: 'https://normal.com', incognito: false }
+      );
+      expect(recordedAllUrls(chrome, 'url-https://normal.com')).toBe(true);
+
+      // Incognito tab navigating to a new URL → never recorded.
+      chrome.storage.local.set.mockClear();
+      await onUpdated(
+        2,
+        { url: 'https://secret.com' },
+        { id: 2, url: 'https://secret.com', incognito: true }
+      );
+      expect(recordedAllUrls(chrome, 'url-https://secret.com')).toBe(false);
+    });
   });
 
   describe('parseTabId', () => {

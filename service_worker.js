@@ -79,10 +79,15 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         chrome.tabs.ungroup(tab.id);
       }
     }
-    updates = {
-      ...updates,
-      ...(await newUrl(tabId, changeInfo.url))
-    };
+    // This branch records the navigation directly (it does not pass through
+    // validTab), so guard it so an incognito navigation never enters allUrls
+    // or bumps visitCount. See validTab for the broader incognito policy.
+    if (!tab.incognito) {
+      updates = {
+        ...updates,
+        ...(await newUrl(tabId, changeInfo.url))
+      };
+    }
   }
 
   if (changeInfo.groupId === -1) {
@@ -580,8 +585,12 @@ function getUrlKey(url) {
 }
 
 function validTab(tab) {
+  // Incognito visits are intentionally never persisted — they must leave no
+  // trace in history/activeTabs, so they can never surface in Search or
+  // Favorites. Treat them as invalid everywhere validTab is consulted.
   return tab.url &&
     tab.url.length &&
+    !tab.incognito &&
     tab.url.indexOf('chrome://') === -1 &&
     tab.url.indexOf('devtools://') === -1 &&
     tab.url.indexOf('chrome-extension://') === -1

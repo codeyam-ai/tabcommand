@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Chrome } from '../../utils/Chrome';
 import { rankFavorites } from '../../utils/rankFavorites';
 import { Favicon } from '../Favicon';
+import Icon from '../Icon/Icon';
 
 // The Favorites sidebar section: the user's most-visited sites, ranked by a
 // blend of recency and visit frequency (recency-leaning) in the pure
@@ -19,25 +20,46 @@ const Favorites = () => {
 
   useEffect(() => {
     const load = () => {
-      Chrome.get('Favorites1', 'allUrls', ({ allUrls }) => {
-        const keys = allUrls || [];
-        if (keys.length === 0) {
-          setFavorites([]);
-          return;
+      Chrome.get(
+        'Favorites1',
+        ['allUrls', 'activeTabs', 'favoritesHidden'],
+        ({ allUrls, activeTabs, favoritesHidden }) => {
+          const keys = allUrls || [];
+          if (keys.length === 0) {
+            setFavorites([]);
+            return;
+          }
+          // Exclude any site currently open in a Chrome-pinned tab (already
+          // always-available, so it shouldn't take a Favorites slot) and any
+          // site the user explicitly removed from Favorites.
+          const excludedKeys = new Set([
+            ...(activeTabs || [])
+              .filter((tab) => tab.pinned)
+              .map((tab) => tab.urlKey),
+            ...(favoritesHidden || []),
+          ]);
+          Chrome.get('Favorites2', keys, (records) => {
+            setFavorites(
+              rankFavorites(keys, records, FAVORITES_LIMIT, excludedKeys)
+            );
+          });
         }
-        Chrome.get('Favorites2', keys, (records) => {
-          setFavorites(rankFavorites(keys, records, FAVORITES_LIMIT));
-        });
-      });
+      );
     };
 
     load();
 
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
-      // Any change to the recency list or to a url-* record can shift the ranking.
+      // Any change to the recency list or a url-* record can shift the ranking;
+      // pinning/unpinning a tab (activeTabs) or removing a favorite
+      // (favoritesHidden) changes the exclusion set, so reload on those too.
       const touched = Object.keys(changes).some(
-        (key) => key === 'allUrls' || key.startsWith('url-')
+        (key) =>
+          key === 'allUrls' ||
+          key === 'activeTabs' ||
+          key === 'favoritesHidden' ||
+          key.startsWith('url-')
       );
       if (touched) load();
     };
@@ -62,6 +84,20 @@ const Favorites = () => {
     });
   };
 
+  const removeFavorite = (e, favorite) => {
+    // Don't let the row's open-on-click fire when the × is clicked.
+    e.stopPropagation();
+    // Hide (not delete): record the urlKey in favoritesHidden so it's suppressed
+    // from Favorites while staying available in Search and History.
+    Chrome.get('Favorites4', 'favoritesHidden', ({ favoritesHidden }) => {
+      const hidden = favoritesHidden || [];
+      if (hidden.includes(favorite.urlKey)) return;
+      chrome.storage.local.set({
+        favoritesHidden: [...hidden, favorite.urlKey],
+      });
+    });
+  };
+
   if (favorites.length === 0) return null;
 
   return (
@@ -80,6 +116,15 @@ const Favorites = () => {
             title={favorite.title}
           />
           <div className="Favorites-item-title">{favorite.title}</div>
+          <button
+            type="button"
+            className="Favorites-item-remove"
+            aria-label="Remove from favorites"
+            title="Remove from favorites"
+            onClick={(e) => removeFavorite(e, favorite)}
+          >
+            <Icon name="close" size={14} />
+          </button>
         </div>
       ))}
     </div>

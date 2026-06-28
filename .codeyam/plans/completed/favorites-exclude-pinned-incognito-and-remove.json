@@ -1,0 +1,30 @@
+{
+  "claimStartedAt": "2026-06-28T11:24:01Z",
+  "completedAt": "2026-06-28T11:46:22Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "machine": "codeyam-editor-codeyam-editor-4",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "favorites-exclude-pinned-incognito-and-remove",
+    "sessionId": "",
+    "startedAt": "2026-06-28T11:24:01Z"
+  },
+  "createdAt": "2026-06-28T11:21:29Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/__codeyam_component_scenarios.js",
+    "src/lib/components/Favorites/Favorites.css",
+    "src/lib/components/Favorites/Favorites.jsx",
+    "src/lib/components/Favorites/Favorites.test.jsx",
+    "src/lib/utils/rankFavorites.js",
+    "src/lib/utils/rankFavorites.test.js"
+  ],
+  "journalTimestamp": "2026-06-28T11:46:22Z",
+  "mode": "ui",
+  "planFile": "completed/favorites-exclude-pinned-incognito-and-remove.md",
+  "slug": "favorites-exclude-pinned-incognito-and-remove",
+  "title": "Favorites: Exclude Pinned & Incognito URLs, Add Remove"
+}

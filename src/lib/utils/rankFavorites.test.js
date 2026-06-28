@@ -99,6 +99,28 @@ describe('rankFavorites', () => {
     expect(rankFavorites(allUrls, records, 5)).toHaveLength(1);
   });
 
+  // excludedKeys removes matching urlKeys (e.g. pinned/hidden) from the result,
+  // while omitting the argument preserves the prior behavior.
+  it('skips urlKeys present in excludedKeys', () => {
+    const allUrls = ['url-a', 'url-b', 'url-c'];
+    const records = {
+      'url-a': rec('Alpha'),
+      'url-b': rec('Bravo'),
+      'url-c': rec('Charlie'),
+    };
+    // Omitting excludedKeys keeps all three.
+    expect(rankFavorites(allUrls, records).map((r) => r.title)).toEqual([
+      'Alpha',
+      'Bravo',
+      'Charlie',
+    ]);
+    // Excluding the middle one drops just it, preserving the rest's order.
+    const excluded = new Set(['url-b']);
+    expect(
+      rankFavorites(allUrls, records, 5, excluded).map((r) => r.title)
+    ).toEqual(['Alpha', 'Charlie']);
+  });
+
   // The returned row shape: url derived from the key when absent, title + favicon passed through.
   it('derives url from the key when the record omits it, and shapes the row', () => {
     const allUrls = ['url-https://example.com/path'];
