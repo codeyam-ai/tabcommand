@@ -75,12 +75,14 @@ function loadWorker(chrome) {
              initLoadSource, processesApiAvailable, systemApiAvailable,
              startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad,
              autoCloseSweep, isAutoCloseEligible, pruneAutoClosed,
-             autoCloseThresholdMinutes },
+             autoCloseThresholdMinutes, urlKeyIsMember, ejectAutoGroupedTab,
+             recordInGroupTab, debugGroup },
       state: {
         get groups() { return groups; },
         get samples() { return samples; },
         get processesIndex() { return processesIndex; },
         get pendingUngroups() { return pendingUngroups; },
+        get autoGroupedTabs() { return autoGroupedTabs; },
       }
     };`
   );
@@ -491,6 +493,186 @@ describe('service_worker.js', () => {
         labels
       );
       expect(labels.Work.urlKeys).toContain('url-https://b.com');
+    });
+  });
+
+  describe('urlKeyIsMember', () => {
+    // a urlKey recorded in the label's urlKeys is a member
+    it('is true when the urlKey is present in the label', () => {
+      const label = { title: 'Work', urlKeys: ['url-https://a.com', 'url-https://b.com'] };
+      expect(fns.urlKeyIsMember(label, 'url-https://b.com')).toBe(true);
+    });
+
+    // a urlKey absent from the label's urlKeys is not a member
+    it('is false when the urlKey is absent', () => {
+      const label = { title: 'Work', urlKeys: ['url-https://a.com'] };
+      expect(fns.urlKeyIsMember(label, 'url-https://b.com')).toBe(false);
+    });
+
+    // an empty urlKeys list claims no members
+    it('is false for a label with no urlKeys', () => {
+      expect(fns.urlKeyIsMember({ title: 'Work', urlKeys: [] }, 'url-https://a.com')).toBe(false);
+    });
+
+    // a missing/undefined label is treated as non-membership rather than throwing,
+    // so callers can pass labels[title] without a prior existence check
+    it('is false when the label is undefined or null', () => {
+      expect(fns.urlKeyIsMember(undefined, 'url-https://a.com')).toBe(false);
+      expect(fns.urlKeyIsMember(null, 'url-https://a.com')).toBe(false);
+    });
+  });
+
+  describe('recordInGroupTab', () => {
+    // seeds a brand-new label (carrying the group's mapped color) when none exists
+    it('seeds a missing label with the tab urlKey and mapped color', () => {
+      const labels = {};
+      fns.recordInGroupTab(
+        labels,
+        { title: 'Work', color: 'blue' },
+        { tabKey: 'tab-7', urlKey: 'url-https://b.com', groupId: 5 }
+      );
+      expect(labels.Work.urlKeys).toEqual(['url-https://b.com']);
+      expect(labels.Work.color).toBe('#1873E4');
+    });
+
+    // appends to an existing label's urlKeys rather than overwriting it
+    it('pushes the urlKey into an existing label', () => {
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com'], color: '#1873E4' } };
+      fns.recordInGroupTab(
+        labels,
+        { title: 'Work', color: 'blue' },
+        { tabKey: 'tab-7', urlKey: 'url-https://b.com', groupId: 5 }
+      );
+      expect(labels.Work.urlKeys).toEqual(['url-https://a.com', 'url-https://b.com']);
+    });
+
+    // persists the updated labels object via update -> chrome.storage.local.set
+    it('persists the updated labels to storage', () => {
+      const labels = {};
+      fns.recordInGroupTab(
+        labels,
+        { title: 'Work', color: 'blue' },
+        { tabKey: 'tab-7', urlKey: 'url-https://b.com', groupId: 5 }
+      );
+      const written = chrome.storage.local.set.mock.calls.map((c) => c[0]).find((o) => o && o.labels);
+      expect(written.labels.Work.urlKeys).toContain('url-https://b.com');
+    });
+  });
+
+  describe('ejectAutoGroupedTab', () => {
+    // While the real URL has not loaded (urlKey is the bare 'url-' placeholder),
+    // ejection is deferred so we never act on the transient about:blank state.
+    it('returns wait and does nothing while the URL is still unloaded', async () => {
+      state.autoGroupedTabs.add(7);
+      const result = await fns.ejectAutoGroupedTab(
+        { tabKey: 'tab-7', urlKey: 'url-', groupId: 5 },
+        'Work'
+      );
+      expect(result).toBe('wait');
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+      expect(state.autoGroupedTabs.has(7)).toBe(true);
+    });
+
+    // Flicker guard: the in-memory snapshot said non-member, but FRESH storage
+    // shows the URL is a genuine member (an overlapping event just added it) —
+    // keep the tab grouped, clear the flag, and do not ungroup.
+    it('keeps the tab and clears the flag when fresh storage shows membership', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ labels: { Work: { title: 'Work', urlKeys: ['url-https://b.com'] } } })
+      );
+      state.autoGroupedTabs.add(7);
+      const result = await fns.ejectAutoGroupedTab(
+        { tabKey: 'tab-7', urlKey: 'url-https://b.com', groupId: 5 },
+        'Work'
+      );
+      expect(result).toBe('kept');
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+      expect(state.autoGroupedTabs.has(7)).toBe(false);
+    });
+
+    // The URL is a non-member in fresh storage too — eject: ungroup the tab,
+    // mark the in-flight ungroup in pendingUngroups, and clear the auto-group flag.
+    it('ungroups a confirmed non-member and tracks the in-flight ungroup', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ labels: { Work: { title: 'Work', urlKeys: [] } } })
+      );
+      state.autoGroupedTabs.add(7);
+      const result = await fns.ejectAutoGroupedTab(
+        { tabKey: 'tab-7', urlKey: 'url-https://new.com', groupId: 5 },
+        'Work'
+      );
+      expect(result).toBe('ejected');
+      expect(chrome.tabs.ungroup).toHaveBeenCalledWith(7, expect.any(Function));
+      expect(state.pendingUngroups.has(7)).toBe(true);
+      expect(state.autoGroupedTabs.has(7)).toBe(false);
+    });
+  });
+
+  describe('auto-grouped stickiness fix integration', () => {
+    // The core bug fix: a tab Chrome auto-placed into a group whose URL is not a
+    // deliberate label member must be EJECTED, never recorded into the label.
+    it('ejects an auto-grouped non-member and does not record its URL', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ labels: { Work: { title: 'Work', urlKeys: [] } } })
+      );
+      state.autoGroupedTabs.add(7);
+      const labels = { Work: { title: 'Work', urlKeys: [] } };
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://new.com', pinned: false, groupId: 5 }],
+        labels
+      );
+      expect(chrome.tabs.ungroup).toHaveBeenCalledWith(7, expect.any(Function));
+      expect(labels.Work.urlKeys).not.toContain('url-https://new.com');
+    });
+
+    // Membership beats the flag: an auto-grouped tab whose URL IS a deliberate
+    // member stays grouped, gets its flag cleared, and is never ungrouped.
+    it('keeps an auto-grouped tab whose URL is a deliberate member', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      state.autoGroupedTabs.add(7);
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://b.com'] } };
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://b.com', pinned: false, groupId: 5 }],
+        labels
+      );
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+      expect(state.autoGroupedTabs.has(7)).toBe(false);
+    });
+
+    // An explicit groupId change is user intent and must clear an earlier
+    // auto-group flag so groupTabs won't later yank the deliberately-moved tab out.
+    it('clears the auto-group flag on a deliberate group change', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) =>
+        cb(id === 5 ? { id: 5, title: 'NewGroup', color: 'blue' }
+                    : { id: 2, title: 'OldGroup', color: 'red' })
+      );
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ labels: {} }));
+      state.autoGroupedTabs.add(1);
+      await fns.handleActiveTabsGroupChanges({
+        oldValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: 2, pinned: false }],
+        newValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: 5, pinned: false }],
+      });
+      expect(state.autoGroupedTabs.has(1)).toBe(false);
+    });
+
+    // onRemoved must clear the flag so the in-memory set never leaks stale tab ids
+    // after a flagged tab is closed.
+    it('clears the auto-group flag when a flagged tab is removed', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ activeTabs: [] }));
+      state.autoGroupedTabs.add(9);
+      const onRemoved = chrome.tabs.onRemoved.addListener.mock.calls[0][0];
+      await onRemoved(9, {});
+      expect(state.autoGroupedTabs.has(9)).toBe(false);
+    });
+  });
+
+  describe('debugGroup', () => {
+    // The grouping tracer is gated behind DEBUG_GROUPING (off in production), so a
+    // call is a safe no-op that never throws regardless of the payload shape.
+    it('is a no-op that does not throw when disabled', () => {
+      expect(() => fns.debugGroup('some-event', { tabId: 7, urlKey: 'url-x' })).not.toThrow();
+      expect(fns.debugGroup('some-event', {})).toBeUndefined();
     });
   });
 

@@ -11,6 +11,31 @@ let removing;
 // old group's label during the async gap.
 const pendingUngroups = new Set();
 
+// Tab ids that Chrome placed into a group at creation time (native "a tab opened
+// from a grouped tab inherits that group" behavior). Detected in onCreated when a
+// brand-new tab is already in a group. These memberships are NOT user intent, so
+// `groupTabs` must never record their URLs into a label (which would make them
+// permanently sticky); instead it ungroups them once their real URL has loaded,
+// unless that URL is already a deliberate member of the label.
+const autoGroupedTabs = new Set();
+
+// Diagnostic logging for the tab-grouping decision points. The prototype proved
+// the auto-group stickiness bug with unconditional `[TC-GROUP]` console noise;
+// keep that instrumentation behind a single flag so it can be flipped on for
+// future diagnosis without shipping console spam. Flip to `true` to trace.
+const DEBUG_GROUPING = false;
+function debugGroup(event, details) {
+  if (!DEBUG_GROUPING) return;
+  console.log(`[TC-GROUP] ${event}`, details);
+}
+
+// Whether `urlKey` is a deliberate, recorded member of `label`. Centralizes the
+// "is this URL bound to this label" check used across the grouping paths so the
+// auto-group ejection logic and the recording logic share one definition.
+function urlKeyIsMember(label, urlKey) {
+  return !!(label && label.urlKeys.indexOf(urlKey) > -1);
+}
+
 // The LoadMeter gauge's scale, mirrored from src/lib/components/LoadMeter so the
 // system fallback normalizes to the same 0→max range the gauge already renders.
 // (The two runtimes — classic web app vs. service worker — can't share a module
@@ -149,6 +174,22 @@ chrome.tabs.onActivated.addListener((tabInfo) => {
 });
 
 chrome.tabs.onCreated.addListener(async (tab) => {
+  // If groupId is already > -1 here, Chrome placed this brand-new tab into a
+  // group before our code ran (native "open from group" inheritance). If it's
+  // -1, any later grouping of this tab came from us (groupTabs).
+  debugGroup('onCreated', {
+    tabId: tab.id,
+    url: tab.url,
+    urlKey: getUrlKey(tab.url || ''),
+    groupId: tab.groupId,
+    pinned: tab.pinned,
+    openerTabId: tab.openerTabId
+  });
+  // Chrome inherited this brand-new tab into a group on its own. Flag it so
+  // groupTabs pulls it back out instead of permanently recording its URL.
+  if (!tab.pinned && tab.groupId != null && tab.groupId > -1) {
+    autoGroupedTabs.add(tab.id);
+  }
   const updates = {
     ...(await tabUpdates(tab)),
     ...(await newUrl(tab.id, tab.url))
@@ -173,6 +214,7 @@ chrome.tabs.onMoved.addListener((tabId, moveInfo) => {
 
 chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
   removing = tabId;
+  autoGroupedTabs.delete(tabId);
   const activeTabs = (await getLocalStorage('activeTabs')).activeTabs || [];
   const oldTabUrl = activeTabs.filter(
     tabUrl => tabUrl.tabKey === `tab-${tabId}`
@@ -744,6 +786,18 @@ async function handleActiveTabsGroupChanges(changes) {
           label.urlKeys.indexOf(newTab.urlKey) === -1 &&
           !pendingUngroups.has(parseTabId(newTab))
         ) {
+          // A tab's groupId changed and we're now recording its URL into the
+          // destination label permanently (makes it sticky/auto-group).
+          debugGroup('handleActiveTabsGroupChanges: record urlKey into label', {
+            tabId: parseTabId(newTab),
+            urlKey: newTab.urlKey,
+            label: newGroup.title,
+            oldGroupId: oldTab.groupId,
+            newGroupId: newTab.groupId
+          });
+          // An explicit groupId change is user intent — this overrides any
+          // earlier auto-grouped flag so groupTabs won't later yank the tab out.
+          autoGroupedTabs.delete(parseTabId(newTab));
           label.urlKeys.push(newTab.urlKey);
           changed = true;
         }
@@ -762,6 +816,68 @@ async function handleActiveTabsGroupChanges(changes) {
   }
 }
 
+// Pull a Chrome-auto-inherited tab back out of the group it was born into.
+// Returns one of:
+//   'wait'    — the real URL has not loaded yet; act on a later pass
+//   'kept'    — fresh storage shows the URL is a genuine member; left grouped
+//   'ejected' — ungroup issued
+// In every case the caller should `continue` (the tab is fully handled here).
+// The fresh-storage re-check guards against an ungroup→regroup flicker: `labels`
+// passed to groupTabs is an in-memory snapshot, and an overlapping event (or an
+// in-app drag) may have just made this URL a member after the snapshot was taken.
+async function ejectAutoGroupedTab(activeTab, groupTitle) {
+  const tabId = parseTabId(activeTab);
+
+  if (!activeTab.urlKey || activeTab.urlKey === 'url-') return 'wait';
+
+  const freshLabels = (await getLocalStorage('labels')).labels || {};
+  if (urlKeyIsMember(freshLabels[groupTitle], activeTab.urlKey)) {
+    autoGroupedTabs.delete(tabId);
+    return 'kept';
+  }
+
+  debugGroup('groupTabs: ungroup Chrome-auto-grouped tab (not a label member)', {
+    tabId,
+    urlKey: activeTab.urlKey,
+    label: groupTitle,
+    groupId: activeTab.groupId
+  });
+
+  autoGroupedTabs.delete(tabId);
+  pendingUngroups.add(tabId);
+  chrome.tabs.ungroup(tabId, () => {
+    void (chrome.runtime && chrome.runtime.lastError);
+    pendingUngroups.delete(tabId);
+  });
+  return 'ejected';
+}
+
+// Record an in-group tab's URL into its group's label, seeding the label when it
+// doesn't exist yet, and persist. This is the "make membership permanent" path —
+// it now runs only for non-auto-grouped tabs (e.g. startup sync of pre-existing
+// Chrome groups), never for Chrome's per-tab inheritance.
+function recordInGroupTab(labels, group, activeTab) {
+  const label = labels[group.title];
+  debugGroup('groupTabs: record in-group tab urlKey into label', {
+    tabId: parseTabId(activeTab),
+    urlKey: activeTab.urlKey,
+    label: group.title,
+    groupId: activeTab.groupId,
+    labelExisted: !!label
+  });
+
+  if (!label) {
+    labels[group.title] = {
+      title: group.title,
+      urlKeys: [activeTab.urlKey],
+      color: mapColors(group.color)
+    };
+  } else {
+    label.urlKeys.push(activeTab.urlKey);
+  }
+  update({ labels: labels });
+}
+
 async function groupTabs(activeTabs, labels) {
   const groupLabeledTab = async (tabs, label) => {
     const unpinnedTabIds = [];
@@ -775,6 +891,11 @@ async function groupTabs(activeTabs, labels) {
       if (!groups) return;
       
       if (groups.length === 0) {
+        // We are creating a NEW Chrome group and putting these tabs in it.
+        debugGroup('groupTabs: chrome.tabs.group -> NEW group', {
+          label: labelTitle,
+          tabIds: unpinnedTabIds
+        });
         chrome.tabs.group({ tabIds: unpinnedTabIds }, (groupId) => {
           chrome.tabGroups.update(groupId, {
             title: labelTitle,
@@ -797,6 +918,12 @@ async function groupTabs(activeTabs, labels) {
             await chrome.tabs.create({ url: tab.urlKey.split('-')[1] });
           }
         } else {
+          // We are adding these tabs to an EXISTING Chrome group.
+          debugGroup('groupTabs: chrome.tabs.group -> EXISTING group', {
+            label: labelTitle,
+            groupId: groups[0].id,
+            tabIds: unpinnedTabIds
+          });
           chrome.tabs.group({ tabIds: unpinnedTabIds, groupId: groups[0].id });
         }
       }
@@ -821,18 +948,23 @@ async function groupTabs(activeTabs, labels) {
 
       const label = labels[group.title];
 
-      if (label && label.urlKeys.indexOf(activeTab.urlKey) > -1) continue;
-
-      if (!label) {
-        labels[group.title] = {
-          title: group.title,
-          urlKeys: [activeTab.urlKey],
-          color: mapColors(group.color)
-        }
-      } else {
-        labels[group.title].urlKeys.push(activeTab.urlKey);
+      if (urlKeyIsMember(label, activeTab.urlKey)) {
+        // The URL is a deliberate member of this label — confirmed intent.
+        // Whatever put the tab here, it belongs; stop tracking it as auto-grouped.
+        autoGroupedTabs.delete(parseTabId(activeTab));
+        continue;
       }
-      update({ labels: labels });
+
+      // Chrome auto-inherited this tab into the group (flagged at onCreated) and
+      // its URL is NOT a deliberate member. Eject it instead of making it sticky.
+      if (autoGroupedTabs.has(parseTabId(activeTab))) {
+        await ejectAutoGroupedTab(activeTab, group.title);
+        continue;
+      }
+
+      // Non-auto-grouped tab sitting in a group with an unrecorded URL — record it
+      // (startup-sync path; Chrome's per-tab inheritance is handled above).
+      recordInGroupTab(labels, group, activeTab);
 
       labelTabIds[group.title] ||= [];
       labelTabIds[group.title].push(activeTab);
@@ -841,12 +973,26 @@ async function groupTabs(activeTabs, labels) {
       for (const labelTitle of Object.keys(labels)) {
         if (labels[labelTitle].urlKeys.indexOf(activeTab.urlKey) > -1) {
           found = true;
+          // An ungrouped tab's URL matches a label's sticky urlKeys, so we will
+          // auto-add it to that group. If you didn't expect this URL to be a
+          // member, the urlKey got recorded earlier (see the record logs above).
+          debugGroup('groupTabs: auto-group ungrouped tab (urlKey matched label)', {
+            tabId: parseTabId(activeTab),
+            urlKey: activeTab.urlKey,
+            label: labelTitle
+          });
           labelTabIds[labelTitle] ||= [];
           labelTabIds[labelTitle].push(activeTab);
         }
       }
 
       if (!found && activeTab.groupId > -1) {
+        // Tab is in a group but no label claims its URL — we ungroup it.
+        debugGroup('groupTabs: ungroup tab (no matching label)', {
+          tabId: parseTabId(activeTab),
+          urlKey: activeTab.urlKey,
+          groupId: activeTab.groupId
+        });
         chrome.tabs.ungroup(parseTabId(activeTab));
       }
     }

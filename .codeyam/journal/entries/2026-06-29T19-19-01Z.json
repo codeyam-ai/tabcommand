@@ -1,0 +1,121 @@
+{
+  "timestamp": "2026-06-29T19:19:01Z",
+  "title": "Prevent Chrome Auto-Grouped Tabs From Sticking to Labels",
+  "type": "feature",
+  "userRequest": "## Summary\n\nUsers repeatedly saw URLs they never added show up as permanent members of a\ntab group/label. Instrumented logging (`[TC-GROUP]`) on the live extension\nproved the mechanism end-to-end: **Chrome** natively places a new tab opened\n*from* a grouped tab into that same group (the new tab is born with\n`groupId > -1` and an `openerTabId` pointing at the originating grouped tab,\nbefore any of our code runs and before its URL has even loaded). Our service\nworker then **made that membership permanent** — `groupTabs` treated \"this tab\nis currently in a group\" as \"the user wants this URL bound to the label\" and\nwrote the URL into `labels[title].urlKeys`, so it auto-re-grouped forever, even\nafter the user removed it.\n\nThe prototype fixes this by distinguishing Chrome's per-tab inheritance from\ndeliberate user intent: tabs Chrome auto-groups at birth are flagged and, once\ntheir real URL loads, are **ejected from the group** instead of recorded —\nunless that URL is genuinely a deliberate member of the label. A fresh-storage\nmembership re-check before ejecting eliminates an ungroup→regroup flicker for\nURLs that legitimately belong.\n\n## Key Decisions\n\n- **Stop making auto-grouped tabs sticky AND eject them** (user-selected over\n  the more conservative \"stop sticky but leave them grouped\"). A freshly opened\n  tab no longer silently joins — and permanently binds to — a group.\n- **Detect Chrome inheritance at `onCreated`**, where `tab.groupId > -1` on a\n  brand-new tab is the unambiguous signal (the URL is still empty at that point,\n  so this is purely relationship-based, exactly like Chrome's behavior). Tracked\n  in an in-memory `autoGroupedTabs` Set, mirroring the existing `pendingUngroups`\n  pattern.\n- **Membership beats the flag.** If the tab's URL is a deliberate member of the\n  group's label, it stays grouped and the flag is cleared — whatever put it\n  there, it belongs.\n- **Explicit intent overrides the flag.** A deliberate groupId change\n  (`handleActiveTabsGroupChanges`) and the in-app drag-to-label both make the\n  URL a real member, which the membership check then honors; the flag is cleared\n  on an explicit group change.\n- **Fresh-storage re-check before ejecting** to avoid a flicker: `groupTabs`\n  runs on overlapping storage events, each with its own in-memory `labels`\n  snapshot. A stale snapshot could eject a tab that another event just made a\n  member, causing a visible ungroup→regroup. Re-reading `labels` from storage\n  immediately before the ungroup confirms true non-membership.\n- **Startup sync preserved.** Pre-existing Chrome groups present when the worker\n  boots are NOT flagged (no `onCreated` fired for them), so they still seed\n  labels as before. Only Chrome's per-tab inheritance is diverted.\n\n## Implementation\n\n### 1. Track Chrome-auto-grouped tabs\n\n**File**: `service_worker.js`\n\n- New module-level `const autoGroupedTabs = new Set()` (alongside\n  `pendingUngroups`), with an explanatory comment.\n- In `chrome.tabs.onCreated`, when a brand-new, **unpinned** tab is already in a\n  group (`tab.groupId != null && tab.groupId > -1`), add `tab.id` to the set —\n  this is Chrome's inheritance, not user intent.\n- In `chrome.tabs.onRemoved`, `autoGroupedTabs.delete(tabId)` so the set never\n  leaks stale ids.\n\n### 2. Eject auto-grouped non-members instead of recording them\n\n**File**: `service_worker.js` (the in-group branch of `groupTabs`)\n\n- If the tab's URL is already a member of the group's label →\n  `autoGroupedTabs.delete(...)` and keep it (existing \"continue\" behavior, now\n  also clearing the flag).\n- Else, if the tab is flagged in `autoGroupedTabs`:\n  - Skip while the URL is still unloaded (`urlKey === 'url-'`) — wait for the\n    real URL so we don't act on the transient `about:blank` state.\n  - **Re-read `labels` from storage** and, if the URL turns out to be a member\n    of `group.title` after all, clear the flag and keep it (flicker guard).\n  - Otherwise ungroup the tab via `chrome.tabs.ungroup`, guarded by\n    `pendingUngroups` (so the in-flight ungroup isn't mis-recorded by a\n    concurrent pass), and clear the flag.\n- The original \"record in-group tab urlKey into label\" path now only runs for\n  non-auto-grouped tabs (e.g. startup sync), making Chrome inheritance no longer\n  a recording trigger.\n\n### 3. Clear the flag on deliberate group changes\n\n**File**: `service_worker.js` (`handleActiveTabsGroupChanges`)\n\n- When recording an explicit groupId change into a label,\n  `autoGroupedTabs.delete(parseTabId(newTab))` first — a deliberate move is\n  intent and must win over an earlier auto-grouped flag.\n\n### 4. Diagnostic logging — gate or remove during formalization\n\n**File**: `service_worker.js`\n\nThe prototype added unconditional `console.log('[TC-GROUP] …')` statements at\nevery group decision point (`onCreated`, both `chrome.tabs.group` calls, the two\n`urlKeys.push` record sites, the auto-group match, and both ungroup paths). They\nwere essential for diagnosis but must not ship as unconditional console noise.\nDuring Deconstruct decide between: (a) removing them, or (b) gating them behind a\ndebug flag (e.g. a `settings.debugGrouping` / `DEBUG_GROUPING` guard). Preference\nis a single small `debugGroup(...)` helper so the call sites stay readable.\n\n### 5. Regression tests\n\n**File**: `service_worker.test.js`\n\nAdd coverage (existing 52 tests still pass) for the new behavior:\n- Auto-grouped tab whose URL is **not** a label member → gets ungrouped, URL is\n  **not** recorded into the label.\n- Auto-grouped tab whose URL **is** a label member → stays grouped, flag cleared,\n  no ungroup.\n- Auto-grouped flag cleared on an explicit group change\n  (`handleActiveTabsGroupChanges`) and on `onRemoved`.\n- Fresh-storage re-check: stale in-memory `labels` says non-member but storage\n  says member → tab is kept (no flicker / no ungroup).\n- Non-auto-grouped in-group tab (startup-sync path) still records as before.\n\n## Reused existing code\n\n- `groupTabs`, `handleActiveTabsGroupChanges`, `getTabGroup`, `getUrlKey`,\n  `parseTabId`, `getLocalStorage` from `service_worker.js` (glossary entries:\n  `groupTabs`, `handleActiveTabsGroupChanges`, `getTabGroup`, `getUrlKey`,\n  `parseTabId`, `getLocalStorage`).\n- `pendingUngroups` Set pattern — `autoGroupedTabs` mirrors its lifecycle and\n  its role as a guard the capture/record paths consult.\n- Existing test harness and chrome stubs in `service_worker.test.js`.\n\n## Known follow-up (out of scope unless requested)\n\n- The fix is **preventive**: URLs already recorded into a label before the fix\n  (e.g. `url-https://www.espn.com/`, the captured Google search) remain sticky\n  until removed in the UI. A one-time retroactive cleanup of previously\n  auto-captured entries was discussed but not built.\n\n## Scenarios to Demonstrate\n\n- New tab opened from a grouped tab to a brand-new URL → tab is ejected from the\n  group; URL is never added to the label.\n- New tab opened from a grouped tab to a URL that is a deliberate label member →\n  tab stays grouped, no flicker.\n- User deliberately drags a URL into a group (in-app) → it groups and sticks.\n- User drags an existing tab into a Chrome group → recorded and sticky.\n- Worker boot with a pre-existing Chrome group → group still seeds its label.",
+  "description": "Chrome natively places a new tab opened from a grouped tab into that same group at birth, before our code runs and before its URL loads. The service worker then treated that inherited membership as user intent and recorded the URL into the label's urlKeys, making it auto-re-group forever even after the user removed it. The fix flags Chrome-auto-grouped tabs at onCreated in an in-memory autoGroupedTabs Set and, once the real URL loads, ejects them from the group instead of recording them — unless the URL is a deliberate member of the label, with a fresh-storage re-check before ejecting to avoid an ungroup-then-regroup flicker. Membership and explicit group changes both override the flag, and startup sync of pre-existing groups is preserved. The prototype's grouping logic was deconstructed into four single-concern helpers (urlKeyIsMember, ejectAutoGroupedTab, recordInGroupTab, debugGroup) and the diagnostic TC-GROUP console logging was gated behind a DEBUG_GROUPING flag.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/hooks/_step_metadata.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/editor-pretool-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/editor-step-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/finalize-procedure.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-design/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-editor/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-explore/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-new-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-onboard/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-prototype/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-recent-change/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-slice/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/completed/prevent-auto-grouped-tab-stickiness.md",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".gitignore",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "added"
+    }
+  ],
+  "testResults": {
+    "total": 375,
+    "passed": 375,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 375,
+        "passed": 375
+      }
+    ]
+  }
+}

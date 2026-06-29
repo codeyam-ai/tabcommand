@@ -1,0 +1,135 @@
+{
+  "summary": "Stopped Chrome's natively auto-grouped tabs (a new tab opened from a grouped tab inherits that group at birth) from being permanently recorded into a label and re-grouped forever. Such tabs are now flagged at onCreated and ejected once their real URL loads unless that URL is a deliberate label member, and the prototype's grouping decision logic was deconstructed into single-concern, test-covered helpers.",
+  "changes": [
+    {
+      "title": "Flag Chrome-auto-grouped tabs and clear the flag on intent or removal",
+      "description": "Added a module-level autoGroupedTabs Set, mirroring the existing pendingUngroups pattern. onCreated flags a brand-new unpinned tab that is already in a group (Chrome's per-tab inheritance), onRemoved clears the flag so the set never leaks stale ids, and a deliberate groupId change in handleActiveTabsGroupChanges clears it because explicit intent overrides the inherited flag.",
+      "files": ["service_worker.js"],
+      "tests": [
+        {
+          "name": "clears the auto-group flag on a deliberate group change",
+          "file": "service_worker.test.js",
+          "description": "An explicit groupId change recorded into a label clears any earlier auto-group flag so the tab is not later ejected.",
+          "status": "passing"
+        },
+        {
+          "name": "clears the auto-group flag when a flagged tab is removed",
+          "file": "service_worker.test.js",
+          "description": "onRemoved deletes the tab id from autoGroupedTabs so the in-memory set never leaks stale ids.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "Eject auto-grouped non-members instead of making them sticky",
+      "description": "Extracted ejectAutoGroupedTab from the groupTabs in-group branch: it defers while the URL is still the bare 'url-' placeholder, re-reads labels from fresh storage to avoid an ungroup-then-regroup flicker when the URL is genuinely a member, and otherwise ungroups the tab (guarded by pendingUngroups) and clears the flag. The shared urlKeyIsMember predicate centralizes the membership check, so an auto-grouped tab whose URL is a deliberate member stays grouped and is no longer recorded as a fresh sticky member.",
+      "files": ["service_worker.js"],
+      "tests": [
+        {
+          "name": "is true when the urlKey is present in the label",
+          "file": "service_worker.test.js",
+          "description": "urlKeyIsMember reports membership when the urlKey is in the label's urlKeys.",
+          "status": "passing",
+          "example": {
+            "input": "urlKeyIsMember({ urlKeys: ['url-https://a.com', 'url-https://b.com'] }, 'url-https://b.com')",
+            "output": "true"
+          }
+        },
+        {
+          "name": "is false when the urlKey is absent",
+          "file": "service_worker.test.js",
+          "description": "urlKeyIsMember reports non-membership when the urlKey is not recorded.",
+          "status": "passing",
+          "example": {
+            "input": "urlKeyIsMember({ urlKeys: ['url-https://a.com'] }, 'url-https://b.com')",
+            "output": "false"
+          }
+        },
+        {
+          "name": "is false for a label with no urlKeys",
+          "file": "service_worker.test.js",
+          "description": "An empty urlKeys list claims no members.",
+          "status": "passing"
+        },
+        {
+          "name": "is false when the label is undefined or null",
+          "file": "service_worker.test.js",
+          "description": "A missing label is treated as non-membership rather than throwing.",
+          "status": "passing"
+        },
+        {
+          "name": "returns wait and does nothing while the URL is still unloaded",
+          "file": "service_worker.test.js",
+          "description": "While the urlKey is the bare 'url-' placeholder, ejection is deferred and no ungroup is issued.",
+          "status": "passing"
+        },
+        {
+          "name": "keeps the tab and clears the flag when fresh storage shows membership",
+          "file": "service_worker.test.js",
+          "description": "Flicker guard: a stale in-memory snapshot says non-member but fresh storage says member, so the tab is kept and the flag cleared.",
+          "status": "passing"
+        },
+        {
+          "name": "ungroups a confirmed non-member and tracks the in-flight ungroup",
+          "file": "service_worker.test.js",
+          "description": "A confirmed non-member is ungrouped, added to pendingUngroups, and removed from autoGroupedTabs.",
+          "status": "passing"
+        },
+        {
+          "name": "ejects an auto-grouped non-member and does not record its URL",
+          "file": "service_worker.test.js",
+          "description": "End-to-end through groupTabs: an auto-grouped tab whose URL is not a member is ungrouped and never recorded into the label.",
+          "status": "passing"
+        },
+        {
+          "name": "keeps an auto-grouped tab whose URL is a deliberate member",
+          "file": "service_worker.test.js",
+          "description": "Membership beats the flag: an auto-grouped tab whose URL is a deliberate member stays grouped and gets its flag cleared.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "Isolate the label-recording (startup-sync) path",
+      "description": "Extracted recordInGroupTab, which records a non-auto-grouped in-group tab's URL into its label (seeding the label with the group's mapped color when absent) and persists via update. This now runs only for non-auto-grouped tabs such as startup sync of pre-existing Chrome groups, so Chrome's per-tab inheritance is no longer a recording trigger.",
+      "files": ["service_worker.js"],
+      "tests": [
+        {
+          "name": "seeds a missing label with the tab urlKey and mapped color",
+          "file": "service_worker.test.js",
+          "description": "Recording into a non-existent label seeds it with the tab urlKey and the group color mapped to hex.",
+          "status": "passing",
+          "example": {
+            "input": "recordInGroupTab({}, { title: 'Work', color: 'blue' }, { urlKey: 'url-https://b.com' })",
+            "output": "labels.Work = { title: 'Work', urlKeys: ['url-https://b.com'], color: '#1873E4' }"
+          }
+        },
+        {
+          "name": "pushes the urlKey into an existing label",
+          "file": "service_worker.test.js",
+          "description": "Recording into an existing label appends the urlKey rather than overwriting.",
+          "status": "passing"
+        },
+        {
+          "name": "persists the updated labels to storage",
+          "file": "service_worker.test.js",
+          "description": "Recording persists the updated labels object via update to chrome.storage.local.set.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "Gate the prototype's grouping diagnostics behind a debug flag",
+      "description": "Replaced the prototype's eight unconditional console.log('[TC-GROUP] ...') statements at the group decision points with a single debugGroup helper gated behind a module-level DEBUG_GROUPING flag (off by default), keeping the instrumentation available for future diagnosis without shipping console noise.",
+      "files": ["service_worker.js"],
+      "tests": [
+        {
+          "name": "is a no-op that does not throw when disabled",
+          "file": "service_worker.test.js",
+          "description": "With DEBUG_GROUPING off, debugGroup is a safe no-op that returns undefined and never throws regardless of payload shape.",
+          "status": "passing"
+        }
+      ]
+    }
+  ]
+}

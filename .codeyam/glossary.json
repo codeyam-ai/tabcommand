@@ -402,6 +402,12 @@
     "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
   },
   {
+    "description": "Gated diagnostic logger for the tab-grouping decision points. Emits a TC-GROUP console line only when DEBUG_GROUPING is enabled, keeping the prototype's grouping instrumentation available for future diagnosis without shipping console noise.",
+    "filePath": "service_worker.js",
+    "name": "debugGroup",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Internal shim helper: invokes a callback asynchronously on a microtask (Promise.resolve().then) with an optional value, matching Chrome's async callback contract so consumers never depend on synchronous delivery. No-ops when no callback is supplied.",
     "filePath": "src/lib/utils/chromeShim/chromeShim.js",
     "name": "defer",
@@ -436,6 +442,12 @@
     "filePath": "src/lib/utils/effectiveColumns.js",
     "name": "effectiveColumns",
     "testFile": "src/lib/utils/effectiveColumns.test.js"
+  },
+  {
+    "description": "Pulls a Chrome-auto-inherited tab back out of the group it was born into rather than making its URL sticky. Defers while the URL is unloaded, re-reads labels from fresh storage to avoid an ungroup-then-regroup flicker when the URL is genuinely a member, otherwise ungroups via pendingUngroups and clears the auto-group flag. Returns wait, kept, or ejected.",
+    "filePath": "service_worker.js",
+    "name": "ejectAutoGroupedTab",
+    "testFile": "service_worker.test.js"
   },
   {
     "description": "Synthetic event factory: returns an event-shaped object with no-op stopPropagation/preventDefault spread with the given attributes, so code can feed a synthetic key into KeyDown.trigger (e.g. SearchResults triggering Escape after a click).",
@@ -703,6 +715,12 @@
     "testFile": "src/lib/utils/rankFavorites.test.js"
   },
   {
+    "description": "Records an in-group tab's URL into its group's label, seeding the label with the group's mapped color when it does not exist yet, then persists via update. Runs only for non-auto-grouped tabs such as startup sync of pre-existing Chrome groups.",
+    "filePath": "service_worker.js",
+    "name": "recordInGroupTab",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Returns a new labels map with a urlKey spliced out of the named label's urlKeys (fresh array, input not mutated; unknown label returns the map unchanged). Backs the UrlDetails Groups-chip removal. Extracted from the page's handleLabelClick.",
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "removeUrlFromLabel",
@@ -828,6 +846,12 @@
       "ported-verbatim",
       "metrics"
     ],
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Predicate for whether a urlKey is a deliberate, recorded member of a tab-group label. Centralizes the membership check shared by the auto-group ejection and recording paths; tolerates a missing label by returning false.",
+    "filePath": "service_worker.js",
+    "name": "urlKeyIsMember",
     "testFile": "service_worker.test.js"
   },
   {

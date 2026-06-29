@@ -137,35 +137,35 @@ npx vitest run
 
 States captured as runnable scenarios with codeyam-editor:
 
-### AppBrand - Wordmark
+### History - Populated
 
-![AppBrand - Wordmark](.codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png)
+<img src=".codeyam/scenarios/screenshots/history-populated--desktop.png" alt="History - Populated" width="280">
 
-### Favicon - Monogram Fallback
+### Home - Automatically Closed
 
-![Favicon - Monogram Fallback](.codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png)
+<img src=".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png" alt="Home - Automatically Closed" width="280">
 
-### Favicon - Monogram Figma
+### Home - Dark Mode
 
-![Favicon - Monogram Figma](.codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png)
+<img src=".codeyam/scenarios/screenshots/home-dark-mode--desktop.png" alt="Home - Dark Mode" width="280">
 
-### Favicon - Real Favicon
+### Home - Empty
 
-![Favicon - Real Favicon](.codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png)
+<img src=".codeyam/scenarios/screenshots/home-empty--desktop.png" alt="Home - Empty" width="280">
 
-### Favorites - Duplicate URLs Collapsed
+### Home - Four Columns
 
-![Favorites - Duplicate URLs Collapsed](.codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png)
+<img src=".codeyam/scenarios/screenshots/home-four-columns--desktop.png" alt="Home - Four Columns" width="280">
 
-### Favorites - Frequency Boost
+### Home - Grouped
 
-![Favorites - Frequency Boost](.codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png)
+<img src=".codeyam/scenarios/screenshots/home-grouped--desktop.png" alt="Home - Grouped" width="280">
 
-### Favorites - Open Favorite Cued
+### Home - Light Theme
 
-![Favorites - Open Favorite Cued](.codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png)
+<img src=".codeyam/scenarios/screenshots/home-light-theme--desktop.png" alt="Home - Light Theme" width="280">
 
-### Favorites - Open Tab Discounted
+### Home - Open and Saved Tabs
 
-![Favorites - Open Tab Discounted](.codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png)
+<img src=".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png" alt="Home - Open and Saved Tabs" width="280">
 <!-- codeyam:scenario-gallery:end -->
