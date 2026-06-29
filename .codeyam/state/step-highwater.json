@@ -1,6 +1,6 @@
 {
-  "feature": "discoverable-off-zone-for-auto-close-slider",
-  "maxStep": 25,
-  "version": 250,
-  "updatedAt": "2026-06-28T21:21:10.862199006+00:00"
+  "feature": "fix-search-results-stray-zero",
+  "maxStep": 23,
+  "version": 421,
+  "updatedAt": "2026-06-29T01:33:26.207197274+00:00"
 }

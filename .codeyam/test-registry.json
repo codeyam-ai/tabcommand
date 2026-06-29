@@ -806,7 +806,7 @@
       "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
       "format": "vitest",
       "key": "SearchResults › activates a label on Enter",
-      "line": 78,
+      "line": 92,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -820,11 +820,29 @@
       "runner": "tests"
     },
     {
+      "description": "an empty Grouped URLs section must not leak a stray 0 (the && length bug)",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › does not render a stray 0 when there are labels but no urls",
+      "line": 70,
+      "registeredAt": "2026-06-29T01:23:31.310019407+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the mirror case: an empty Groups section must not leak a stray 0 either",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › does not render a stray 0 when there are urls but no labels",
+      "line": 77,
+      "registeredAt": "2026-06-29T01:23:31.310019407+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "ArrowDown moves the selection from the first item to the next",
       "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
       "format": "vitest",
       "key": "SearchResults › moves the selection down on ArrowDown",
-      "line": 70,
+      "line": 84,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -833,7 +851,7 @@
       "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
       "format": "vitest",
       "key": "SearchResults › navigates to the URL page from the edit affordance",
-      "line": 92,
+      "line": 106,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },

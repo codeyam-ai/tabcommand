@@ -66,6 +66,20 @@ describe('SearchResults', () => {
     expect(screen.getByText('Archived URLs')).toBeInTheDocument();
   });
 
+  // an empty Grouped URLs section must not leak a stray 0 (the && length bug)
+  it('does not render a stray 0 when there are labels but no urls', () => {
+    const { container } = render(<SearchResults labels={[labelHit]} urls={[]} />);
+    expect(screen.queryByText('0')).toBeNull();
+    expect(container.querySelector('#SearchResults').textContent).not.toMatch(/(^|\s)0(\s|$)/);
+  });
+
+  // the mirror case: an empty Groups section must not leak a stray 0 either
+  it('does not render a stray 0 when there are urls but no labels', () => {
+    const { container } = render(<SearchResults labels={[]} urls={[urlHit()]} />);
+    expect(screen.queryByText('0')).toBeNull();
+    expect(container.querySelector('#SearchResults').textContent).not.toMatch(/(^|\s)0(\s|$)/);
+  });
+
   // ArrowDown moves the selection from the first item to the next
   it('moves the selection down on ArrowDown', () => {
     const { container } = render(<SearchResults labels={[labelHit]} urls={[urlHit()]} />);

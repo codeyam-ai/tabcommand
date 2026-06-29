@@ -140,7 +140,7 @@ const SearchResults = ({ labels, urls }) => {
           <div className='SearchResults-section-title'>No Results</div>
         </div>
       }
-      {(labels && labels.length) &&
+      {labels && labels.length > 0 &&
         <div className='SearchResults-section'>
           <div className='SearchResults-section-title'>Groups</div>
           {labels.map((label) => {
@@ -149,7 +149,7 @@ const SearchResults = ({ labels, urls }) => {
           })}
         </div>
       }
-      {(urls && urls.length) &&
+      {urls && urls.length > 0 &&
         <div className='SearchResults-section'>
           <div className='SearchResults-section-title'>Grouped URLs</div>
           {urls.map((url) => {

@@ -1,0 +1,24 @@
+{
+  "claimStartedAt": "2026-06-29T01:00:19Z",
+  "completedAt": "2026-06-29T01:18:39Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "machine": "codeyam-editor-codeyam-editor-4",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "fix-search-results-stray-zero",
+    "sessionId": "",
+    "startedAt": "2026-06-29T01:00:19Z"
+  },
+  "createdAt": "2026-06-29T00:57:44Z",
+  "deliverables": [
+    "src/lib/components/SearchResults/SearchResults.jsx",
+    "src/lib/components/SearchResults/SearchResults.test.jsx"
+  ],
+  "journalTimestamp": "2026-06-29T01:18:39Z",
+  "mode": "ui",
+  "planFile": "completed/fix-search-results-stray-zero.md",
+  "slug": "fix-search-results-stray-zero",
+  "title": "Fix Stray 0 at Top of Search Results"
+}
