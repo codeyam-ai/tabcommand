@@ -25,7 +25,7 @@ the minimum the user chooses, and only that.
 Before assessing, find out whether this repo is already onboarded. Run:
 
 ```
-codeyam-editor editor migration-status --format json
+codeyam-editor-dev editor migration-status --format json
 ```
 
 Branch on `schema`:
@@ -46,7 +46,7 @@ Branch on `schema`:
 Read the read-only assessment. It mutates nothing on disk:
 
 ```
-codeyam-editor editor assess --format json
+codeyam-editor-dev editor assess --format json
 ```
 
 From the JSON, note:

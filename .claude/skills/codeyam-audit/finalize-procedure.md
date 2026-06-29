@@ -50,7 +50,7 @@ drive; report-only is an explicit opt-in.
 **Confirm the project is initialized for codeyam-editor.**
 
 ```bash
-codeyam-editor editor config-show >/dev/null 2>&1 || {
+codeyam-editor-dev editor config-show >/dev/null 2>&1 || {
   echo "Project is not initialized for codeyam-editor. Run /codeyam-onboard first."
   exit 1
 }
@@ -64,7 +64,7 @@ report a half-aligned repo as clean — a false green. So fail loud and
 actionable instead:
 
 ```bash
-codeyam-editor editor capabilities-list --format json   # what this binary supports
+codeyam-editor-dev editor capabilities-list --format json   # what this binary supports
 cat .codeyam/stack.json                                  # this repo's declared stack
 ```
 
@@ -119,7 +119,7 @@ git branch --show-current                     # safe default: the current branch
 git fetch origin                              # see siblings' work without integrating yet
 git rev-list --count origin/<branch>..HEAD    # commits you have that origin doesn't
 git rev-list --count HEAD..origin/<branch>    # commits origin has that you don't
-codeyam-editor editor finalize-debt show --format json
+codeyam-editor-dev editor finalize-debt show --format json
 ```
 
 `finalize-debt show` lists the deferred commits owed a full `session-finalize`.
@@ -146,7 +146,7 @@ Before fixing anything, get the *complete* list of what is broken, not the
 first failure:
 
 ```bash
-codeyam-editor editor audit --format json
+codeyam-editor-dev editor audit --format json
 ```
 
 Read every `failures[]` entry and the `attribution[]` array together. Group
@@ -184,16 +184,16 @@ revert:
 Apply the failures whose fix is unambiguous and scripted. These have a
 `fixCommand` in the audit JSON or a named recovery:
 
-- Registry drift → `codeyam-editor editor reconcile-registry --auto-apply`
-- Import / dependency-graph staleness → `codeyam-editor editor analyze-imports`
+- Registry drift → `codeyam-editor-dev editor reconcile-registry --auto-apply`
+- Import / dependency-graph staleness → `codeyam-editor-dev editor analyze-imports`
 - Post-merge drift after integrating origin →
-  `codeyam-editor editor pre-commit-sync --recover` (runs
+  `codeyam-editor-dev editor pre-commit-sync --recover` (runs
   `git pull --rebase --autostash` → `post-merge-drift-sweep` →
   `plan-cleanup-duplicates` in one shot — do **not** hand-stitch these, and do
   **not** `git add` a deleted queue-plan copy by hand).
 - Duplicate plan slug on merge → the same `--recover` path handles it.
 
-Re-run `codeyam-editor editor audit --format json` after the mechanical pass so
+Re-run `codeyam-editor-dev editor audit --format json` after the mechanical pass so
 the remaining set is only the judgment calls.
 
 ### 4b. Judgment fixes (STOP and ask — never mass-apply)
@@ -246,10 +246,10 @@ before merge.
 
 ```bash
 # Read-only: surface stale docs + non-essential debug logging. Never deletes.
-codeyam-editor editor presentability-scan
+codeyam-editor-dev editor presentability-scan
 
 # Refresh the README how-to + scenario gallery (idempotent).
-codeyam-editor editor readme-sync
+codeyam-editor-dev editor readme-sync
 ```
 
 Then **assertively** remove the clearly-dead docs and debug log lines the scan
@@ -271,13 +271,13 @@ This is the one expensive loop; run it *once*, cleanly.
 
 ```bash
 # Stop fast-intent so finalize stamps the real marker, not a deferred one.
-codeyam-editor editor fast-commit-stop
+codeyam-editor-dev editor fast-commit-stop
 
 # Integrate any sibling commits by MERGING (never rebasing) — see rule 0.
-codeyam-editor editor pre-commit-sync          # claims the commit queue; --recover if it bails
+codeyam-editor-dev editor pre-commit-sync          # claims the commit queue; --recover if it bails
 
 # The full, whole-repo finalize. Stamps lastFullFinalizeSha.
-codeyam-editor editor session-finalize 2>&1 | tee /tmp/codeyam-audit-finalize.log
+codeyam-editor-dev editor session-finalize 2>&1 | tee /tmp/codeyam-audit-finalize.log
 ```
 
 > GOTCHA — **the marker-stamp trap.** A `session-finalize` that *skips* the
@@ -286,7 +286,7 @@ codeyam-editor editor session-finalize 2>&1 | tee /tmp/codeyam-audit-finalize.lo
 > confirm the marker actually advanced:
 >
 > ```bash
-> codeyam-editor editor verify-full-finalize   # exit 0 == HEAD is covered
+> codeyam-editor-dev editor verify-full-finalize   # exit 0 == HEAD is covered
 > ```
 >
 > If it exits 1 after a "successful" finalize, you hit the trap — re-run the
@@ -307,7 +307,7 @@ Only after `verify-full-finalize` exits 0 is the branch **merge-ready**.
 authorized:
 
 ```bash
-codeyam-editor editor push                     # the wrapper runs the deferred-finalize gate
+codeyam-editor-dev editor push                     # the wrapper runs the deferred-finalize gate
 ```
 
 If the pre-push gate complains of deferred commits, do **not** override with
@@ -384,7 +384,7 @@ footguns behind each (all observed in real CI-fix rounds):
 - **Conditional-compilation code** (`cfg(target_os …)`, `cfg(windows)`, and
   equivalents). The other platform's branch never compiled on your host, so a
   dead-code/type error there fires only in CI. A cross-target compile/lint pass
-  (`codeyam-editor editor cross-check`) re-evaluates every config for a
+  (`codeyam-editor-dev editor cross-check`) re-evaluates every config for a
   cross-target triple locally, in seconds.
 - **A desktop GUI member** (e.g. a Tauri crate). It links platform GUI
   libraries, so a change can break a headless workspace build in a GUI-less
@@ -406,7 +406,7 @@ footguns behind each (all observed in real CI-fix rounds):
   explicitly rather than asserting on incidental wording.
 
 Run the cheap local repros before pushing when this surface is present:
-`codeyam-editor editor cross-check` and `codeyam-editor editor session-finalize
+`codeyam-editor-dev editor cross-check` and `codeyam-editor-dev editor session-finalize
 --linux`.
 
 ---
@@ -416,9 +416,9 @@ Run the cheap local repros before pushing when this surface is present:
 When the user just wants "tell me what's misaligned, don't touch anything,"
 run the report and stop:
 
-1. **Summarize the debt.** `codeyam-editor editor finalize-debt show --format
+1. **Summarize the debt.** `codeyam-editor-dev editor finalize-debt show --format
    json` → the `deferred[]` list.
-2. **Run the audit read-only.** `codeyam-editor editor audit --format json` →
+2. **Run the audit read-only.** `codeyam-editor-dev editor audit --format json` →
    `failures[]` + `attribution[]`.
 3. **Attribute and report.** Intersect each `attribution[].introducedIn` SHA
    with the `deferred[].sha` list. Group findings by the deferred commit that

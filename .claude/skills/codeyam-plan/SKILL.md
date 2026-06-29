@@ -25,7 +25,7 @@ The only files you may write are:
 - `.codeyam/plans/<slug>.md` (the plan itself)
 - `git add` / `git commit` of that plan file (and **only** that plan file — never `git add -A`, never a bare `git commit` that would sweep in unrelated staged work). This is the plan-creation commit specifically — it must contain only the plan file. The feature-commit step at the end of the editor workflow has a different rule: it auto-commits all non-gitignored leftovers.
 
-The one read-only CLI call this skill makes is `codeyam-editor editor plan-prefixes` in Step 2 (to offer every prefix used before as a one-click option). It prints to stdout and changes nothing — it is not an "implementation" command.
+The one read-only CLI call this skill makes is `codeyam-editor-dev editor plan-prefixes` in Step 2 (to offer every prefix used before as a one-click option). It prints to stdout and changes nothing — it is not an "implementation" command.
 
 ## Workflow
 
@@ -47,7 +47,7 @@ Take the user's response as the plan basis and move to the name-prefix step (Ste
 
 A prefix tags the plan's filename and title by author or work item — developer initials (`jc`), a feature code (`auth`), or a ticket number (`PROJ-123`). The question is **always** a one-click `AskUserQuestion` menu, so the user never has to type a prefix to answer it:
 
-1. Run `codeyam-editor editor plan-prefixes` and capture its trimmed, newline-delimited stdout as `priorPrefixes` (an ordered list, most-recent-first). It prints every distinct prefix any plan has used (scanning both the queue and `.codeyam/plans/completed/`), de-duplicated, or nothing when no plan carries a prefix — or there are no plans yet. The first line equals the legacy `last-plan-prefix` output.
+1. Run `codeyam-editor-dev editor plan-prefixes` and capture its trimmed, newline-delimited stdout as `priorPrefixes` (an ordered list, most-recent-first). It prints every distinct prefix any plan has used (scanning both the queue and `.codeyam/plans/completed/`), de-duplicated, or nothing when no plan carries a prefix — or there are no plans yet. The first line equals the legacy `last-plan-prefix` output.
 
 2. **Always** use `AskUserQuestion` — there is no plain-text fallback branch:
    - Question: "Would you like to prefix the plan's filename and title?"
@@ -78,9 +78,9 @@ authoritative index of reusable code in a codeyam project. Skipping these is
 what produces generic "look at the codebase" plans the editor workflow has
 to re-research at the `explore` slug:
 
-- `codeyam-editor editor glossary-find <name>` (flags: `--prefix`,
+- `codeyam-editor-dev editor glossary-find <name>` (flags: `--prefix`,
   `--substring`, `--feature`, `--format`) — look up named entries
-- `codeyam-editor editor glossary-list` / `glossary-untested` /
+- `codeyam-editor-dev editor glossary-list` / `glossary-untested` /
   `glossary-by-tag <tag>` — projections across the whole table
 - `.codeyam/glossary-index.txt` — line-oriented, greppable sidecar; safe to
   Read or grep directly. Use this when you need to scan for similar names
@@ -105,7 +105,7 @@ candidate file list, run it through the editor so the plan never invites an
 edit the guards will reject:
 
 ```bash
-codeyam-editor editor classify-constrained-files <path>... --format json
+codeyam-editor-dev editor classify-constrained-files <path>... --format json
 ```
 
 It returns only the constrained files (unconstrained paths are dropped),
@@ -267,7 +267,7 @@ will block Run on a downstream plan until its prerequisites land.
 
 ### Step 6: Present and confirm
 
-Run `codeyam-editor editor plans` to verify the plan is parseable and shows up correctly.
+Run `codeyam-editor-dev editor plans` to verify the plan is parseable and shows up correctly.
 
 Show the user a brief summary of the plan, then use AskUserQuestion with these options:
 - **"Looks good, commit it" (Recommended)** — Commit the plan and finish
@@ -282,10 +282,18 @@ Show the user a brief summary of the plan, then use AskUserQuestion with these o
 
   **Always append `[skip ci]` to the commit message.** Plan files don't change source or tests, so CI must not be triggered. This is non-optional — apply it on the initial commit and on any amend.
 
+  The plan file is brand-new and untracked, so it must be staged before the
+  pathspec commit — `git commit -- <pathspec>` only commits *already-tracked*
+  changes and fails with `pathspec ... did not match any file(s) known to git`
+  on a new file. Stage the single plan file first (this does not violate the
+  "only the plan file — never `git add -A`" guarantee; the pathspec commit
+  still scopes the commit to that one file).
+
   ```bash
+  git add .codeyam/plans/<slug>.md
   git commit -m "plan: <short description of the feature/fix> [skip ci]" -- .codeyam/plans/<slug>.md
   git show --stat --name-only HEAD   # verify only the plan file is in the commit
-  codeyam-editor editor plan-complete
+  codeyam-editor-dev editor plan-complete
   ```
   After the commit succeeds, `plan-complete` triggers a confirmation modal
   in the Plan tab offering to start another plan or return to the queued
