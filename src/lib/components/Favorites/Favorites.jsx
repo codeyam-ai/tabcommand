@@ -123,7 +123,7 @@ const Favorites = () => {
             'Favorites-item' +
             (favorite.isOpen ? ' Favorites-item--open' : '')
           }
-          title={favorite.title}
+          title={`${favorite.title || favorite.url}\n\n${favorite.url}`}
           onClick={(e) => openFavorite(e, favorite)}
         >
           <Favicon

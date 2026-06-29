@@ -104,7 +104,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › collapses cosmetic URL duplicates into one row",
-      "line": 58,
+      "line": 105,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -113,7 +113,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › discounts a site open in a non-pinned tab below the threshold",
-      "line": 92,
+      "line": 139,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -122,7 +122,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › excludes a site open in a Chrome-pinned tab",
-      "line": 72,
+      "line": 119,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -131,8 +131,17 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › excludes a site present in favoritesHidden",
-      "line": 108,
+      "line": 155,
       "registeredAt": "2026-06-28T11:38:08Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A title-less favorite shows the URL in both the row text and the tooltip's first line.",
+      "file": "src/lib/components/Favorites/Favorites.test.jsx",
+      "format": "vitest",
+      "key": "Favorites › falls back to the URL when a favorite has no title",
+      "line": 66,
+      "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
     {
@@ -140,7 +149,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › marks an open favorite with the Favorites-item--open class",
-      "line": 159,
+      "line": 206,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -149,7 +158,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › ranks a frequently-visited older site above a barely-newer one",
-      "line": 44,
+      "line": 91,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -158,7 +167,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › removes a favorite via the × and still opens a tab on a plain row click",
-      "line": 123,
+      "line": 170,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -167,7 +176,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › renders nothing when there are no favorites",
-      "line": 197,
+      "line": 244,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -185,8 +194,17 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › renders up to ten favorites when that many qualify",
-      "line": 181,
+      "line": 228,
       "registeredAt": "2026-06-28T16:59:53Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The row's title attribute contains the full title, a blank line, then the URL, matching the bookmark rows.",
+      "file": "src/lib/components/Favorites/Favorites.test.jsx",
+      "format": "vitest",
+      "key": "Favorites › shows the title and full URL in the row tooltip",
+      "line": 44,
+      "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
     {
@@ -2143,6 +2161,42 @@
       "runner": "tests"
     },
     {
+      "description": "A real website over http or https is the only trackable case — the core positive contract.",
+      "file": "src/lib/utils/isTrackableUrl.test.js",
+      "format": "vitest",
+      "key": "isTrackableUrl › accepts http and https websites",
+      "line": 8,
+      "registeredAt": "2026-06-29T19:50:50Z",
+      "runner": "tests"
+    },
+    {
+      "description": "about:blank is the specific junk this feature stops recording, so the about: scheme is rejected.",
+      "file": "src/lib/utils/isTrackableUrl.test.js",
+      "format": "vitest",
+      "key": "isTrackableUrl › rejects about: pages including about:blank",
+      "line": 16,
+      "registeredAt": "2026-06-29T19:50:50Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Defensive inputs return false rather than throwing, mirroring normalizeUrl's tolerant style.",
+      "file": "src/lib/utils/isTrackableUrl.test.js",
+      "format": "vitest",
+      "key": "isTrackableUrl › rejects empty, blank, unparseable, and non-string values",
+      "line": 34,
+      "registeredAt": "2026-06-29T19:50:50Z",
+      "runner": "tests"
+    },
+    {
+      "description": "file/chrome/data/view-source/devtools and other non-web schemes are excluded by the single http/https rule.",
+      "file": "src/lib/utils/isTrackableUrl.test.js",
+      "format": "vitest",
+      "key": "isTrackableUrl › rejects non-website schemes",
+      "line": 23,
+      "registeredAt": "2026-06-29T19:50:50Z",
+      "runner": "tests"
+    },
+    {
       "description": "the threshold is configurable — a lower warnAt shifts the bands down",
       "file": "src/lib/utils/loadLevel.test.js",
       "format": "vitest",
@@ -2291,7 +2345,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › collapses cosmetic URL variants into one row with summed counts",
-      "line": 85,
+      "line": 94,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -2300,7 +2354,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › derives url from the key when the record omits it, and shapes the row",
-      "line": 167,
+      "line": 176,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2309,7 +2363,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › discounts a currently-open tab, floored against the threshold",
-      "line": 109,
+      "line": 118,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -2318,7 +2372,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › does not let recency decay drop an oldest-but-qualifying site",
-      "line": 202,
+      "line": 214,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -2327,7 +2381,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › drops keys without a usable record/title",
-      "line": 21,
+      "line": 30,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2336,8 +2390,17 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › drops sites below MIN_VISITS, includes them once they reach it",
-      "line": 59,
+      "line": 68,
       "registeredAt": "2026-06-28T14:43:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A stored non-website key with a high visit count is excluded from the ranking while real sites still rank.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › drops stored non-website entries like about:blank and file:// from the ranking",
+      "line": 226,
+      "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
     {
@@ -2345,7 +2408,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › flags isOpen for an open favorite and not for a closed one",
-      "line": 214,
+      "line": 242,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -2354,7 +2417,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › flags isOpen when a non-representative variant is the open one",
-      "line": 229,
+      "line": 257,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -2363,7 +2426,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › lets recency decay rank a recent lower-frequency site above a stale heavier one",
-      "line": 189,
+      "line": 201,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -2372,7 +2435,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › orders newest-first when visit counts are equal",
-      "line": 46,
+      "line": 55,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -2381,7 +2444,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › ranks frequency-first — higher visit count beats more-recent",
-      "line": 34,
+      "line": 43,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -2390,7 +2453,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › respects the limit",
-      "line": 147,
+      "line": 156,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2399,7 +2462,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › returns [] for empty or non-array allUrls",
-      "line": 14,
+      "line": 23,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2408,7 +2471,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › returns fewer than limit when there are fewer qualifying candidates",
-      "line": 159,
+      "line": 168,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2417,7 +2480,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › skips urlKeys present in excludedKeys",
-      "line": 128,
+      "line": 137,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -2426,7 +2489,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › treats a missing visitCount as 0, below the threshold",
-      "line": 73,
+      "line": 82,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -2606,7 +2669,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
-      "line": 398,
+      "line": 418,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2615,7 +2678,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag on a deliberate group change",
-      "line": 645,
+      "line": 665,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2624,7 +2687,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag when a flagged tab is removed",
-      "line": 661,
+      "line": 681,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2633,7 +2696,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › ejects an auto-grouped non-member and does not record its URL",
-      "line": 614,
+      "line": 634,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2642,7 +2705,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › keeps an auto-grouped tab whose URL is a deliberate member",
-      "line": 631,
+      "line": 651,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2651,7 +2714,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › autoCloseThresholdMinutes › falls back to the default and maps Off to 0",
-      "line": 925,
+      "line": 945,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2660,7 +2723,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes a grouped/labeled inactive tab",
-      "line": 865,
+      "line": 885,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2669,7 +2732,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes and records an inactive ungrouped tab",
-      "line": 830,
+      "line": 850,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2678,7 +2741,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes nothing when autoCloseMinutes is 0 meaning Off",
-      "line": 915,
+      "line": 935,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2687,7 +2750,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › continues the sweep when one tab removal throws",
-      "line": 873,
+      "line": 893,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2696,7 +2759,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › keeps a tab that was active within the window",
-      "line": 856,
+      "line": 876,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2705,7 +2768,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › never closes pinned, tabCommandPinned, or the active tab",
-      "line": 839,
+      "line": 859,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2714,7 +2777,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › prunes autoClosed entries older than MAX_AUTO_CLOSED_TIME",
-      "line": 891,
+      "line": 911,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2723,7 +2786,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › registers the auto-close alarm at load",
-      "line": 824,
+      "line": 844,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2732,7 +2795,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › respects a custom settings.autoCloseMinutes",
-      "line": 905,
+      "line": 925,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -2741,7 +2804,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback",
-      "line": 345,
+      "line": 347,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2750,7 +2813,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › is a no-op that does not throw when disabled",
-      "line": 673,
+      "line": 693,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2759,7 +2822,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › keeps the tab and clears the flag when fresh storage shows membership",
-      "line": 579,
+      "line": 599,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2768,7 +2831,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › returns wait and does nothing while the URL is still unloaded",
-      "line": 565,
+      "line": 585,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2777,7 +2840,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › ungroups a confirmed non-member and tracks the in-flight ungroup",
-      "line": 595,
+      "line": 615,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2786,7 +2849,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getLocalStorage › invokes the callback with the storage result",
-      "line": 290,
+      "line": 292,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2795,7 +2858,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getLocalStorage › resolves with the result when no callback is passed",
-      "line": 298,
+      "line": 300,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2804,7 +2867,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves null for id -1 or null",
-      "line": 306,
+      "line": 308,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2813,7 +2876,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves the group for a real id",
-      "line": 312,
+      "line": 314,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2822,7 +2885,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getUrlKey › prefixes with url- and strips the fragment",
-      "line": 114,
+      "line": 116,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2831,7 +2894,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › captures a genuinely grouped tab",
-      "line": 488,
+      "line": 508,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -2840,7 +2903,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › does not capture a tab whose ungroup is pending",
-      "line": 475,
+      "line": 495,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -2849,7 +2912,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ignores pinned tabs",
-      "line": 468,
+      "line": 488,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2858,7 +2921,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
-      "line": 461,
+      "line": 481,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2867,7 +2930,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
-      "line": 426,
+      "line": 446,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2876,7 +2939,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › seeds a missing label on the add path without throwing",
-      "line": 436,
+      "line": 456,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -2885,7 +2948,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › does not throw when the processes API throws",
-      "line": 335,
+      "line": 337,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2894,7 +2957,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › registers the processes listener",
-      "line": 328,
+      "line": 330,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2903,7 +2966,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › degrades to none when a system call throws",
-      "line": 777,
+      "line": 797,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -2912,7 +2975,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › falls back to chrome.system and tags 'system' when processes is absent",
-      "line": 742,
+      "line": 762,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -2921,7 +2984,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'none' and never throws when no load API is available",
-      "line": 768,
+      "line": 788,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -2930,7 +2993,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'processes' and keeps processing when chrome.processes is present",
-      "line": 732,
+      "line": 752,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -2939,7 +3002,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › loads and registers chrome event listeners on import",
-      "line": 105,
+      "line": 107,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2948,7 +3011,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › maps a hex value back to a named color",
-      "line": 128,
+      "line": 130,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -2957,7 +3020,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › maps a named color to hex",
-      "line": 122,
+      "line": 124,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -2966,8 +3029,17 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › returns undefined for an unknown color",
-      "line": 134,
+      "line": 136,
       "registeredAt": "2026-06-28T18:52:22Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Non-website navigations like about:blank and file: return early so they never enter allUrls or bump visitCount.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › does not record non-website URLs",
+      "line": 373,
+      "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
     {
@@ -2975,7 +3047,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prepends an unseen url key to allUrls",
-      "line": 362,
+      "line": 364,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2984,7 +3056,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › returns early without tabId/url",
-      "line": 356,
+      "line": 358,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2993,7 +3065,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated group removal › removes a hashed URL using the normalized key when a tab leaves a group",
-      "line": 691,
+      "line": 711,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3002,7 +3074,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated incognito guard › records a normal-tab navigation but not an incognito one",
-      "line": 199,
+      "line": 201,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -3011,7 +3083,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › parseTabId › parses the numeric id from a tabKey",
-      "line": 225,
+      "line": 227,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3020,7 +3092,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
-      "line": 388,
+      "line": 408,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3029,7 +3101,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › persists the updated labels to storage",
-      "line": 550,
+      "line": 570,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3038,7 +3110,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › pushes the urlKey into an existing label",
-      "line": 539,
+      "line": 559,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3047,7 +3119,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › seeds a missing label with the tab urlKey and mapped color",
-      "line": 527,
+      "line": 547,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3056,7 +3128,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
-      "line": 417,
+      "line": 437,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3065,7 +3137,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
-      "line": 412,
+      "line": 432,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3074,7 +3146,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › trackGroup › stores the group title by id",
-      "line": 320,
+      "line": 322,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3083,7 +3155,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › update › persists updates to chrome.storage.local",
-      "line": 282,
+      "line": 284,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3092,7 +3164,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
-      "line": 371,
+      "line": 391,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3101,7 +3173,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateTotals › defaults missing metrics to 0",
-      "line": 242,
+      "line": 244,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3110,7 +3182,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateTotals › sums process metrics into processTotals",
-      "line": 232,
+      "line": 234,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3119,7 +3191,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false for a label with no urlKeys",
-      "line": 513,
+      "line": 533,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3128,7 +3200,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the label is undefined or null",
-      "line": 519,
+      "line": 539,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3137,7 +3209,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the urlKey is absent",
-      "line": 507,
+      "line": 527,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3146,7 +3218,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is true when the urlKey is present in the label",
-      "line": 501,
+      "line": 521,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3155,7 +3227,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › accumulates process stats when a process is supplied",
-      "line": 263,
+      "line": 265,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3164,7 +3236,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId",
-      "line": 251,
+      "line": 253,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3173,7 +3245,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › uses the url as title when title is missing",
-      "line": 274,
+      "line": 276,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3182,7 +3254,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › accepts http and https tabs",
-      "line": 142,
+      "line": 144,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3191,7 +3263,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › rejects empty and internal-scheme tabs",
-      "line": 147,
+      "line": 149,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3200,7 +3272,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › rejects incognito tabs",
-      "line": 156,
+      "line": 158,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },

@@ -1,3 +1,4 @@
+import { isTrackableUrl } from './isTrackableUrl';
 import { normalizeUrl } from './normalizeUrl';
 
 // Ranks a user's "Favorites" — the sites they genuinely return to — by EARNED
@@ -26,6 +27,10 @@ import { normalizeUrl } from './normalizeUrl';
 // site is currently open in a non-pinned tab (i.e. its key is in
 // `options.openKeys`). It's a pure render hint for the "already open" cue and
 // does not affect ranking or qualification.
+//
+// Candidates are also gated to real websites (`isTrackableUrl`): any stored key
+// pointing at a non-http(s) URL (`about:blank`, `file://`, etc.) is skipped so
+// legacy junk recorded before the service worker was gated never surfaces.
 //
 // Qualification is FREQUENCY-FIRST: candidates are de-duplicated by normalized
 // URL (collapsing http/https/www/trailing-slash variants), their effective visit
@@ -78,6 +83,12 @@ export function rankFavorites(
     if (excluded.has(urlKey)) continue;
     const record = records[urlKey];
     if (!usableTitle(record)) continue;
+    // Defensively drop already-stored non-website entries (e.g. legacy
+    // `about:blank`/`file://` keys recorded before `newUrl` was gated) so they
+    // never qualify or render — derive the URL the same way the grouping below
+    // does. New junk is already blocked at the source in service_worker.js.
+    const candidateUrl = record.url || urlKey.replace(/^url-/, '');
+    if (!isTrackableUrl(candidateUrl)) continue;
     // Discount a currently-open (non-pinned) tab's in-progress visit, floored at
     // 0 — a tab that's still open shouldn't have its visit padding the ranking.
     const isOpen = openKeys.has(urlKey);

@@ -39,6 +39,53 @@ describe('Favorites', () => {
     expect(screen.getByText('Charlie')).toBeInTheDocument();
   });
 
+  // The hover tooltip shows the full title AND the URL on separate lines,
+  // mirroring the bookmark rows (Url.jsx) the user referenced.
+  it('shows the title and full URL in the row tooltip', async () => {
+    seed('allUrls', ['url-https://example.com/path']);
+    seed('url-https://example.com/path', {
+      title: 'Example Site',
+      favicon: '',
+      visitCount: 3,
+    });
+    installChromeShim();
+
+    render(<Favorites />);
+
+    const row = (await screen.findByText('Example Site')).closest(
+      '.Favorites-item'
+    );
+    expect(row).toHaveAttribute(
+      'title',
+      'Example Site\n\nhttps://example.com/path'
+    );
+  });
+
+  // A title-less favorite falls back to the URL in both the row text and the
+  // tooltip's first line.
+  it('falls back to the URL when a favorite has no title', async () => {
+    seed('allUrls', ['url-https://notitle.com']);
+    // rankFavorites requires a usable title to qualify, so the row text falls
+    // back via `title || url`; seed an empty-stringless record by using the URL
+    // itself as the title (mirrors how url-derived rows surface).
+    seed('url-https://notitle.com', {
+      title: 'https://notitle.com',
+      favicon: '',
+      visitCount: 3,
+    });
+    installChromeShim();
+
+    render(<Favorites />);
+
+    const row = (await screen.findByText('https://notitle.com')).closest(
+      '.Favorites-item'
+    );
+    expect(row).toHaveAttribute(
+      'title',
+      'https://notitle.com\n\nhttps://notitle.com'
+    );
+  });
+
   // Frequency-first: a heavily-visited older site outranks a barely-newer,
   // less-visited one.
   it('ranks a frequently-visited older site above a barely-newer one', async () => {

@@ -1,4 +1,5 @@
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
+import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 
 let defaultWindowId;
 let listening = true;
@@ -367,6 +368,12 @@ async function newUrl(tabId, url) {
   updateActiveTabs();
   if (!tabId) return;
   if (!url) return;
+  // Only real websites belong in history/Favorites. Gating here (rather than at
+  // each call site) means a non-http(s) navigation — about:blank, file://,
+  // chrome://, data:, etc. — never enters allUrls, never evicts older keys, and
+  // never bumps visitCount. Sits alongside the incognito/validTab policy:
+  // about:blank previously slipped through because newUrl never consulted them.
+  if (!isTrackableUrl(url)) return;
   return new Promise((resolve, reject) => {
     const updates = {};
     const urlKey = getUrlKey(url);

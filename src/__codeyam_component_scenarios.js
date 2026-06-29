@@ -8,6 +8,7 @@ export const componentScenarios = {
   "favicon-real-favicon": { componentName: "Favicon", props: {} },
   "favorites-duplicate-urls-collapsed": { componentName: "Favorites", props: {} },
   "favorites-frequency-boost": { componentName: "Favorites", props: {} },
+  "favorites-non-website-entries-filtered": { componentName: "Favorites", props: {} },
   "favorites-open-favorite-cued": { componentName: "Favorites", props: {} },
   "favorites-open-tab-discounted": { componentName: "Favorites", props: {} },
   "favorites-pinned-tab-excluded": { componentName: "Favorites", props: {} },

@@ -8,7 +8,16 @@ import { rankFavorites } from './rankFavorites';
 // tiebreak for equal scores. Each row also carries an `isOpen` render hint. These
 // tests pin that contract.
 describe('rankFavorites', () => {
-  const rec = (title, over = {}) => ({ title, favicon: '', ...over });
+  // Records carry a realistic http(s) url (derived from the title) so they clear
+  // the trackable-URL guard, mirroring production where every stored key is a
+  // real navigated website. A test that needs a specific url (dedup variants,
+  // non-website junk) passes its own `url` in `over`, which wins.
+  const rec = (title, over = {}) => ({
+    title,
+    favicon: '',
+    url: `https://${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.example`,
+    ...over,
+  });
 
   // Empty or non-array input yields an empty list, never a throw.
   it('returns [] for empty or non-array allUrls', () => {
@@ -166,11 +175,14 @@ describe('rankFavorites', () => {
   // passed through.
   it('derives url from the key when the record omits it, and shapes the row', () => {
     const allUrls = ['url-https://example.com/path'];
+    // Built inline (not via rec) so the record genuinely OMITS url — the row's
+    // url must then be derived from the trackable key itself.
     const records = {
-      'url-https://example.com/path': rec('Example', {
+      'url-https://example.com/path': {
+        title: 'Example',
         favicon: 'icon.png',
         visitCount: 2,
-      }),
+      },
     };
     expect(rankFavorites(allUrls, records)).toEqual([
       {
@@ -207,6 +219,22 @@ describe('rankFavorites', () => {
     };
     const result = rankFavorites(allUrls, records);
     expect(result.map((r) => r.title)).toEqual(['New', 'Old']);
+  });
+
+  // Defensive trackable-URL guard: a stored non-website key (about:blank /
+  // file://) is excluded even with a high visit count, while real sites rank.
+  it('drops stored non-website entries like about:blank and file:// from the ranking', () => {
+    const allUrls = ['url-about:blank', 'url-file:///Users/x/doc.html', 'url-real'];
+    const records = {
+      'url-about:blank': rec('Blank', { visitCount: 99, url: 'about:blank' }),
+      'url-file:///Users/x/doc.html': rec('Doc', {
+        visitCount: 50,
+        url: 'file:///Users/x/doc.html',
+      }),
+      'url-real': rec('Real Site', { visitCount: 3, url: 'https://example.com' }),
+    };
+    const result = rankFavorites(allUrls, records);
+    expect(result.map((r) => r.title)).toEqual(['Real Site']);
   });
 
   // isOpen render hint: true for a row whose site is in openKeys, false otherwise.

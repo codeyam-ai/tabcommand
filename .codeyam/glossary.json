@@ -592,6 +592,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Pure predicate deciding whether a URL is a real website worth recording into history/Favorites. Returns true only when the value is a non-empty string that parses as a URL whose protocol is exactly http: or https:; returns false for non-strings, empty/whitespace, unparseable values, and every other scheme such as about: including about:blank, file:, data:, view-source:, chrome:, chrome-extension:, devtools:, blob:. One rule replaces an ever-growing blocklist. Imported by the service worker's newUrl to gate what enters allUrls, and by rankFavorites to defensively drop already-stored non-website entries. Complements validTab which is tab-shaped and worker-only; this predicate is URL-shaped and stack-agnostic, mirroring the defensive try/new URL/catch style of normalizeUrl.",
+    "filePath": "src/lib/utils/isTrackableUrl.js",
+    "name": "isTrackableUrl",
+    "testFile": "src/lib/utils/isTrackableUrl.test.js"
+  },
+  {
     "description": "Internal shim helper: resolves the callback argument from a variadic action-stub call by returning the last argument when it is a function, else undefined. Lets the no-op tabs/tabGroups stubs accept Chrome's varying (props, cb?) / (id, props, cb?) arities.",
     "filePath": "src/lib/utils/chromeShim/chromeShim.js",
     "name": "lastCallback",

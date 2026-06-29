@@ -1,0 +1,22 @@
+{
+  "name": "Favorites - Non-Website Entries Filtered",
+  "id": "31b4f795-4742-44c7-bede-9065248aa9a1",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://stackoverflow.com/questions": "{\"title\": \"Newest Questions \\u2014 Stack Overflow\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 7}",
+      "url-https://www.reddit.com/r/programming": "{\"title\": \"r/programming \\u2014 Reddit\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 5}",
+      "url-https://www.youtube.com": "{\"title\": \"YouTube\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 9}",
+      "url-https://en.wikipedia.org/wiki/Web_browser": "{\"title\": \"Web browser \\u2014 Wikipedia\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 10}",
+      "allUrls": "[\"url-about:blank\", \"url-file:///Users/jordan/Downloads/report.pdf\", \"url-https://en.wikipedia.org/wiki/Web_browser\", \"url-https://stackoverflow.com/questions\", \"url-https://www.youtube.com\", \"url-https://www.reddit.com/r/programming\"]",
+      "url-about:blank": "{\"title\": \"about:blank\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 99}",
+      "url-file:///Users/jordan/Downloads/report.pdf": "{\"title\": \"report.pdf\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 50}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

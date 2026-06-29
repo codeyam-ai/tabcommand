@@ -1,0 +1,195 @@
+{
+  "timestamp": "2026-06-29T20:11:32Z",
+  "title": "Favorites: track only real websites and show full title + URL in tooltip",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe Favorites sidebar currently lists `about:blank` and other non-website\nentries because URL recording in the service worker is not gated to real web\npages. Two fixes: (1) only ever record `http`/`https` URLs into the favorites\nhistory (`allUrls` + `url-*` records), and defensively drop already-stored\nnon-website entries when ranking so existing junk disappears immediately; and\n(2) make each favorite row's hover tooltip show the full title **and** the URL\non separate lines, matching the `title || url()` + URL pattern the bookmark\nrows (`Url.jsx`) already use.\n\n## Key Decisions\n\n- **Trackable = `http`/`https` only** (chosen over an explicit blocklist) —\n  the strictest, cleanest definition of \"website\". This excludes `about:*`\n  (including `about:blank`), `file://`, `data:`, `view-source:`,\n  `chrome://`, `chrome-extension://`, `devtools://`, etc. with one rule\n  instead of an ever-growing blocklist.\n- **Both stop tracking new junk AND filter existing junk** — gate `newUrl` so\n  nothing non-http(s) is ever recorded going forward, and add a defensive\n  guard in `rankFavorites` so the ~250 keys already in `allUrls` that point at\n  `about:blank`/`file://`/etc. stop surfacing in Favorites right away rather\n  than waiting to age out.\n- **New shared `isTrackableUrl` util** — a single pure predicate both the\n  worker (`newUrl`) and the renderer (`rankFavorites`) import, so the\n  \"what's a website\" rule lives in exactly one place and is unit-testable.\n  This complements the existing `validTab` (tab-shaped, worker-only) rather\n  than replacing it.\n- **Tooltip mirrors `Url.jsx`** — reuse the established\n  `` `${title || url}\\n\\n${url}` `` shape so Favorites tooltips read\n  identically to the bookmark rows the user referenced.\n\n## Implementation\n\n### 1. New shared \"is this a real website?\" predicate\n\n**New file**: `src/lib/utils/isTrackableUrl.js`\n\nA pure function `isTrackableUrl(url)` returning `true` only when `url` parses\nas a URL whose protocol is exactly `http:` or `https:`. Returns `false` for\nnon-strings, empty/whitespace strings, unparseable values, and any other\nscheme (`about:`, `file:`, `data:`, `view-source:`, `chrome:`,\n`chrome-extension:`, `devtools:`, blob:, etc.). Mirror the defensive,\nstorage/DOM-free style of `normalizeUrl.js` (try/`new URL`/catch). Export both\nnamed and default.\n\n**New file**: `src/lib/utils/isTrackableUrl.test.js`\n\nCover: `https://example.com` and `http://example.com/path?q=1` → true;\n`about:blank`, `about:newtab`, `file:///Users/x/doc.html`,\n`chrome://extensions`, `chrome-extension://abc/page.html`,\n`view-source:https://x.com`, `data:text/html,hi`, `''`, `'   '`,\n`'not a url'`, `null`, `undefined` → false.\n\n### 2. Stop recording non-website URLs in the service worker\n\n**File**: `service_worker.js`\n\nIn `newUrl(tabId, url)` (around line 348), after the existing\n`if (!tabId) return; if (!url) return;` guards, add an early return when\n`!isTrackableUrl(url)` so a non-http(s) navigation never enters `allUrls`,\nnever evicts older keys, and never bumps `visitCount`. Import/reference\n`isTrackableUrl` (the worker is a plain script — match however other utils are\nmade available to `service_worker.js`; if it isn't already importing shared\nutils, inline the same predicate as a small local function near `validTab`\nand keep its logic identical to the util, noting the duplication in a\ncomment). The two call sites (`onUpdated` at ~line 107, `onCreated` at\n~line 178) need no change — gating inside `newUrl` covers both, and `newUrl`\nreturning `{}` for a skipped URL is already spread-safe into `updates`.\n\nThis intentionally sits alongside the existing incognito guard\n(`if (!tab.incognito)`) and `validTab` policy — `about:blank` currently slips\nthrough because `newUrl` never consulted `validTab`, and `validTab` itself\ndoesn't list `about:`.\n\n### 3. Defensively drop non-website entries when ranking\n\n**File**: `src/lib/utils/rankFavorites.js`\n\nIn the candidate-collection loop, skip any candidate whose URL is not\n`isTrackableUrl`. Derive the URL the same way the existing grouping does\n(`record.url || urlKey.replace(/^url-/, '')`) and `continue` past it before it\nbecomes a candidate, so already-stored `about:blank`/`file://`/etc. keys never\nqualify or render. Import `isTrackableUrl` from `./isTrackableUrl`. Update the\nmodule's leading comment to note the trackable-URL guard.\n\n**File**: `src/lib/utils/rankFavorites.test.js`\n\nAdd a case proving a stored `about:blank` (or `file://`) record with a high\n`visitCount` is excluded from the ranked result, while a normal `https://`\nsite still ranks.\n\n### 4. Show full title + URL in the favorite tooltip\n\n**File**: `src/lib/components/Favorites/Favorites.jsx`\n\nReplace `title={favorite.title}` on the `Favorites-item` div with a combined\ntooltip string built like `Url.jsx`:\n`` `${favorite.title || favorite.url}\\n\\n${favorite.url}` ``. `favorite.url`\nis already present on every ranked row (returned by `rankFavorites`), so no\nnew data plumbing is needed. Leave the inner `.Favorites-item-title` text node\nshowing just the title (the URL belongs in the hover tooltip, matching the\nbookmark rows).\n\n**File**: `src/lib/components/Favorites/Favorites.test.jsx`\n\nAdd/extend a test asserting the rendered item's `title` attribute contains\nboth the title and the URL (separated by the blank line), consistent with the\nexisting render assertions.\n\n## Reused existing code\n\n- `normalizeUrl` from `src/lib/utils/normalizeUrl.js` (glossary entry:\n  `normalizeUrl`) — pattern reference for the new pure URL util's defensive\n  `new URL`/try-catch style; still used by `rankFavorites` for grouping.\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — extended with the trackable-URL guard.\n- `newUrl` from `service_worker.js` (glossary entry: `newUrl`) — gated to\n  http(s) URLs only.\n- `validTab` from `service_worker.js` (glossary entry: `validTab`) — sibling\n  predicate; `isTrackableUrl` complements it (URL-shaped vs tab-shaped) and the\n  plan notes why a separate helper rather than folding into `validTab`.\n- `getUrlKey` from `service_worker.js` (glossary entry: `getUrlKey`) — how\n  `url-*` keys are formed; the rankFavorites guard reverses it to recover the\n  URL for the trackable check.\n- The `` `${title || url}\\n\\n${url}` `` tooltip shape from\n  `src/lib/components/Url/Url.jsx:60` — reused for the Favorites tooltip so it\n  matches the bookmark rows the user referenced.\n\n## Scenarios to Demonstrate\n\n- **Happy path**: Favorites listing several real `https://` sites; hovering a\n  row shows a tooltip with the site title, a blank line, then the full URL.\n- **about:blank excluded (new)**: after visiting `about:blank` several times it\n  never appears in Favorites (not recorded at all).\n- **Existing junk filtered**: storage seeded with an `about:blank` /\n  `file://...` `url-*` record at high `visitCount` — Favorites renders without\n  it on first paint (defensive rankFavorites guard), while real sites still\n  rank.\n- **Title-less favorite**: a record with an empty title falls back to showing\n  the URL in both the row text and the tooltip's first line.\n- **Empty state**: no qualifying real websites → Favorites section renders\n  nothing.",
+  "description": "Favorites now tracks only real websites. A new shared isTrackableUrl predicate (http/https only) gates the service worker newUrl so non-website URLs like about:blank and file:// are never recorded, and defensively filters any already-stored junk in rankFavorites so legacy entries disappear on first paint. Each Favorites row hover tooltip now shows the full title plus the URL on separate lines, matching the bookmark rows. A new Non-Website Entries Filtered scenario proves high-count about:blank/file:// entries are excluded while real sites still rank.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/skills/codeyam-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-prototype/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-slice/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/favorites-track-only-websites-and-show-url-in-title.md\t.codeyam/plans/completed/favorites-track-only-websites-and-show-url-in-title.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".gitignore",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "ui/src/helpers/stepLabels.generated.ts",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-non-website-entries-filtered.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/isTrackableUrl.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/isTrackableUrl.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Non-Website Entries Filtered",
+      "screenshotPath": "favorites-non-website-entries-filtered--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 124,
+    "passed": 124,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 124,
+        "passed": 124
+      }
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "completedAt": "2026-06-29T20:11:32Z",
+  "createdAt": "2026-06-29T18:20:12Z",
+  "deliverables": [
+    ".claude/skills/codeyam-plan/SKILL.md",
+    ".claude/skills/codeyam-prototype/SKILL.md",
+    ".claude/skills/codeyam-slice/SKILL.md",
+    ".gitignore",
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/__codeyam_component_scenarios.js",
+    "src/lib/components/Favorites/Favorites.jsx",
+    "src/lib/components/Favorites/Favorites.test.jsx",
+    "src/lib/utils/isTrackableUrl.js",
+    "src/lib/utils/isTrackableUrl.test.js",
+    "src/lib/utils/rankFavorites.js",
+    "src/lib/utils/rankFavorites.test.js",
+    "ui/src/helpers/stepLabels.generated.ts"
+  ],
+  "journalTimestamp": "2026-06-29T20:11:32Z",
+  "mode": "ui",
+  "planFile": "completed/favorites-track-only-websites-and-show-url-in-title.md",
+  "slug": "favorites-track-only-websites-and-show-url-in-title",
+  "title": "Favorites: track only real websites and show full title + URL in tooltip"
+}

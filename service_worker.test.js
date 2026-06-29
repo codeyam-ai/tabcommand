@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
+import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -66,6 +67,7 @@ function loadWorker(chrome) {
     'chrome',
     'console',
     'deriveSystemTotals',
+    'isTrackableUrl',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
@@ -86,7 +88,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl);
 }
 
 describe('service_worker.js', () => {
@@ -363,6 +365,24 @@ describe('service_worker.js', () => {
       chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: ['url-old'], labels: {} }));
       const updates = await fns.newUrl(1, 'https://new.com');
       expect(updates.allUrls[0]).toBe('url-https://new.com');
+    });
+
+    // Non-website navigations (about:blank, file://, chrome://, data:) are
+    // never recorded: newUrl returns before touching storage so they can't
+    // enter allUrls or bump visitCount.
+    it('does not record non-website URLs', async () => {
+      const get = vi.fn((_q, cb) => cb({ allUrls: [], labels: {} }));
+      chrome.storage.local.get.mockImplementation(get);
+      for (const url of [
+        'about:blank',
+        'file:///Users/x/doc.html',
+        'chrome://extensions',
+        'data:text/html,hi',
+      ]) {
+        await expect(fns.newUrl(1, url)).resolves.toBeUndefined();
+      }
+      expect(get).not.toHaveBeenCalled();
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
     });
   });
 
