@@ -1,6 +1,6 @@
 {
-  "feature": "fix-search-results-stray-zero",
-  "maxStep": 25,
-  "version": 437,
-  "updatedAt": "2026-06-29T10:46:46.763604948+00:00"
+  "feature": "default-group-columns-three",
+  "maxStep": 23,
+  "version": 213,
+  "updatedAt": "2026-06-29T11:21:54.997817895+00:00"
 }

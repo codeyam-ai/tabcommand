@@ -46,11 +46,11 @@ describe('effectiveColumns', () => {
     expect(effectiveColumns(3, 3000)).toBe(3);
   });
 
-  // a missing or invalid configured value falls back to the default of 2
+  // a missing or invalid configured value falls back to the default of 3
   it('falls back to the default for invalid input', () => {
-    expect(effectiveColumns(undefined, 1440)).toBe(2);
-    expect(effectiveColumns(0, 1440)).toBe(2);
-    expect(effectiveColumns(null, 1440)).toBe(2);
+    expect(effectiveColumns(undefined, 1440)).toBe(3);
+    expect(effectiveColumns(0, 1440)).toBe(3);
+    expect(effectiveColumns(null, 1440)).toBe(3);
   });
 
   // the fallback is itself still capped by a narrow viewport

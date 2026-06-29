@@ -36,8 +36,8 @@ export const HeavyThresholdDefault = 60;
 
 // How many columns of group cards (LabelCollection) the center area shows at
 // comfortable width. Persisted under the `settings` key; user-selectable as
-// 2 / 3 / 4. Default 2 preserves the original layout.
-export const ColumnsDefault = 2;
+// 2 / 3 / 4. Default 3 gives a fuller layout at comfortable desktop widths.
+export const ColumnsDefault = 3;
 
 // The user's theme preference, persisted under the `themePreference` storage key
 // (owned by useTheme): 'system' follows the OS prefers-color-scheme, 'light' /

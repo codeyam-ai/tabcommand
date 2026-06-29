@@ -1,0 +1,619 @@
+{
+  "timestamp": "2026-06-29T11:19:53Z",
+  "title": "Default Group Columns to 3",
+  "type": "feature",
+  "userRequest": "## Summary\n\nChange the default number of URL group columns shown in a row from 2 to 3.\nThis is the count used when a user has never explicitly chosen a column setting\n(or has an invalid/missing stored value). New users — and anyone who hasn't\ntouched the \"Group columns\" setting — will see three group cards per row by\ndefault at comfortable desktop widths, instead of two.\n\n## Key Decisions\n\n- Change the single source of truth `ColumnsDefault` in `src/Constants.jsx`\n  from `2` to `3` rather than hardcoding `3` anywhere. Every consumer\n  (`Labels`, `Settings`, `effectiveColumns`) already imports this constant, so\n  the one-line change propagates everywhere automatically.\n- The viewport-fit logic in `effectiveColumns` is unchanged: 3 columns still\n  require ≥1000px to render fully and gracefully step down on narrower windows.\n  At the standard desktop width (~1440px) the new default of 3 renders fully\n  (the pane fits up to 4).\n- Update the unit tests that assert the fallback default value, since they\n  encode the old default of 2.\n\n## Implementation\n\n### 1. Bump the default column count\n\n**File**: `src/Constants.jsx`\n\nChange `ColumnsDefault` from `2` to `3` (line 40). Update the adjacent comment\n(lines 37–39) so it no longer says \"Default 2 preserves the original layout\" —\nreword to describe the new default of 3 (the user-selectable 2 / 3 / 4 range is\nunchanged).\n\n### 2. Update the fallback-default unit tests\n\n**File**: `src/lib/utils/effectiveColumns.test.js`\n\nThe \"falls back to the default for invalid input\" test (lines 49–54) asserts the\ndefault is 2. With the new default of 3 and a fitting width (1440px, which fits\nup to 4 columns), these should now expect 3:\n\n- `effectiveColumns(undefined, 1440)` → `3`\n- `effectiveColumns(0, 1440)` → `3`\n- `effectiveColumns(null, 1440)` → `3`\n- Update the preceding comment to say \"default of 3\".\n\nThe \"caps the fallback default on a narrow viewport\" test\n(`effectiveColumns(undefined, 500)` → `1`, lines 57–58) stays correct as-is: a\n500px viewport collapses to a single column regardless of the default, so no\nchange is needed there. All `columnsForWidth` tests and the explicit-value\n`effectiveColumns` tests are unaffected.\n\n## Reused existing code\n\n- `ColumnsDefault` from `src/Constants.jsx` — the single source of truth for the\n  default column count, already imported by all consumers.\n- `effectiveColumns` from `src/lib/utils/effectiveColumns.js` (glossary entry:\n  `effectiveColumns`) — caps the configured/default count by viewport fit; no\n  change required, only the dependent tests.\n- `columnsForWidth` from `src/lib/utils/effectiveColumns.js` (glossary entry:\n  `columnsForWidth`) — viewport breakpoint logic, unchanged.\n- `Settings` (`src/lib/components/Settings/Settings.jsx`) and `Labels`\n  (`src/lib/components/Labels/Labels.jsx`) both fall back to `ColumnsDefault`,\n  so they pick up the new default with no edits.\n\n## Scenarios to Demonstrate\n\n- Fresh user with no stored `columns` setting at desktop width (~1440px) — sees\n  3 group columns per row.\n- Stored setting with an explicit value of 2 — still renders 2 (user choice is\n  respected, not overridden by the new default).\n- Invalid/missing stored value (0, null, undefined) — falls back to 3.\n- Narrow viewport (~800px) with the new default — gracefully steps down to 2\n  columns.\n- Very narrow viewport (~500px) — collapses to a single column.",
+  "description": "Changed the default number of group-card columns shown per row from 2 to 3 by bumping ColumnsDefault in src/Constants.jsx, the single source of truth read by Labels, Settings, and effectiveColumns. New users and anyone who has not explicitly chosen a column count now see three group cards per row at comfortable desktop widths; explicit user choices and the viewport-fit step-down (to 2, then 1 on narrower windows) are unchanged. Updated the effectiveColumns fallback-default unit tests to expect 3.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/deps-index.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/default-group-columns-three.md\t.codeyam/plans/completed/default-group-columns-three.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-maximum--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-maximum--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-off--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-off--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-shortest--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-stable-chrome-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/Constants.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/effectiveColumns.test.js",
+      "status": "modified"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "History - Populated",
+      "screenshotPath": "history-populated--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Work",
+      "screenshotPath": "labelform-edit-work--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group",
+      "screenshotPath": "labelform-new-blank--desktop.png"
+    },
+    {
+      "name": "LabelForm - Reading",
+      "screenshotPath": "labelform-reading--desktop.png"
+    },
+    {
+      "name": "LabelForm - Shopping",
+      "screenshotPath": "labelform-shopping--desktop.png"
+    },
+    {
+      "name": "LabelForm - Social",
+      "screenshotPath": "labelform-social--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load - Stable Chrome Fallback",
+      "screenshotPath": "load-stable-chrome-fallback--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Load Page",
+      "screenshotPath": "load-page--desktop.png"
+    },
+    {
+      "name": "LoadMeter - High Load",
+      "screenshotPath": "loadmeter-high-load--desktop.png"
+    },
+    {
+      "name": "LoadMeter - Idle",
+      "screenshotPath": "loadmeter-idle--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "SearchResults - Empty",
+      "screenshotPath": "searchresults-empty--desktop.png"
+    },
+    {
+      "name": "SearchResults - Labels Only",
+      "screenshotPath": "searchresults-labels-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Many Results",
+      "screenshotPath": "searchresults-many--desktop.png"
+    },
+    {
+      "name": "SearchResults - Matches",
+      "screenshotPath": "searchresults-matches--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Maximum",
+      "screenshotPath": "settings-auto-close-maximum--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Off",
+      "screenshotPath": "settings-auto-close-off--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Shortest",
+      "screenshotPath": "settings-auto-close-shortest--desktop.png"
+    },
+    {
+      "name": "Settings - Day Mode Accent",
+      "screenshotPath": "settings-day-mode-accent--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Settings - Group Columns Selected",
+      "screenshotPath": "settings-group-columns-selected--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    },
+    {
+      "name": "Triage - Comfortable",
+      "screenshotPath": "triage-comfortable--desktop.png"
+    },
+    {
+      "name": "Triage - Running Hot",
+      "screenshotPath": "triage-running-hot--desktop.png"
+    },
+    {
+      "name": "Triage - Stable Chrome Hidden",
+      "screenshotPath": "triage-stable-chrome-hidden--desktop.png"
+    },
+    {
+      "name": "URL Details - Edit",
+      "screenshotPath": "url-details-edit--desktop.png"
+    },
+    {
+      "name": "URL Details - Unlabeled",
+      "screenshotPath": "url-details-unlabeled--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 360,
+    "passed": 6,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 360,
+        "passed": 6
+      }
+    ]
+  }
+}
