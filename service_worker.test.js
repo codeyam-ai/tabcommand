@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
+import samePageKey from './src/lib/utils/samePageKey.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -68,6 +69,7 @@ function loadWorker(chrome) {
     'console',
     'deriveSystemTotals',
     'isTrackableUrl',
+    'samePageKey',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
@@ -88,7 +90,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey);
 }
 
 describe('service_worker.js', () => {
@@ -732,6 +734,91 @@ describe('service_worker.js', () => {
 
       // labelsObj is the same reference held module-level, so the splice is visible here.
       expect(labelsObj.Work.urlKeys).not.toContain('url-https://docs.com/page');
+    });
+  });
+
+  describe('onUpdated in-page URL change keeps tab grouped', () => {
+    // Storage mock that reports a single grouped tab whose stored urlKey is
+    // `oldUrlKey`, so the handler's `oldTabUrl` lookup resolves and the eject
+    // path runs. Everything else answers empty so newUrl can complete.
+    const storageWithGroupedTab = (chrome, oldUrlKey) => {
+      chrome.storage.local.get.mockImplementation((query, cb) => {
+        const keys = typeof query === 'string' ? [query] : Array.isArray(query) ? query : Object.keys(query);
+        const res = {};
+        for (const k of keys) {
+          if (k === 'activeTabs') {
+            res.activeTabs = [{ tabKey: 'tab-3', urlKey: oldUrlKey, groupId: 5 }];
+          } else if (k === 'allUrls') res.allUrls = [oldUrlKey];
+          else if (k === 'autoClosed') res.autoClosed = {};
+          else if (k === 'labels') res.labels = {};
+        }
+        cb(res);
+      });
+      chrome.tabs.query.mockImplementation((_q, cb) => cb && cb([]));
+    };
+
+    const getHandler = (chrome) => chrome.tabs.onUpdated.addListener.mock.calls[0][0];
+
+    // The reported bug: a Google Docs tab in a group rewrites only its `?tab=`
+    // query string in-page. Origin + path are unchanged, so this is NOT a
+    // navigation and the tab must stay in its group — ungroup is not called.
+    it('does not ungroup a grouped tab on a query-string-only change', async () => {
+      const base = 'https://docs.google.com/document/d/1GMK/edit';
+      storageWithGroupedTab(chrome, `url-${base}?tab=t.whli3qfeqr1i`);
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: `${base}?tab=t.other` },
+        { id: 3, url: `${base}?tab=t.other`, groupId: 5, incognito: false }
+      );
+
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+    });
+
+    // A fragment-only change (SPA anchor navigation) is also in-page: same
+    // origin + path, so the tab stays grouped.
+    it('does not ungroup a grouped tab on a fragment-only change', async () => {
+      const base = 'https://app.example.com/board';
+      storageWithGroupedTab(chrome, `url-${base}`);
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: `${base}#card-42` },
+        { id: 3, url: `${base}#card-42`, groupId: 5, incognito: false }
+      );
+
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+    });
+
+    // Guards against over-correction: a real navigation to a different path is
+    // still a navigation, so the grouped tab is ejected exactly as before.
+    it('still ungroups a grouped tab that navigates to a different path', async () => {
+      storageWithGroupedTab(chrome, 'url-https://example.com/a');
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: 'https://example.com/b' },
+        { id: 3, url: 'https://example.com/b', groupId: 5, incognito: false }
+      );
+
+      expect(chrome.tabs.ungroup).toHaveBeenCalledWith(3, expect.any(Function));
+    });
+
+    // A cross-origin navigation is likewise a real navigation and still ejects.
+    it('still ungroups a grouped tab that navigates to a different origin', async () => {
+      storageWithGroupedTab(chrome, 'url-https://example.com/page');
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: 'https://other.com/page' },
+        { id: 3, url: 'https://other.com/page', groupId: 5, incognito: false }
+      );
+
+      expect(chrome.tabs.ungroup).toHaveBeenCalledWith(3, expect.any(Function));
     });
   });
 

@@ -1,0 +1,30 @@
+{
+  "completedAt": "2026-06-30T20:20:39Z",
+  "createdAt": "2026-06-30T13:32:49Z",
+  "deliverables": [
+    ".claude/hooks/_step_metadata.py",
+    ".claude/hooks/editor-pretool-hook.py",
+    ".claude/hooks/editor-step-hook.py",
+    ".claude/skills/codeyam-audit/SKILL.md",
+    ".claude/skills/codeyam-audit/finalize-procedure.md",
+    ".claude/skills/codeyam-design/SKILL.md",
+    ".claude/skills/codeyam-editor/SKILL.md",
+    ".claude/skills/codeyam-explore/SKILL.md",
+    ".claude/skills/codeyam-new-app/SKILL.md",
+    ".claude/skills/codeyam-onboard/SKILL.md",
+    ".claude/skills/codeyam-plan/SKILL.md",
+    ".claude/skills/codeyam-prototype/SKILL.md",
+    ".claude/skills/codeyam-see-app/SKILL.md",
+    ".claude/skills/codeyam-see-recent-change/SKILL.md",
+    ".claude/skills/codeyam-slice/SKILL.md",
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/utils/samePageKey.js",
+    "src/lib/utils/samePageKey.test.js"
+  ],
+  "journalTimestamp": "2026-06-30T20:20:39Z",
+  "mode": "backend",
+  "planFile": "completed/keep-tabs-grouped-on-in-page-url-changes.md",
+  "slug": "keep-tabs-grouped-on-in-page-url-changes",
+  "title": "Keep Tabs in Groups Through In-Page URL Changes"
+}

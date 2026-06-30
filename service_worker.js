@@ -1,5 +1,6 @@
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
+import samePageKey from './src/lib/utils/samePageKey.js';
 
 let defaultWindowId;
 let listening = true;
@@ -108,7 +109,16 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (oldTabUrl) {
       closeUrl(oldTabUrl.urlKey);
 
-      if (tab.groupId > -1) {
+      // Only eject a grouped tab on a REAL navigation. A URL change that keeps
+      // the same origin + pathname (only the query string or fragment moved) is
+      // an in-page rewrite — most visibly Google Docs churning `?tab=t.…` via
+      // the History API — and the tab must stay in its group. `oldTabUrl.urlKey`
+      // is `url-<old-url-without-fragment>` (see getUrlKey), so strip the `url-`
+      // prefix to recover the old URL for the comparison.
+      const oldUrl = oldTabUrl.urlKey.replace(/^url-/, '');
+      const isNavigation = samePageKey(oldUrl) !== samePageKey(changeInfo.url);
+
+      if (tab.groupId > -1 && isNavigation) {
         pendingUngroups.add(tab.id);
         chrome.tabs.ungroup(tab.id, () => {
           void (chrome.runtime && chrome.runtime.lastError);

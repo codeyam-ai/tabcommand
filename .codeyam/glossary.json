@@ -766,6 +766,12 @@
     "testFile": "src/lib/utils/importExport.test.js"
   },
   {
+    "description": "Reduces a URL to its origin + pathname so the tab-grouping eject path can tell an in-page URL rewrite (query/hash change — keep grouped) apart from a real navigation (different origin/path — eject). Drops the query string and fragment; falls back to the raw input for non-string or unparseable values so they compare equal only when literally identical.",
+    "filePath": "src/lib/utils/samePageKey.js",
+    "name": "samePageKey",
+    "testFile": "src/lib/utils/samePageKey.test.js"
+  },
+  {
     "description": "Computes the truncated, highlighted notes snippet under a URL search result whose match landed in its notes: finds the term case-insensitively, captures the original-cased match, windows ~18 chars before / ~24 after, and returns { before, match, after } (or null when there's nothing to highlight).",
     "filePath": "src/lib/utils/searchNotesSnippet.js",
     "name": "searchNotesSnippet",
