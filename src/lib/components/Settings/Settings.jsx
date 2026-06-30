@@ -22,10 +22,11 @@ import formatAutoClose from '../../utils/formatAutoClose';
 // per-tab data and always shows. Same loadDataSource gate that LoadPerTabNote /
 // LoadMeterCaption / Triage follow.
 //
-// The "Auto-close after" slider's right end is the Off position, set off by a
-// delineated, labeled zone on the track. Off persists as autoCloseMinutes === 0
-// (the stored/disabled value), but the slider's raw position is remapped so 0
-// shows at the far right rather than the left — see the Auto-close block below.
+// The "Auto-close after" slider's right end is the Off position, labeled by the
+// "Off" caption beneath the right end of the track. Off persists as
+// autoCloseMinutes === 0 (the stored/disabled value), but the slider's raw
+// position is remapped so 0 shows at the far right rather than the left — see
+// the Auto-close block below.
 const PANEL_WIDTH = 214;
 
 const Settings = () => {
@@ -181,7 +182,6 @@ const Settings = () => {
                   update('autoCloseMinutes', raw >= 495 ? 0 : raw);
                 }}
               />
-              <span className="Settings-autoclose-off" aria-hidden="true">Off</span>
               <span className="Settings-autoclose-caption" aria-hidden="true">
                 <span>15 min</span>
                 <span>Off</span>
