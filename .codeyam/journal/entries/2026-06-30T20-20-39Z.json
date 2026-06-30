@@ -1,0 +1,125 @@
+{
+  "timestamp": "2026-06-30T20:20:39Z",
+  "title": "Keep Tabs in Groups Through In-Page URL Changes",
+  "type": "feature",
+  "userRequest": "## Summary\n\nTabs that mutate their own URL in-page — most visibly Google Docs, which\nrewrites the `?tab=t.…` query string via the History API as you click around a\ndocument — silently get ejected from their tab group. The reported case: the\ndoc `https://docs.google.com/document/d/1GMK…/edit?tab=t.whli3qfeqr1i` was in\nthe \"Ambiguity Everywhere\" group and disappeared from it. The cause is the\n`chrome.tabs.onUpdated` handler, which ungroups **any** grouped tab whose URL\nchanges, without distinguishing a real navigation from an in-page URL\nrewrite. The fix is a single, general structural rule: a URL change whose\n**origin and pathname are unchanged** (only the query string or fragment\nmoved) is an in-page change, and the tab stays in its group. A change to a\ndifferent origin or path still ejects, exactly as today. No per-site logic, so\nit can't break when a site changes how it constructs its URLs.\n\n## Key Decisions\n\n- **Structural rule, not a host allow-list.** Decide \"in-page vs navigation\"\n  by comparing `origin + pathname`. This is general (covers Google Docs,\n  Notion, Figma, and any SPA that carries state in the query/hash) and robust\n  to sites changing their URL schemes. We explicitly rejected a per-host\n  normalization table because it would rot the moment a site changed behavior.\n- **Gate only the ungroup call — leave URL tracking untouched.** The handler\n  still runs `closeUrl(oldKey)` + `newUrl(newUrl)` so visit tracking and the\n  `allUrls` MRU list stay accurate. The *only* behavioral change is skipping\n  `chrome.tabs.ungroup(...)` on an in-page change. Verified that `closeUrl`\n  (service_worker.js:416-424) only reorders `allUrls` and does not touch\n  grouping or `label.urlKeys`, so this is a surgical, isolated change.\n- **Do NOT change `getUrlKey`.** `getUrlKey` is the global tracking key used\n  across `activeTabs`, `allUrls`, visit counts, etc. Stripping the query string\n  there would conflate distinct URLs (e.g. two different searches) everywhere.\n  The in-page/navigation distinction lives only in the eject path.\n- **No migration / no auto-heal of already-removed docs.** Per the user's\n  choice, the already-ejected doc is re-added manually once. This fix prevents\n  future ejections; it does not rewrite existing `label.urlKeys`.\n- **New `samePageKey` helper lives in `src/lib/utils/`.** Matches the existing\n  pattern (e.g. `normalizeUrl`, `isTrackableUrl`, `deriveSystemTotals` already\n  live there and `service_worker.js` already imports two of them at the top),\n  so it is independently unit-testable and registerable in the glossary.\n\n## Implementation\n\n### 1. Add a general \"same page\" helper\n\n**New file**: `src/lib/utils/samePageKey.js`\n\nExport a function `samePageKey(url)` that returns a stable page identity for a\nURL: its **origin + pathname**, with the query string and hash fragment\ndropped. Use the `URL` API (`const u = new URL(url); return u.origin + u.pathname;`).\nWrap in a try/catch so an unparseable / non-http value (e.g. `chrome://`,\n`about:blank`, empty string) falls back to returning the raw input string\nunchanged — that way two unparseable values only compare equal when they are\nliterally identical, preserving today's eject behavior for those cases.\n\nExamples of intended behavior:\n- `https://docs.google.com/document/d/1GMK…/edit?tab=t.A` and\n  `…/edit?tab=t.B` → both `https://docs.google.com/document/d/1GMK…/edit`\n  (equal → in-page).\n- `https://example.com/a` vs `https://example.com/b` → different (navigation).\n- `https://example.com/page` vs `https://other.com/page` → different\n  (navigation).\n- `https://site.com/page#x` vs `https://site.com/page#y` → equal (in-page).\n\n### 2. Gate the ungroup-on-navigation on a real navigation\n\n**File**: `service_worker.js` (the `chrome.tabs.onUpdated` listener, the\n`if (changeInfo.url)` branch around lines 102-128)\n\nImport `samePageKey` alongside the existing `src/lib/utils` imports at the top\nof the file.\n\nInside the `if (oldTabUrl) { … }` block, the current code unconditionally\nungroups when `tab.groupId > -1`:\n\n```js\nif (oldTabUrl) {\n  closeUrl(oldTabUrl.urlKey);\n  if (tab.groupId > -1) {\n    pendingUngroups.add(tab.id);\n    chrome.tabs.ungroup(tab.id, () => { … });\n  }\n}\n```\n\nChange it so the ungroup only happens on a genuine navigation. Derive the old\nURL from the stored key (`oldTabUrl.urlKey` is `url-<old-url-minus-fragment>`;\nstrip the leading `url-`), compute whether origin+path changed, and only\nungroup when it did:\n\n```js\nif (oldTabUrl) {\n  closeUrl(oldTabUrl.urlKey);\n  const oldUrl = oldTabUrl.urlKey.replace(/^url-/, '');\n  const isNavigation = samePageKey(oldUrl) !== samePageKey(changeInfo.url);\n  if (tab.groupId > -1 && isNavigation) {\n    pendingUngroups.add(tab.id);\n    chrome.tabs.ungroup(tab.id, () => { … });\n  }\n}\n```\n\nLeave the rest of the branch (`closeUrl`, the incognito-guarded `newUrl`\nbookkeeping) exactly as-is so URL tracking continues to follow the live URL.\n\n### 3. Tests\n\n**New file**: `src/lib/utils/samePageKey.test.js`\n\nUnit tests for the helper: query-only change → equal; fragment-only change →\nequal; path change → not equal; origin change → not equal; the exact Google\nDocs `?tab=` case → equal; unparseable inputs (`chrome://newtab`, `''`) → fall\nback to identity comparison.\n\n**File**: `service_worker.test.js`\n\nAdd tests around the `onUpdated` ungroup path (near the existing ungroup /\neject tests, service_worker.test.js:480-660, and the membership-splice test at\n:711-735):\n- A grouped tab (`groupId > -1`) whose URL changes only in the **query string**\n  (Google Docs `?tab=t.A` → `?tab=t.B`) is **not** ungrouped — `chrome.tabs.ungroup`\n  is not called and the tab stays in its group. This is the regression test for\n  the reported bug; there is currently no test for a query-only in-page change.\n- A grouped tab whose URL changes only in the **fragment** is likewise not\n  ungrouped.\n- A grouped tab that navigates to a **different path/origin** is still ungrouped\n  (existing behavior preserved).\n\n## Reused existing code\n\n- `getUrlKey` from `service_worker.js` (glossary entry: `getUrlKey`) — left\n  unchanged; referenced to explain why the query string is part of the key.\n- `closeUrl` from `service_worker.js` (glossary entry: `closeUrl`) — confirmed\n  it only reorders the `allUrls` MRU list, so gating the ungroup call is safe.\n- `newUrl` from `service_worker.js` (glossary entry: `newUrl`) — the navigation\n  bookkeeping that continues to run unchanged.\n- `normalizeUrl`, `isTrackableUrl`, `deriveSystemTotals` from\n  `src/lib/utils/` — the existing `src/lib/utils` helper pattern the new\n  `samePageKey` follows (the last two are already imported by\n  `service_worker.js`).\n- `pendingUngroups` / `urlKeyIsMember` from `service_worker.js` — the\n  surrounding grouping machinery the change interacts with.\n\n## Scenarios to Demonstrate\n\n- **The reported bug, fixed.** A Google Doc tab in the \"Ambiguity Everywhere\"\n  group; interacting with the doc rewrites `?tab=t.whli3qfeqr1i` → `?tab=t.other`.\n  The tab stays in the group.\n- **Fragment churn.** A grouped page that updates its `#hash` (SPA anchor\n  navigation) stays in its group.\n- **Real navigation still ejects.** A grouped tab navigated from\n  `example.com/a` to `example.com/b` (different path) is removed from the\n  group — confirming we didn't over-correct.\n- **Cross-origin navigation still ejects.** A grouped tab navigated to a\n  different domain is removed from the group.\n- **Helper edge cases.** `samePageKey` on `chrome://newtab`, `about:blank`, and\n  an empty string fall back to identity comparison without throwing.",
+  "description": "Tabs that rewrite their own URL in-page (Google Docs churning ?tab=t.… via the History API, and any SPA #hash change) were silently ejected from their tab group because the chrome.tabs.onUpdated handler ungrouped any grouped tab on a URL change. Added a general samePageKey(url) helper (origin + pathname, query/hash dropped) and gated the ungroup call so a tab is ejected only on a real navigation to a different origin or path. No per-host logic, no change to URL/visit tracking. Covered by 8 unit tests for the helper and 4 onUpdated integration tests.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/hooks/_step_metadata.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/editor-pretool-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/hooks/editor-step-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/finalize-procedure.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-design/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-editor/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-explore/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-new-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-onboard/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-prototype/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-recent-change/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-slice/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/keep-tabs-grouped-on-in-page-url-changes.md\t.codeyam/plans/completed/keep-tabs-grouped-on-in-page-url-changes.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/samePageKey.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/samePageKey.test.js",
+      "status": "added"
+    }
+  ],
+  "testResults": {
+    "total": 411,
+    "passed": 411,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 411,
+        "passed": 411
+      }
+    ]
+  }
+}
