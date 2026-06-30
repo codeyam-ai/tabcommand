@@ -44,6 +44,7 @@ blob-report/
 .codeyam/cloud.json
 .codeyam/glossary-index.txt
 .codeyam/deps-index.txt
+.codeyam/generated/
 # codeyam-editor:end
 
 # CodeYam - local runtime state
@@ -71,6 +72,7 @@ dev-dist/
 *.zip
 
 # Transient codeyam state — local-only, kept out of the published repo
+.codeyam/setup-status.json
 .codeyam/.last-reconcile.json
 .codeyam/per-test-evidence.json
 .codeyam/runner-timing-history.json
