@@ -210,6 +210,27 @@ present concrete options, and wait** — do not autonomously pay these down:
   discipline; **ask when truly unsure** rather than guessing.
 - **Anything that deletes or rewrites content** — see step 6. Ask first.
 
+> GOTCHA — **`reconcile-glossary` proposals are advisory, not merge-blocking.**
+> `editor reconcile-glossary` can print a long `add` list (we've seen 100+),
+> which reads like a merge-blocking wall. It is not. Two facts:
+> 1. The underlying invariant, `SOURCE_HAS_UNREGISTERED_ENTITY`, is
+>    **`info`-severity** — `run_audit_gate` always *surfaces* it but never
+>    *blocks* on it. So no reconcile-glossary `add` is required for
+>    merge-ready; registering is optional polish the user owns.
+> 2. `reconcile-glossary` now walks the **same source scope** the invariant
+>    consumes (`discover_source_rel_paths` → `collect_source_entities_for_files`,
+>    which excludes `ALWAYS_EXCLUDED_DIRS` like `.codeyam/`). It previously
+>    walked the broader dependency graph and proposed adds for
+>    `.codeyam/`-internal capture scripts/hooks the gate never touches — pure
+>    noise that inflated the wall.
+>
+> Before treating any reconcile-glossary output as blocking, confirm against the
+> gate: `editor audit --findings-only --format json` and check `blocking` /
+> `missingGlossaryEntries` — the file-level glossary gap that *does* block lives
+> there, separate from the per-entity advisory invariant. (`audit --only
+> SOURCE_HAS_UNREGISTERED_ENTITY` shows the advisory per-entity set, but
+> remember it never blocks.)
+
 This is the convergence contract in practice: each run fixes all the mechanical
 drift it can, then stops at the **first** genuine judgment call with a specific,
 answerable question. The user's answer advances the next (resumed) run.
@@ -309,6 +330,13 @@ authorized:
 ```bash
 codeyam-editor-dev editor push                     # the wrapper runs the deferred-finalize gate
 ```
+
+`editor push` works **directly** here even though this branch never walked the
+guided workflow — the wrapper proceeds past its workflow-step precondition once
+`verify-full-finalize` is green (HEAD is full-finalize-covered), so there is no
+need to fall back to a plain `git push`. A mid-workflow branch that is *not*
+full-finalize-covered is still refused, with a message naming both routes
+(advance the workflow, or run a whole-repo `session-finalize`).
 
 If the pre-push gate complains of deferred commits, do **not** override with
 `--allow-deferred`; it means finalize didn't cover the range — go back to the
