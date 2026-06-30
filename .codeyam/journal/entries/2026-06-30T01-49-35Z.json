@@ -1,0 +1,371 @@
+{
+  "timestamp": "2026-06-30T01:49:35Z",
+  "title": "Improve URL Drag-and-Drop onto Groups",
+  "type": "feature",
+  "userRequest": "## Summary\n\nDragging a URL/tab onto a group card is harder than it should be: the drop\nzone is only the scrollable URL body (`.LabelCollection-urls`), which sits\nbelow the colored title bar, so you have to drag deep into the middle of a\ncard before `@hello-pangea/dnd` registers it as the drop target. On top of\nthat, the \"ready to receive\" feedback is a single subtle `background-color`\nswap on that body, which is easy to miss. This plan enlarges the effective\ndrop target to cover the **entire card** (title bar included) and makes the\nhover feedback **dramatic**, tinted with each group's own color so the target\nthe URL will land in is unmistakable.\n\n## Key Decisions\n\n- **Why the \"reach the middle\" problem exists** — `@hello-pangea/dnd`\n  (react-beautiful-dnd fork) uses *center-based* collision detection: a\n  droppable only becomes active when the **center of the dragged item** lands\n  inside the droppable's bounding box. The library exposes no threshold/margin\n  knob, so the only lever is to make the droppable's box bigger. Today the\n  droppable is just `.LabelCollection-urls` (the body under the header), so the\n  dragged card's center must travel well into the card body. Expanding the\n  droppable to span the full card (header + body) means the center crosses the\n  drop zone as soon as it reaches the top of the card — fixing the \"middle\"\n  feel without fighting the library.\n- **Expand the droppable to the whole card, not a new approach** — keep\n  `@hello-pangea/dnd`; do not introduce native HTML5 DnD or a second library.\n  The fix is structural (where the `Droppable` `innerRef` lives) plus CSS, so\n  the `applyDrag` reducer and `droppableId` scheme stay untouched.\n- **Keep the same `droppableId`** — `applyDrag` in `dragReducer.js` parses the\n  destination droppableId via the regex `/[^-]*-LabelCollection-urls-/`. The\n  `Droppable`'s `droppableId` must remain `${index}-LabelCollection-urls-${title}`\n  exactly, only its `innerRef` element changes. This keeps the reducer and its\n  unit tests untouched.\n- **Highlight uses the group's own color** (per user) — drive the hover border\n  and glow from each group's `backgroundColor` rather than a fixed accent. To\n  stay visible even for dark group colors, pair the colored border/glow with a\n  strong, consistent body tint and a clear dashed-or-solid accent ring so the\n  feedback reads dramatically in both light and dark themes.\n- **Highlight the whole card, not just the body** — move the `isDraggingOver`\n  styling hook up to the full-card drop zone so the entire card lights up,\n  reinforcing the enlarged hit area visually.\n\n## Implementation\n\n### 1. Make the entire card the drop target\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\nIn `content(provided)`, the outer `.LabelCollection` div already carries the\nLABEL_COLLECTION `Draggable`'s `provided.innerRef` (for reordering), so the\nURL `Droppable`'s `innerRef` cannot live on that same node. Introduce a single\nwrapper element *inside* `.LabelCollection` that the URL `Droppable` owns and\nthat spans both the title bar and the URL body:\n\n- Wrap the existing `.LabelCollection-title` header **and** the\n  `.LabelCollection-urls` body together inside the URL `Droppable`'s render\n  prop. The `Droppable`'s `provided.innerRef` + `provided.droppableProps` go on\n  a new full-card dropzone wrapper (e.g. `.LabelCollection-dropzone`) that\n  contains the header followed by the body.\n- Keep the existing `droppableId` (`${index}-LabelCollection-urls-${title}`),\n  `direction=\"vertical\"`, and `type={ItemTypes.URL}` exactly as-is so\n  `applyDrag` is unaffected.\n- The URL `Draggable`s and their active/inactive sections stay where they are\n  inside the scrollable `.LabelCollection-urls` body. Render\n  `{provided.placeholder}` at the end of the URL list inside that body (as\n  today) so insertion spacing still appears in the right place.\n- The title bar keeps its `{...provided.dragHandleProps}` from the parent\n  LABEL_COLLECTION `Draggable` — a drag handle nested inside an unrelated\n  (different `type`) `Droppable` is fine and does not conflict.\n- Apply the drag-over class from the URL droppable's `snapshot.isDraggingOver`\n  to the full-card dropzone wrapper (replacing today's `UrlOver` toggle on the\n  body), so the whole card reflects the hover state.\n\nWatch-outs to verify during implementation:\n- The header now sits inside a droppable list. Confirm the placeholder still\n  renders only in the body and the header does not visually shift when a URL is\n  dragged over (the header is static content, not a `Draggable`, so it should\n  not be reordered).\n- The body retains its fixed height + `overflow-y: scroll`; the dropzone\n  wrapper should not introduce a second scrollbar (let the wrapper be a plain\n  flex column: static header, then the scrolling body).\n\n### 2. Make the hover feedback dramatic and group-colored\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.css`\n\nReplace the current minimal rule:\n\n```css\n.LabelCollection .LabelCollection-urls.UrlOver {\n  background-color: var(--app-bg);\n}\n```\n\nwith a full-card \"ready to receive\" treatment on the new dropzone wrapper's\ndrag-over class:\n\n- A thick, high-visibility **accent ring** around the card (e.g. an inset\n  `box-shadow` / `outline` of 2–3px) plus an outer **glow** so the active\n  target pops away from its neighbors.\n- Drive the ring + glow color from the group's own color. Since each group's\n  color is only available in JS (`currentBackgroundColor`), pass it into CSS as\n  a custom property (e.g. set `style={{ '--group-color': currentBackgroundColor }}`\n  on the card or dropzone wrapper in `LabelCollection.jsx`) and reference\n  `var(--group-color, var(--c-lime-fg))` in the drag-over rule. Fall back to the\n  lime accent (`--c-lime-fg`) when a group has no color set.\n- Add a clearly different **body tint** while hovering so the interior also\n  signals readiness (a translucent wash of the group color over `--card-bg`,\n  strong enough to read in both themes — guard against unreadable results for\n  very dark group colors by layering the wash over a neutral base rather than\n  replacing the background outright).\n- Add a short `transition` on border/box-shadow/background so the highlight\n  animates in rather than snapping, making the state change feel deliberate and\n  dramatic.\n- Keep the existing `.LabelCollection { overflow: hidden }` in mind: an outer\n  glow may be clipped by the card's own `overflow: hidden`. If the glow is\n  clipped, apply the ring as an inset shadow/inner border (which is not\n  clipped) and/or relax overflow only while dragging-over, whichever preserves\n  the rounded corners. Verify the rounded card corners still look correct with\n  the ring applied.\n\n### 3. Update the component test for the new structure\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.test.jsx`\n\nThe existing test queries `.LabelCollection-urls-active` / `-inactive`, which\nremain inside the body and should keep passing. If any assertion depends on the\n`Droppable` wrapper element or the drag-over class location, update it to the\nnew `.LabelCollection-dropzone` wrapper. Add/adjust a test asserting the\nfull-card dropzone wrapper exists and carries the URL droppable so the enlarged\nhit area is covered by a registered test.\n\n## Reused existing code\n\n- `applyDrag` from `src/lib/utils/dragReducer.js` (glossary entry: `applyDrag`)\n  — unchanged; the destination `droppableId` format is preserved so URL moves\n  still resolve to the right label.\n- `LabelCollection` from `src/lib/components/LabelCollection/LabelCollection.jsx`\n  (glossary entry: `LabelCollection`) — the card being restructured.\n- `Labels` from `src/lib/components/Labels/Labels.jsx` (glossary entry:\n  `Labels`) — renders the grid of `LabelCollection` cards; no change needed but\n  it is where cards are laid out in columns.\n- Theme tokens from `src/index.css` — `--c-lime-fg` (lime accent fallback),\n  `--card-bg`, `--app-bg`, `--border` — reused for the highlight so it tracks\n  the light/dark themes automatically.\n- `DragDropContext` wiring in `src/lib/pages/App/App.jsx` (`handleDrag` /\n  `handleDragStart`) — unchanged; the drop still flows through `applyDrag`.\n\n## Scenarios to Demonstrate\n\n- **Hover over a group from the top edge** — drag a sidebar tab so its center\n  reaches the *title bar* of a group; the whole card lights up and the drop is\n  accepted (previously this was a dead zone).\n- **Dramatic group-colored highlight** — a group with a vivid color (e.g. a\n  bright/blue group) shows a bold ring + glow + body tint in that color while\n  hovering.\n- **Dark / low-contrast group color** — a group whose color is very dark still\n  shows a clearly visible \"ready\" state (ring + tint remain legible in both\n  light and dark themes).\n- **No-color group fallback** — a group with no `backgroundColor` falls back to\n  the lime accent ring/glow.\n- **Drop into a populated group** — dragging over a group that already has\n  active + inactive URLs shows the placeholder inserting in the body while the\n  full card stays highlighted.\n- **Empty group** — dragging over a group showing the \"Drag tabs from the\n  sidebar…\" empty state highlights the whole card and accepts the drop.\n- **Reordering still works** — dragging a group card by its title bar reorders\n  the grid as before (the nested URL droppable does not interfere with the\n  LABEL_COLLECTION drag handle).\n- **Leaving the card** — moving the dragged URL off a card cleanly removes the\n  highlight (no stuck \"over\" state on the neighbor).",
+  "description": "Dragging a tab onto a group is now far easier and the feedback is unmistakable. The drop target is the entire group card instead of just the body, and targeting follows the mouse cursor rather than @hello-pangea/dnd's center-of-item collision: a hit-test against the card under the pointer overrides the destination, with the hovered group lit up in its own color. The hover state lives in an external dragHoverStore so updating it mid-drag never re-renders the dragged tab's subtree, which had been cancelling the drag. The dragged tab itself now renders as a solid chip with its trailing remove button and actions hidden. New pure modules dropTargeting and dragHoverStore are covered by unit tests; keyboard dragging keeps the library's built-in targeting and highlight.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/improve-url-drop-on-groups.md\t.codeyam/plans/completed/improve-url-drop-on-groups.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-dragging-tab-onto-group.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/url-dragging.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/dragHoverStore.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/dragHoverStore.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/dropTargeting.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/dropTargeting.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Dragging",
+      "screenshotPath": "url-dragging--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 399,
+    "passed": 399,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 399,
+        "passed": 399
+      }
+    ]
+  }
+}

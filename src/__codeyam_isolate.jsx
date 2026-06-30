@@ -107,6 +107,15 @@ const ISOLATION_PROPS = {
         showActions: true,
         expanded: false,
       },
+      // The clone that follows the cursor while a tab is dragged: a solid chip
+      // with the trailing ✕ / actions / load bar suppressed.
+      dragging: {
+        urlKey: 'url-https://news.ycombinator.com',
+        showLoad: true,
+        showActions: true,
+        expanded: false,
+        dragging: true,
+      },
     },
   },
   SearchResults: {

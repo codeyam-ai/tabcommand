@@ -1873,6 +1873,150 @@
       "runner": "tests"
     },
     {
+      "description": "identical updates are deduped so cards do not re-render needlessly",
+      "file": "src/lib/utils/dragHoverStore.test.js",
+      "format": "vitest",
+      "key": "dragHoverStore › does not notify when the value is unchanged",
+      "line": 27,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "every active subscriber is notified on a change",
+      "file": "src/lib/utils/dragHoverStore.test.js",
+      "format": "vitest",
+      "key": "dragHoverStore › notifies multiple subscribers",
+      "line": 56,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "subscribers are notified when the hover target changes",
+      "file": "src/lib/utils/dragHoverStore.test.js",
+      "format": "vitest",
+      "key": "dragHoverStore › notifies subscribers on a change",
+      "line": 18,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a changed dropId with the same cursorActive flag still notifies",
+      "file": "src/lib/utils/dragHoverStore.test.js",
+      "format": "vitest",
+      "key": "dragHoverStore › notifies when only the dropId changes",
+      "line": 37,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "setting a hover target is reflected by the next read",
+      "file": "src/lib/utils/dragHoverStore.test.js",
+      "format": "vitest",
+      "key": "dragHoverStore › reflects an updated hover target",
+      "line": 12,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "unsubscribing stops further notifications to that listener",
+      "file": "src/lib/utils/dragHoverStore.test.js",
+      "format": "vitest",
+      "key": "dragHoverStore › stops notifying after unsubscribe",
+      "line": 47,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an absent document is tolerated rather than throwing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdAtPoint › returns null when no document is available",
+      "line": 66,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a point over empty space resolves to nothing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdAtPoint › returns null when no element is under the point",
+      "line": 54,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a document without elementFromPoint is tolerated rather than throwing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdAtPoint › returns null when the document cannot hit-test points",
+      "line": 71,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a point over a non-group element resolves to nothing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdAtPoint › returns null when the element under the point is outside any group",
+      "line": 60,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the point resolves through elementFromPoint to the group under it",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdAtPoint › returns the droppableId of the group under the point",
+      "line": 47,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a missing element is tolerated rather than throwing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdFromElement › returns null for a null element",
+      "line": 29,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a dropzone missing the data attribute yields null, not undefined",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdFromElement › returns null when the dropzone has no droppable id attribute",
+      "line": 39,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an element not inside any group card resolves to nothing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdFromElement › returns null when the element has no group dropzone ancestor",
+      "line": 23,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a non-element value without closest is tolerated rather than throwing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdFromElement › returns null when the value has no closest method",
+      "line": 34,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an element inside a group card resolves to that card's droppableId",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetIdFromElement › returns the droppableId of the enclosing group dropzone",
+      "line": 16,
+      "registeredAt": "2026-06-30T01:24:05Z",
+      "runner": "tests"
+    },
+    {
       "description": "a wider-than-fits choice is capped to what the current width can show",
       "file": "src/lib/utils/effectiveColumns.test.js",
       "format": "vitest",

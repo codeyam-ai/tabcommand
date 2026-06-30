@@ -1,6 +1,6 @@
 import './App.css';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Tabs, Labels, LoadMeter, Search, AppBrand, ThemeToggle, Triage, Settings, Favorites, SearchHint } from '../../components';
 import { Load } from '../Load';
 import { ImportExport } from '../ImportExport';
@@ -12,6 +12,8 @@ import { DragDropContext } from '@hello-pangea/dnd';
 
 import { Chrome } from '../../utils/Chrome';
 import { applyDrag } from '../../utils/dragReducer';
+import { dropTargetIdAtPoint } from '../../utils/dropTargeting';
+import { setDragHover, getDragHover } from '../../utils/dragHoverStore';
 import { useTheme } from '../../hooks/useTheme';
 
 const App = () => {
@@ -19,6 +21,12 @@ const App = () => {
   const [theme, toggleTheme] = useTheme();
   const [reviewMode, setReviewMode] = useState(false);
   const [counts, setCounts] = useState({ tabs: 0, groups: 0 });
+
+  // Holds the teardown for the in-flight drag's pointer tracking (see
+  // handleDragStart). The hovered group itself lives in the dragHoverStore, not
+  // React state, so tracking the cursor never re-renders this component (which
+  // would cancel the drag).
+  const hoverCleanupRef = useRef(null);
 
   useEffect(() => {
     Chrome.get('App1', 'uxSettings', ({ uxSettings }) => {
@@ -52,6 +60,10 @@ const App = () => {
     return () => chrome.storage.onChanged.removeListener(handleChange);
   }, []);
 
+  const stopHoverTracking = () => {
+    if (hoverCleanupRef.current) hoverCleanupRef.current();
+  };
+
   // The heart of TabCommand: dropping a tab into a group moves its urlKey into
   // that label, and dragging a group reorders the grid. The transform itself
   // lives in the testable `applyDrag` reducer; here we persist the result and
@@ -60,26 +72,62 @@ const App = () => {
     const labelsElement = document.getElementById('Labels');
     if (labelsElement) labelsElement.style.overflowY = 'scroll';
 
-    if (!dragResult.destination || !dragResult.destination.droppableId) return;
+    // For a mouse drag, the tab drops into whichever group the cursor is over —
+    // overriding @hello-pangea/dnd's center-based destination. If the cursor
+    // isn't over any group, there is no drop (a tab released in empty space or
+    // back in the sidebar stays put). Keyboard drags keep the library's target.
+    const { cursorActive, dropId: cursorDropId } = getDragHover();
+    stopHoverTracking();
+
+    let result = dragResult;
+    if (dragResult.type === ItemTypes.URL && cursorActive) {
+      if (!cursorDropId) return;
+      result = { ...dragResult, destination: { droppableId: cursorDropId, index: 0 } };
+    }
+
+    if (!result.destination || !result.destination.droppableId) return;
 
     Chrome.get('App3', ['labels', 'activeTabs'], ({ labels, activeTabs }) => {
-      const result = applyDrag(dragResult, { labels, activeTabs });
-      if (!result) return;
+      const dropResult = applyDrag(result, { labels, activeTabs });
+      if (!dropResult) return;
 
-      result.ungroupTabIds.forEach((tabId) => {
+      dropResult.ungroupTabIds.forEach((tabId) => {
         if (chrome.tabs.ungroup) chrome.tabs.ungroup(tabId);
       });
 
-      Chrome.set('App2', { labels: result.labels });
+      Chrome.set('App2', { labels: dropResult.labels });
     });
   };
 
   const handleDragStart = (info) => {
-    if (info.type === ItemTypes.URL) {
-      const labelsElement = document.getElementById('Labels');
-      if (labelsElement) labelsElement.style.overflowY = 'hidden';
-    }
+    if (info.type !== ItemTypes.URL) return;
+
+    const labelsElement = document.getElementById('Labels');
+    if (labelsElement) labelsElement.style.overflowY = 'hidden';
+
+    // Only a fluid (pointer) drag has a cursor to follow; keyboard drags report
+    // mode 'SNAP' and keep @hello-pangea/dnd's built-in targeting + highlight.
+    if (info.mode !== 'FLUID') return;
+
+    setDragHover({ cursorActive: true, dropId: null });
+
+    const onPointerMove = (event) => {
+      const point = (event.touches && event.touches[0]) || event;
+      setDragHover({ cursorActive: true, dropId: dropTargetIdAtPoint(point.clientX, point.clientY) });
+    };
+
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('touchmove', onPointerMove);
+
+    hoverCleanupRef.current = () => {
+      window.removeEventListener('mousemove', onPointerMove);
+      window.removeEventListener('touchmove', onPointerMove);
+      hoverCleanupRef.current = null;
+      setDragHover({ cursorActive: false, dropId: null });
+    };
   };
+
+  useEffect(() => stopHoverTracking, []);
 
   const changePage = (pageName) => {
     Chrome.get('App2', 'uxSettings', ({ uxSettings }) => {

@@ -149,6 +149,10 @@ States captured as runnable scenarios with codeyam-editor:
 
 <img src=".codeyam/scenarios/screenshots/home-dark-mode--desktop.png" alt="Home - Dark Mode" width="280">
 
+### Home - Dragging Tab onto Group
+
+<img src=".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png" alt="Home - Dragging Tab onto Group" width="280">
+
 ### Home - Empty
 
 <img src=".codeyam/scenarios/screenshots/home-empty--desktop.png" alt="Home - Empty" width="280">
@@ -164,8 +168,4 @@ States captured as runnable scenarios with codeyam-editor:
 ### Home - Light Theme
 
 <img src=".codeyam/scenarios/screenshots/home-light-theme--desktop.png" alt="Home - Light Theme" width="280">
-
-### Home - Open and Saved Tabs
-
-<img src=".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png" alt="Home - Open and Saved Tabs" width="280">
 <!-- codeyam:scenario-gallery:end -->

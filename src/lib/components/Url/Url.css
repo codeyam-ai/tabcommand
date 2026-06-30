@@ -17,6 +17,17 @@
   border-right-color: var(--c-raised);
 }
 
+/* The clone that follows the cursor while dragging. A solid card background +
+   border + lift shadow turn the otherwise-transparent row into a tidy chip, so
+   the title rides under the pointer instead of bare text with a trailing ✕
+   (which is hidden during the drag). */
+.Url.Url-dragging {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card, 0 6px 16px rgba(0, 0, 0, 0.22));
+  opacity: 0.97;
+}
+
 .Url .Url-title {
   width: auto;
   white-space: nowrap;

@@ -110,7 +110,7 @@
     "testFile": "src/lib/utils/KeyDown.test.js"
   },
   {
-    "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a menu (edit LabelForm + share + delete), and a vertical Droppable of Url rows split into active (have an open tab) above inactive. Supports removeUrl and is itself draggable for reordering.",
+    "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a menu (edit LabelForm + share + delete), and a full-card Droppable spanning the title bar and a vertical list of Url rows split into active above inactive. While a tab is dragged the whole card highlights in the group color when it is the cursor target; supports removeUrl and is itself draggable for reordering.",
     "filePath": "src/lib/components/LabelCollection/LabelCollection.jsx",
     "name": "LabelCollection",
     "testFile": "src/lib/components/LabelCollection/LabelCollection.test.jsx"
@@ -438,6 +438,18 @@
     "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
+    "description": "Resolves the group droppableId under a viewport point via elementFromPoint, so a dragged tab targets whichever group the cursor is over instead of @hello-pangea/dnd's center-based collision. Returns null when the point is over no group card.",
+    "filePath": "src/lib/utils/dropTargeting.js",
+    "name": "dropTargetIdAtPoint",
+    "testFile": "src/lib/utils/dropTargeting.test.js"
+  },
+  {
+    "description": "Walks up from a DOM element to its enclosing group-card drop zone and returns that zone's @hello-pangea/dnd droppableId, or null when the element is not inside a group card. Backs cursor-based drop targeting.",
+    "filePath": "src/lib/utils/dropTargeting.js",
+    "name": "dropTargetIdFromElement",
+    "testFile": "src/lib/utils/dropTargeting.test.js"
+  },
+  {
     "description": "Computes the column count the groups grid should render: the user's configured count from settings, capped by what the current viewport width can comfortably fit, floored at 1. Falls back to ColumnsDefault for missing or invalid input. Drives the chunk size and the --label-columns card-width variable in Labels.",
     "filePath": "src/lib/utils/effectiveColumns.js",
     "name": "effectiveColumns",
@@ -475,6 +487,12 @@
     "filePath": "src/lib/utils/gaugeFillPercent.js",
     "name": "gaugeFillPercent",
     "testFile": "src/lib/utils/gaugeFillPercent.test.js"
+  },
+  {
+    "description": "Reads the current cursor drop-hover state from the external drag-hover store.",
+    "filePath": "src/lib/utils/dragHoverStore.js",
+    "name": "getDragHover",
+    "testFile": "src/lib/utils/dragHoverStore.test.js"
   },
   {
     "description": "Promise/callback hybrid wrapper around chrome.storage.local.get: invokes the callback when supplied, otherwise resolves with the result.",
@@ -760,6 +778,12 @@
     "testFile": "src/lib/utils/segmentSearchResults.test.js"
   },
   {
+    "description": "Updates the cursor drop-hover state and notifies subscribers, deduping identical updates so group cards only repaint when the hovered target changes. Kept outside React state so updating it mid-drag does not re-render the dragged tab's subtree and cancel the drag.",
+    "filePath": "src/lib/utils/dragHoverStore.js",
+    "name": "setDragHover",
+    "testFile": "src/lib/utils/dragHoverStore.test.js"
+  },
+  {
     "description": "Sorts a labels map into the canonical export order: by title (locale compare) then by position, defaulting a missing position to 0. The two chained sorts mirror the reference ImportExport sortAndStuff.",
     "filePath": "src/lib/utils/importExport.js",
     "name": "sortLabels",
@@ -785,6 +809,12 @@
     "filePath": "service_worker.js",
     "name": "stopSystemLoadPolling",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Subscribes a listener to cursor drop-hover changes and returns an unsubscribe function, letting each group card repaint independently as the cursor moves between groups.",
+    "filePath": "src/lib/utils/dragHoverStore.js",
+    "name": "subscribeDragHover",
+    "testFile": "src/lib/utils/dragHoverStore.test.js"
   },
   {
     "description": "Summarizes a stored per-URL processes record into the load readout a tab shows: average CPU and private-memory, a severity level (low/medium/high/excessive), and a bar width. Returns null when there is no sampled data so callers render nothing. Shared by the Url tab rows and the Load page LoadUrl cards (extracted from the inline copy that lived in Url).",

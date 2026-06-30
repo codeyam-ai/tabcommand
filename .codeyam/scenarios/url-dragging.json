@@ -1,0 +1,18 @@
+{
+  "name": "Url - Dragging",
+  "id": "f4a5fbe0-ccdc-4712-a514-d241f5bd48ac",
+  "url": "/?isolate=Url&variant=dragging",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "uxSettings": "{\"selectedLabel\":\"Work\",\"page\":{\"name\":\"Home\"}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-207\",\"pinned\":false}]"
+    }
+  },
+  "componentName": "Url",
+  "scenarioType": "component"
+}

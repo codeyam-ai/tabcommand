@@ -1,6 +1,6 @@
 import './LabelCollection.css';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import PropTypes from 'prop-types';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import { Url, LabelForm, LabelSectionHeader } from '..';
@@ -8,8 +8,29 @@ import { Icon } from '../Icon';
 
 import { ItemTypes } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { getDragHover, subscribeDragHover } from '../../utils/dragHoverStore';
 
 const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, expanded }) => {
+  const urlsDroppableId = `${index}-LabelCollection-urls-${title}`;
+
+  // Subscribe to the cursor-hover store with a BOOLEAN selector: this card only
+  // re-renders when it becomes (or stops being) the group under the pointer, so
+  // moving the cursor between groups never re-renders the card holding the
+  // dragged tab. Returns true only during a mouse drag whose cursor is over us.
+  const isCursorTarget = useSyncExternalStore(
+    subscribeDragHover,
+    () => {
+      const hover = getDragHover();
+      return hover.cursorActive && hover.dropId === urlsDroppableId;
+    }
+  );
+
+  // During a mouse drag the highlight follows the cursor (matching where the tab
+  // will actually drop); keyboard drags fall back to @hello-pangea/dnd's own
+  // center-based `isDraggingOver`.
+  const isDropTarget = (dropSnapshot) =>
+    getDragHover().cursorActive ? isCursorTarget : dropSnapshot.isDraggingOver;
+
   const [
     {
       currentTitle,
@@ -219,87 +240,100 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
     >
       {menuDisplayed && <div id="BackgroundOverlay" onClick={toggleMenu}></div>}
       {menuDisplayed && menu()}
-      <div
-        className='LabelCollection-title'
-        style={{ backgroundColor: currentBackgroundColor || '#707071' }}
-        {...provided.dragHandleProps}
-        onClick={pin}
-      >
-        <h3>{currentTitle || title}</h3>
-        <span className='LabelCollection-count'>{(currentUrlKeys || []).length}</span>
-        <span className='LabelCollection-menuButton' onClick={toggleMenu}>⋮</span>
-      </div>
-
       <Droppable
         key={`${index}-LabelCollection-urls-${title}`}
         droppableId={`${index}-LabelCollection-urls-${title}`}
         direction="vertical"
         type={ItemTypes.URL}
       >
-        {(provided, snapshot) => (
+        {(dropProvided, dropSnapshot) => (
+          // Full-card drop zone: the URL droppable spans the title bar AND the
+          // body, so a dragged tab's center crosses it as soon as it reaches the
+          // top of the card (center-based collision needs a bigger box, not a
+          // threshold knob). --group-color drives the drag-over highlight.
           <div
-            className={`LabelCollection-urls ${snapshot.isDraggingOver ? 'UrlOver' : ''}`}
-            ref={provided.innerRef}
-            {...provided.droppableProps}
+            className={`LabelCollection-dropzone ${isDropTarget(dropSnapshot) ? 'UrlOver' : ''}`}
+            ref={dropProvided.innerRef}
+            {...dropProvided.droppableProps}
+            style={
+              currentBackgroundColor
+                ? { ...dropProvided.droppableProps.style, '--group-color': currentBackgroundColor }
+                : dropProvided.droppableProps.style
+            }
           >
-            {(!currentUrlKeys || !currentUrlKeys.length) &&
-              <div className='LabelCollection-empty'>
-                Drag tabs from the sidebar into this group to save them.
-              </div>
-            }
+            <div
+              className='LabelCollection-title'
+              style={{ backgroundColor: currentBackgroundColor || '#707071' }}
+              {...provided.dragHandleProps}
+              onClick={pin}
+            >
+              <h3>{currentTitle || title}</h3>
+              <span className='LabelCollection-count'>{(currentUrlKeys || []).length}</span>
+              <span className='LabelCollection-menuButton' onClick={toggleMenu}>⋮</span>
+            </div>
 
-            {activeUrls.length > 0 &&
-              <div className='LabelCollection-urls-active'>
-                <LabelSectionHeader label='Open' count={activeUrls.length} />
-                {activeUrls.map((urlKey) => (
-                  <Draggable
-                    key={`${index}-LabelCollection-urls-${title}-${urlKey}`}
-                    draggableId={`${index}-LabelCollection-urls-${title}-${urlKey}`}
-                    index={urlIndex++}
-                  >
-                    {dragProvided => (
-                      <Url
-                        key={`Url-${urlKey}`}
-                        dragRef={dragProvided.innerRef}
-                        draggableProps={dragProvided.draggableProps}
-                        dragHandleProps={dragProvided.dragHandleProps}
-                        showLoad={true}
-                        expanded={expanded}
-                        showUrl={isAmbiguous(urlKey)}
-                        onRemove={(event) => removeUrl(event, urlKey)}
-                        urlKey={urlKey}
-                      />
-                    )}
-                  </Draggable>
-                ))}
-              </div>
-            }
+            <div className='LabelCollection-urls'>
+              {(!currentUrlKeys || !currentUrlKeys.length) &&
+                <div className='LabelCollection-empty'>
+                  Drag tabs from the sidebar into this group to save them.
+                </div>
+              }
 
-            {inactiveUrls.length > 0 &&
-              <div className='LabelCollection-urls-inactive'>
-                {inactiveUrls.map((urlKey) => (
-                  <Draggable
-                    key={`${index}-LabelCollection-urls-${title}-${urlKey}`}
-                    draggableId={`${index}-LabelCollection-urls-${title}-${urlKey}`}
-                    index={urlIndex++}
-                  >
-                    {dragProvided => (
-                      <Url
-                        key={`Url-${urlKey}`}
-                        dragRef={dragProvided.innerRef}
-                        draggableProps={dragProvided.draggableProps}
-                        dragHandleProps={dragProvided.dragHandleProps}
-                        expanded={expanded}
-                        showUrl={isAmbiguous(urlKey)}
-                        onRemove={(event) => removeUrl(event, urlKey)}
-                        urlKey={urlKey}
-                      />
-                    )}
-                  </Draggable>
-                ))}
-              </div>
-            }
-            {provided.placeholder}
+              {activeUrls.length > 0 &&
+                <div className='LabelCollection-urls-active'>
+                  <LabelSectionHeader label='Open' count={activeUrls.length} />
+                  {activeUrls.map((urlKey) => (
+                    <Draggable
+                      key={`${index}-LabelCollection-urls-${title}-${urlKey}`}
+                      draggableId={`${index}-LabelCollection-urls-${title}-${urlKey}`}
+                      index={urlIndex++}
+                    >
+                      {(dragProvided, dragSnapshot) => (
+                        <Url
+                          key={`Url-${urlKey}`}
+                          dragRef={dragProvided.innerRef}
+                          draggableProps={dragProvided.draggableProps}
+                          dragHandleProps={dragProvided.dragHandleProps}
+                          dragging={dragSnapshot.isDragging}
+                          showLoad={true}
+                          expanded={expanded}
+                          showUrl={isAmbiguous(urlKey)}
+                          onRemove={(event) => removeUrl(event, urlKey)}
+                          urlKey={urlKey}
+                        />
+                      )}
+                    </Draggable>
+                  ))}
+                </div>
+              }
+
+              {inactiveUrls.length > 0 &&
+                <div className='LabelCollection-urls-inactive'>
+                  {inactiveUrls.map((urlKey) => (
+                    <Draggable
+                      key={`${index}-LabelCollection-urls-${title}-${urlKey}`}
+                      draggableId={`${index}-LabelCollection-urls-${title}-${urlKey}`}
+                      index={urlIndex++}
+                    >
+                      {(dragProvided, dragSnapshot) => (
+                        <Url
+                          key={`Url-${urlKey}`}
+                          dragRef={dragProvided.innerRef}
+                          draggableProps={dragProvided.draggableProps}
+                          dragHandleProps={dragProvided.dragHandleProps}
+                          dragging={dragSnapshot.isDragging}
+                          expanded={expanded}
+                          showUrl={isAmbiguous(urlKey)}
+                          onRemove={(event) => removeUrl(event, urlKey)}
+                          urlKey={urlKey}
+                        />
+                      )}
+                    </Draggable>
+                  ))}
+                </div>
+              }
+              {dropProvided.placeholder}
+            </div>
           </div>
         )}
       </Droppable>

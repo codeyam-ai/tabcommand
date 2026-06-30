@@ -69,6 +69,7 @@ export const componentScenarios = {
   "triage-running-hot": { componentName: "Triage", props: {} },
   "triage-stable-chrome-hidden": { componentName: "Triage", props: {} },
   "url-active-tab": { componentName: "Url", props: {} },
+  "url-dragging": { componentName: "Url", props: {} },
   "url-expanded": { componentName: "Url", props: {} },
   "url-idle": { componentName: "Url", props: {} },
   "url-minimal": { componentName: "Url", props: {} },

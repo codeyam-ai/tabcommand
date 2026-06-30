@@ -241,12 +241,13 @@ const Tabs = ({ reviewMode = false }) => {
                 draggableId={`Tabs-urls-${name}-${urlKey}`}
                 index={urlIndex}
               >
-                {dragProvided => (
+                {(dragProvided, dragSnapshot) => (
                   <Url
                     key={`${urlKey}-${tabKey}}`}
                     dragRef={dragProvided.innerRef}
                     draggableProps={dragProvided.draggableProps}
                     dragHandleProps={dragProvided.dragHandleProps}
+                    dragging={dragSnapshot.isDragging}
                     tabId={tabKey && parseInt(tabKey.split('-')[1])}
                     urlKey={urlKey}
                     closed={closed}

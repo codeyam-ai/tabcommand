@@ -20,7 +20,8 @@ const Url = ({
   closed,
   onRemove,
   showUrl,
-  encourageDrag }) => {
+  encourageDrag,
+  dragging }) => {
   if (!urlKey) return (<div></div>);
 
   const url = () => urlKey.replace(/^url-/, '');
@@ -189,14 +190,14 @@ const Url = ({
       ref={dragRef}
       {...draggableProps}
       {...dragHandleProps}
-      className={`Url${encourageDrag ? ' Url-encourageDrag' : ''}${hover ? ' Url-hover' : ''}`}
+      className={`Url${encourageDrag ? ' Url-encourageDrag' : ''}${hover ? ' Url-hover' : ''}${dragging ? ' Url-dragging' : ''}`}
       title={titleString}
       onClick={handleClick}
       onMouseEnter={() => setPartialState({ hover: true })}
       onMouseOver={() => { if (!hover) setPartialState({ hover: true }); }}
       onMouseLeave={() => setPartialState({ hover: false })}
     >
-      {showRemove &&
+      {showRemove && !dragging &&
         <div
           className='Url-removeBtn'
           onClick={removeHandler}
@@ -207,7 +208,7 @@ const Url = ({
         </div>
       }
 
-      {(showActions || hover || expanded) &&
+      {(showActions || hover || expanded) && !dragging &&
         <div className='Url-actions'>
           {(tabId && !tabCommandPinned) &&
             <div className='Url-action Url-pin' onClick={pin} data-tool-tip="Keep Open">
@@ -227,7 +228,7 @@ const Url = ({
         </div>
       }
 
-      {((showLoad && !hover) || expanded) &&
+      {((showLoad && !hover) || expanded) && !dragging &&
         <div className='Url-stats'>
           <div className={`${loadClassName} load-element`}>
             Load
