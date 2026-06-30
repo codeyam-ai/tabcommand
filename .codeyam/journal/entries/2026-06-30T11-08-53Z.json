@@ -1,0 +1,299 @@
+{
+  "timestamp": "2026-06-30T11:08:53Z",
+  "title": "Rail Surface Elevation Hierarchy",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe left sidebar (268px), right tab rail (312px), and load rail (340px) were\nblending into the main canvas — the rails sat only 4 points lighter than the\n`#0a0a0a` canvas and their dividing borders used the near-invisible `.08`\nhairline. This change establishes a clear three-tier elevation hierarchy by\nraising the rail surfaces, brightening cards/raised/track surfaces, and giving\nthe three rails a dedicated, stronger divider token. Net effect: darkest canvas\n(focal) → lighter side rails (chrome) → brighter cards, with visible rail\ndividers — all staying within the design system's near-black + hairline\nvocabulary.\n\n## Key Decisions\n\n- **Update both token files in sync.** Surface values are mirrored across two\n  files: `src/lib/styles/theme.css` (the `--c-*` CodeYam names the handoff spec\n  uses) and `src/index.css` (the `--sidebar-bg`/`--rail-bg`/`--card-bg`/\n  `--border`/`--gauge-track`/`--search-bg` names the rail/card components\n  actually render from). Changing only `theme.css` would leave the visible rails\n  unchanged, because `.App-sidebar`/`.Tabs`/`.LoadProcesses` read the\n  `index.css` surface tokens. Both files are bumped to the same new values to\n  keep them consistent.\n- **New token `--c-rail-divider` lives in `theme.css`** alongside the other\n  `--c-*` neutrals. Both token files are imported globally, so all three rail\n  component stylesheets can reference it regardless of which file defines it.\n- **Search input follows cards.** `--search-bg` (dark) equals the old card value\n  `#161616`; it moves to `#1e1e1e` with cards so inputs stay at the new card\n  elevation rather than reading as recessed. (Confirmed with user.)\n- **Only the three outer rail-to-canvas dividers change** to `--c-rail-divider`.\n  Internal rail hairlines (e.g. `.App-sidebar-footer` border-top, `.App-gauge`\n  border-bottom, `.LoadProcesses` section separators) keep `--border`/\n  `--c-border` — they separate content *within* a rail, not rail from canvas.\n- **Canvas and light/dark white cards are untouched.** Dark `--app-bg`/`--c-page`\n  stays `#0a0a0a` (the focal backdrop); light `--card-bg`/`--search-bg` stays\n  `#ffffff` (already maximal).\n\n## Implementation\n\n### 1. Bump `--c-*` surface tokens + add rail-divider token\n\n**File**: `src/lib/styles/theme.css`\n\nDark block (`:root, [data-theme='dark']`):\n- `--c-panel`: `#0e0e0e` → `#151515`\n- `--c-card`: `#161616` → `#1e1e1e`\n- `--c-raised`: `#1c1c1c` → `#252525`\n- `--c-track`: `#2a2a2a` → `#2f2f2f`\n- add `--c-rail-divider: rgba(255, 255, 255, 0.16);`\n\nLight block (`[data-theme='light']`):\n- `--c-page`: `#fafafa` → `#fbfbfc`\n- `--c-panel`: `#f4f4f4` → `#ebedf0`\n- `--c-raised`: `#eeeeee` → `#e3e5e9`\n- `--c-track`: `#e2e2e2` → `#dcdee2`\n- add `--c-rail-divider: rgba(0, 0, 0, 0.14);`\n\n(`--c-card` light stays `#ffffff`; `--c-page` dark stays `#0a0a0a`.)\n\n### 2. Bump the mirrored surface tokens in the legacy-named set\n\n**File**: `src/index.css`\n\nDark block (`:root, [data-theme=\"dark\"]`):\n- `--sidebar-bg`: `#0e0e0e` → `#151515`\n- `--rail-bg`: `#0e0e0e` → `#151515`\n- `--card-bg`: `#161616` → `#1e1e1e`\n- `--search-bg`: `#161616` → `#1e1e1e`\n- `--gauge-track`: `#2a2a2a` → `#2f2f2f`\n- `--app-bg` stays `#0a0a0a`\n\nLight block (`[data-theme=\"light\"]`):\n- `--app-bg`: `#fafafa` → `#fbfbfc`\n- `--sidebar-bg`: `#f4f4f4` → `#ebedf0`\n- `--rail-bg`: `#f4f4f4` → `#ebedf0`\n- `--gauge-track`: `#e2e2e2` → `#dcdee2`\n- `--card-bg` and `--search-bg` stay `#ffffff`\n\n### 3. Apply the rail divider — left sidebar (268px)\n\n**File**: `src/lib/pages/App/App.css`\n\n`.App-sidebar` `border-right: 1px solid var(--border);` →\n`border-right: 1px solid var(--c-rail-divider);`\n\nLeave `.App-sidebar-footer` border-top and `.App-gauge` border-bottom on\n`var(--border)`.\n\n### 4. Apply the rail divider — right tab rail (312px)\n\n**File**: `src/lib/components/Tabs/Tabs.css`\n\n`.Tabs` `border-left: 1px solid var(--border);` →\n`border-left: 1px solid var(--c-rail-divider);`\n\n### 5. Apply the rail divider — load rail (340px)\n\n**File**: `src/lib/components/LoadProcesses/LoadProcesses.css`\n\n`.LoadProcesses` `border-left: 0.5px solid var(--c-border);` →\n`border-left: 0.5px solid var(--c-rail-divider);`\n\nLeave the internal `border-bottom: 0.5px solid var(--c-border)` section\nseparators unchanged.\n\n## Reused existing code\n\n- `src/lib/styles/theme.css` — authoritative `--c-*` neutral token table\n  (dark + light), where the new `--c-rail-divider` token is added.\n- `src/index.css` — mirrored surface token set (`--sidebar-bg`, `--rail-bg`,\n  `--card-bg`, `--search-bg`, `--gauge-track`, `--border`) that the rail/card\n  components actually consume.\n- Existing theme-swap mechanism via the `data-theme` attribute on `.App`\n  (glossary: `useTheme` / `ThemeToggle`) — no logic change; both themes pick up\n  the new values automatically.\n\n## Scenarios to Demonstrate\n\n- Dark theme, full app: canvas reads clearly darker than the three rails, rails\n  read clearly darker than cards, and all three rail dividers are visible.\n- Light theme, full app: same three-tier separation with the cooler-gray rails\n  (`#ebedf0`) against the near-white page and white cards.\n- Load page (340px load rail) in both themes: the load rail's left divider is\n  visibly stronger while its internal section separators stay subtle.\n- Search input in dark theme: input surface matches card elevation (`#1e1e1e`),\n  not recessed below it.\n- Hover/raised states (group cards, rows): `--c-raised` brightening still reads\n  as a step above the new brighter card surface.",
+  "description": "Established a three-tier elevation hierarchy so the side rails no longer blend into the canvas: darkest center canvas, lighter side/tab/load rails separated by a new dedicated --c-rail-divider token, and brighter cards. Surface tokens were bumped in sync across theme.css and index.css for both dark and light themes. Also gave the History button the brand lime/green identity accent so it stands out from the tab rail instead of blending in.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/rail-surface-elevation-hierarchy.md\t.codeyam/plans/completed/rail-surface-elevation-hierarchy.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadprocesses-active--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/index.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LoadProcesses/LoadProcesses.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/styles/theme.css",
+      "status": "modified"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "LoadProcesses - Active",
+      "screenshotPath": "loadprocesses-active--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 399,
+    "passed": 399,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 399,
+        "passed": 399
+      }
+    ]
+  }
+}

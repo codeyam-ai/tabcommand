@@ -4,7 +4,7 @@
   height: 100%;
   overflow-y: auto;
   padding-left: 22px;
-  border-left: 0.5px solid var(--c-border);
+  border-left: 0.5px solid var(--c-rail-divider);
   box-sizing: border-box;
 }
 

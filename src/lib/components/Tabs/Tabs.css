@@ -4,7 +4,7 @@
   height: 100%;
   overflow-y: auto;
   background-color: var(--rail-bg);
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--c-rail-divider);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -177,16 +177,17 @@
   gap: 8px;
   width: 100%;
   padding: 8px 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--c-lime-fg);
   border-radius: var(--r-row);
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--c-lime-fg);
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color var(--t-fast), color var(--t-fast);
 }
 
 .Tabs-historyBtn:hover {
-  background-color: var(--card-bg);
-  color: var(--text-primary);
+  background-color: var(--c-lime-fg);
+  color: var(--c-page);
 }

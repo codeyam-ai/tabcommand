@@ -69,7 +69,7 @@ body {
   flex-shrink: 0;
   height: 100%;
   background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--c-rail-divider);
   position: relative;
   box-sizing: border-box;
   padding: 0 0 60px 0;
