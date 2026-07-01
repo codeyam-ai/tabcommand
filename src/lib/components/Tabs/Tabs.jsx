@@ -320,13 +320,6 @@ const Tabs = ({ reviewMode = false }) => {
             </div>
           }
 
-          { ungroupedTabUrls().length > 0 &&
-            <div className='Tabs-section-ungrouped'>
-              <h4 className='Tabs-section-labelTitle'>Ungrouped</h4>
-              <DraggableTabUrls name='ungrouped' urls={ungroupedTabUrls()}/>
-            </div>
-          }
-
           {activeTabUrlLabels().map(
             (labelInfo) => (
               <div className='Tabs-section-grouped' key={`active-tabs-${labelInfo.title}`} >
@@ -337,6 +330,13 @@ const Tabs = ({ reviewMode = false }) => {
               </div>
             )
           )}
+
+          { ungroupedTabUrls().length > 0 &&
+            <div className='Tabs-section-ungrouped'>
+              <h4 className='Tabs-section-labelTitle'>Ungrouped</h4>
+              <DraggableTabUrls name='ungrouped' urls={ungroupedTabUrls()}/>
+            </div>
+          }
         </div>
 
       </div>

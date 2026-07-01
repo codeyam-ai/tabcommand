@@ -87,6 +87,33 @@ describe('Tabs', () => {
     expect(screen.getByText('Ungrouped')).toBeInTheDocument();
   });
 
+  // in Active Tabs, grouped label headings render before the Ungrouped remainder
+  it('renders grouped labels before the Ungrouped block in Active Tabs', async () => {
+    seed('activeTabs', [
+      { urlKey: 'url-https://gh.com', tabKey: 'tab-1', pinned: false },
+      { urlKey: 'url-https://hn.com', tabKey: 'tab-2', pinned: false },
+    ]);
+    seed('allUrls', ['url-https://gh.com', 'url-https://hn.com']);
+    seed('url-https://gh.com', { title: 'GitHub', favicon: '' });
+    seed('url-https://hn.com', { title: 'Hacker News', favicon: '' });
+    seed('labels', {
+      Work: { title: 'Work', color: '#1873E4', position: 0, urlKeys: ['url-https://gh.com'] },
+    });
+    installChromeShim();
+    const { container } = renderTabs();
+
+    await screen.findByText('Work');
+    // Scope to the Active Tabs section so the Automatically Closed section's
+    // own Ungrouped block can't confuse the ordering assertion.
+    const activeSection = container.querySelector('.Tabs-active');
+    const headings = Array.from(
+      activeSection.querySelectorAll('.Tabs-section-labelTitle')
+    ).map((h) => h.textContent);
+
+    expect(headings).toEqual(['Work', 'Ungrouped']);
+    expect(headings.indexOf('Work')).toBeLessThan(headings.indexOf('Ungrouped'));
+  });
+
   // the footer History button navigates to the History page via uxSettings
   it('navigates to the History page when the footer button is clicked', async () => {
     seed('uxSettings', { page: { name: 'Home' } });

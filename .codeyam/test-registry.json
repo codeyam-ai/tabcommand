@@ -1067,7 +1067,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › navigates to the History page when the footer button is clicked",
-      "line": 91,
+      "line": 118,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -1078,6 +1078,15 @@
       "key": "Tabs › renders a row for each seeded active tab",
       "line": 43,
       "registeredAt": "2026-06-09T17:34:02Z",
+      "runner": "tests"
+    },
+    {
+      "description": "In Active Tabs, grouped label headings render before the Ungrouped remainder block",
+      "file": "src/lib/components/Tabs/Tabs.test.jsx",
+      "format": "vitest",
+      "key": "Tabs › renders grouped labels before the Ungrouped block in Active Tabs",
+      "line": 91,
+      "registeredAt": "2026-07-01T01:51:54Z",
       "runner": "tests"
     },
     {

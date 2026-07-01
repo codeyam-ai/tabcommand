@@ -1,6 +1,6 @@
 {
-  "feature": "keep-tabs-grouped-on-in-page-url-changes",
-  "maxStep": 19,
-  "version": 243,
-  "updatedAt": "2026-06-30T20:26:17.495099340+00:00"
+  "feature": "ungrouped-active-tabs-last",
+  "maxStep": 24,
+  "version": 312,
+  "updatedAt": "2026-07-01T09:48:09.776304947+00:00"
 }

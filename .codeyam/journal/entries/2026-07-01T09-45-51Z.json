@@ -1,0 +1,127 @@
+{
+  "timestamp": "2026-07-01T09:45:51Z",
+  "title": "Ungrouped Active Tabs Last",
+  "type": "feature",
+  "userRequest": "## Summary\n\nIn the \"Active Tabs\" section of the Tabs page, the \"Ungrouped\" bucket currently\nrenders **above** the grouped (labeled) tabs. This reorders it so grouped tabs\ncome first and the ungrouped remainder appears **last**, keeping organized\ngroups at the top of the list and pushing the loose, un-triaged tabs to the\nbottom.\n\n## Key Decisions\n\n- **Scope to the \"Active Tabs\" section only.** The request was specifically\n  about Active Tabs. The \"Automatically Closed\" section has the same\n  Ungrouped-then-grouped structure but is intentionally left unchanged to match\n  the ask. (If we later want parity there, it's the mirror edit in the same\n  file.)\n- **Pure JSX reorder — no logic change.** Both `ungroupedTabUrls()` and\n  `activeTabUrlLabels()` already exist and are unchanged; we only swap the order\n  in which their blocks are rendered inside `.Tabs-section-urls`. The empty-state\n  explainer and all drag/drop wiring stay exactly as they are.\n\n## Implementation\n\n### 1. Render grouped labels before the ungrouped block in Active Tabs\n\n**File**: `src/lib/components/Tabs/Tabs.jsx`\n\nIn the `Tabs-section Tabs-active` block (currently around lines 312–342), the\nchildren of `.Tabs-section-urls` render in this order:\n\n1. empty-state explainer (`activeTabUrls.length === 0`)\n2. Ungrouped block (`ungroupedTabUrls().length > 0` → `<DraggableTabUrls name='ungrouped' … />`)\n3. grouped labels (`activeTabUrlLabels().map(…)`)\n\nMove the Ungrouped block (the `{ ungroupedTabUrls().length > 0 && … }` fragment,\nincluding its `Tabs-section-ungrouped` wrapper and \"Ungrouped\" `<h4>`) so it\nrenders **after** the `activeTabUrlLabels().map(…)` grouped-labels block. Keep\nthe empty-state explainer first. Final order becomes: explainer → grouped labels\n→ Ungrouped.\n\nLeave the \"Automatically Closed\" section (`Tabs-autoClosed`) untouched.\n\n### 2. Update / add ordering coverage\n\n**File**: `src/lib/components/Tabs/Tabs.test.jsx`\n\nThe existing test `groups labeled tabs under headings and leaves the rest\nungrouped` (around line 72) already seeds one grouped tab (`Work`) and one\nungrouped tab and asserts both the `Work` heading and the `Ungrouped` heading are\npresent, but does **not** assert their relative order. Strengthen it (or add a\nsibling test) to assert that within the Active Tabs section the grouped label\nheading (`Work`) appears **before** the `Ungrouped` heading in DOM order — e.g.\ncompare `compareDocumentPosition` of the two heading nodes, or query all\n`.Tabs-active .Tabs-section-labelTitle` and assert the group title precedes\n`Ungrouped`. This locks in the new ordering so a future refactor can't silently\nflip it back.\n\n## Reused existing code\n\n- `ungroupedTabUrls` from `src/lib/components/Tabs/Tabs.jsx` — the ungrouped\n  filter, unchanged; only its render position moves.\n- `activeTabUrlLabels` / `generateTabUrlLabels` from\n  `src/lib/components/Tabs/Tabs.jsx` — the grouped-label builder, unchanged.\n- `DraggableTabUrls` (local component in `Tabs.jsx`) — reused as-is for both the\n  grouped and ungrouped blocks.\n- `Tabs` glossary entry (`src/lib/components/Tabs/Tabs.jsx`, test\n  `src/lib/components/Tabs/Tabs.test.jsx`).\n\n## Scenarios to Demonstrate\n\n- **Groups + ungrouped mix (happy path):** several labeled groups plus a few\n  loose tabs — groups render at the top, \"Ungrouped\" heading and its tabs render\n  at the bottom.\n- **Only ungrouped tabs:** no labels applied — the single \"Ungrouped\" block still\n  shows (now it's simply the only block, position unchanged visually).\n- **Only grouped tabs:** every active tab belongs to a label — no \"Ungrouped\"\n  heading appears; groups fill the section.\n- **Empty state:** no active tabs — the explainer (\"Active tabs that are not\n  pinned…\") shows, unchanged.\n- **Automatically Closed unaffected:** confirm its Ungrouped-then-grouped order\n  is still as before (regression guard on the intentionally-unchanged section).",
+  "description": "Reordered the Active Tabs section of the Tabs page so labeled/grouped tab blocks render first and the Ungrouped remainder renders last, keeping organized groups at the top and pushing loose, un-triaged tabs to the bottom. Pure JSX reorder in Tabs.jsx reusing the existing ungroupedTabUrls/activeTabUrlLabels helpers; the Automatically Closed section is intentionally left unchanged. Added a DOM-order unit test locking grouped-before-ungrouped in the Active Tabs section.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/skills/codeyam-audit/finalize-procedure.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/ungrouped-active-tabs-last.md\t.codeyam/plans/completed/ungrouped-active-tabs-last.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".gitignore",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.test.jsx",
+      "status": "modified"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 39,
+    "passed": 39,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 39,
+        "passed": 39
+      }
+    ]
+  }
+}
