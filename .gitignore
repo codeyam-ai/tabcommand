@@ -44,7 +44,6 @@ blob-report/
 .codeyam/cloud.json
 .codeyam/glossary-index.txt
 .codeyam/deps-index.txt
-.codeyam/generated/
 # codeyam-editor:end
 
 # CodeYam - local runtime state
