@@ -1,6 +1,6 @@
 {
   "feature": "heal-group-membership-on-url-drift",
-  "maxStep": 18,
-  "version": 225,
-  "updatedAt": "2026-07-02T01:26:27.866223499+00:00"
+  "maxStep": 19,
+  "version": 232,
+  "updatedAt": "2026-07-02T01:26:49.364569013+00:00"
 }
