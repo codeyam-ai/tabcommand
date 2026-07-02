@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
+import appendGroupingLog from './src/lib/utils/groupingLog.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -70,6 +71,7 @@ function loadWorker(chrome) {
     'deriveSystemTotals',
     'isTrackableUrl',
     'samePageKey',
+    'appendGroupingLog',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
@@ -90,7 +92,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, appendGroupingLog);
 }
 
 describe('service_worker.js', () => {
@@ -696,6 +698,33 @@ describe('service_worker.js', () => {
       expect(() => fns.debugGroup('some-event', { tabId: 7, urlKey: 'url-x' })).not.toThrow();
       expect(fns.debugGroup('some-event', {})).toBeUndefined();
     });
+
+    // MV3 recycles the worker constantly, so breadcrumbs must persist to storage
+    // when the runtime `debugGrouping` flag is on — this is what makes a
+    // cross-restart grouping bug diagnosable after the fact.
+    it('persists a breadcrumb to groupingLog when the runtime flag is on', () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ debugGrouping: true, groupingLog: [{ event: 'old' }] })
+      );
+      fns.debugGroup('heal', { tabId: 7, urlKey: 'url-x' });
+      const written = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.groupingLog);
+      expect(written).toBeTruthy();
+      expect(written.groupingLog).toHaveLength(2);
+      expect(written.groupingLog[1]).toMatchObject({ event: 'heal', details: { tabId: 7, urlKey: 'url-x' } });
+    });
+
+    // With the flag off (the default), the breadcrumb must NOT be written — the
+    // diagnostics are opt-in so production storage is never touched with log noise.
+    it('does not persist when the runtime flag is off', () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ debugGrouping: false }));
+      fns.debugGroup('heal', { tabId: 7 });
+      const written = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.groupingLog);
+      expect(written).toBeUndefined();
+    });
   });
 
   describe('onUpdated group removal', () => {
@@ -741,7 +770,7 @@ describe('service_worker.js', () => {
     // Storage mock that reports a single grouped tab whose stored urlKey is
     // `oldUrlKey`, so the handler's `oldTabUrl` lookup resolves and the eject
     // path runs. Everything else answers empty so newUrl can complete.
-    const storageWithGroupedTab = (chrome, oldUrlKey) => {
+    const storageWithGroupedTab = (chrome, oldUrlKey, labelsObj) => {
       chrome.storage.local.get.mockImplementation((query, cb) => {
         const keys = typeof query === 'string' ? [query] : Array.isArray(query) ? query : Object.keys(query);
         const res = {};
@@ -750,14 +779,27 @@ describe('service_worker.js', () => {
             res.activeTabs = [{ tabKey: 'tab-3', urlKey: oldUrlKey, groupId: 5 }];
           } else if (k === 'allUrls') res.allUrls = [oldUrlKey];
           else if (k === 'autoClosed') res.autoClosed = {};
-          else if (k === 'labels') res.labels = {};
+          else if (k === 'labels') res.labels = labelsObj || {};
         }
         cb(res);
       });
       chrome.tabs.query.mockImplementation((_q, cb) => cb && cb([]));
+      // The in-page heal branch resolves the group's title, falling back to
+      // getTabGroup when the in-memory `groups` map is cold (common right after a
+      // service-worker restart). Resolve it here so that fallback completes
+      // instead of hanging on an unmocked callback.
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work' }));
     };
 
     const getHandler = (chrome) => chrome.tabs.onUpdated.addListener.mock.calls[0][0];
+
+    // Publishes `labelsObj` into the worker's module-level `labels` the same way
+    // the runtime does — by driving the storage.onChanged listener — so the heal
+    // branch reads it and mutations are visible on the same object reference.
+    const setLabels = (chrome, labelsObj) => {
+      const onChanged = chrome.storage.onChanged.addListener.mock.calls[0][0];
+      onChanged({ labels: { newValue: labelsObj, oldValue: {} } }, 'local');
+    };
 
     // The reported bug: a Google Docs tab in a group rewrites only its `?tab=`
     // query string in-page. Origin + path are unchanged, so this is NOT a
@@ -819,6 +861,117 @@ describe('service_worker.js', () => {
       );
 
       expect(chrome.tabs.ungroup).toHaveBeenCalledWith(3, expect.any(Function));
+    });
+
+    // The reported bug, fixed at the root: a Google Docs tab recorded under one
+    // `?tab=` key rewrites its query in-page. The label's stale urlKey must be
+    // healed to follow the live URL so downstream exact-key comparisons keep
+    // matching — otherwise reconciliation later drops the doc from the group.
+    it('heals the drifted label urlKey to the live key on a query-only change', async () => {
+      const base = 'https://docs.google.com/document/d/1GMK/edit';
+      const staleKey = `url-${base}?tab=t.A`;
+      const liveKey = `url-${base}?tab=t.B`;
+      const labelsObj = { Work: { title: 'Work', urlKeys: [staleKey] } };
+      storageWithGroupedTab(chrome, staleKey, labelsObj);
+      setLabels(chrome, labelsObj);
+      fns.trackGroup({ id: 5, title: 'Work' });
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: `${base}?tab=t.B` },
+        { id: 3, url: `${base}?tab=t.B`, groupId: 5, incognito: false }
+      );
+
+      expect(labelsObj.Work.urlKeys).toEqual([liveKey]);
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+    });
+
+    // The recorded key may be a THIRD `?tab=` variant, not the immediately
+    // previous one — locating the drifted slot by page identity (samePageKey)
+    // still finds and rewrites it.
+    it('heals a stale slot even when it is a third query variant', async () => {
+      const base = 'https://docs.google.com/document/d/1GMK/edit';
+      const recordedKey = `url-${base}?tab=t.A`;   // what the label holds
+      const previousKey = `url-${base}?tab=t.B`;   // the tab's last-seen live key
+      const liveKey = `url-${base}?tab=t.C`;        // where it is drifting to now
+      const labelsObj = { Work: { title: 'Work', urlKeys: [recordedKey] } };
+      storageWithGroupedTab(chrome, previousKey, labelsObj);
+      setLabels(chrome, labelsObj);
+      fns.trackGroup({ id: 5, title: 'Work' });
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: `${base}?tab=t.C` },
+        { id: 3, url: `${base}?tab=t.C`, groupId: 5, incognito: false }
+      );
+
+      expect(labelsObj.Work.urlKeys).toEqual([liveKey]);
+    });
+
+    // If the live key is already recorded elsewhere in the label, healing must
+    // remove the stale slot rather than create a duplicate entry.
+    it('removes the stale slot without duplicating an already-present live key', async () => {
+      const base = 'https://docs.google.com/document/d/1GMK/edit';
+      const staleKey = `url-${base}?tab=t.A`;
+      const liveKey = `url-${base}?tab=t.B`;
+      const labelsObj = { Work: { title: 'Work', urlKeys: [staleKey, liveKey] } };
+      storageWithGroupedTab(chrome, staleKey, labelsObj);
+      setLabels(chrome, labelsObj);
+      fns.trackGroup({ id: 5, title: 'Work' });
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: `${base}?tab=t.B` },
+        { id: 3, url: `${base}?tab=t.B`, groupId: 5, incognito: false }
+      );
+
+      expect(labelsObj.Work.urlKeys).toEqual([liveKey]);
+    });
+
+    // A real navigation must NOT heal — the tab is ejected and the label is left
+    // untouched, so heal only ever fires on an in-page change.
+    it('does not heal the label on a real navigation', async () => {
+      const staleKey = 'url-https://example.com/a';
+      const labelsObj = { Work: { title: 'Work', urlKeys: [staleKey] } };
+      storageWithGroupedTab(chrome, staleKey, labelsObj);
+      setLabels(chrome, labelsObj);
+      fns.trackGroup({ id: 5, title: 'Work' });
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: 'https://example.com/b' },
+        { id: 3, url: 'https://example.com/b', groupId: 5, incognito: false }
+      );
+
+      expect(chrome.tabs.ungroup).toHaveBeenCalledWith(3, expect.any(Function));
+      expect(labelsObj.Work.urlKeys).toEqual([staleKey]);
+    });
+
+    // Cold `groups` map (service worker just restarted): the title is not in the
+    // in-memory map, so the heal must resolve it via getTabGroup and still
+    // rewrite the drifted key.
+    it('heals via the getTabGroup fallback when the groups map is cold', async () => {
+      const base = 'https://docs.google.com/document/d/1GMK/edit';
+      const staleKey = `url-${base}?tab=t.A`;
+      const liveKey = `url-${base}?tab=t.B`;
+      const labelsObj = { Work: { title: 'Work', urlKeys: [staleKey] } };
+      storageWithGroupedTab(chrome, staleKey, labelsObj);
+      setLabels(chrome, labelsObj);
+      // Intentionally NO trackGroup — groups[5] is undefined, forcing the
+      // getTabGroup fallback (mocked in storageWithGroupedTab to title 'Work').
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: `${base}?tab=t.B` },
+        { id: 3, url: `${base}?tab=t.B`, groupId: 5, incognito: false }
+      );
+
+      expect(labelsObj.Work.urlKeys).toEqual([liveKey]);
     });
   });
 

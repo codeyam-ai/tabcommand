@@ -1,6 +1,6 @@
 {
-  "feature": "ungrouped-active-tabs-last",
-  "maxStep": 26,
-  "version": 316,
-  "updatedAt": "2026-07-01T09:51:00.828083923+00:00"
+  "feature": "heal-group-membership-on-url-drift",
+  "maxStep": 17,
+  "version": 211,
+  "updatedAt": "2026-07-02T01:24:50.816926270+00:00"
 }

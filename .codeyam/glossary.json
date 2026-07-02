@@ -290,6 +290,12 @@
     "testFile": "src/lib/components/UrlLabel/UrlLabel.test.jsx"
   },
   {
+    "description": "Pure ring-buffer helper for the grouping diagnostics trail: appends one breadcrumb to the current stored array and returns a new array trimmed to the most-recent cap entries, treating a missing or non-array store as empty and never mutating its input. Kept free of chrome/IO so it is unit-testable in isolation.",
+    "filePath": "src/lib/utils/groupingLog.js",
+    "name": "appendGroupingLog",
+    "testFile": "src/lib/utils/groupingLog.test.js"
+  },
+  {
     "description": "Pure reducer behind App's onDragEnd: for URL drops moves a urlKey out of the source label and into the destination label at the drop index (reporting active tab ids to ungroup); for LABEL_COLLECTION drops reorders groups by rewriting each label's position. Returns null when there is no destination.",
     "filePath": "src/lib/utils/dragReducer.js",
     "name": "applyDrag",
@@ -402,7 +408,7 @@
     "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
   },
   {
-    "description": "Gated diagnostic logger for the tab-grouping decision points. Emits a TC-GROUP console line only when DEBUG_GROUPING is enabled, keeping the prototype's grouping instrumentation available for future diagnosis without shipping console noise.",
+    "description": "Durable, runtime-toggleable diagnostic recorder for the tab-grouping decision points. Optionally emits a TC-GROUP console line when the compile-time DEBUG_GROUPING is on, and persists each breadcrumb to a capped groupingLog ring buffer in chrome.storage.local when the runtime debugGrouping flag is set, so grouping decisions survive MV3 service-worker restarts and are inspectable after the fact. Fire-and-forget: the storage round-trip never blocks the caller.",
     "filePath": "service_worker.js",
     "name": "debugGroup",
     "testFile": "service_worker.test.js"

@@ -1,6 +1,7 @@
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
+import appendGroupingLog from './src/lib/utils/groupingLog.js';
 
 let defaultWindowId;
 let listening = true;
@@ -23,12 +24,31 @@ const autoGroupedTabs = new Set();
 
 // Diagnostic logging for the tab-grouping decision points. The prototype proved
 // the auto-group stickiness bug with unconditional `[TC-GROUP]` console noise;
-// keep that instrumentation behind a single flag so it can be flipped on for
-// future diagnosis without shipping console spam. Flip to `true` to trace.
+// keep that instrumentation behind a flag so it can be flipped on for future
+// diagnosis without shipping console spam. Flip to `true` to trace to console.
 const DEBUG_GROUPING = false;
+// Cap for the persisted `groupingLog` ring buffer (see debugGroup).
+const GROUPING_LOG_CAP = 200;
+// Records a grouping decision breadcrumb. In addition to the compile-time
+// console trace (`DEBUG_GROUPING`), it persists the breadcrumb to a capped ring
+// buffer in `chrome.storage.local` when the runtime `debugGrouping` flag is set
+// — MV3 recycles the worker constantly, so a bug that spans a restart (a doc
+// recorded under one `?tab=` key, ejected after the worker died) is invisible to
+// `console.log` alone. The persisted trail is inspectable after the fact via
+// `chrome.storage.local.get('groupingLog')`, and enabled with no reload/source
+// edit via `chrome.storage.local.set({ debugGrouping: true })`. Fire-and-forget:
+// the async storage round-trip never blocks the caller.
 function debugGroup(event, details) {
-  if (!DEBUG_GROUPING) return;
-  console.log(`[TC-GROUP] ${event}`, details);
+  if (DEBUG_GROUPING) console.log(`[TC-GROUP] ${event}`, details);
+  getLocalStorage(['debugGrouping', 'groupingLog'], (result) => {
+    if (!DEBUG_GROUPING && !result.debugGrouping) return;
+    const groupingLog = appendGroupingLog(
+      result.groupingLog,
+      { t: Date.now(), event, details },
+      GROUPING_LOG_CAP
+    );
+    update({ groupingLog });
+  });
 }
 
 // Whether `urlKey` is a deliberate, recorded member of `label`. Centralizes the
@@ -119,11 +139,63 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       const isNavigation = samePageKey(oldUrl) !== samePageKey(changeInfo.url);
 
       if (tab.groupId > -1 && isNavigation) {
+        debugGroup('onUpdated: eject grouped tab (navigation)', {
+          tabId: tab.id,
+          oldUrl,
+          newUrl: changeInfo.url,
+          groupId: tab.groupId
+        });
         pendingUngroups.add(tab.id);
         chrome.tabs.ungroup(tab.id, () => {
           void (chrome.runtime && chrome.runtime.lastError);
           pendingUngroups.delete(tab.id);
         });
+      } else if (tab.groupId > -1 && !isNavigation) {
+        // In-page URL change on a grouped tab (e.g. Google Docs rewriting
+        // `?tab=t.…` via the History API). The tab stays grouped, but its live
+        // urlKey has now drifted away from the key recorded in the group's
+        // label — every downstream exact-key comparison (groupTabs eject,
+        // handleActiveTabsGroupChanges, post-restart reconciliation) would then
+        // conclude the URL is no longer a member and drop it. Heal by rewriting
+        // the drifted label slot to follow the live URL. We LOCATE the drifted
+        // slot by page identity (samePageKey) — which also catches the case
+        // where the recorded key is a third `?tab=` variant — but the
+        // membership/eject paths still compare exact keys, so samePageKey never
+        // becomes the membership test.
+        let labelTitle = groups[tab.groupId];
+        if (!labelTitle) {
+          // Cold `groups` map (common right after a service-worker restart):
+          // resolve the title straight from Chrome, mirroring the groupId === -1
+          // branch below.
+          const group = await getTabGroup(tab.groupId);
+          labelTitle = group && group.title;
+        }
+        const label = labels[labelTitle];
+        if (label) {
+          const newUrlKey = getUrlKey(changeInfo.url);
+          const idx = label.urlKeys.findIndex(
+            k => samePageKey(k.replace(/^url-/, '')) === samePageKey(changeInfo.url)
+          );
+          if (idx > -1 && label.urlKeys[idx] !== newUrlKey) {
+            const oldUrlKey = label.urlKeys[idx];
+            if (label.urlKeys.indexOf(newUrlKey) > -1) {
+              // Live key already recorded elsewhere in the label — drop the
+              // stale slot instead of duplicating it.
+              label.urlKeys.splice(idx, 1);
+            } else {
+              label.urlKeys[idx] = newUrlKey;
+            }
+            labels[labelTitle] = label;
+            updates = { ...updates, labels: labels };
+            debugGroup('onUpdated: heal drifted label urlKey', {
+              tabId: tab.id,
+              oldUrlKey,
+              newUrlKey,
+              label: labelTitle,
+              groupId: tab.groupId
+            });
+          }
+        }
       }
     }
     // This branch records the navigation directly (it does not pass through

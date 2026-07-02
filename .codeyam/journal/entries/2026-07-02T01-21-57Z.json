@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-07-02T01:21:57Z",
+  "title": "Heal Group Membership on In-Page URL Drift",
+  "type": "feature",
+  "userRequest": "Approve",
+  "description": "Grouped Google Docs tabs were being dropped from their group because membership is keyed by the full URL including the ?tab= query, which Google rewrites in-page via the History API — the recorded key drifted away from the live key, so exact-key eject/reconciliation paths concluded the tab was no longer a member. The onUpdated in-page branch now heals the drift: it locates the stale label urlKey by page identity (samePageKey) and rewrites it to the live getUrlKey value (or drops the stale slot to avoid a duplicate), so all downstream exact-key comparisons keep matching; real navigations still eject. Also added durable, runtime-toggleable grouping diagnostics: debugGroup now persists breadcrumbs to a capped 200-entry groupingLog ring buffer in chrome.storage.local (gated on a debugGrouping flag) that survives MV3 service-worker restarts, backed by a new pure appendGroupingLog helper, plus a breadcrumb at the previously-silent navigation-eject site.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/heal-group-membership-on-url-drift.md\t.codeyam/plans/completed/heal-group-membership-on-url-drift.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/groupingLog.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/groupingLog.test.js",
+      "status": "added"
+    }
+  ],
+  "testResults": {
+    "total": 426,
+    "passed": 426,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 426,
+        "passed": 426
+      }
+    ]
+  }
+}
