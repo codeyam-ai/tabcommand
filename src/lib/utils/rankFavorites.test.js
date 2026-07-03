@@ -128,11 +128,13 @@ describe('rankFavorites', () => {
   // Open-tab discount: an open non-pinned tab's most-recent (in-progress) visit
   // is dropped from its history, lowering the score.
   it('discounts an open tab by dropping its most-recent visit', () => {
-    const allUrls = ['url-a'];
-    const records = { 'url-a': rec('Open', [0, 1, 2]) };
+    // Key and record.url are the same real URL, as they are in storage — open
+    // detection reduces both the favorite and the live tab to page identity.
+    const allUrls = ['url-https://open.example'];
+    const records = { 'url-https://open.example': rec('Open', [0, 1, 2]) };
     const closed = rankFavorites(allUrls, records, 5, undefined, opts());
     const open = rankFavorites(allUrls, records, 5, undefined, opts({
-      openKeys: new Set(['url-a']),
+      openKeys: new Set(['url-https://open.example']),
     }));
     expect(open[0].isOpen).toBe(true);
     expect(open[0].recentVisits).toHaveLength(2); // latest dropped
@@ -216,5 +218,77 @@ describe('rankFavorites', () => {
     };
     const result = rankFavorites(allUrls, records, 5, undefined, opts());
     expect(result.map((r) => r.title)).toEqual(['Real Site']);
+  });
+
+  // A favorite that differs from an open tab only by its ?query (a Google-Doc
+  // ?tab= in-page rewrite) is still flagged open — page identity (origin+path),
+  // not the exact urlKey, decides the open cue, matching the tab-group view.
+  it('flags a favorite open when a live tab is on the same page but a different query', () => {
+    const docBase = 'https://docs.google.com/document/d/ABC/edit';
+    const allUrls = [`url-${docBase}?tab=t.old`];
+    const records = {
+      [`url-${docBase}?tab=t.old`]: rec('Ambiguity Everywhere', [0, 1, 2], {
+        url: `${docBase}?tab=t.old`,
+      }),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({
+      // The live tab has drifted to a NEW ?tab= value.
+      openKeys: new Set([`url-${docBase}?tab=t.new`]),
+    }));
+    expect(result[0].isOpen).toBe(true);
+  });
+
+  // No regression: an exact urlKey match (no query at all) still lights the cue.
+  it('still flags a favorite open on an exact live-tab match', () => {
+    const allUrls = ['url-https://example.com/x'];
+    const records = {
+      'url-https://example.com/x': rec('Exact', [0, 1, 2], {
+        url: 'https://example.com/x',
+      }),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({
+      openKeys: new Set(['url-https://example.com/x']),
+    }));
+    expect(result[0].isOpen).toBe(true);
+  });
+
+  // Page identity keeps distinct PATHS distinct: a favorite on /a is NOT flagged
+  // open just because a live tab is open on /b of the same origin.
+  it('does not flag a favorite open when the live tab is a different path on the same origin', () => {
+    const allUrls = ['url-https://example.com/a'];
+    const records = {
+      'url-https://example.com/a': rec('Page A', [0, 1, 2], {
+        url: 'https://example.com/a',
+      }),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({
+      openKeys: new Set(['url-https://example.com/b']),
+    }));
+    expect(result[0].isOpen).toBe(false);
+  });
+
+  // normalizeUrl is untouched: two favorites that differ only by ?query remain
+  // TWO distinct rows — but page-identity open detection lights BOTH when a live
+  // tab is on that same origin+path under any query.
+  it('keeps query-distinct favorites as separate rows while page identity drives the open cue', () => {
+    const allUrls = [
+      'url-https://shop.example/item?id=1',
+      'url-https://shop.example/item?id=2',
+    ];
+    const records = {
+      'url-https://shop.example/item?id=1': rec('Item One', [0, 1, 2], {
+        url: 'https://shop.example/item?id=1',
+      }),
+      'url-https://shop.example/item?id=2': rec('Item Two', [0, 1, 2], {
+        url: 'https://shop.example/item?id=2',
+      }),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({
+      openKeys: new Set(['url-https://shop.example/item?id=99']),
+    }));
+    // Two distinct rows — normalizeUrl preserves the query.
+    expect(result).toHaveLength(2);
+    // Both light up — same origin+path as the live tab, despite query drift.
+    expect(result.every((r) => r.isOpen)).toBe(true);
   });
 });

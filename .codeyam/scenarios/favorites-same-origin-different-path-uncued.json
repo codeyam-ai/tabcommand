@@ -1,0 +1,20 @@
+{
+  "name": "Favorites - Same Origin Different Path Uncued",
+  "id": "453bdee4-6b46-488a-86d3-5505004f1a54",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 12}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 8}",
+      "activeTabs": "[{\"tabKey\": \"tab-1\", \"urlKey\": \"url-https://example.com/docs/advanced\", \"pinned\": false}]",
+      "allUrls": "[\"url-https://example.com/docs/intro\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://news.ycombinator.com\"]",
+      "url-https://example.com/docs/intro": "{\"title\": \"Getting Started \\u2014 Docs\", \"favicon\": \"\", \"visitCount\": 11}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

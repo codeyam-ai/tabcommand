@@ -1,5 +1,6 @@
 import { isTrackableUrl } from './isTrackableUrl';
 import { normalizeUrl } from './normalizeUrl';
+import samePageKey from './samePageKey';
 import {
   decayedVisitScore,
   pruneVisits,
@@ -87,6 +88,16 @@ export function rankFavorites(
   const records = urlRecords || {};
   const excluded = excludedKeys || new Set();
   const openKeys = options.openKeys || new Set();
+  // Match the "open" cue by PAGE IDENTITY (origin + pathname), not the exact
+  // stored key, so a favorite still lights up when a live tab has drifted only
+  // its `?query`/`#hash` — the same in-page-rewrite rule the tab-group eject
+  // path uses via samePageKey. Derive the open page keys once up front from the
+  // live `openKeys` (strip the `url-` storage prefix to recover the raw URL,
+  // then reduce to origin+path), mirroring how service_worker derives
+  // samePageKey(oldUrl) from a stored `url-`-prefixed key.
+  const openPageKeys = new Set(
+    [...openKeys].map((k) => samePageKey(k.replace(/^url-/, '')))
+  );
   const hiddenKeys = options.hiddenKeys || new Set();
   const now = options.now != null ? options.now : Date.now();
   const halfLifeMs = options.halfLifeMs != null ? options.halfLifeMs : HALF_LIFE_MS;
@@ -110,8 +121,9 @@ export function rankFavorites(
     let visits = visitsFor(record, now);
     // Discount a currently-open (non-pinned) tab's in-progress visit by dropping
     // its most-recent timestamp — a tab that's still open shouldn't have that
-    // visit padding the rank while it's open.
-    const isOpen = openKeys.has(urlKey);
+    // visit padding the rank while it's open. Open status is page-identity based
+    // (candidateUrl's origin+path), so a query-drifted live tab still counts.
+    const isOpen = openPageKeys.has(samePageKey(candidateUrl));
     if (isOpen && visits.length > 0) visits = visits.slice(0, -1);
 
     candidates.push({

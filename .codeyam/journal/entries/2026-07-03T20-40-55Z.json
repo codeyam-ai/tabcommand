@@ -1,0 +1,251 @@
+{
+  "timestamp": "2026-07-03T20:40:55Z",
+  "title": "Favorites Page-Identity Open Detection",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe Favorites section flags a site as open (the accent `--open` cue) via an\n**exact** `urlKey` match against the live tabs — `openKeys.has(urlKey)` in\n`rankFavorites`. For a single-page app that rewrites its own `?query` via the\nHistory API (most visibly a Google Doc churning `?tab=t.…` as you move between\ntabs inside the doc), the favorite is pinned to a *historical* query variant\nwhile the live tab has drifted to a new one, so the exact match fails and the\nfavorite does **not** show as open — even though the very same doc IS shown as\nopen under its tab group. The group view reaches this consistently because it\nreads the live tab directly (`Tabs.jsx` iterates `activeTabs`) and the group's\nlabel `urlKeys` are healed to follow the live URL, so `Url`'s exact match always\nsucceeds. Fix: make Favorites open-detection **page-identity aware** — compare\norigin + pathname via `samePageKey` (the exact rule the grouping eject path\nalready uses to tell an in-page rewrite from a real navigation), so a favorite\nlights up whenever any live non-pinned tab is on the same page, regardless of\nquery drift. The ranking / de-duplication key (`normalizeUrl`, which\ndeliberately preserves the query) is left untouched.\n\n## Key Decisions\n\n- **Reuse `samePageKey`, not a new rule.** The grouping side already draws the\n  in-page-rewrite vs. navigation line with `samePageKey` (origin + pathname,\n  query and fragment dropped). Reusing it is exactly what \"match the group's\n  open detection\" means and guarantees the two views can't drift apart.\n- **Localize the change to `rankFavorites.js`.** Both callers\n  (`Favorites.jsx`, `ViewAllFavorites.jsx`) already build `openKeys` as a Set of\n  live `activeTabs` urlKeys and pass it straight through. Rather than change the\n  option's shape at every call site, `rankFavorites` derives page keys from the\n  `openKeys` it receives (`samePageKey(k.replace(/^url-/, ''))`) and matches each\n  candidate's page identity against that set. Callers stay byte-for-byte\n  unchanged; the `openKeys` contract (\"live non-pinned tab keys\") is unchanged.\n- **`isOpen` only — nothing else changes semantics.** `isOpen` also drives the\n  open-tab discount (dropping the in-progress most-recent visit); making `isOpen`\n  page-identity aware carries that discount along consistently, which is correct\n  (the page IS open). The `normalizeUrl` grouping/de-dupe key and the\n  score/order stay exactly as they are — query-distinct pages remain distinct\n  rows and distinct ranking entries.\n- **Out of scope (noted, not changed): pinned-tab exclusion.** `excludedKeys`\n  (pinned tabs) also matches by exact `urlKey` and has the same theoretical\n  drift, but excluding a favorite is a different behavior from the open cue and\n  is not what \"open detection\" refers to. Left exact to keep this change tightly\n  scoped; call out if we later want the same treatment there.\n\n## Implementation\n\n### 1. Match open status by page identity in `rankFavorites`\n\n**File**: `src/lib/utils/rankFavorites.js`\n\n- Import the existing helper: `import samePageKey from './samePageKey';` (a pure\n  `src/lib/utils` ES module — no service-worker/Chrome dependency, safe to import\n  into this pure util).\n- Where `openKeys` is currently read (`const openKeys = options.openKeys || new\n  Set();`), additionally derive a set of open *page* keys once, up front:\n  `const openPageKeys = new Set([...openKeys].map((k) => samePageKey(k.replace(/^url-/, ''))));`\n  This strips the `url-` storage prefix to recover the raw URL, then reduces it\n  to origin + pathname — mirroring how the grouping eject path derives\n  `samePageKey(oldUrl)` from a stored `url-`-prefixed key in `service_worker.js`.\n- Change the per-candidate open test from exact\n  `const isOpen = openKeys.has(urlKey);` to page-identity:\n  `const isOpen = openPageKeys.has(samePageKey(candidateUrl));`\n  `candidateUrl` is already computed just above for the trackable-URL guard\n  (`record.url || urlKey.replace(/^url-/, '')`) — reuse it so the favorite's page\n  identity is derived from its real URL, matching how the live tab's is derived.\n- Leave the open-tab discount (`if (isOpen && visits.length > 0) visits =\n  visits.slice(0, -1);`), the `normalizeUrl` grouping, and the\n  `existing.isOpen = existing.isOpen || candidate.isOpen` merge unchanged — they\n  now simply operate on the page-identity `isOpen`.\n\nNo changes are needed in `Favorites.jsx` or `ViewAllFavorites.jsx`: they already\nconstruct `openKeys` from the live non-pinned `activeTabs` and pass it in as\n`options.openKeys`.\n\n## Reused existing code\n\n- `samePageKey` from `src/lib/utils/samePageKey.js` (glossary entry:\n  `samePageKey`) — the origin+pathname reducer the tab-grouping eject path uses\n  to distinguish an in-page rewrite from a navigation; reused verbatim so\n  Favorites and the group view apply the identical rule.\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — the pure ranking function being amended; the `openKeys`\n  option and the open-tab discount are preserved, only the match becomes\n  page-identity based.\n- `normalizeUrl` from `src/lib/utils/normalizeUrl.js` (glossary entry:\n  `normalizeUrl`) — the ranking/de-dupe key; explicitly left as-is (query\n  preserved) so query-distinct pages remain distinct rows.\n\n## Reproduction Test\n\nPins that a favorite whose stored key differs from an open tab only by its\n`?query` (a Google-Doc-style in-page rewrite) is flagged `isOpen`.\n\n**Target**: `src/lib/utils/rankFavorites.test.js` — run with\n`codeyam-editor editor refresh-tests --test rankFavorites`.\n\n```js\n// A favorite that differs from an open tab only by its ?query (a Google-Doc\n// ?tab= in-page rewrite) is still flagged open — page identity (origin+path),\n// not the exact urlKey, decides the open cue, matching the tab-group view.\nit('flags a favorite open when a live tab is on the same page but a different query', () => {\n  const docBase = 'https://docs.google.com/document/d/ABC/edit';\n  const allUrls = [`url-${docBase}?tab=t.old`];\n  const records = {\n    [`url-${docBase}?tab=t.old`]: rec('Ambiguity Everywhere', [0, 1, 2], {\n      url: `${docBase}?tab=t.old`,\n    }),\n  };\n  const result = rankFavorites(allUrls, records, 5, undefined, opts({\n    // The live tab has drifted to a NEW ?tab= value.\n    openKeys: new Set([`url-${docBase}?tab=t.new`]),\n  }));\n  expect(result[0].isOpen).toBe(true);\n});\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: today\n`isOpen = openKeys.has('url-...?tab=t.old')` is `false` because the live key is\n`...?tab=t.new`, so `expect(result[0].isOpen).toBe(true)` fails (received\n`false`). (`rec`'s third `over` arg sets an explicit `url`; `opts()` is the\nexisting deterministic-`now` options helper used throughout this file.)\n\n## Scenarios to Demonstrate\n\n- **Google Doc drift (the bug):** a favorited Google Doc open in a non-pinned\n  tab whose live `?tab=` differs from the favorite's stored key — favorite shows\n  the `--open` cue, consistent with the doc appearing open under its group.\n- **Exact match still open:** a favorite whose key matches the live tab exactly\n  (no query) — still flagged open (no regression).\n- **Same origin, different path:** a favorite for `/a` while a tab is open on\n  `/b` of the same site — NOT flagged open (page identity keeps distinct paths\n  distinct).\n- **Not open at all:** a favorited site with no live tab — no `--open` cue.\n- **Query-distinct pages stay distinct rows:** two favorites differing only by\n  `?id=1` vs `?id=2` remain two separate ranked rows (`normalizeUrl` unchanged);\n  only their open cue follows page identity.\n- **View All Favorites parity:** the same page-identity open cue appears on the\n  View All page, which shares `rankFavorites`.",
+  "description": "The Favorites --open cue now matches an open favorite by page identity (origin + pathname via the existing samePageKey helper) instead of an exact urlKey, localized entirely to rankFavorites.js. A favorite therefore lights up whenever any live non-pinned tab is on the same page even after its ?query/#hash drifts — the Google-Docs ?tab= in-page-rewrite case that previously left the favorite un-cued while the same doc showed as open under its tab group. The normalizeUrl ranking/de-dup key is left query-preserving, so query-distinct pages remain distinct rows even though their open cue now follows page identity; both call sites (Favorites sidebar, View All page) stay byte-for-byte unchanged.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/pending-build-launch",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/plans/favorites-page-identity-open-detection.md\t.codeyam/plans/completed/favorites-page-identity-open-detection.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-populated.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/component-scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-google-doc-drift-open.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-query-distinct-rows-both-cued.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-same-origin-different-path-uncued.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-drift-open--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-drift-open--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-rows-both-cued--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-rows-both-cued--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-same-origin-different-path-uncued--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-same-origin-different-path-uncued--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/viewallfavorites-open-cue-by-page-identity.json",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Google Doc Drift Open",
+      "screenshotPath": "favorites-google-doc-drift-open--desktop.png"
+    },
+    {
+      "name": "Favorites - Non-Website Entries Filtered",
+      "screenshotPath": "favorites-non-website-entries-filtered--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Query Distinct Rows Both Cued",
+      "screenshotPath": "favorites-query-distinct-rows-both-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Same Origin Different Path Uncued",
+      "screenshotPath": "favorites-same-origin-different-path-uncued--desktop.png"
+    },
+    {
+      "name": "Favorites - Sidebar With View All Link",
+      "screenshotPath": "favorites-sidebar-with-view-all-link--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Empty",
+      "screenshotPath": "viewallfavorites-empty--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Open Cue By Page Identity",
+      "screenshotPath": "viewallfavorites-open-cue-by-page-identity--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Rich",
+      "screenshotPath": "viewallfavorites-rich--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 74,
+    "passed": 74,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 74,
+        "passed": 74
+      }
+    ]
+  }
+}

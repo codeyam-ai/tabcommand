@@ -1,6 +1,6 @@
 {
   "name": "Favorites - Populated",
-  "id": "4e7df8d1-1aba-4340-80c1-7ec43c6a0e83",
+  "id": "de6f2d80-419e-4e69-8028-173aaece8398",
   "url": "/?isolate=Favorites",
   "dimensions": [
     "Desktop"
@@ -8,13 +8,16 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 2}",
-      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 3}",
-      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 5}",
-      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 8}",
-      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand-ui\", \"url-https://www.notion.so/Roadmap\", \"url-https://react.dev/learn\", \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://news.ycombinator.com\"]",
-      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 6}",
-      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visitCount\": 12}"
+      "url-https://linear.app/team/issues": "{\"title\": \"Issues \\u2014 Linear\", \"favicon\": \"\", \"visitCount\": 16}",
+      "url-https://docs.anthropic.com/en/api": "{\"title\": \"Claude API Reference \\u2014 Anthropic Docs\", \"favicon\": \"\", \"visitCount\": 7}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\": \"Inbox \\u2014 Gmail\", \"favicon\": \"\", \"visitCount\": 18}",
+      "url-https://stackoverflow.com/questions": "{\"title\": \"Newest Questions \\u2014 Stack Overflow\", \"favicon\": \"\", \"visitCount\": 21}",
+      "url-https://www.youtube.com": "{\"title\": \"YouTube\", \"favicon\": \"\", \"visitCount\": 6}",
+      "url-https://vercel.com/dashboard": "{\"title\": \"Dashboard \\u2014 Vercel\", \"favicon\": \"\", \"visitCount\": 12}",
+      "url-https://en.wikipedia.org/wiki/Main_Page": "{\"title\": \"Wikipedia, the Free Encyclopedia\", \"favicon\": \"\", \"visitCount\": 9}",
+      "activeTabs": "[]",
+      "allUrls": "[\"url-https://stackoverflow.com/questions\", \"url-https://linear.app/team/issues\", \"url-https://vercel.com/dashboard\", \"url-https://en.wikipedia.org/wiki/Main_Page\", \"url-https://docs.anthropic.com/en/api\", \"url-https://mail.google.com/mail/u/0\", \"url-https://www.youtube.com\", \"url-https://calendar.google.com\"]",
+      "url-https://calendar.google.com": "{\"title\": \"Google Calendar\", \"favicon\": \"\", \"visitCount\": 5}"
     }
   },
   "componentName": "Favorites",

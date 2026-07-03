@@ -1,6 +1,6 @@
 {
-  "feature": "center-drag-hint-arrows",
-  "maxStep": 26,
-  "version": 291,
-  "updatedAt": "2026-07-03T14:08:02.087321817+00:00"
+  "feature": "favorites-page-identity-open-detection",
+  "maxStep": 24,
+  "version": 102,
+  "updatedAt": "2026-07-03T20:44:32.592391569+00:00"
 }

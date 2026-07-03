@@ -1,0 +1,25 @@
+{
+  "name": "ViewAllFavorites - Open Cue By Page Identity",
+  "id": "e755510e-6d1e-4361-89d1-c6dc39c4bf53",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "labels": "{}",
+      "url-https://docs.google.com/document/d/Q3PlanABC/edit?tab=t.overview": "{\"title\": \"Q3 Planning \\u2014 Google Docs\", \"favicon\": \"\", \"visitCount\": 22}",
+      "url-https://en.wikipedia.org/wiki/Main_Page": "{\"title\": \"Wikipedia, the Free Encyclopedia\", \"favicon\": \"\", \"visitCount\": 5}",
+      "url-https://linear.app/team/issues": "{\"title\": \"Issues \\u2014 Linear\", \"favicon\": \"\", \"visitCount\": 11}",
+      "url-https://stackoverflow.com/questions": "{\"title\": \"Newest Questions \\u2014 Stack Overflow\", \"favicon\": \"\", \"visitCount\": 8}",
+      "uxSettings": "{\"page\": {\"name\": \"Favorites\"}}",
+      "allUrls": "[\"url-https://docs.google.com/document/d/Q3PlanABC/edit?tab=t.overview\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://linear.app/team/issues\", \"url-https://stackoverflow.com/questions\", \"url-https://en.wikipedia.org/wiki/Main_Page\"]",
+      "activeTabs": "[{\"tabKey\": \"tab-1\", \"urlKey\": \"url-https://docs.google.com/document/d/Q3PlanABC/edit?tab=t.risks\", \"pinned\": false}]",
+      "favoritesHidden": "[]",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 16}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx"
+}

@@ -2836,6 +2836,15 @@
       "runner": "tests"
     },
     {
+      "description": "Page identity keeps distinct PATHS distinct: a favorite on /a is NOT flagged open just because a live tab is open on /b of the same origin.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › does not flag a favorite open when the live tab is a different path on the same origin",
+      "line": 257,
+      "registeredAt": "2026-07-03T20:21:00Z",
+      "runner": "tests"
+    },
+    {
       "description": "Qualification threshold — a single visit ~8 days old decays below QUALIFY_MIN and drops; a single recent visit clears it.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
@@ -2867,8 +2876,17 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › drops stored non-website entries like about:blank and file://",
-      "line": 208,
+      "line": 210,
       "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A favorite that differs from an open tab only by its ?query (a Google-Doc ?tab= in-page rewrite) is still flagged open — page identity (origin+path), not the exact urlKey, decides the open cue, matching the tab-group view.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › flags a favorite open when a live tab is on the same page but a different query",
+      "line": 226,
+      "registeredAt": "2026-07-03T20:21:00Z",
       "runner": "tests"
     },
     {
@@ -2876,8 +2894,17 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › flags hiddenKeys as isHidden instead of dropping them",
-      "line": 144,
+      "line": 146,
       "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "normalizeUrl is untouched: two favorites that differ only by ?query remain TWO distinct rows — but page-identity open detection lights BOTH when a live tab is on that same origin+path under any query.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › keeps query-distinct favorites as separate rows while page identity drives the open cue",
+      "line": 273,
+      "registeredAt": "2026-07-03T20:21:00Z",
       "runner": "tests"
     },
     {
@@ -2894,7 +2921,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › respects a numeric limit and an Infinity uncapped limit",
-      "line": 170,
+      "line": 172,
       "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
@@ -2921,7 +2948,7 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › shapes the row with score, visitCount-in-window, lastVisit and recentVisits",
-      "line": 183,
+      "line": 185,
       "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
@@ -2930,8 +2957,17 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › skips urlKeys present in excludedKeys",
-      "line": 158,
+      "line": 160,
       "registeredAt": "2026-06-28T11:38:08Z",
+      "runner": "tests"
+    },
+    {
+      "description": "No regression: an exact urlKey match (no query at all) still lights the cue.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › still flags a favorite open on an exact live-tab match",
+      "line": 242,
+      "registeredAt": "2026-07-03T20:21:00Z",
       "runner": "tests"
     },
     {

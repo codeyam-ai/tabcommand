@@ -1,0 +1,22 @@
+{
+  "name": "Favorites - Google Doc Drift Open",
+  "id": "c0c9ac88-b314-4123-a966-eaefae6a8c3d",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"visitCount\": 6}",
+      "url-https://docs.google.com/document/d/1aZ9_Q3Planning/edit?tab=t.overview": "{\"title\": \"Q3 Planning \\u2014 Google Docs\", \"favicon\": \"\", \"visitCount\": 14}",
+      "allUrls": "[\"url-https://docs.google.com/document/d/1aZ9_Q3Planning/edit?tab=t.overview\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand-ui\", \"url-https://react.dev/learn\", \"url-https://news.ycombinator.com\"]",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 12}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"visitCount\": 5}",
+      "activeTabs": "[{\"tabKey\": \"tab-1\", \"urlKey\": \"url-https://docs.google.com/document/d/1aZ9_Q3Planning/edit?tab=t.risks\", \"pinned\": false}]",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 8}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}
