@@ -104,7 +104,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › collapses cosmetic URL duplicates into one row",
-      "line": 105,
+      "line": 106,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -113,7 +113,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › discounts a site open in a non-pinned tab below the threshold",
-      "line": 139,
+      "line": 140,
       "registeredAt": "2026-06-28T14:43:37Z",
       "runner": "tests"
     },
@@ -122,7 +122,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › excludes a site open in a Chrome-pinned tab",
-      "line": 119,
+      "line": 120,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -131,7 +131,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › excludes a site present in favoritesHidden",
-      "line": 155,
+      "line": 169,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -140,7 +140,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › falls back to the URL when a favorite has no title",
-      "line": 66,
+      "line": 67,
       "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
@@ -149,7 +149,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › marks an open favorite with the Favorites-item--open class",
-      "line": 206,
+      "line": 220,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -158,7 +158,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › ranks a frequently-visited older site above a barely-newer one",
-      "line": 91,
+      "line": 92,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -167,7 +167,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › removes a favorite via the × and still opens a tab on a plain row click",
-      "line": 170,
+      "line": 184,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -176,7 +176,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › renders nothing when there are no favorites",
-      "line": 244,
+      "line": 258,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -185,7 +185,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › renders the header and the ranked site titles",
-      "line": 26,
+      "line": 27,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -194,7 +194,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › renders up to ten favorites when that many qualify",
-      "line": 228,
+      "line": 242,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -203,7 +203,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › shows the title and full URL in the row tooltip",
-      "line": 44,
+      "line": 45,
       "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
@@ -1351,6 +1351,33 @@
       "runner": "tests"
     },
     {
+      "description": "the back button returns to the Home page via uxSettings",
+      "file": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+      "format": "vitest",
+      "key": "ViewAllFavorites › navigates back to Home when the back button is clicked",
+      "line": 51,
+      "registeredAt": "2026-07-03T00:10:10.975459793+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a genuinely-visited site qualifies and renders with its title",
+      "file": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+      "format": "vitest",
+      "key": "ViewAllFavorites › renders a qualifying favorite with its title",
+      "line": 35,
+      "registeredAt": "2026-07-03T00:10:10.975459793+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "with nothing stored, the page shows its empty-state line",
+      "file": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+      "format": "vitest",
+      "key": "ViewAllFavorites › shows the empty state when there are no favorites",
+      "line": 28,
+      "registeredAt": "2026-07-03T00:10:10.975459793+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "The common case: a new breadcrumb lands at the end of an existing trail, preserving prior entries in order.",
       "file": "src/lib/utils/groupingLog.test.js",
       "format": "vitest",
@@ -1501,6 +1528,114 @@
       "key": "bucketByDay › treats a missing timestamp as Earlier this week",
       "line": 28,
       "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Multiple visits on the same day accumulate in one bucket.",
+      "file": "src/lib/utils/bucketVisitsByDay.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByDay › accumulates same-day visits into one bucket",
+      "line": 33,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A visit older than the window (or in the future) is dropped, not clamped.",
+      "file": "src/lib/utils/bucketVisitsByDay.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByDay › ignores visits outside the window",
+      "line": 46,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Today's visit lands in the newest (last) bucket.",
+      "file": "src/lib/utils/bucketVisitsByDay.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByDay › places a visit today in the last bucket",
+      "line": 26,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Default window length matches SPARK_DAYS, one entry per day.",
+      "file": "src/lib/utils/bucketVisitsByDay.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByDay › returns an array of SPARK_DAYS zero counts for no visits",
+      "line": 13,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Visits spread across days land in distinct, correctly-ordered buckets.",
+      "file": "src/lib/utils/bucketVisitsByDay.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByDay › spreads visits across day buckets oldest-first",
+      "line": 39,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A non-array input is tolerated and yields the empty window.",
+      "file": "src/lib/utils/bucketVisitsByDay.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByDay › tolerates a non-array visits argument",
+      "line": 20,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Multiple visits within the same week aggregate into one bucket — the whole point of the weekly view (it varies in height where the daily view is flat).",
+      "file": "src/lib/utils/bucketVisitsByWeek.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByWeek › aggregates same-week visits into one bucket",
+      "line": 36,
+      "registeredAt": "2026-07-02T23:35:43.234172543+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "A visit older than the window (or in the future) is dropped, not clamped.",
+      "file": "src/lib/utils/bucketVisitsByWeek.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByWeek › ignores visits outside the window",
+      "line": 49,
+      "registeredAt": "2026-07-02T23:35:43.234172543+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "This week's visit lands in the newest (last) bucket.",
+      "file": "src/lib/utils/bucketVisitsByWeek.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByWeek › places a visit this week in the last bucket",
+      "line": 28,
+      "registeredAt": "2026-07-02T23:35:43.234172543+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Default window length matches SPARK_WEEKS, one entry per week.",
+      "file": "src/lib/utils/bucketVisitsByWeek.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByWeek › returns an array of SPARK_WEEKS zero counts for no visits",
+      "line": 15,
+      "registeredAt": "2026-07-02T23:35:43.234172543+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Visits spread across weeks land in distinct, correctly-ordered buckets.",
+      "file": "src/lib/utils/bucketVisitsByWeek.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByWeek › spreads visits across week buckets oldest-first",
+      "line": 42,
+      "registeredAt": "2026-07-02T23:35:43.234172543+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "A non-array input is tolerated and yields the empty window.",
+      "file": "src/lib/utils/bucketVisitsByWeek.test.js",
+      "format": "vitest",
+      "key": "bucketVisitsByWeek › tolerates a non-array visits argument",
+      "line": 22,
+      "registeredAt": "2026-07-02T23:35:43.234172543+00:00",
       "runner": "tests"
     },
     {
@@ -1807,6 +1942,60 @@
       "key": "columnsForWidth › steps down through three and two columns",
       "line": 13,
       "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A future timestamp (clock skew) is clamped to a weight of 1, not >1.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "decayedVisitScore › clamps a future visit to weight 1",
+      "line": 88,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A single visit at exactly one half-life sits right at QUALIFY_MIN, the boundary a Favorite must clear — pinning the threshold intent.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "decayedVisitScore › puts a one-half-life visit at the qualification threshold",
+      "line": 94,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "No visits -> zero score, no throw.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "decayedVisitScore › returns 0 for empty or non-array input",
+      "line": 66,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A single fresh visit is worth exactly 1.0.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "decayedVisitScore › scores a fresh visit as 1",
+      "line": 72,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A visit one half-life old is worth 0.5.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "decayedVisitScore › scores a half-life-old visit as 0.5",
+      "line": 77,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Two visits sum their decayed weights.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "decayedVisitScore › sums decayed weights across visits",
+      "line": 82,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
@@ -2557,39 +2746,84 @@
       "runner": "tests"
     },
     {
-      "description": "De-duplication: http/https/www/trailing-slash variants collapse to a single row, their counts summed, with the most-recent variant as the representative.",
-      "file": "src/lib/utils/rankFavorites.test.js",
+      "description": "More than MAX_VISITS entries keep only the newest MAX_VISITS.",
+      "file": "src/lib/utils/visitDecay.test.js",
       "format": "vitest",
-      "key": "rankFavorites › collapses cosmetic URL variants into one row with summed counts",
-      "line": 94,
-      "registeredAt": "2026-06-28T14:43:37Z",
+      "key": "pruneVisits › caps length to the newest MAX_VISITS",
+      "line": 49,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
-      "description": "The returned row shape: url derived from the key when absent, title + favicon passed through.",
-      "file": "src/lib/utils/rankFavorites.test.js",
+      "description": "Visits older than the retention horizon are dropped.",
+      "file": "src/lib/utils/visitDecay.test.js",
       "format": "vitest",
-      "key": "rankFavorites › derives url from the key when the record omits it, and shapes the row",
-      "line": 176,
-      "registeredAt": "2026-06-28T10:02:28Z",
+      "key": "pruneVisits › drops visits older than the retention horizon",
+      "line": 28,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
-      "description": "Open-tab discount: a site visited twice but open in one non-pinned tab drops to effective 1 and falls below threshold; an unrelated open key is harmless.",
-      "file": "src/lib/utils/rankFavorites.test.js",
+      "description": "Non-finite / non-numeric entries are filtered out.",
+      "file": "src/lib/utils/visitDecay.test.js",
       "format": "vitest",
-      "key": "rankFavorites › discounts a currently-open tab, floored against the threshold",
-      "line": 118,
-      "registeredAt": "2026-06-28T14:43:37Z",
+      "key": "pruneVisits › filters out non-finite entries",
+      "line": 35,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
-      "description": "The decay must not change WHO qualifies, only the order: the oldest retained site (recency weight at the floor, never zero) still appears as long as its RAW effective visits clear the threshold.",
+      "description": "Garbage / undefined input never throws; it yields an empty array.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "pruneVisits › returns [] for non-array or empty input",
+      "line": 21,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The result is sorted ascending regardless of input order.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "pruneVisits › returns visits sorted ascending",
+      "line": 41,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "De-duplication: http/https/www/trailing-slash variants collapse to one row, their visit timestamps merged, with the most-recent variant as representative.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
-      "key": "rankFavorites › does not let recency decay drop an oldest-but-qualifying site",
-      "line": 214,
-      "registeredAt": "2026-06-28T16:59:53Z",
+      "key": "rankFavorites › collapses cosmetic URL variants and merges their visits",
+      "line": 113,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Open-tab discount: an open non-pinned tab's most-recent (in-progress) visit is dropped from its history, lowering the score.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › discounts an open tab by dropping its most-recent visit",
+      "line": 130,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Qualification threshold — a single visit ~8 days old decays below QUALIFY_MIN and drops; a single recent visit clears it.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › drops a single week-plus-old visit but keeps a recent one",
+      "line": 63,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A site visited only twice ~two weeks ago also falls below the threshold.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › drops a site visited twice over two weeks",
+      "line": 83,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
@@ -2597,80 +2831,44 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › drops keys without a usable record/title",
-      "line": 30,
+      "line": 37,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
     {
-      "description": "The minimum-visit threshold: a single-visit site doesn't qualify; bump it to the threshold and it appears.",
+      "description": "Defensive trackable-URL guard: a stored non-website key is excluded even with many visits, while real sites rank.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
-      "key": "rankFavorites › drops sites below MIN_VISITS, includes them once they reach it",
-      "line": 68,
-      "registeredAt": "2026-06-28T14:43:37Z",
+      "key": "rankFavorites › drops stored non-website entries like about:blank and file://",
+      "line": 208,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
-      "description": "A stored non-website key with a high visit count is excluded from the ranking while real sites still rank.",
+      "description": "hiddenKeys are NOT dropped: they're scored, qualified, and flagged isHidden so the View All page can render them dimmed.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
-      "key": "rankFavorites › drops stored non-website entries like about:blank and file:// from the ranking",
-      "line": 226,
-      "registeredAt": "2026-06-29T19:50:50Z",
+      "key": "rankFavorites › flags hiddenKeys as isHidden instead of dropping them",
+      "line": 144,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
-      "description": "isOpen render hint: true for a row whose site is in openKeys, false otherwise. The site must still clear the threshold after the open-tab discount.",
+      "description": "Time-decay ordering: two sites with the SAME raw visit count but different recency — the recently-visited one ranks above the stale one.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
-      "key": "rankFavorites › flags isOpen for an open favorite and not for a closed one",
-      "line": 242,
-      "registeredAt": "2026-06-28T16:59:53Z",
+      "key": "rankFavorites › ranks a recent site above a stale one with the same visit count",
+      "line": 50,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
-      "description": "isOpen fires when ANY variant of a collapsed site is open, even if the open variant is not the representative row that renders.",
+      "description": "The limit caps how many favorites are returned; Infinity leaves it uncapped.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
-      "key": "rankFavorites › flags isOpen when a non-representative variant is the open one",
-      "line": 257,
-      "registeredAt": "2026-06-28T16:59:53Z",
-      "runner": "tests"
-    },
-    {
-      "description": "Recency decay flips an order frequency alone would not: a more-recent, LOWER -frequency site outranks a much-older, HIGHER-frequency one once both clear the threshold. (By raw count alone, Stale's 6 would beat Recent's 3.)",
-      "file": "src/lib/utils/rankFavorites.test.js",
-      "format": "vitest",
-      "key": "rankFavorites › lets recency decay rank a recent lower-frequency site above a stale heavier one",
-      "line": 201,
-      "registeredAt": "2026-06-28T16:59:53Z",
-      "runner": "tests"
-    },
-    {
-      "description": "With equal effective visit counts, the recency decay orders newest-first (and recency remains the deterministic tiebreak for any exact score tie).",
-      "file": "src/lib/utils/rankFavorites.test.js",
-      "format": "vitest",
-      "key": "rankFavorites › orders newest-first when visit counts are equal",
-      "line": 55,
-      "registeredAt": "2026-06-28T16:59:53Z",
-      "runner": "tests"
-    },
-    {
-      "description": "Frequency leads: a more-visited older site ranks above a more-recent, less-visited one (the recency-dominant blend is gone).",
-      "file": "src/lib/utils/rankFavorites.test.js",
-      "format": "vitest",
-      "key": "rankFavorites › ranks frequency-first — higher visit count beats more-recent",
-      "line": 43,
-      "registeredAt": "2026-06-28T14:43:37Z",
-      "runner": "tests"
-    },
-    {
-      "description": "The limit argument caps how many favorites are returned.",
-      "file": "src/lib/utils/rankFavorites.test.js",
-      "format": "vitest",
-      "key": "rankFavorites › respects the limit",
-      "line": 156,
-      "registeredAt": "2026-06-28T10:02:28Z",
+      "key": "rankFavorites › respects a numeric limit and an Infinity uncapped limit",
+      "line": 170,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
@@ -2678,17 +2876,26 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › returns [] for empty or non-array allUrls",
-      "line": 23,
+      "line": 30,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
     {
-      "description": "Fewer candidates than the limit returns all of them, not a padded list.",
+      "description": "Legacy migration: a record with visitCount but no `visits` array is seeded from the count so it still qualifies and ranks sensibly.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
-      "key": "rankFavorites › returns fewer than limit when there are fewer qualifying candidates",
-      "line": 168,
-      "registeredAt": "2026-06-28T10:02:28Z",
+      "key": "rankFavorites › seeds a legacy visitCount-only record so it still qualifies",
+      "line": 96,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The returned row carries the stats the View All page needs.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › shapes the row with score, visitCount-in-window, lastVisit and recentVisits",
+      "line": 183,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
@@ -2696,17 +2903,62 @@
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › skips urlKeys present in excludedKeys",
-      "line": 137,
+      "line": 158,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
     {
-      "description": "A record with no visitCount field is scored as 0 and does not throw.",
-      "file": "src/lib/utils/rankFavorites.test.js",
+      "description": "A future timestamp (clock skew) is clamped to just now, never negative.",
+      "file": "src/lib/utils/relativeTime.test.js",
       "format": "vitest",
-      "key": "rankFavorites › treats a missing visitCount as 0, below the threshold",
-      "line": 82,
-      "registeredAt": "2026-06-28T10:02:28Z",
+      "key": "relativeTime › clamps a future timestamp to just now",
+      "line": 45,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Under an hour reads as just now.",
+      "file": "src/lib/utils/relativeTime.test.js",
+      "format": "vitest",
+      "key": "relativeTime › returns just now within the last hour",
+      "line": 21,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A null/zero/undefined timestamp has no meaningful age.",
+      "file": "src/lib/utils/relativeTime.test.js",
+      "format": "vitest",
+      "key": "relativeTime › returns never for a missing timestamp",
+      "line": 14,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "From one day up to two weeks reads in whole days.",
+      "file": "src/lib/utils/relativeTime.test.js",
+      "format": "vitest",
+      "key": "relativeTime › returns whole days from one day to under two weeks",
+      "line": 33,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Between one hour and one day reads in whole hours.",
+      "file": "src/lib/utils/relativeTime.test.js",
+      "format": "vitest",
+      "key": "relativeTime › returns whole hours within the last day",
+      "line": 27,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Two weeks and beyond reads in whole weeks.",
+      "file": "src/lib/utils/relativeTime.test.js",
+      "format": "vitest",
+      "key": "relativeTime › returns whole weeks at two weeks and beyond",
+      "line": 39,
+      "registeredAt": "2026-07-02T21:34:39Z",
       "runner": "tests"
     },
     {
@@ -2899,6 +3151,51 @@
       "runner": "tests"
     },
     {
+      "description": "A zero / missing count yields no visits.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "seedVisitsFromCount › returns [] for a zero or missing count",
+      "line": 106,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The result is sorted ascending, matching pruneVisits' contract.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "seedVisitsFromCount › returns seeded visits sorted ascending",
+      "line": 132,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A count of one seeds a single visit at now.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "seedVisitsFromCount › seeds a single visit at now for count 1",
+      "line": 112,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The seeded array length equals the count (capped at MAX_VISITS).",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "seedVisitsFromCount › seeds count timestamps, capped at MAX_VISITS",
+      "line": 117,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Seeded visits are recent and end at now, so a migrated favorite qualifies.",
+      "file": "src/lib/utils/visitDecay.test.js",
+      "format": "vitest",
+      "key": "seedVisitsFromCount › seeds recent visits ending at now that clear the threshold",
+      "line": 123,
+      "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
       "description": "dedupe spans both segments, not just within one",
       "file": "src/lib/utils/segmentSearchResults.test.js",
       "format": "vitest",
@@ -2957,7 +3254,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
-      "line": 422,
+      "line": 508,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -2966,7 +3263,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag on a deliberate group change",
-      "line": 669,
+      "line": 755,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2975,7 +3272,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag when a flagged tab is removed",
-      "line": 685,
+      "line": 771,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2984,7 +3281,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › ejects an auto-grouped non-member and does not record its URL",
-      "line": 638,
+      "line": 724,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -2993,7 +3290,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › keeps an auto-grouped tab whose URL is a deliberate member",
-      "line": 655,
+      "line": 741,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3002,7 +3299,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › autoCloseThresholdMinutes › falls back to the default and maps Off to 0",
-      "line": 1185,
+      "line": 1271,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3011,7 +3308,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes a grouped/labeled inactive tab",
-      "line": 1125,
+      "line": 1211,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3020,7 +3317,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes and records an inactive ungrouped tab",
-      "line": 1090,
+      "line": 1176,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3029,7 +3326,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes nothing when autoCloseMinutes is 0 meaning Off",
-      "line": 1175,
+      "line": 1261,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3038,7 +3335,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › continues the sweep when one tab removal throws",
-      "line": 1133,
+      "line": 1219,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3047,7 +3344,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › keeps a tab that was active within the window",
-      "line": 1116,
+      "line": 1202,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3056,7 +3353,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › never closes pinned, tabCommandPinned, or the active tab",
-      "line": 1099,
+      "line": 1185,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3065,7 +3362,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › prunes autoClosed entries older than MAX_AUTO_CLOSED_TIME",
-      "line": 1151,
+      "line": 1237,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3074,7 +3371,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › registers the auto-close alarm at load",
-      "line": 1084,
+      "line": 1170,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3083,7 +3380,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › respects a custom settings.autoCloseMinutes",
-      "line": 1165,
+      "line": 1251,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3101,7 +3398,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › does not persist when the runtime flag is off",
-      "line": 720,
+      "line": 806,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3110,7 +3407,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › is a no-op that does not throw when disabled",
-      "line": 697,
+      "line": 783,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3119,7 +3416,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › persists a breadcrumb to groupingLog when the runtime flag is on",
-      "line": 705,
+      "line": 791,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3128,7 +3425,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › keeps the tab and clears the flag when fresh storage shows membership",
-      "line": 603,
+      "line": 689,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3137,7 +3434,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › returns wait and does nothing while the URL is still unloaded",
-      "line": 589,
+      "line": 675,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3146,7 +3443,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › ungroups a confirmed non-member and tracks the in-flight ungroup",
-      "line": 619,
+      "line": 705,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3200,7 +3497,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › captures a genuinely grouped tab",
-      "line": 512,
+      "line": 598,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3209,7 +3506,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › does not capture a tab whose ungroup is pending",
-      "line": 499,
+      "line": 585,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3218,7 +3515,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ignores pinned tabs",
-      "line": 492,
+      "line": 578,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3227,7 +3524,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
-      "line": 485,
+      "line": 571,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3236,7 +3533,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
-      "line": 450,
+      "line": 536,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3245,7 +3542,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › seeds a missing label on the add path without throwing",
-      "line": 460,
+      "line": 546,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3272,7 +3569,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › degrades to none when a system call throws",
-      "line": 1037,
+      "line": 1123,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3281,7 +3578,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › falls back to chrome.system and tags 'system' when processes is absent",
-      "line": 1002,
+      "line": 1088,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3290,7 +3587,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'none' and never throws when no load API is available",
-      "line": 1028,
+      "line": 1114,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3299,7 +3596,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'processes' and keeps processing when chrome.processes is present",
-      "line": 992,
+      "line": 1078,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3340,6 +3637,15 @@
       "runner": "tests"
     },
     {
+      "description": "A repeat visit appends a fresh timestamp and increments visitCount while preserving the prior visits and other url-* fields.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › appends a visit timestamp on a repeat visit",
+      "line": 406,
+      "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "Non-website navigations like about:blank and file: return early so they never enter allUrls or bump visitCount.",
       "file": "service_worker.test.js",
       "format": "vitest",
@@ -3358,6 +3664,24 @@
       "runner": "tests"
     },
     {
+      "description": "Visits older than the retention horizon are pruned on write, so per-site history stays bounded.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › prunes visits older than the retention horizon on write",
+      "line": 425,
+      "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "A brand-new url records a first visit timestamp alongside visitCount 1, so Favorites can rank by a time-decayed sum of visits.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › records a first visit timestamp and visitCount on a new url",
+      "line": 394,
+      "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "returns undefined when called without a tab id or url",
       "file": "service_worker.test.js",
       "format": "vitest",
@@ -3371,7 +3695,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated group removal › removes a hashed URL using the normalized key when a tab leaves a group",
-      "line": 742,
+      "line": 828,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3380,7 +3704,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not heal the label on a real navigation",
-      "line": 936,
+      "line": 1022,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3389,7 +3713,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a fragment-only change",
-      "line": 823,
+      "line": 909,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -3398,7 +3722,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a query-string-only change",
-      "line": 807,
+      "line": 893,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -3407,7 +3731,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals a stale slot even when it is a third query variant",
-      "line": 893,
+      "line": 979,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3416,7 +3740,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals the drifted label urlKey to the live key on a query-only change",
-      "line": 870,
+      "line": 956,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3425,7 +3749,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals via the getTabGroup fallback when the groups map is cold",
-      "line": 957,
+      "line": 1043,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3434,7 +3758,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › removes the stale slot without duplicating an already-present live key",
-      "line": 915,
+      "line": 1001,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3443,7 +3767,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different origin",
-      "line": 853,
+      "line": 939,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -3452,7 +3776,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different path",
-      "line": 839,
+      "line": 925,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -3479,8 +3803,44 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
-      "line": 412,
+      "line": 498,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "More than 50 entries keep only the newest 50.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › pruneVisits › caps length to the newest 50 visits",
+      "line": 469,
+      "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Visits older than the 30-day retention horizon are dropped.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › pruneVisits › drops visits older than the retention horizon",
+      "line": 451,
+      "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "A non-array or empty input yields an empty array, never a throw.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › pruneVisits › returns [] for non-array or empty input",
+      "line": 444,
+      "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "The result is sorted ascending and drops non-finite entries.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › pruneVisits › sorts ascending and filters non-finite entries",
+      "line": 460,
+      "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
     {
@@ -3488,7 +3848,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › persists the updated labels to storage",
-      "line": 574,
+      "line": 660,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3497,7 +3857,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › pushes the urlKey into an existing label",
-      "line": 563,
+      "line": 649,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3506,7 +3866,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › seeds a missing label with the tab urlKey and mapped color",
-      "line": 551,
+      "line": 637,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3515,7 +3875,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
-      "line": 441,
+      "line": 527,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3524,7 +3884,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
-      "line": 436,
+      "line": 522,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3551,7 +3911,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
-      "line": 395,
+      "line": 481,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3578,7 +3938,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false for a label with no urlKeys",
-      "line": 537,
+      "line": 623,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3587,7 +3947,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the label is undefined or null",
-      "line": 543,
+      "line": 629,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3596,7 +3956,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the urlKey is absent",
-      "line": 531,
+      "line": 617,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3605,7 +3965,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is true when the urlKey is present in the label",
-      "line": 525,
+      "line": 611,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3751,6 +4111,42 @@
       "key": "summarizeProcessLoad › returns null when there are no samples",
       "line": 6,
       "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "A favorite with no visits still floors the max at 1.",
+      "file": "src/lib/utils/usageMax.test.js",
+      "format": "vitest",
+      "key": "usageMax › floors at 1 when favorites have no visits",
+      "line": 21,
+      "registeredAt": "2026-07-02T23:42:04.687064119+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Weekly aggregation can exceed any single day, so the weekly buckets drive the max when visits spread across a week.",
+      "file": "src/lib/utils/usageMax.test.js",
+      "format": "vitest",
+      "key": "usageMax › reflects weekly aggregation over daily counts",
+      "line": 34,
+      "registeredAt": "2026-07-02T23:42:04.687064119+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "No favorites (or garbage) floors at 1, never 0 — avoids divide-by-zero when scaling bars.",
+      "file": "src/lib/utils/usageMax.test.js",
+      "format": "vitest",
+      "key": "usageMax › returns 1 for empty or non-array input",
+      "line": 14,
+      "registeredAt": "2026-07-02T23:42:04.687064119+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "The max spans ALL favorites, not just one — the busiest row wins.",
+      "file": "src/lib/utils/usageMax.test.js",
+      "format": "vitest",
+      "key": "usageMax › takes the max across all favorites",
+      "line": 26,
+      "registeredAt": "2026-07-02T23:42:04.687064119+00:00",
       "runner": "tests"
     },
     {

@@ -1,0 +1,20 @@
+{
+  "name": "ViewAllFavorites - Empty",
+  "id": "452a9dd6-9b85-4442-994a-7c39edeb6777",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "uxSettings": "{\"page\": {\"name\": \"Favorites\"}}",
+      "labels": "{}",
+      "activeTabs": "[]",
+      "allUrls": "[]",
+      "favoritesHidden": "[]"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx"
+}

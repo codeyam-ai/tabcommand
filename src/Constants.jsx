@@ -3,7 +3,8 @@ export const Pages = {
   IMPORTEXPORT: 'ImportExport',
   URL: 'Url',
   LOAD: 'Load',
-  HISTORY: 'History'
+  HISTORY: 'History',
+  FAVORITES: 'Favorites'
 }
 
 export const ItemTypes = {

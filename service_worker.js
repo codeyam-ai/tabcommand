@@ -82,6 +82,28 @@ const AUTO_CLOSE_MINUTES = 120;
 const MAX_AUTO_CLOSED_TIME = 1000 * 60 * 60 * 24 * 5;
 const AUTO_CLOSE_ALARM = 'auto-close-sweep';
 
+// Per-visit history tunables, mirrored from src/lib/utils/visitDecay.js (the
+// service-worker runtime can't import that ES module, same as the GAUGE /
+// AUTO_CLOSE constants above). VISIT_RETENTION_MS: drop visit timestamps older
+// than this on write; MAX_VISITS: cap retained timestamps per site. Retention is
+// sized to the longest usage view the Favorites page draws (the 7-week
+// sparkline) plus a week of margin — 8 weeks; old visits contribute negligible
+// decayed weight to the rank but back the weekly usage-over-time view.
+const VISIT_RETENTION_MS = 1000 * 60 * 60 * 24 * 56;
+const MAX_VISITS = 50;
+
+// Drop visits older than the retention horizon and cap to the newest MAX_VISITS.
+// Mirror of pruneVisits() in visitDecay.js; kept pure so it's obviously correct.
+function pruneVisits(visits, now) {
+  if (!Array.isArray(visits)) return [];
+  const cutoff = now - VISIT_RETENTION_MS;
+  const kept = visits
+    .map(Number)
+    .filter((ts) => Number.isFinite(ts) && ts > cutoff)
+    .sort((a, b) => a - b);
+  return kept.length > MAX_VISITS ? kept.slice(-MAX_VISITS) : kept;
+}
+
 let groups = {};
 function trackGroup(group) {
   groups[parseInt(group.id)] = group.title;
@@ -481,13 +503,18 @@ async function newUrl(tabId, url) {
         updates.allUrls = allUrls.slice(0, 250);
       }
 
-      // Track how often each site is visited so Favorites can blend frequency
-      // with recency. Additive: existing url-* fields are preserved, and records
-      // without visitCount are treated as 0 everywhere downstream.
+      // Track WHEN and how often each site is visited so Favorites can rank by a
+      // time-decayed sum of visits. Append a fresh timestamp and prune the array
+      // (retention horizon + length cap) so per-site history stays bounded.
+      // Additive: existing url-* fields are preserved, visitCount keeps
+      // incrementing for backward-compat/display, and records without a `visits`
+      // array are seeded lazily downstream (see rankFavorites).
+      const now = Date.now();
       const urlRecord = result[urlKey] || { url };
       updates[urlKey] = {
         ...urlRecord,
         visitCount: (urlRecord.visitCount || 0) + 1,
+        visits: pruneVisits([...(urlRecord.visits || []), now], now),
       };
 
       resolve(updates)

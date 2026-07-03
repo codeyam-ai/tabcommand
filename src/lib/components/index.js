@@ -23,3 +23,5 @@ export { Settings } from "./Settings";
 export { HistoryRow } from "./HistoryRow";
 export { Favorites } from "./Favorites";
 export { SearchHint } from "./SearchHint";
+export { UsageSparkline } from "./UsageSparkline";
+export { FavoriteRow } from "./FavoriteRow";

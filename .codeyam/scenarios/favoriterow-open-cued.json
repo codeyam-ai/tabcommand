@@ -1,0 +1,11 @@
+{
+  "name": "FavoriteRow - Open Cued",
+  "id": "d7b07e86-4a31-4534-9ec8-60b60df94184",
+  "url": "/?isolate=FavoriteRow&variant=open",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FavoriteRow",
+  "scenarioType": "component"
+}

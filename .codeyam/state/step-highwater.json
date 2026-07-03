@@ -1,6 +1,6 @@
 {
-  "feature": "heal-group-membership-on-url-drift",
-  "maxStep": 19,
-  "version": 232,
-  "updatedAt": "2026-07-02T01:26:49.364569013+00:00"
+  "feature": "view-all-favorites-time-decay-ranking",
+  "maxStep": 24,
+  "version": 1384,
+  "updatedAt": "2026-07-03T00:54:53.447685793+00:00"
 }

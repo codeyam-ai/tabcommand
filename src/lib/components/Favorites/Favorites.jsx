@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Chrome } from '../../utils/Chrome';
 import { rankFavorites } from '../../utils/rankFavorites';
+import { Pages } from '../../../Constants';
 import { Favicon } from '../Favicon';
 import Icon from '../Icon/Icon';
 
@@ -111,6 +112,15 @@ const Favorites = () => {
     });
   };
 
+  // Navigate to the full-page "View All Favorites" view (persisted page enum,
+  // same mechanism History uses for its Home back-link).
+  const viewAll = () => {
+    Chrome.get('Favorites5', 'uxSettings', ({ uxSettings }) => {
+      uxSettings.page = { name: Pages.FAVORITES };
+      Chrome.set('Favorites6', { uxSettings });
+    });
+  };
+
   if (favorites.length === 0) return null;
 
   return (
@@ -143,6 +153,9 @@ const Favorites = () => {
           </button>
         </div>
       ))}
+      <button type="button" className="Favorites-viewall" onClick={viewAll}>
+        View All <Icon name="chevronRight" size={12} />
+      </button>
     </div>
   );
 };

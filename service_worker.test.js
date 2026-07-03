@@ -82,7 +82,7 @@ function loadWorker(chrome) {
              startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad,
              autoCloseSweep, isAutoCloseEligible, pruneAutoClosed,
              autoCloseThresholdMinutes, urlKeyIsMember, ejectAutoGroupedTab,
-             recordInGroupTab, debugGroup },
+             recordInGroupTab, debugGroup, pruneVisits },
       state: {
         get groups() { return groups; },
         get samples() { return samples; },
@@ -387,6 +387,92 @@ describe('service_worker.js', () => {
       }
       expect(get).not.toHaveBeenCalled();
       expect(chrome.storage.local.set).not.toHaveBeenCalled();
+    });
+
+    // A brand-new url records a first visit timestamp alongside visitCount 1, so
+    // Favorites can rank by a time-decayed sum of visits.
+    it('records a first visit timestamp and visitCount on a new url', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
+      const before = Date.now();
+      const updates = await fns.newUrl(1, 'https://new.com');
+      const record = updates['url-https://new.com'];
+      expect(record.visitCount).toBe(1);
+      expect(record.visits).toHaveLength(1);
+      expect(record.visits[0]).toBeGreaterThanOrEqual(before);
+    });
+
+    // A repeat visit appends a fresh timestamp and increments visitCount while
+    // preserving the prior visits and other url-* fields.
+    it('appends a visit timestamp on a repeat visit', async () => {
+      const oldTs = Date.now() - 1000 * 60 * 60; // an hour ago
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({
+          allUrls: ['url-https://a.com'],
+          labels: {},
+          'url-https://a.com': { url: 'https://a.com', title: 'A', visitCount: 2, visits: [oldTs] },
+        })
+      );
+      const updates = await fns.newUrl(1, 'https://a.com');
+      const record = updates['url-https://a.com'];
+      expect(record.title).toBe('A'); // existing fields preserved
+      expect(record.visitCount).toBe(3);
+      expect(record.visits).toHaveLength(2);
+      expect(record.visits[0]).toBe(oldTs);
+    });
+
+    // Visits older than the retention horizon are pruned on write, so per-site
+    // history stays bounded.
+    it('prunes visits older than the retention horizon on write', async () => {
+      const ancient = Date.now() - 1000 * 60 * 60 * 24 * 60; // 60 days ago
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({
+          allUrls: ['url-https://a.com'],
+          labels: {},
+          'url-https://a.com': { url: 'https://a.com', visitCount: 5, visits: [ancient] },
+        })
+      );
+      const updates = await fns.newUrl(1, 'https://a.com');
+      const record = updates['url-https://a.com'];
+      // The ancient visit is dropped; only the fresh one survives.
+      expect(record.visits).toHaveLength(1);
+      expect(record.visits).not.toContain(ancient);
+    });
+  });
+
+  describe('pruneVisits', () => {
+    // A non-array or empty input yields an empty array, never a throw.
+    it('returns [] for non-array or empty input', () => {
+      const now = Date.now();
+      expect(fns.pruneVisits(undefined, now)).toEqual([]);
+      expect(fns.pruneVisits([], now)).toEqual([]);
+    });
+
+    // Visits older than the retention horizon are dropped.
+    it('drops visits older than the retention horizon', () => {
+      const now = Date.now();
+      const day = 1000 * 60 * 60 * 24;
+      const fresh = now - day;
+      const stale = now - 60 * day;
+      expect(fns.pruneVisits([stale, fresh], now)).toEqual([fresh]);
+    });
+
+    // The result is sorted ascending and drops non-finite entries.
+    it('sorts ascending and filters non-finite entries', () => {
+      const now = Date.now();
+      const day = 1000 * 60 * 60 * 24;
+      const a = now - 3 * day;
+      const b = now - 1 * day;
+      expect(fns.pruneVisits([b, a, NaN, 'x'], now)).toEqual([a, b]);
+    });
+
+    // More than 50 entries keep only the newest 50.
+    it('caps length to the newest 50 visits', () => {
+      const now = Date.now();
+      const many = [];
+      for (let i = 0; i < 60; i++) many.push(now - i * 1000);
+      const result = fns.pruneVisits(many, now);
+      expect(result).toHaveLength(50);
+      expect(result[result.length - 1]).toBe(now);
     });
   });
 

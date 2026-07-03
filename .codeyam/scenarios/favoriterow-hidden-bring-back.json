@@ -1,0 +1,11 @@
+{
+  "name": "FavoriteRow - Hidden Bring Back",
+  "id": "3b131b7b-1ca0-4733-b23f-6b1b66ce6a05",
+  "url": "/?isolate=FavoriteRow&variant=hidden",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FavoriteRow",
+  "scenarioType": "component"
+}

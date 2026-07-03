@@ -1,5 +1,6 @@
 import AppBrand from "./lib/components/AppBrand/AppBrand";
 import Favicon from "./lib/components/Favicon/Favicon";
+import FavoriteRow from "./lib/components/FavoriteRow/FavoriteRow";
 import Favorites from "./lib/components/Favorites/Favorites";
 import HistoryRow from "./lib/components/HistoryRow/HistoryRow";
 import Icon from "./lib/components/Icon/Icon";
@@ -23,10 +24,12 @@ import Triage from "./lib/components/Triage/Triage";
 import Url from "./lib/components/Url/Url";
 import UrlField from "./lib/components/UrlField/UrlField";
 import UrlLabel from "./lib/components/UrlLabel/UrlLabel";
+import UsageSparkline from "./lib/components/UsageSparkline/UsageSparkline";
 
 export const components = {
   AppBrand: AppBrand,
   Favicon: Favicon,
+  FavoriteRow: FavoriteRow,
   Favorites: Favorites,
   HistoryRow: HistoryRow,
   Icon: Icon,
@@ -50,4 +53,5 @@ export const components = {
   Url: Url,
   UrlField: UrlField,
   UrlLabel: UrlLabel,
+  UsageSparkline: UsageSparkline,
 };

@@ -1,0 +1,28 @@
+{
+  "name": "Favorites - Sidebar With View All Link",
+  "id": "109acbc9-bd04-446b-bd39-fb2779cb37ac",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"visitCount\": 14, \"visits\": [1782249235073, 1782508435073, 1782767635073, 1782940435073]}",
+      "uxSettings": "{\"page\": {\"name\": \"Home\"}}",
+      "favoritesHidden": "[\"url-https://www.etsy.com/favorites\"]",
+      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"visitCount\": 3, \"visits\": [1781990035073, 1782076435073, 1782162835073]}",
+      "url-https://www.amazon.com/wishlist": "{\"title\": \"Your Wish List \\u2014 Amazon\", \"favicon\": \"\", \"visitCount\": 3, \"visits\": [1782767635073, 1782854035073, 1782940435073]}",
+      "activeTabs": "[]",
+      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"visitCount\": 9, \"visits\": [1781039635073, 1781644435073, 1782249235073, 1782854035073]}",
+      "url-https://www.etsy.com/favorites": "{\"title\": \"Favorites \\u2014 Etsy\", \"favicon\": \"\", \"visitCount\": 8, \"visits\": [1782681235073, 1782854035073, 1782940435073]}",
+      "allUrls": "[\"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://news.ycombinator.com\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://react.dev/learn\", \"url-https://www.amazon.com/wishlist\", \"url-https://www.etsy.com/favorites\", \"url-https://www.notion.so/Roadmap\", \"url-https://www.figma.com/file/tabcommand-ui\"]",
+      "labels": "{}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"visitCount\": 7}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 52, \"visits\": [1782076435073, 1782335635073, 1782508435073, 1782681235073, 1782767635073, 1782854035073, 1782940435073, 1783000915073]}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 30, \"visits\": [1782594835073, 1782767635073, 1782897235073, 1782974995073, 1783009555073]}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/components/Favorites/Favorites.jsx"
+}

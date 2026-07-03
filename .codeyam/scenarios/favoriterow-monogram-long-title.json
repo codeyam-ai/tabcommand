@@ -1,0 +1,11 @@
+{
+  "name": "FavoriteRow - Monogram Long Title",
+  "id": "fdc2cf27-b0f6-4e22-8e8b-0100956f6009",
+  "url": "/?isolate=FavoriteRow&variant=monogram",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FavoriteRow",
+  "scenarioType": "component"
+}

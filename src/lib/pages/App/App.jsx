@@ -6,6 +6,7 @@ import { Load } from '../Load';
 import { ImportExport } from '../ImportExport';
 import { UrlDetails } from '../UrlDetails';
 import { History } from '../History';
+import { ViewAllFavorites } from '../ViewAllFavorites';
 import { ItemTypes, Pages } from '../../../Constants';
 
 import { DragDropContext } from '@hello-pangea/dnd';
@@ -191,6 +192,9 @@ const App = () => {
         }
         {page.name === Pages.HISTORY &&
           <History />
+        }
+        {page.name === Pages.FAVORITES &&
+          <ViewAllFavorites />
         }
         {isHome &&
           <DragDropContext onDragEnd={handleDrag} onDragStart={handleDragStart}>

@@ -1,0 +1,11 @@
+{
+  "name": "FavoriteRow - Default",
+  "id": "c2eef52f-58bd-4358-8e19-0329b0757e28",
+  "url": "/?isolate=FavoriteRow",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FavoriteRow",
+  "scenarioType": "component"
+}

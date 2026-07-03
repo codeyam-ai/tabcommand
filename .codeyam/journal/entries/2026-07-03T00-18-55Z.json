@@ -1,0 +1,983 @@
+{
+  "timestamp": "2026-07-03T00:18:55Z",
+  "title": "View All Favorites with Time-Decay Ranking",
+  "type": "feature",
+  "userRequest": "## Summary\n\nTurn Favorites from a `visitCount`-only ranking into a **time-decayed** one, and\nadd a full-page \"View All\" view that makes the ranking legible. Today the\nsidebar Favorites section derives its list from a raw per-site `visitCount`\nblended with array-position recency — there is no notion of *when* a site was\nvisited, so an old-but-heavily-visited site can outrank a site the user actually\nreturns to weekly, and there is no way to see why a site is on the list or in\nits position. We will (1) record per-visit timestamps in the service worker,\n(2) rewrite `rankFavorites` to score each site as a **sum of time-decayed\nvisits** (a recent visit is worth more than an old one) with a qualification\nthreshold tuned so a site visited only once drops after ~a week and a site\nvisited only twice over ~two weeks also drops, (3) add a `Favorites` \"View All >\"\nlink that opens a new full-page `ViewAllFavorites` view listing every qualifying\nfavorite (uncapped) with its usage stats and a small usage-over-time\nvisualization so the user can see *why* each favorite is included and ranked\nwhere it is, and (4) show hidden favorites on that page as dimmed rows with a\n\"Bring back\" action that un-hides them.\n\n## Key Decisions\n\n- **Score by decayed visits, not raw count.** Replace the current\n  `effectiveVisits * recencyWeight(arrayIndex)` model in `rankFavorites` with\n  `score = Σ decay(ageOf(visit))` over each site's recorded visit timestamps.\n  Default decay is exponential with a **~7-day half-life** (`2^(-ageDays/7)`), so\n  a fresh visit is worth 1.0 and a week-old visit ~0.5. This directly encodes\n  \"a visit longer ago is less valuable than a recent visit.\" Half-life is a\n  named constant so the editor workflow can tune it.\n- **Qualification is a threshold on the decayed score**, tuned to the user's two\n  acceptance cases: a site visited **once** falls below the threshold after\n  ~1 week (its single visit decays past the cutoff), and a site visited **twice\n  over ~two weeks** also falls below it. A starting `QUALIFY_MIN` of ~0.5 (just\n  above the value of one week-old visit) satisfies both; treat the exact\n  constant as tunable and pin it with the unit tests below. This replaces the\n  current fixed `MIN_VISITS = 2` integer gate.\n- **Recency signal moves from array position to real time.** `allUrls` position\n  stops being the recency input to scoring (it becomes at most a deterministic\n  tiebreak for equal scores). Recency now comes from the actual visit\n  timestamps, which is more robust and is what the decay already expresses.\n- **Bounded per-site visit history.** Store visit timestamps on each `url-*`\n  record as a `visits: number[]` array (epoch ms). Prune on write: drop\n  timestamps older than a **retention horizon** (default 30 days — comfortably\n  past the point where they contribute meaningful decayed weight) and cap the\n  array length (e.g. last 50 visits) so storage stays bounded even for\n  hammered sites. Keep the existing `visitCount` field untouched for\n  backward-compat/display, but base ranking purely on `visits`.\n- **Migration: don't let existing favorites vanish on upgrade.** Records created\n  before this change have `visitCount` but no `visits` array. On first\n  read/score, synthesize a `visits` array for a legacy record from its\n  `visitCount` (e.g. `min(visitCount, cap)` timestamps seeded at \"recent\" within\n  the last few days) so current favorites survive the transition, then let real\n  timestamps take over as the site is revisited. Do the seeding lazily in\n  `rankFavorites`/a shared helper so no destructive storage rewrite is required.\n  This is a deliberate one-time approximation, documented in the helper.\n- **\"View All\" is a full page, following the History pattern.** No router exists;\n  navigation is a persisted `uxSettings.page` enum switched in `App.jsx`. Add a\n  `Pages.FAVORITES` entry and a `ViewAllFavorites` page mirroring\n  `src/lib/pages/History/`, reusing the shared `.Page-back` / `.Page-h1` /\n  `.Page-intro` classes.\n- **Hidden favorites are shown, not filtered, on the View All page.** The sidebar\n  keeps excluding `favoritesHidden`; the View All page instead renders them as\n  dimmed rows flagged `isHidden`, with a \"Bring back\" button that removes the\n  `urlKey` from `favoritesHidden` (the inverse of the existing `removeFavorite`).\n\n## Implementation\n\n### 1. Record per-visit timestamps in the service worker\n\n**File**: `service_worker.js` (`newUrl`, around lines 449–496)\n\nWhen a trackable navigation bumps `visitCount`, also append `Date.now()` to a\n`visits` array on the same `url-*` record, then prune it: drop entries older than\na `VISIT_RETENTION_MS` horizon (default 30 days) and truncate to a max length\n(e.g. last 50). Add the `VISIT_RETENTION_MS` constant near the existing\n`MAX_AUTO_CLOSED_TIME` (line 82). Keep the write additive — preserve all existing\n`url-*` fields and keep incrementing `visitCount` as today. Example shape:\n\n```\nconst now = Date.now();\nconst visits = pruneVisits([...(urlRecord.visits || []), now], now);\nupdates[urlKey] = { ...urlRecord, visitCount: (urlRecord.visitCount || 0) + 1, visits };\n```\n\nFactor the prune (`filter age <= VISIT_RETENTION_MS`, then `slice(-MAX_VISITS)`)\ninto a tiny pure helper so it is unit-testable and reusable by the migration\nseeding.\n\n### 2. Rewrite ranking to a time-decay model\n\n**File**: `src/lib/utils/rankFavorites.js`\n\nReplace the frequency×position model with a time-decay score. New/changed pieces:\n\n- Add `decayedVisitScore(visits, now, halfLifeMs)` — sum of `0.5^(age/halfLife)`\n  over the (pruned) visit timestamps. Pure, no storage/DOM (matches the module's\n  existing style).\n- Replace `MIN_VISITS` with `QUALIFY_MIN` (a decayed-score threshold) and add\n  `HALF_LIFE_MS` (~7 days) and reuse `VISIT_RETENTION`/prune semantics from step 1\n  (share a helper, or duplicate the pure prune — keep it DRY via\n  `src/lib/utils/`).\n- `rankFavorites(allUrls, urlRecords, limit, excludedKeys, options)` keeps its\n  signature but: for each candidate, derive `visits` (falling back to the\n  migration seeding in step 4 when a record has `visitCount > 0` but no\n  `visits`), discount an open non-pinned tab's most-recent in-progress visit as\n  today (drop the latest timestamp or subtract one fresh unit), sum decayed\n  variants across the `normalizeUrl` dedup groups, drop groups below\n  `QUALIFY_MIN`, and sort by decayed score desc with recency (latest timestamp,\n  then array index) as the deterministic tiebreak.\n- Extend each returned row with the stats the View All page needs:\n  `{ urlKey, url, title, favicon, isOpen, score, visitCount, lastVisit,\n  recentVisits }` where `recentVisits` is the pruned timestamp array (for the\n  sparkline) and `lastVisit` is its max. The existing sidebar consumers ignore\n  the new fields, so this is additive.\n- Add an `options.now` (default injected by callers) so tests can pin \"now\"\n  deterministically instead of relying on wall-clock.\n\n### 3. Extend `rankFavorites` to optionally include hidden favorites\n\n**File**: `src/lib/utils/rankFavorites.js`\n\nThe View All page needs hidden favorites *in the list, flagged* rather than\nexcluded. Add `options.hiddenKeys` (a `Set`): when provided, a candidate whose\nkey is in `hiddenKeys` is **not** dropped but is scored normally, qualified\nnormally, and returned with `isHidden: true`. The sidebar continues to pass\nhidden keys via `excludedKeys` (unchanged behavior); the page passes them via\n`hiddenKeys` instead so they surface dimmed. Add an `options.limit`-bypass path\n(or have the page pass a large limit) so \"View All\" is genuinely uncapped while\nthe sidebar keeps `FAVORITES_LIMIT = 10`.\n\n### 4. Legacy-record migration helper\n\n**New file**: `src/lib/utils/seedVisitsFromCount.js` (or a helper inside\n`rankFavorites.js` if small)\n\nPure helper that, given a record with `visitCount > 0` and no `visits`, returns a\nsynthetic recent `visits` array (e.g. `min(visitCount, MAX_VISITS)` timestamps\nspread over the last few days ending at `now`). Used lazily by `rankFavorites`\nso pre-existing favorites keep a sensible rank on first load and then converge to\nreal data as the user revisits them. Document that this is a one-time\napproximation, not persisted destructively.\n\n### 5. Add the `ViewAllFavorites` page\n\n**New file**: `src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx` (+ `.css`,\n`.test.jsx`, `index.js`)\n\nMirror `src/lib/pages/History/History.jsx`. In a `useEffect`, read\n`['allUrls', 'activeTabs', 'favoritesHidden']`, build the pinned-exclusion +\nopen-discount sets exactly as `Favorites.jsx` does (lines 35–51), then read the\n`url-*` records and call `rankFavorites` with a large limit and `hiddenKeys` =\n`favoritesHidden` so hidden rows come back flagged. Subscribe to\n`chrome.storage.onChanged` the same way `Favorites.jsx` does so a \"Bring back\"\nreflects live. Render:\n\n- `.Page-back` button (`<Icon name=\"arrowLeft\"/> Home`) that resets\n  `uxSettings.page` to `Pages.HOME` (copy `History.jsx:9-14`).\n- `.Page-h1` \"Favorites\" + `.Page-intro` explaining the ranking (\"Ranked by how\n  often and how recently you visit — recent visits count more.\").\n- One row per favorite with `<Favicon>`, title, and a stats strip: visit count\n  (in window), last-visited (relative time), the computed rank score, and a\n  small **usage-over-time** visualization built from `recentVisits` (a compact\n  inline bar/sparkline — a per-day bucketed bar row is enough; no charting lib).\n  This is the \"see why it's included and in this order\" payload.\n- Hidden rows (`isHidden`) rendered with a dimmed class and a **\"Bring back\"**\n  button instead of the remove `×`; clicking it removes the `urlKey` from\n  `favoritesHidden` (inverse of `Favorites.jsx:100-112`).\n- Row click opens/focuses the tab, reusing the `openFavorite` logic from\n  `Favorites.jsx:84-98` (extract to a shared util if convenient).\n\n**File**: `src/lib/pages/index.js` — export the new page.\n\n### 6. Register the page route and navigation\n\n**File**: `src/Constants.jsx`\n\nAdd `FAVORITES: 'Favorites'` to the `Pages` object.\n\n**File**: `src/lib/pages/App/App.jsx`\n\nAdd a content-area branch `{page.name === Pages.FAVORITES && <ViewAllFavorites />}`\n(import from `../ViewAllFavorites`), alongside the existing History/Load branches\n(around lines 182–203).\n\n### 7. Add the \"View All >\" link to the sidebar Favorites section\n\n**File**: `src/lib/components/Favorites/Favorites.jsx` (+ `Favorites.css`)\n\nAfter the list of favorite rows (after line 145), render a \"View All >\" link that\nnavigates to the new page by setting `uxSettings.page = { name: Pages.FAVORITES }`\nvia `Chrome.get`/`Chrome.set` (same pattern as `History.jsx`'s `back`, or\n`App.jsx`'s `changePage`). Style it as a subtle footer link consistent with the\nexisting `.App-sidebar-link` (Import/Export) treatment. It should render whenever\nthe Favorites section renders (i.e. whenever there is at least one favorite).\n\n## Reused existing code\n\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — extended in place; keep `recencyWeight`/`usableTitle`\n  patterns and pure style.\n- `isTrackableUrl` from `src/lib/utils/isTrackableUrl.js` (glossary entry:\n  `isTrackableUrl`) — candidate gating stays identical.\n- `normalizeUrl` from `src/lib/utils/normalizeUrl.js` — cosmetic-variant dedup\n  stays identical.\n- `Favorites` component from `src/lib/components/Favorites/Favorites.jsx`\n  (glossary entry: `Favorites`) — source of the exclusion/open-set derivation,\n  `openFavorite`, and the hide-inverse for \"Bring back\".\n- `History` page from `src/lib/pages/History/History.jsx` — structural template\n  for the new full page (`.Page-back`/`.Page-h1`/`.Page-intro`, storage-in-effect\n  pattern, `back()` navigation).\n- `Favicon` (glossary/component export) and `Icon` from `src/lib/components` —\n  row favicon + back-arrow / bring-back glyphs.\n- `Chrome` wrapper from `src/lib/utils/Chrome/Chrome.js` — all storage reads/writes.\n- `Pages` from `src/Constants.jsx` — navigation enum.\n- Service-worker `newUrl` in `service_worker.js` (lines 449–496) and the\n  `MAX_AUTO_CLOSED_TIME` constant convention (line 82) — where and how to add\n  timestamp recording + retention.\n\n## Scenarios to Demonstrate\n\n- **Sidebar Favorites with the new \"View All >\" link** — a populated Favorites\n  section now ending in the link.\n- **View All page, rich state** — several qualifying favorites, each showing\n  visit count, last-visited, rank score, and the usage-over-time bars; clearly\n  ordered by decayed score.\n- **Time-decay ordering** — two sites with the *same* raw visit count but\n  different recency: the recently-visited one ranks above the stale one\n  (demonstrates the new model vs. the old count-only order).\n- **Drop-after-a-week** — a site visited exactly once, its visit ~8 days old:\n  absent from Favorites and from the View All qualifying list.\n- **Twice-over-two-weeks drop** — a site visited only twice spread across ~two\n  weeks: also dropped, per the qualification threshold.\n- **Hidden favorite on the View All page** — a dimmed row with a \"Bring back\"\n  button; after clicking, it returns to full-opacity and reappears in the sidebar.\n- **Legacy record (migration)** — a pre-upgrade record with `visitCount` but no\n  `visits` array still appears with a sensible rank (seeded), not missing.\n- **Empty state** — no qualifying favorites: the page shows an empty message and\n  the sidebar section (and its link) does not render.",
+  "description": "Reworked Favorites from a raw visit-count ranking into a time-decayed one: the service worker now records pruned per-visit timestamps (8-week retention) and rankFavorites scores each site by a sum of exponentially-decayed visits (~7-day half-life) with lazy seeding so legacy records survive the upgrade. Added a full-page ViewAllFavorites view — reached via a new sidebar \"View All\" link — that lists every qualifying favorite with its visit/last-visited/decay-score stats and two usage sparklines (last 7 days and last 7 weeks) normalized to a common maximum so magnitudes compare across rows; clicking a row expands it to reveal the per-day and per-week visit breakdowns, an open-URL link sits beside each title, and removed favorites show dimmed with a \"Bring back\" action.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/view-all-favorites-time-decay-ranking.md\t.codeyam/plans/completed/view-all-favorites-time-decay-ranking.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-maximum--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-off--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-shortest--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-stable-chrome-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/Constants.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_component_scenarios.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_components.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/audit-baseline.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favoriterow-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favoriterow-expanded.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favoriterow-hidden-bring-back.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favoriterow-monogram-long-title.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favoriterow-open-cued.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-sidebar-with-view-all-link.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-expanded--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-expanded--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-hidden-bring-back--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-hidden-bring-back--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-monogram-long-title--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-monogram-long-title--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-open-cued--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-open-cued--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-dense--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-dense--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-sparse--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-sparse--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/usagesparkline-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/usagesparkline-dense.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/usagesparkline-sparse.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/viewallfavorites-empty.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/viewallfavorites-rich.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FavoriteRow/FavoriteRow.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FavoriteRow/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UsageSparkline/UsageSparkline.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UsageSparkline/UsageSparkline.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/UsageSparkline/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/bucketVisitsByDay.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/bucketVisitsByDay.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/bucketVisitsByWeek.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/bucketVisitsByWeek.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/relativeTime.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/relativeTime.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/usageMax.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/usageMax.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/visitDecay.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/visitDecay.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "FavoriteRow - Default",
+      "screenshotPath": "favoriterow-default--desktop.png"
+    },
+    {
+      "name": "FavoriteRow - Expanded",
+      "screenshotPath": "favoriterow-expanded--desktop.png"
+    },
+    {
+      "name": "FavoriteRow - Hidden Bring Back",
+      "screenshotPath": "favoriterow-hidden-bring-back--desktop.png"
+    },
+    {
+      "name": "FavoriteRow - Monogram Long Title",
+      "screenshotPath": "favoriterow-monogram-long-title--desktop.png"
+    },
+    {
+      "name": "FavoriteRow - Open Cued",
+      "screenshotPath": "favoriterow-open-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Non-Website Entries Filtered",
+      "screenshotPath": "favorites-non-website-entries-filtered--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Sidebar With View All Link",
+      "screenshotPath": "favorites-sidebar-with-view-all-link--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    },
+    {
+      "name": "History - Populated",
+      "screenshotPath": "history-populated--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Work",
+      "screenshotPath": "labelform-edit-work--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group",
+      "screenshotPath": "labelform-new-blank--desktop.png"
+    },
+    {
+      "name": "LabelForm - Reading",
+      "screenshotPath": "labelform-reading--desktop.png"
+    },
+    {
+      "name": "LabelForm - Shopping",
+      "screenshotPath": "labelform-shopping--desktop.png"
+    },
+    {
+      "name": "LabelForm - Social",
+      "screenshotPath": "labelform-social--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load - Stable Chrome Fallback",
+      "screenshotPath": "load-stable-chrome-fallback--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Load Page",
+      "screenshotPath": "load-page--desktop.png"
+    },
+    {
+      "name": "LoadMeter - High Load",
+      "screenshotPath": "loadmeter-high-load--desktop.png"
+    },
+    {
+      "name": "LoadMeter - Idle",
+      "screenshotPath": "loadmeter-idle--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "SearchResults - Empty",
+      "screenshotPath": "searchresults-empty--desktop.png"
+    },
+    {
+      "name": "SearchResults - Labels Only",
+      "screenshotPath": "searchresults-labels-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Many Results",
+      "screenshotPath": "searchresults-many--desktop.png"
+    },
+    {
+      "name": "SearchResults - Matches",
+      "screenshotPath": "searchresults-matches--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Maximum",
+      "screenshotPath": "settings-auto-close-maximum--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Off",
+      "screenshotPath": "settings-auto-close-off--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Shortest",
+      "screenshotPath": "settings-auto-close-shortest--desktop.png"
+    },
+    {
+      "name": "Settings - Day Mode Accent",
+      "screenshotPath": "settings-day-mode-accent--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Settings - Group Columns Selected",
+      "screenshotPath": "settings-group-columns-selected--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    },
+    {
+      "name": "Triage - Comfortable",
+      "screenshotPath": "triage-comfortable--desktop.png"
+    },
+    {
+      "name": "Triage - Running Hot",
+      "screenshotPath": "triage-running-hot--desktop.png"
+    },
+    {
+      "name": "Triage - Stable Chrome Hidden",
+      "screenshotPath": "triage-stable-chrome-hidden--desktop.png"
+    },
+    {
+      "name": "URL Details - Edit",
+      "screenshotPath": "url-details-edit--desktop.png"
+    },
+    {
+      "name": "URL Details - Unlabeled",
+      "screenshotPath": "url-details-unlabeled--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Dragging",
+      "screenshotPath": "url-dragging--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    },
+    {
+      "name": "UsageSparkline - Default",
+      "screenshotPath": "usagesparkline-default--desktop.png"
+    },
+    {
+      "name": "UsageSparkline - Dense",
+      "screenshotPath": "usagesparkline-dense--desktop.png"
+    },
+    {
+      "name": "UsageSparkline - Sparse",
+      "screenshotPath": "usagesparkline-sparse--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Empty",
+      "screenshotPath": "viewallfavorites-empty--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Rich",
+      "screenshotPath": "viewallfavorites-rich--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 470,
+    "passed": 470,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 470,
+        "passed": 470
+      }
+    ]
+  }
+}

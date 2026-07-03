@@ -1,0 +1,17 @@
+{
+  "name": "FavoriteRow - Expanded",
+  "id": "574c7ba7-8e93-47f3-8dad-64e3e3080e6b",
+  "url": "/?isolate=FavoriteRow",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FavoriteRow",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "text": "codeyam/tabcommand — GitHub"
+    }
+  ]
+}

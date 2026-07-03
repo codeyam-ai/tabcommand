@@ -96,3 +96,25 @@
   outline: 1px solid var(--border);
   border-radius: var(--r-row);
 }
+
+/* "View All >" footer link: a subtle, right-aligned affordance below the list,
+   quiet at rest and matching the sidebar's muted-link treatment (Import/Export)
+   so it doesn't compete with the favorite rows. */
+.Favorites-viewall {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin: 6px 0 0 auto;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  transition: color 0.12s ease;
+}
+
+.Favorites-viewall:hover {
+  color: var(--text-primary);
+}

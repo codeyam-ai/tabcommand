@@ -1,0 +1,11 @@
+{
+  "name": "UsageSparkline - Default",
+  "id": "fa4d89f5-4451-4d6a-8c07-bb3996ca377b",
+  "url": "/?isolate=UsageSparkline",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "UsageSparkline",
+  "scenarioType": "component"
+}

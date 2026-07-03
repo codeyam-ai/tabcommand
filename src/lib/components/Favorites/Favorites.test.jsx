@@ -5,10 +5,11 @@ import { installChromeShim } from '../../utils/chromeShim';
 import Favorites from './Favorites';
 
 // Favorites reads allUrls + the matching url-* records from storage and renders
-// the frequency-first ranked list (scoring lives in rankFavorites, unit-tested
-// separately). Seeded counts clear MIN_VISITS (2) so rows actually render. These
-// tests cover the seeded-render path, exclusion/discount, removal, dedup, and the
-// empty state.
+// the time-decay ranked list (scoring lives in rankFavorites, unit-tested
+// separately). Seeded records carry a visitCount (lazily seeded into recent
+// visits by the migration path) or explicit `visits` timestamps, so rows clear
+// the decayed-score threshold and render. These tests cover the seeded-render
+// path, exclusion/discount, removal, dedup, and the empty state.
 describe('Favorites', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -137,9 +138,22 @@ describe('Favorites', () => {
   // twice but open once → effective 1 < MIN_VISITS, so it drops out. A pinned tab
   // remains fully excluded (as above), and an unaffected site still renders.
   it('discounts a site open in a non-pinned tab below the threshold', async () => {
+    const now = Date.now();
+    const day = 1000 * 60 * 60 * 24;
     seed('allUrls', ['url-https://open.com', 'url-https://closed.com']);
-    seed('url-https://open.com', { title: 'OpenSite', favicon: '', visitCount: 2 });
-    seed('url-https://closed.com', { title: 'ClosedSite', favicon: '', visitCount: 2 });
+    // OpenSite has a single recent visit; open in a non-pinned tab, that
+    // in-progress visit is discounted (dropped), leaving nothing to qualify.
+    seed('url-https://open.com', {
+      title: 'OpenSite',
+      favicon: '',
+      visits: [now - 60_000],
+    });
+    // ClosedSite has two recent visits and isn't open, so it qualifies.
+    seed('url-https://closed.com', {
+      title: 'ClosedSite',
+      favicon: '',
+      visits: [now - day, now - 60_000],
+    });
     seed('activeTabs', [
       { tabKey: 'tab-1', urlKey: 'url-https://open.com', pinned: false },
     ]);

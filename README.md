@@ -13,23 +13,19 @@ TabCommand is a chrome extension designed to provide complete control over your 
 </p>
 
 <!-- codeyam:run-and-edit:start -->
-## Developing & Contributing to TabCommand
+## Develop this project with codeyam-editor
 
-TabCommand was developed with the [CodeYam Editor](https://codeyam.com). The CodeYam Editor ensures that TabCommand is easy to maintain. If you would like to edit or contribute to TabCommand please use the CodeYam Editor.
-
-The CodeYam Editor ensures there is a robust and up-to-date test suite and generates and captures simulations for TabCommand. These simulations allow you to easily feed mock data into TabCommand to see how it works. 
-
-Prerequisites: **Node 22+** and npm.
+This project is built with [codeyam-editor](https://codeyam.com) — code and runnable data scenarios are authored side by side against a live preview.
 
 ```bash
-# Install the CodeYam Editor
-npm install -g @codeyam-editor/codeyam-editor@latest
-
-# Clone the tabcommand repo
-git clone https://github.com/codeyam-ai/tabcommand && cd tabcommand
-
 # Launch the editor (split-screen terminal + live preview)
-codeyam-editor start
+codeyam-editor editor
+
+# Run the app
+npm run dev
+
+# Run the tests
+npx vitest run
 ```
 <!-- codeyam:run-and-edit:end -->
 
@@ -55,6 +51,10 @@ and reload the extension to pick up changes.
 ## Scenario gallery
 
 States captured as runnable scenarios with codeyam-editor:
+
+### Favorites - Sidebar With View All Link
+
+<img src=".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png" alt="Favorites - Sidebar With View All Link" width="280">
 
 ### History - Populated
 
@@ -83,10 +83,6 @@ States captured as runnable scenarios with codeyam-editor:
 ### Home - Grouped
 
 <img src=".codeyam/scenarios/screenshots/home-grouped--desktop.png" alt="Home - Grouped" width="280">
-
-### Home - Light Theme
-
-<img src=".codeyam/scenarios/screenshots/home-light-theme--desktop.png" alt="Home - Light Theme" width="280">
 <!-- codeyam:scenario-gallery:end -->
 
 ## License

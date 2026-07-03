@@ -1,0 +1,44 @@
+/* Usage-over-time sparklines: two small bar charts side by side — the last 7
+   days (recent daily rhythm) and the last 7 weeks (longer-term trend). Each
+   chart scales to its own busiest bucket, so the tallest bar is always full
+   height; buckets with visits are tinted the brand accent. Used by FavoriteRow
+   on the Favorites View All page. */
+.UsageSparkline {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.UsageSparkline-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.UsageSparkline-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  width: 60px;
+  height: 28px;
+}
+
+.UsageSparkline-bar {
+  flex: 1;
+  min-height: 2px;
+  border-radius: 1px;
+  background-color: var(--border);
+}
+
+.UsageSparkline-bar--on {
+  background-color: var(--c-lime-fg);
+}
+
+.UsageSparkline-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}

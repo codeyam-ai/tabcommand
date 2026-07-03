@@ -1,0 +1,11 @@
+{
+  "name": "UsageSparkline - Sparse",
+  "id": "0ea5acbc-0bde-4a30-b4cd-278839538ea7",
+  "url": "/?isolate=UsageSparkline&variant=sparse",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "UsageSparkline",
+  "scenarioType": "component"
+}

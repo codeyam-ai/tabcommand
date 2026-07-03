@@ -155,6 +155,38 @@
         "status": "n-a",
         "reason": "Save persists then navigates to Home and remove-group pops a native confirm; neither yields a distinct seeded display state to capture for this view"
       }
+    },
+    "ViewAllFavorites": {
+      "empty": {
+        "status": "n-a",
+        "reason": "Empty state IS registered and captured as the viewallfavorites-empty app scenario; recorded n-a here only because the seed-based state-matrix cannot classify a browserState/localStorage-seeded scenario on this stack (same limitation as the History view's empty)."
+      },
+      "single": {
+        "status": "n-a",
+        "reason": "A single favorite renders one FavoriteRow identical to a row of the populated list; no distinct visual treatment vs the typical state."
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "n-a",
+        "reason": "The View All list is uncapped and scrolls; there is no overflow/truncation state. The populated rich scenario shows the full list."
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "Favorites are read synchronously from local storage in a mount effect; no pending/loading UI is rendered."
+      },
+      "edge": {
+        "status": "n-a",
+        "reason": "Edge typography (long title, monogram fallback) is covered by the FavoriteRow monogram-long-title component scenario; the page has no distinct edge branch."
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "The page has no failure UI; local-storage reads/writes surface no error state."
+      },
+      "key-interaction": {
+        "status": "covered"
+      }
     }
   }
 }

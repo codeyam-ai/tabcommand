@@ -1,0 +1,180 @@
+/* One favorite row on the Favorites View All page. The row is a clickable
+   header (favicon + title/stats + usage sparkline) that expands to reveal the
+   per-day visit data behind the sparkline. An open link beside the title opens
+   the site; a hidden favorite is dimmed with a Bring back action. */
+.FavoriteRow {
+  margin-bottom: 4px;
+  border-radius: var(--r-row);
+  color: var(--text-primary);
+}
+
+/* Hidden (removed) favorite: dimmed so it reads as "not currently in your
+   sidebar", but still present here so it can be brought back. */
+.FavoriteRow--hidden {
+  opacity: 0.5;
+}
+.FavoriteRow--hidden:hover {
+  opacity: 0.75;
+}
+
+.FavoriteRow-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-row);
+  cursor: pointer;
+}
+
+.FavoriteRow-header:hover {
+  background-color: var(--c-raised);
+}
+
+/* "Already open in a tab" cue, mirroring the sidebar Favorites treatment. */
+.FavoriteRow--open .FavoriteRow-header {
+  background-color: color-mix(in srgb, var(--c-lime-fg) 14%, transparent);
+  box-shadow: inset 2px 0 0 0 var(--c-lime-fg);
+}
+.FavoriteRow--open .FavoriteRow-header:hover {
+  background-color: color-mix(in srgb, var(--c-lime-fg) 22%, var(--c-raised));
+}
+
+/* Expand/collapse caret — muted, rotates via the icon swap in JSX. */
+.FavoriteRow-caret {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.FavoriteRow-header .Url-favicon,
+.FavoriteRow-header .Url-favFallback {
+  flex-shrink: 0;
+}
+
+.FavoriteRow-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.FavoriteRow-titleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.FavoriteRow-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* The open-the-site link beside the title. Quiet at rest, brand accent on hover;
+   flex-shrink 0 so it never collapses when the title is long. */
+.FavoriteRow-open {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.12s ease;
+}
+.FavoriteRow-open:hover {
+  color: var(--c-lime-fg);
+}
+.FavoriteRow-open:focus-visible {
+  outline: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.FavoriteRow-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.FavoriteRow-stat--score {
+  color: var(--c-lime-fg);
+}
+
+.FavoriteRow-bringback {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-row);
+  background: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  transition: background-color 0.12s ease;
+}
+.FavoriteRow-bringback:hover {
+  background-color: var(--c-raised);
+}
+
+/* The expanded detail: the per-day and per-week visit breakdowns behind the two
+   sparklines, side by side. Inset under the header, aligned past the caret +
+   favicon. */
+.FavoriteRow-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  padding: 4px 12px 12px 56px;
+}
+
+.FavoriteRow-detail-col {
+  min-width: 200px;
+}
+
+.FavoriteRow-detail-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.FavoriteRow-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.FavoriteRow-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 0;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.FavoriteRow-detail-row:last-child {
+  border-bottom: none;
+}
+
+.FavoriteRow-detail-date {
+  color: var(--text-primary);
+}
+.FavoriteRow-detail-count {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.FavoriteRow-detail-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}

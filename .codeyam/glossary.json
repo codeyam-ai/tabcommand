@@ -53,6 +53,18 @@
     ]
   },
   {
+    "description": "One favorite on the Favorites View All page: favicon, title, a stats strip that explains the rank (visit count in the window, last-visited via relativeTime, the decay score), and a UsageSparkline of usage over time. A site open in a tab gets the accent open cue; a hidden (removed) favorite is dimmed and shows a Bring back button instead of being filtered out. The whole row opens or focuses the tab on click; onOpen and onBringBack are supplied by the page.",
+    "filePath": "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+    "name": "FavoriteRow",
+    "scenarios": [
+      "favoriterow-default",
+      "favoriterow-open-cued",
+      "favoriterow-hidden-bring-back",
+      "favoriterow-monogram-long-title",
+      "favoriterow-expanded"
+    ]
+  },
+  {
     "description": "Sidebar section listing the user's genuinely most-visited sites, up to 10 that clear the minimum-visit threshold, ordered by the frequency times recency-decay blend in the pure rankFavorites util so the list reads as favorites over the recent past rather than all-time. Reads allUrls plus the matching url-* records from chrome.storage.local, and also reads activeTabs and favoritesHidden. Builds an excludedKeys set, sites open in a Chrome-pinned tab and user-removed sites are dropped entirely, AND an openKeys set of non-pinned active-tab urlKeys passed to rankFavorites so a site currently open in a non-pinned tab has its in-progress visit discounted rather than excluded. A favorite that rankFavorites flags isOpen, currently open in a non-pinned tab, renders with the Favorites-item--open modifier giving a subtle lime accent-tinted background and left stripe as an already-open cue. Stays live via chrome.storage.onChanged on allUrls / url-* / activeTabs / favoritesHidden. Renders a Favicon plus title per row plus a hover-revealed remove control that adds the site's urlKey to favoritesHidden, hiding it from Favorites while keeping it in Search/History. On row click focuses an already-open tab or opens a new one. Renders nothing when there are no qualifying favorites.",
     "filePath": "src/lib/components/Favorites/Favorites.jsx",
     "name": "Favorites",
@@ -290,6 +302,24 @@
     "testFile": "src/lib/components/UrlLabel/UrlLabel.test.jsx"
   },
   {
+    "description": "Two inline bar charts side by side on a FavoriteRow: usage over the last SPARK_DAYS days (recent daily rhythm) and the last SPARK_WEEKS weeks (longer-term trend that varies in height even when daily usage is steady). Built from bucketVisitsByDay and bucketVisitsByWeek, no charting library. An optional common `max` prop lets the page scale every row's bars to one shared maximum so heights are comparable across rows; without it each chart self-scales to its own busiest bucket. Visited buckets are tinted the brand accent.",
+    "filePath": "src/lib/components/UsageSparkline/UsageSparkline.jsx",
+    "name": "UsageSparkline",
+    "scenarios": [
+      "usagesparkline-default",
+      "usagesparkline-dense",
+      "usagesparkline-sparse"
+    ]
+  },
+  {
+    "description": "The Favorites View All page: a full-page, uncapped list of every qualifying favorite ranked by decayed score, each rendered as a FavoriteRow with its rank-explaining stats and usage sparkline. Reads allUrls, activeTabs, and favoritesHidden from storage in an effect and stays live via chrome.storage.onChanged, calling rankFavorites with an Infinity limit and hiddenKeys so removed favorites appear dimmed with a Bring back action. Mirrors the History page shell (back link, heading, intro) and focuses an already-open tab on click or opens a new one. Reached from the sidebar Favorites section's View All link.",
+    "filePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+    "name": "ViewAllFavorites",
+    "scenarios": [
+      "viewallfavorites-rich"
+    ]
+  },
+  {
     "description": "Pure ring-buffer helper for the grouping diagnostics trail: appends one breadcrumb to the current stored array and returns a new array trimmed to the most-recent cap entries, treating a missing or non-array store as empty and never mutating its input. Kept free of chrome/IO so it is unit-testable in isolation.",
     "filePath": "src/lib/utils/groupingLog.js",
     "name": "appendGroupingLog",
@@ -332,10 +362,28 @@
     "testFile": "src/lib/pages/History/History.test.jsx"
   },
   {
+    "description": "Module-level navigation helper for the ViewAllFavorites page: resets uxSettings.page to Pages.HOME via the Chrome storage wrapper so the back button returns to the Home view. Mirrors the History page's back helper.",
+    "filePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+    "name": "back",
+    "testFile": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx"
+  },
+  {
     "description": "Buckets a closed/visited tab timestamp (ms epoch) into the History page day groups — Today, Yesterday, or Earlier this week — relative to a passed-in now. A missing timestamp falls into Earlier this week so the tab still appears. Exports HISTORY_BUCKETS for render order.",
     "filePath": "src/lib/utils/historyBuckets.js",
     "name": "bucketByDay",
     "testFile": "src/lib/utils/historyBuckets.test.js"
+  },
+  {
+    "description": "Pure helper that buckets a site's visit timestamps into per-day counts over a trailing window of SPARK_DAYS days, oldest day first, relative to now. Visits older than the window or in the future are ignored. The Favorites View All page feeds the result to the UsageSparkline so a user sees a site's usage-over-time at a glance and understands why it ranks where it does.",
+    "filePath": "src/lib/utils/bucketVisitsByDay.js",
+    "name": "bucketVisitsByDay",
+    "testFile": "src/lib/utils/bucketVisitsByDay.test.js"
+  },
+  {
+    "description": "Pure helper that buckets a site's visit timestamps into per-week counts over a trailing window of SPARK_WEEKS weeks, oldest week first, relative to now. Each bucket spans 7 days and aggregates the visits within it, so the Favorites View All page's long-range sparkline varies in height even when daily usage is a steady one-per-day. Visits older than the window or in the future are ignored. Companion to bucketVisitsByDay for the short-range 7-day view.",
+    "filePath": "src/lib/utils/bucketVisitsByWeek.js",
+    "name": "bucketVisitsByWeek",
+    "testFile": "src/lib/utils/bucketVisitsByWeek.test.js"
   },
   {
     "description": "Parses the pasted export JSON and builds the storage updates map: one per-URL object per url-<url> key plus the rebuilt labels map. Throws on malformed JSON so the page swallows it with a console.log, faithful to the reference saveImport.",
@@ -412,6 +460,12 @@
     "filePath": "service_worker.js",
     "name": "debugGroup",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Pure helper that scores a site as the sum of its visits' exponentially-decayed weights, each 2 to the power of negative age over halfLifeMs, so a fresh visit is worth 1.0 and a visit one half-life old is worth 0.5. A future-dated timestamp from clock skew is clamped to weight 1. Returns 0 for empty or non-array input. This is the core ranking signal for Favorites: recent visits count more than old ones, and a site clears qualification when its summed decayed score reaches QUALIFY_MIN.",
+    "filePath": "src/lib/utils/visitDecay.js",
+    "name": "decayedVisitScore",
+    "testFile": "src/lib/utils/visitDecay.test.js"
   },
   {
     "description": "Internal shim helper: invokes a callback asynchronously on a microtask (Promise.resolve().then) with an optional value, matching Chrome's async callback contract so consumers never depend on synchronous delivery. No-ops when no callback is supplied.",
@@ -733,15 +787,21 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Pure ranking for the Favorites sidebar section. QUALIFICATION is frequency-first: for each candidate it computes an effective visit count of visitCount minus a discount for a currently-open non-pinned tab via options.openKeys, floored at 0; de-duplicates candidates by normalizeUrl so http/https/www/trailing-slash variants of the same site collapse to one row, summing their effective visits with the most-recent variant as the representative; and drops any site whose summed effective visits is below options.minVisits, default MIN_VISITS=2, so one-off visits never appear. ORDERING then multiplies each survivor's effective visits by a recency-decay weight from the recencyWeight helper, which falls linearly from 1 for the newest qualifying site to RECENCY_FLOOR about 0.25 for the oldest retained, so recent sites rise and long-abandoned heavy-use sites fade while frequency still dominates within a similar recency band; the recency index position in allUrls is the deterministic tiebreak for equal scores. The decay affects only order, never qualification. Each returned row also carries an isOpen flag, true when any variant of the site is in options.openKeys, surfaced as a render hint for the open-tab background cue. Accepts an optional excludedKeys Set whose urlKeys are skipped entirely, used to drop sites open in a Chrome-pinned tab or removed by the user. Filters keys without a usable title, derives url from the key when absent, returns the top-limit lightweight rows for rendering.",
-    "filePath": "src/lib/utils/rankFavorites.js",
-    "name": "rankFavorites",
-    "testFile": "src/lib/utils/rankFavorites.test.js"
+    "description": "Service-worker mirror of the visitDecay pruneVisits helper: drops visit timestamps older than VISIT_RETENTION_MS (30 days), filters non-finite entries, sorts ascending, and caps to the newest MAX_VISITS (50). Applied on each newUrl write so per-site visit history recorded for Favorites time-decay ranking stays bounded. Duplicated here because the service-worker runtime cannot import the ES module, matching the GAUGE and AUTO_CLOSE constant-mirroring convention.",
+    "filePath": "service_worker.js",
+    "name": "pruneVisits",
+    "testFile": "service_worker.test.js"
   },
   {
-    "description": "Pure helper mapping a Favorites candidate recency index, its position in the recency-ordered allUrls array where newest is 0, plus the total length to a decay weight in the range RECENCY_FLOOR to 1. Newest maps to 1, the oldest retained maps to RECENCY_FLOOR about 0.25, linear in between, with a length of 1 or 0 guarded to weight 1. rankFavorites multiplies a survivor effective visit count by this weight to order Favorites by a frequency times recency blend without changing which sites qualify.",
+    "description": "Pure helper that bounds a per-site visit-timestamp array: it coerces entries to numbers, drops any older than the VISIT_RETENTION_MS horizon or non-finite, sorts the survivors ascending, and caps the result to the newest MAX_VISITS. Keeps stored visit history bounded on write in the service worker and normalizes visits before scoring in rankFavorites. Tolerates undefined or garbage input by returning an empty array. The service worker mirrors this logic because it cannot import the ES module.",
+    "filePath": "src/lib/utils/visitDecay.js",
+    "name": "pruneVisits",
+    "testFile": "src/lib/utils/visitDecay.test.js"
+  },
+  {
+    "description": "Pure ranking for the Favorites sidebar and View All page. SCORING is time-decayed: for each candidate it resolves visit timestamps via visitsFor (real visits, or a lazy seed from visitCount for legacy records), discounts a currently-open non-pinned tab by dropping its most-recent in-progress visit, de-duplicates candidates by normalizeUrl so http/https/www/trailing-slash variants collapse to one row with their visit timestamps merged, computes a decayedVisitScore over the merged visits, and drops any site scoring below QUALIFY_MIN. Survivors are ordered by decayed score descending, with latest-visit then list position as deterministic tiebreaks. A recent visit thus outweighs an old one, so a weekly-returned site outranks an old-but-once-heavy one, and a site visited once over a week ago or twice over two weeks falls off. Options: openKeys for the open-tab discount, hiddenKeys whose members are NOT dropped but returned flagged isHidden for the View All page, now for deterministic decay, plus halfLifeMs and qualifyMin overrides. excludedKeys removes matching urlKeys entirely; a limit of Infinity leaves the list uncapped. Each returned row carries urlKey, url, title, favicon, isOpen, isHidden, score, visitCount in window, lastVisit, and recentVisits for the sparkline. Non-website keys and title-less records are filtered out.",
     "filePath": "src/lib/utils/rankFavorites.js",
-    "name": "recencyWeight",
+    "name": "rankFavorites",
     "testFile": "src/lib/utils/rankFavorites.test.js"
   },
   {
@@ -749,6 +809,12 @@
     "filePath": "service_worker.js",
     "name": "recordInGroupTab",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Pure formatter that maps an epoch-ms timestamp to a compact how-long-ago label relative to a caller-supplied now: sub-hour reads as just now, under a day as N hours ago, under two weeks as N days ago, and beyond as N weeks ago. A missing timestamp reads as never, and a future timestamp is clamped to just now. Used by the Favorites View All page for each favorite's last-visited stat.",
+    "filePath": "src/lib/utils/relativeTime.js",
+    "name": "relativeTime",
+    "testFile": "src/lib/utils/relativeTime.test.js"
   },
   {
     "description": "Returns a new labels map with a urlKey spliced out of the named label's urlKeys (fresh array, input not mutated; unknown label returns the map unchanged). Backs the UrlDetails Groups-chip removal. Extracted from the page's handleLabelClick.",
@@ -782,6 +848,12 @@
     "filePath": "src/lib/utils/searchNotesSnippet.js",
     "name": "searchNotesSnippet",
     "testFile": "src/lib/utils/searchNotesSnippet.test.js"
+  },
+  {
+    "description": "Pure migration helper that synthesizes a recent visit history for a legacy url record that has a visitCount but no visits array. It returns up to MAX_VISITS timestamps spread evenly across the last few days ending at now, so a pre-upgrade favorite keeps a sensible decayed rank on first load instead of vanishing, then converges to real timestamps as the user revisits. A zero or missing count yields an empty array; a count of one yields a single visit at now. This is a one-time, non-destructive approximation applied lazily at score time.",
+    "filePath": "src/lib/utils/visitDecay.js",
+    "name": "seedVisitsFromCount",
+    "testFile": "src/lib/utils/visitDecay.test.js"
   },
   {
     "description": "Shapes raw minisearch hits for the SearchResults overlay: dedupes hits by document id (guarding the duplicate-React-key crash from overlapping index rebuilds), then splits them into { labels, urls } — a hit is a label when it carries labelTitle, otherwise a labeled URL.",
@@ -920,6 +992,12 @@
     "testFile": "src/lib/utils/rankFavorites.test.js"
   },
   {
+    "description": "Pure helper returning the largest single-bucket visit count across every favorite's daily AND weekly usage buckets, floored at 1. The Favorites View All page passes this as a common maximum to every row's UsageSparkline so bar heights are comparable across rows — a busy site reads visibly taller than a quiet one — instead of each chart self-scaling to its own busiest bucket. Uses bucketVisitsByDay and bucketVisitsByWeek.",
+    "filePath": "src/lib/utils/usageMax.js",
+    "name": "usageMax",
+    "testFile": "src/lib/utils/usageMax.test.js"
+  },
+  {
     "description": "React hook owning the resolved light/dark theme. Resolves from three inputs: the saved themePreference storage key ['system' | 'light' | 'dark', default system], the live OS prefers-color-scheme tracked via matchMedia [dark fallback], and an in-memory temporary override set by the sun/moon toggle. Only the resolved value mirrors to the document element's data-theme attribute, which the CSS token layer keys off so the whole UI re-themes from one place. In system mode an OS day/night transition clears the override; a legacy theme:'light' migrates to a Day preference. Returns [theme, toggleTheme].",
     "filePath": "src/lib/hooks/useTheme.js",
     "name": "useTheme",
@@ -935,5 +1013,11 @@
       "util"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Private helper in rankFavorites that resolves a url record's effective visit timestamps for scoring: it returns the record's own pruned visits when present, otherwise lazily seeds them from visitCount via seedVisitsFromCount so a legacy record still ranks, and returns an empty array when neither is available. Always returns a retention-bounded, length-capped ascending array via pruneVisits.",
+    "filePath": "src/lib/utils/rankFavorites.js",
+    "name": "visitsFor",
+    "testFile": "src/lib/utils/rankFavorites.test.js"
   }
 ]

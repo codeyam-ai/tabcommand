@@ -1,271 +1,220 @@
 import { describe, it, expect } from 'vitest';
 import { rankFavorites } from './rankFavorites';
+import { QUALIFY_MIN } from './visitDecay';
 
-// rankFavorites QUALIFIES Favorites frequency-first (de-duplicate cosmetic URL
-// variants, sum effective visits, discount currently-open tabs, drop sites below
-// a minimum-visit threshold) and then ORDERS the survivors by a frequency ×
-// recency-decay blend, with recency (position in allUrls) as the deterministic
-// tiebreak for equal scores. Each row also carries an `isOpen` render hint. These
-// tests pin that contract.
+const DAY = 1000 * 60 * 60 * 24;
+const NOW = 1_700_000_000_000;
+
+// rankFavorites scores each site by a TIME-DECAYED sum of its visit timestamps
+// (a recent visit worth more than an old one), drops sites below QUALIFY_MIN,
+// and orders survivors by that decayed score with recency as the tiebreak. A
+// legacy record (visitCount but no `visits`) is seeded lazily. hiddenKeys are
+// returned flagged rather than dropped, for the "View All" page. All tests pin
+// `now` via options so decay is deterministic.
 describe('rankFavorites', () => {
-  // Records carry a realistic http(s) url (derived from the title) so they clear
-  // the trackable-URL guard, mirroring production where every stored key is a
-  // real navigated website. A test that needs a specific url (dedup variants,
-  // non-website junk) passes its own `url` in `over`, which wins.
-  const rec = (title, over = {}) => ({
+  // Build a record with visit timestamps at the given day-ages (relative to NOW)
+  // and a realistic http(s) url derived from the title so it clears the
+  // trackable-URL guard.
+  const rec = (title, dayAges, over = {}) => ({
     title,
     favicon: '',
     url: `https://${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.example`,
+    visitCount: dayAges.length,
+    visits: dayAges.map((d) => Math.round(NOW - d * DAY)).sort((a, b) => a - b),
     ...over,
   });
 
+  const opts = (over = {}) => ({ now: NOW, ...over });
+
   // Empty or non-array input yields an empty list, never a throw.
   it('returns [] for empty or non-array allUrls', () => {
-    expect(rankFavorites([], {})).toEqual([]);
-    expect(rankFavorites(null, {})).toEqual([]);
-    expect(rankFavorites(undefined, {})).toEqual([]);
+    expect(rankFavorites([], {}, 5, undefined, opts())).toEqual([]);
+    expect(rankFavorites(null, {}, 5, undefined, opts())).toEqual([]);
+    expect(rankFavorites(undefined, {}, 5, undefined, opts())).toEqual([]);
   });
 
   // Keys lacking a record, or whose record has no usable title, are filtered out.
   it('drops keys without a usable record/title', () => {
     const allUrls = ['url-a', 'url-b', 'url-c'];
     const records = {
-      'url-a': rec('Alpha', { visitCount: 3 }),
+      'url-a': rec('Alpha', [0, 1]),
       // url-b has no record
-      'url-c': { favicon: '', visitCount: 3 }, // record but no title
+      'url-c': { favicon: '', visits: [NOW] }, // record but no title
     };
-    const result = rankFavorites(allUrls, records);
+    const result = rankFavorites(allUrls, records, 5, undefined, opts());
     expect(result.map((r) => r.urlKey)).toEqual(['url-a']);
   });
 
-  // Frequency leads: a more-visited older site ranks above a more-recent,
-  // less-visited one (the recency-dominant blend is gone).
-  it('ranks frequency-first — higher visit count beats more-recent', () => {
-    const allUrls = ['url-fresh', 'url-popular'];
+  // Time-decay ordering: two sites with the SAME raw visit count but different
+  // recency — the recently-visited one ranks above the stale one.
+  it('ranks a recent site above a stale one with the same visit count', () => {
+    const allUrls = ['url-stale', 'url-recent'];
     const records = {
-      'url-fresh': rec('Fresh', { visitCount: 2 }),
-      'url-popular': rec('Popular', { visitCount: 9 }),
+      'url-recent': rec('Recent', [1, 2, 3]),
+      'url-stale': rec('Stale', [10, 11, 12]),
     };
-    const result = rankFavorites(allUrls, records);
-    expect(result.map((r) => r.title)).toEqual(['Popular', 'Fresh']);
+    const result = rankFavorites(allUrls, records, 5, undefined, opts());
+    expect(result.map((r) => r.title)).toEqual(['Recent', 'Stale']);
+    expect(result[0].score).toBeGreaterThan(result[1].score);
   });
 
-  // With equal effective visit counts, the recency decay orders newest-first
-  // (and recency remains the deterministic tiebreak for any exact score tie).
-  it('orders newest-first when visit counts are equal', () => {
-    const allUrls = ['url-new', 'url-mid', 'url-old'];
-    const records = {
-      'url-new': rec('New', { visitCount: 4 }),
-      'url-mid': rec('Mid', { visitCount: 4 }),
-      'url-old': rec('Old', { visitCount: 4 }),
-    };
-    const result = rankFavorites(allUrls, records);
-    expect(result.map((r) => r.title)).toEqual(['New', 'Mid', 'Old']);
-  });
-
-  // The minimum-visit threshold: a single-visit site doesn't qualify; bump it to
-  // the threshold and it appears.
-  it('drops sites below MIN_VISITS, includes them once they reach it', () => {
-    const allUrls = ['url-once'];
-    expect(rankFavorites(allUrls, { 'url-once': rec('Once', { visitCount: 1 }) })).toEqual(
-      []
+  // Qualification threshold — a single visit ~8 days old decays below QUALIFY_MIN
+  // and drops; a single recent visit clears it.
+  it('drops a single week-plus-old visit but keeps a recent one', () => {
+    const stale = rankFavorites(
+      ['url-old'],
+      { 'url-old': rec('Old', [8]) },
+      5,
+      undefined,
+      opts()
     );
-    expect(
-      rankFavorites(allUrls, { 'url-once': rec('Twice', { visitCount: 2 }) }).map(
-        (r) => r.title
-      )
-    ).toEqual(['Twice']);
+    expect(stale).toEqual([]);
+    const fresh = rankFavorites(
+      ['url-new'],
+      { 'url-new': rec('New', [1]) },
+      5,
+      undefined,
+      opts()
+    );
+    expect(fresh.map((r) => r.title)).toEqual(['New']);
   });
 
-  // A missing visitCount is treated as 0, so the site falls below threshold and
-  // is excluded (and it must not throw).
-  it('treats a missing visitCount as 0, below the threshold', () => {
-    const allUrls = ['url-a', 'url-b'];
-    const records = {
-      'url-a': rec('NoCount'), // no visitCount field -> 0
-      'url-b': rec('Counted', { visitCount: 3 }),
-    };
-    const result = rankFavorites(allUrls, records);
-    expect(result.map((r) => r.title)).toEqual(['Counted']);
+  // A site visited only twice ~two weeks ago also falls below the threshold.
+  it('drops a site visited twice over two weeks', () => {
+    const result = rankFavorites(
+      ['url-rare'],
+      { 'url-rare': rec('Rare', [15, 18]) },
+      5,
+      undefined,
+      opts()
+    );
+    expect(result).toEqual([]);
   });
 
-  // De-duplication: http/https/www/trailing-slash variants collapse to a single
-  // row, their counts summed, with the most-recent variant as the representative.
-  it('collapses cosmetic URL variants into one row with summed counts', () => {
-    const allUrls = [
-      'url-https://x.com/', // newest
-      'url-http://www.x.com',
-      'url-https://x.com', // oldest
-    ];
+  // Legacy migration: a record with visitCount but no `visits` array is seeded
+  // from the count so it still qualifies and ranks sensibly.
+  it('seeds a legacy visitCount-only record so it still qualifies', () => {
+    const allUrls = ['url-legacy'];
     const records = {
-      'url-https://x.com/': rec('X New', { visitCount: 1, url: 'https://x.com/' }),
-      'url-http://www.x.com': rec('X Www', {
-        visitCount: 1,
-        url: 'http://www.x.com',
-      }),
-      'url-https://x.com': rec('X Old', { visitCount: 1, url: 'https://x.com' }),
+      'url-legacy': {
+        title: 'Legacy',
+        favicon: '',
+        url: 'https://legacy.example',
+        visitCount: 7, // no `visits` array
+      },
     };
-    const result = rankFavorites(allUrls, records);
-    // One collapsed row; summed effective visits (1+1+1=3) clears MIN_VISITS;
-    // the most-recent variant is the representative.
+    const result = rankFavorites(allUrls, records, 5, undefined, opts());
+    expect(result.map((r) => r.title)).toEqual(['Legacy']);
+    expect(result[0].score).toBeGreaterThan(QUALIFY_MIN);
+  });
+
+  // De-duplication: http/https/www/trailing-slash variants collapse to one row,
+  // their visit timestamps merged, with the most-recent variant as representative.
+  it('collapses cosmetic URL variants and merges their visits', () => {
+    const allUrls = ['url-https://x.com/', 'url-http://www.x.com', 'url-https://x.com'];
+    const records = {
+      'url-https://x.com/': rec('X New', [1], { url: 'https://x.com/' }),
+      'url-http://www.x.com': rec('X Www', [2], { url: 'http://www.x.com' }),
+      'url-https://x.com': rec('X Old', [3], { url: 'https://x.com' }),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts());
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe('X New');
     expect(result[0].urlKey).toBe('url-https://x.com/');
+    // Merged visits across all three variants.
+    expect(result[0].recentVisits).toHaveLength(3);
   });
 
-  // Open-tab discount: a site visited twice but open in one non-pinned tab drops
-  // to effective 1 and falls below threshold; an unrelated open key is harmless.
-  it('discounts a currently-open tab, floored against the threshold', () => {
+  // Open-tab discount: an open non-pinned tab's most-recent (in-progress) visit
+  // is dropped from its history, lowering the score.
+  it('discounts an open tab by dropping its most-recent visit', () => {
+    const allUrls = ['url-a'];
+    const records = { 'url-a': rec('Open', [0, 1, 2]) };
+    const closed = rankFavorites(allUrls, records, 5, undefined, opts());
+    const open = rankFavorites(allUrls, records, 5, undefined, opts({
+      openKeys: new Set(['url-a']),
+    }));
+    expect(open[0].isOpen).toBe(true);
+    expect(open[0].recentVisits).toHaveLength(2); // latest dropped
+    expect(open[0].score).toBeLessThan(closed[0].score);
+  });
+
+  // hiddenKeys are NOT dropped: they're scored, qualified, and flagged isHidden
+  // so the View All page can render them dimmed.
+  it('flags hiddenKeys as isHidden instead of dropping them', () => {
+    const allUrls = ['url-shown', 'url-hidden'];
+    const records = {
+      'url-shown': rec('Shown', [0, 1]),
+      'url-hidden': rec('Hidden', [0, 1]),
+    };
+    const result = rankFavorites(allUrls, records, Infinity, undefined, opts({
+      hiddenKeys: new Set(['url-hidden']),
+    }));
+    const byTitle = Object.fromEntries(result.map((r) => [r.title, r.isHidden]));
+    expect(byTitle).toEqual({ Shown: false, Hidden: true });
+  });
+
+  // excludedKeys removes matching urlKeys (e.g. pinned) entirely.
+  it('skips urlKeys present in excludedKeys', () => {
     const allUrls = ['url-a', 'url-b'];
     const records = {
-      'url-a': rec('Open', { visitCount: 2 }),
-      'url-b': rec('Closed', { visitCount: 2 }),
+      'url-a': rec('Alpha', [0, 1]),
+      'url-b': rec('Bravo', [0, 1]),
     };
-    // Without the discount both qualify.
-    expect(rankFavorites(allUrls, records).map((r) => r.title)).toEqual([
-      'Open',
-      'Closed',
-    ]);
-    // url-a open once -> effective 1 < MIN_VISITS, drops out; url-b unaffected.
-    const result = rankFavorites(allUrls, records, 5, undefined, {
-      openKeys: new Set(['url-a']),
-    });
-    expect(result.map((r) => r.title)).toEqual(['Closed']);
-  });
-
-  // excludedKeys removes matching urlKeys (e.g. pinned/hidden) entirely.
-  it('skips urlKeys present in excludedKeys', () => {
-    const allUrls = ['url-a', 'url-b', 'url-c'];
-    const records = {
-      'url-a': rec('Alpha', { visitCount: 3 }),
-      'url-b': rec('Bravo', { visitCount: 3 }),
-      'url-c': rec('Charlie', { visitCount: 3 }),
-    };
-    expect(rankFavorites(allUrls, records).map((r) => r.title)).toEqual([
-      'Alpha',
-      'Bravo',
-      'Charlie',
-    ]);
     const excluded = new Set(['url-b']);
-    expect(
-      rankFavorites(allUrls, records, 5, excluded).map((r) => r.title)
-    ).toEqual(['Alpha', 'Charlie']);
+    const result = rankFavorites(allUrls, records, 5, excluded, opts());
+    expect(result.map((r) => r.title)).toEqual(['Alpha']);
   });
 
-  // The limit argument caps how many favorites are returned.
-  it('respects the limit', () => {
+  // The limit caps how many favorites are returned; Infinity leaves it uncapped.
+  it('respects a numeric limit and an Infinity uncapped limit', () => {
     const allUrls = ['url-a', 'url-b', 'url-c', 'url-d'];
     const records = {
-      'url-a': rec('A', { visitCount: 3 }),
-      'url-b': rec('B', { visitCount: 3 }),
-      'url-c': rec('C', { visitCount: 3 }),
-      'url-d': rec('D', { visitCount: 3 }),
+      'url-a': rec('A', [0, 1]),
+      'url-b': rec('B', [0, 1]),
+      'url-c': rec('C', [0, 1]),
+      'url-d': rec('D', [0, 1]),
     };
-    expect(rankFavorites(allUrls, records, 2)).toHaveLength(2);
+    expect(rankFavorites(allUrls, records, 2, undefined, opts())).toHaveLength(2);
+    expect(rankFavorites(allUrls, records, Infinity, undefined, opts())).toHaveLength(4);
   });
 
-  // Fewer qualifying candidates than the limit returns all of them.
-  it('returns fewer than limit when there are fewer qualifying candidates', () => {
-    const allUrls = ['url-a'];
-    const records = { 'url-a': rec('Only', { visitCount: 2 }) };
-    expect(rankFavorites(allUrls, records, 5)).toHaveLength(1);
-  });
-
-  // The returned row shape: url derived from the key when absent, title + favicon
-  // passed through.
-  it('derives url from the key when the record omits it, and shapes the row', () => {
+  // The returned row carries the stats the View All page needs.
+  it('shapes the row with score, visitCount-in-window, lastVisit and recentVisits', () => {
     const allUrls = ['url-https://example.com/path'];
-    // Built inline (not via rec) so the record genuinely OMITS url — the row's
-    // url must then be derived from the trackable key itself.
+    const visits = [NOW - 2 * DAY, NOW - 1 * DAY];
     const records = {
       'url-https://example.com/path': {
         title: 'Example',
         favicon: 'icon.png',
-        visitCount: 2,
+        visits,
       },
     };
-    expect(rankFavorites(allUrls, records)).toEqual([
-      {
-        urlKey: 'url-https://example.com/path',
-        url: 'https://example.com/path',
-        title: 'Example',
-        favicon: 'icon.png',
-        isOpen: false,
-      },
-    ]);
+    const [row] = rankFavorites(allUrls, records, 5, undefined, opts());
+    expect(row.urlKey).toBe('url-https://example.com/path');
+    expect(row.url).toBe('https://example.com/path');
+    expect(row.title).toBe('Example');
+    expect(row.favicon).toBe('icon.png');
+    expect(row.isOpen).toBe(false);
+    expect(row.isHidden).toBe(false);
+    expect(row.visitCount).toBe(2);
+    expect(row.lastVisit).toBe(NOW - 1 * DAY);
+    expect(row.recentVisits).toEqual(visits);
+    expect(row.score).toBeGreaterThan(QUALIFY_MIN);
   });
 
-  // Recency decay flips an order frequency alone would not: a more-recent, LOWER
-  // -frequency site outranks a much-older, HIGHER-frequency one once both clear
-  // the threshold. (By raw count alone, Stale's 6 would beat Recent's 3.)
-  it('lets recency decay rank a recent lower-frequency site above a stale heavier one', () => {
-    const allUrls = ['url-recent', 'url-f1', 'url-f2', 'url-f3', 'url-stale'];
-    const records = {
-      'url-recent': rec('Recent', { visitCount: 3 }),
-      'url-stale': rec('Stale', { visitCount: 6 }),
-    };
-    const result = rankFavorites(allUrls, records);
-    expect(result.map((r) => r.title)).toEqual(['Recent', 'Stale']);
-  });
-
-  // The decay must not change WHO qualifies, only the order: the oldest retained
-  // site (recency weight at the floor, never zero) still appears as long as its
-  // RAW effective visits clear the threshold.
-  it('does not let recency decay drop an oldest-but-qualifying site', () => {
-    const allUrls = ['url-new', 'url-old'];
-    const records = {
-      'url-new': rec('New', { visitCount: 9 }),
-      'url-old': rec('Old', { visitCount: 2 }), // oldest -> weight = floor, not 0
-    };
-    const result = rankFavorites(allUrls, records);
-    expect(result.map((r) => r.title)).toEqual(['New', 'Old']);
-  });
-
-  // Defensive trackable-URL guard: a stored non-website key (about:blank /
-  // file://) is excluded even with a high visit count, while real sites rank.
-  it('drops stored non-website entries like about:blank and file:// from the ranking', () => {
+  // Defensive trackable-URL guard: a stored non-website key is excluded even with
+  // many visits, while real sites rank.
+  it('drops stored non-website entries like about:blank and file://', () => {
     const allUrls = ['url-about:blank', 'url-file:///Users/x/doc.html', 'url-real'];
     const records = {
-      'url-about:blank': rec('Blank', { visitCount: 99, url: 'about:blank' }),
-      'url-file:///Users/x/doc.html': rec('Doc', {
-        visitCount: 50,
+      'url-about:blank': rec('Blank', [0, 1, 2], { url: 'about:blank' }),
+      'url-file:///Users/x/doc.html': rec('Doc', [0, 1], {
         url: 'file:///Users/x/doc.html',
       }),
-      'url-real': rec('Real Site', { visitCount: 3, url: 'https://example.com' }),
+      'url-real': rec('Real Site', [0, 1], { url: 'https://example.com' }),
     };
-    const result = rankFavorites(allUrls, records);
+    const result = rankFavorites(allUrls, records, 5, undefined, opts());
     expect(result.map((r) => r.title)).toEqual(['Real Site']);
-  });
-
-  // isOpen render hint: true for a row whose site is in openKeys, false otherwise.
-  // The site must still clear the threshold after the open-tab discount.
-  it('flags isOpen for an open favorite and not for a closed one', () => {
-    const allUrls = ['url-open', 'url-closed'];
-    const records = {
-      'url-open': rec('Open', { visitCount: 3 }), // 3 - 1 discount = 2, qualifies
-      'url-closed': rec('Closed', { visitCount: 3 }),
-    };
-    const result = rankFavorites(allUrls, records, 5, undefined, {
-      openKeys: new Set(['url-open']),
-    });
-    const byTitle = Object.fromEntries(result.map((r) => [r.title, r.isOpen]));
-    expect(byTitle).toEqual({ Open: true, Closed: false });
-  });
-
-  // isOpen fires when ANY variant of a collapsed site is open, even if the open
-  // variant is not the representative row that renders.
-  it('flags isOpen when a non-representative variant is the open one', () => {
-    const allUrls = ['url-https://x.com/', 'url-https://x.com'];
-    const records = {
-      'url-https://x.com/': rec('X New', { visitCount: 2, url: 'https://x.com/' }),
-      'url-https://x.com': rec('X Old', { visitCount: 2, url: 'https://x.com' }),
-    };
-    // The older variant (not the representative) is the open one.
-    const result = rankFavorites(allUrls, records, 5, undefined, {
-      openKeys: new Set(['url-https://x.com']),
-    });
-    expect(result).toHaveLength(1);
-    expect(result[0].urlKey).toBe('url-https://x.com/'); // newest is representative
-    expect(result[0].isOpen).toBe(true);
   });
 });

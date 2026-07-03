@@ -34,6 +34,13 @@ import { components } from './__codeyam_components';
 
 const noop = () => {};
 
+// Fixed reference "now" (and one day in ms) for the prop-driven Favorites
+// components below, so their visit timestamps — and the decay score, relative
+// last-visited, and usage sparkline those drive — render a stable, recent-looking
+// snapshot in isolation instead of drifting with wall-clock time.
+const FAV_NOW = 1782486000000;
+const D = 86400000;
+
 const ISOLATION_PROPS = {
   // The sidebar wordmark introduced by the visual redesign: the 4-color mark plus
   // the Tab/Command text wordmark. Single visual state; click is a no-op here.
@@ -517,6 +524,169 @@ const ISOLATION_PROPS = {
           { value: 3, label: 3 },
           { value: 4, label: 4 },
         ],
+      },
+    },
+  },
+  // One favorite row on the Favorites "View All" page: favicon + title, a stats
+  // strip (visits-in-window, last-visited, decay score), and a usage sparkline.
+  FavoriteRow: {
+    // A healthy favorite: real favicon, many recent visits, high decayed score.
+    default: {
+      now: FAV_NOW,
+      favorite: {
+        urlKey: 'url-https://github.com/codeyam/tabcommand',
+        url: 'https://github.com/codeyam/tabcommand',
+        title: 'codeyam/tabcommand — GitHub',
+        favicon:
+          'https://www.google.com/s2/favicons?domain=github.com&sz=64',
+        isOpen: false,
+        isHidden: false,
+        score: 6.2,
+        visitCount: 16,
+        lastVisit: FAV_NOW - Math.round(0.2 * D),
+        // Varied per-day counts (2 today, 3 two days ago, …) so the daily bars
+        // differ in height, and visits spread across ~7 weeks so the weekly view
+        // is populated and varies too.
+        recentVisits: [
+          FAV_NOW - 47 * D,
+          FAV_NOW - 40 * D,
+          FAV_NOW - 33 * D,
+          FAV_NOW - 25 * D,
+          FAV_NOW - 22 * D,
+          FAV_NOW - 15 * D,
+          FAV_NOW - 12 * D,
+          FAV_NOW - 9 * D,
+          FAV_NOW - 6 * D,
+          FAV_NOW - 4 * D,
+          FAV_NOW - 2 * D,
+          FAV_NOW - 2 * D,
+          FAV_NOW - 2 * D,
+          FAV_NOW - 1 * D,
+          FAV_NOW - Math.round(0.5 * D),
+          FAV_NOW - Math.round(0.2 * D),
+        ],
+      },
+      onOpen: noop,
+      onBringBack: noop,
+    },
+    variants: {
+      // Currently open in a non-pinned tab → the accent "already open" tint.
+      open: {
+        now: FAV_NOW,
+        favorite: {
+          urlKey: 'url-https://news.ycombinator.com',
+          url: 'https://news.ycombinator.com',
+          title: 'Hacker News',
+          favicon:
+            'https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=64',
+          isOpen: true,
+          isHidden: false,
+          score: 4.13,
+          visitCount: 5,
+          lastVisit: FAV_NOW - Math.round(0.2 * D),
+          recentVisits: [
+            FAV_NOW - 5 * D,
+            FAV_NOW - 3 * D,
+            FAV_NOW - 2 * D,
+            FAV_NOW - 1 * D,
+            FAV_NOW - Math.round(0.2 * D),
+          ],
+        },
+        onOpen: noop,
+        onBringBack: noop,
+      },
+      // A removed favorite → dimmed row with a "Bring back" action.
+      hidden: {
+        now: FAV_NOW,
+        favorite: {
+          urlKey: 'url-https://www.etsy.com/favorites',
+          url: 'https://www.etsy.com/favorites',
+          title: 'Favorites — Etsy',
+          favicon:
+            'https://www.google.com/s2/favicons?domain=etsy.com&sz=64',
+          isOpen: false,
+          isHidden: true,
+          score: 2.4,
+          visitCount: 3,
+          lastVisit: FAV_NOW - 1 * D,
+          recentVisits: [FAV_NOW - 4 * D, FAV_NOW - 2 * D, FAV_NOW - 1 * D],
+        },
+        onOpen: noop,
+        onBringBack: noop,
+      },
+      // Edge: no favicon (monogram fallback) + a long title, a lower-but-
+      // qualifying score, and a single-visit "1 visit" pluralization case.
+      monogram: {
+        now: FAV_NOW,
+        favorite: {
+          urlKey: 'url-https://overreacted.io/a-complete-guide-to-useeffect',
+          url: 'https://overreacted.io/a-complete-guide-to-useeffect',
+          title:
+            'A Complete Guide to useEffect — overreacted, a very long article title that overflows the row',
+          favicon: '',
+          isOpen: false,
+          isHidden: false,
+          score: 0.74,
+          visitCount: 1,
+          lastVisit: FAV_NOW - 3 * D,
+          recentVisits: [FAV_NOW - 3 * D],
+        },
+        onOpen: noop,
+        onBringBack: noop,
+      },
+    },
+  },
+  // The two inline usage-over-time bar charts on a FavoriteRow: last 7 days and
+  // last 7 weeks, side by side.
+  UsageSparkline: {
+    // Varied daily counts and visits spread across ~7 weeks → both charts show a
+    // mix of bar heights rather than a flat row of maxed-out bars.
+    default: {
+      now: FAV_NOW,
+      visits: [
+        FAV_NOW - 47 * D,
+        FAV_NOW - 40 * D,
+        FAV_NOW - 33 * D,
+        FAV_NOW - 25 * D,
+        FAV_NOW - 22 * D,
+        FAV_NOW - 15 * D,
+        FAV_NOW - 12 * D,
+        FAV_NOW - 9 * D,
+        FAV_NOW - 6 * D,
+        FAV_NOW - 4 * D,
+        FAV_NOW - 2 * D,
+        FAV_NOW - 2 * D,
+        FAV_NOW - 2 * D,
+        FAV_NOW - 1 * D,
+        FAV_NOW - Math.round(0.5 * D),
+        FAV_NOW - Math.round(0.2 * D),
+      ],
+    },
+    variants: {
+      // Heavy, clustered recent usage → tall daily bars and a spiking weekly view.
+      dense: {
+        now: FAV_NOW,
+        visits: [
+          FAV_NOW - 20 * D,
+          FAV_NOW - 13 * D,
+          FAV_NOW - 12 * D,
+          FAV_NOW - 6 * D,
+          FAV_NOW - 5 * D,
+          FAV_NOW - 4 * D,
+          FAV_NOW - 3 * D,
+          FAV_NOW - 3 * D,
+          FAV_NOW - 2 * D,
+          FAV_NOW - 2 * D,
+          FAV_NOW - 2 * D,
+          FAV_NOW - 1 * D,
+          FAV_NOW - 1 * D,
+          FAV_NOW - Math.round(0.3 * D),
+        ],
+      },
+      // A few sparse visits → one or two short bars, the rest empty.
+      sparse: {
+        now: FAV_NOW,
+        visits: [FAV_NOW - 2 * D, FAV_NOW - 30 * D],
       },
     },
   },
