@@ -21,6 +21,8 @@ Investigate the codebase and create a structured plan file ready for the codeyam
 
 Even if the fix is obvious and small, **write it in the plan and stop.** The user will execute the plan later through the editor workflow. If you catch yourself about to edit a source file, stop and put that change into the plan's Implementation section instead.
 
+**One capability, one boundary:** a bug plan MAY *capture* a failing reproduction test as source-code text inside the plan file itself (`.codeyam/plans/<slug>.md`, in the `## Reproduction Test` section documented in Step 5). This is still just writing the plan file — you MUST NOT write that test into the real test tree, MUST NOT run any test, and MUST NOT edit any file outside `.codeyam/`. The test is captured as text only; the editor workflow materializes and runs it at execution time.
+
 The only files you may write are:
 - `.codeyam/plans/<slug>.md` (the plan itself)
 - `git add` / `git commit` of that plan file (and **only** that plan file — never `git add -A`, never a bare `git commit` that would sweep in unrelated staged work). This is the plan-creation commit specifically — it must contain only the plan file. The feature-commit step at the end of the editor workflow has a different rule: it auto-commits all non-gitignored leftovers.
@@ -72,6 +74,11 @@ Based on the user's description, explore the relevant parts of the codebase to u
 3. **What needs to change** — identify the specific modifications, new files, or new components needed
 4. **What to reuse** — find existing helpers, components, types, or patterns that should be leveraged
 5. **What tests exist** — check for existing test coverage in the affected areas
+6. **Bug or feature?** — classify the request as a **bug fix** (some current
+   behavior is broken and you can state the correct expected behavior) vs a
+   **feature/enhancement**. Only bug fixes get a `## Reproduction Test` section
+   in Step 5. For a bug, note which existing test file (if any) already covers
+   the affected code — that is where the reproduction test will live.
 
 **Always check the project's registries and glossary first** — they are the
 authoritative index of reusable code in a codeyam project. Skipping these is
@@ -199,6 +206,25 @@ Cite registry / glossary entries by name when the plan reuses them. This is
 what makes the plan "well-researched" enough for the editor workflow's Plan
 and Explore steps to fast-path through to Confirm.
 
+## Reproduction Test
+
+<!-- BUG FIXES ONLY. Omit this whole section for feature/enhancement plans. -->
+
+One sentence naming the buggy behavior this test pins.
+
+**Target**: `path/to/real/test-file.ext` — run with
+`codeyam-editor editor refresh-tests --test <name>`.
+
+```ts
+// New test: a `//` (or `///` for Rust) description comment is mandatory.
+it("returns the merged total for overlapping ranges", () => {
+  expect(mergeRanges([[1, 3], [2, 5]])).toEqual([[1, 5]]);
+});
+```
+
+Status: PROPOSED — confirm red at execution. Expected failure: `mergeRanges`
+returns `[[1, 3], [2, 5]]`, so the `toEqual([[1, 5]])` assertion fails.
+
 ## Scenarios to Demonstrate
 
 - Happy path with realistic data
@@ -253,8 +279,38 @@ of plans you've authored in the same session — they exist in
 `.codeyam/plans/`. The user can then run them in any order; the editor
 will block Run on a downstream plan until its prerequisites land.
 
+**The `## Reproduction Test` section (bug fixes only):**
+
+Add this section **only** when the plan is a bug fix *and* a targeted failing
+test is genuinely writable from reading the codebase. Its job is to hand the
+editor workflow a red-first reproduction it can materialize verbatim. Shape:
+
+- **One sentence** stating the buggy behavior the test pins.
+- **Target** — the real test file path where execution should place or modify
+  the test, plus the run command `codeyam-editor editor refresh-tests --test
+  <name>`. Never hand-write a `cargo test` / `vitest` invocation; the language,
+  extension, and runner come from the *target file's* stack, not a default.
+- **New test** → a fenced code block with the full test, including the
+  mandatory `//` (or `///` for Rust) description comment directly above the
+  `it()` / `#[test]` — the rule the audit enforces.
+- **Change to an existing test** → name the existing test and give a fenced
+  unified-diff (or before/after) showing the assertion flip that turns it red,
+  so execution can apply it exactly.
+- **Status** — `Status: PROPOSED — confirm red at execution`, plus the expected
+  failure (which assertion fails and roughly what message). You cannot run the
+  test (the critical rule), so confirming the red is the execution workflow's
+  job, not yours.
+- **When no reproduction test is writable** (visual/layout regressions, bugs
+  needing live runtime state), still include the section but record a one-line
+  *reason* instead of fabricating a weak test — e.g. *"Visual regression — no
+  isolatable unit repro; demonstrate via scenario 'empty dashboard'."* An honest
+  "no unit-level repro" beats a fake red.
+
 **Guidelines for plan content:**
 - Focus on **what the user will see and do**, not just implementation details
+- For a **bug fix**, capture a `## Reproduction Test` (see above) that isolates
+  the bug's root cause, stays minimal, and matches the target file's stack — no
+  hardcoded runner or extension. Skip the section entirely for features.
 - Be specific about file paths — you investigated the codebase, so name real files
 - List concrete scenarios with interesting data states (empty, rich, error, edge cases)
 - Keep the summary concise — the editor's Step 1 will refine details
