@@ -6,7 +6,7 @@ import { Chrome } from '../../utils/Chrome';
 import { rankFavorites } from '../../utils/rankFavorites';
 import { usageMax } from '../../utils/usageMax';
 import { Pages } from '../../../Constants';
-import { Icon, FavoriteRow } from '../../components';
+import { Icon, FavoriteRow, FavoritesResetControl } from '../../components';
 
 const back = () => {
   Chrome.get('ViewAllFavorites0', 'uxSettings', ({ uxSettings }) => {
@@ -112,6 +112,32 @@ const ViewAllFavorites = () => {
     });
   };
 
+  // "Start over" on the favorites ranking: zero the visit signal (visits /
+  // visitCount) on every url-* record and clear favoritesHidden, so with no
+  // visits every site falls below rankFavorites' QUALIFY_MIN and the list goes
+  // empty. Each record is rewritten IN PLACE — title, favicon, url and every
+  // other field are preserved — because url-* records are shared with History &
+  // Search, which must stay intact. Zeroing visitCount as well as visits stops
+  // rankFavorites from lazily re-seeding visits from a legacy count.
+  const resetFavorites = () => {
+    Chrome.get('ViewAllFavoritesReset0', 'allUrls', ({ allUrls }) => {
+      const keys = allUrls || [];
+      const finish = (updates) => {
+        chrome.storage.local.set({ ...updates, favoritesHidden: [] });
+      };
+      if (keys.length === 0) return finish({});
+      Chrome.get('ViewAllFavoritesReset1', keys, (records) => {
+        const updates = {};
+        for (const key of keys) {
+          const rec = records[key];
+          if (!rec) continue; // key with no record — nothing to clear
+          updates[key] = { ...rec, visits: [], visitCount: 0 };
+        }
+        finish(updates);
+      });
+    });
+  };
+
   // A common maximum so every row's sparklines share one scale and bar heights
   // are comparable across rows (a busy site reads visibly taller than a quiet one).
   const maxCount = usageMax(favorites, now);
@@ -126,6 +152,8 @@ const ViewAllFavorites = () => {
         Ranked by how often and how recently you visit — recent visits count
         more.
       </p>
+
+      <FavoritesResetControl onReset={resetFavorites} />
 
       {favorites.map((favorite) => (
         <FavoriteRow

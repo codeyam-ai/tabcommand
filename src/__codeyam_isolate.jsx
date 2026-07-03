@@ -636,6 +636,17 @@ const ISOLATION_PROPS = {
       },
     },
   },
+  // The "Reset favorites tracking" control on the Favorites View All page. The
+  // default state is the single quiet utility button; the confirm state (the
+  // destructive "Yes, reset everything" / "Cancel" pair) is internal component
+  // state revealed by clicking the button, so the confirming scenario drives
+  // that click at capture time rather than being prop-selectable. onReset is a
+  // no-op here.
+  FavoritesResetControl: {
+    default: {
+      onReset: noop,
+    },
+  },
   // The two inline usage-over-time bar charts on a FavoriteRow: last 7 days and
   // last 7 weeks, side by side.
   UsageSparkline: {

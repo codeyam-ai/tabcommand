@@ -25,3 +25,4 @@ export { Favorites } from "./Favorites";
 export { SearchHint } from "./SearchHint";
 export { UsageSparkline } from "./UsageSparkline";
 export { FavoriteRow } from "./FavoriteRow";
+export { FavoritesResetControl } from "./FavoritesResetControl";

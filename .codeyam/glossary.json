@@ -75,6 +75,15 @@
     ]
   },
   {
+    "description": "The Reset favorites tracking control on the Favorites View All page. A quiet utility button at rest; clicking it reveals an inline two-step confirm with a destructive Yes reset everything and a Cancel, so the destructive action takes a deliberate second click. Owns only the confirm/cancel toggle state; the reset itself is onReset, supplied by the page.",
+    "filePath": "src/lib/components/FavoritesResetControl/FavoritesResetControl.jsx",
+    "name": "FavoritesResetControl",
+    "scenarios": [
+      "favoritesresetcontrol-default",
+      "favoritesresetcontrol-confirming"
+    ]
+  },
+  {
     "description": "History page component: lists every closed/visited tab grouped by Today / Yesterday / Earlier this week, each row colored by its group label and offering a Reopen action.",
     "filePath": "src/lib/pages/History/History.jsx",
     "name": "History",
@@ -312,7 +321,7 @@
     ]
   },
   {
-    "description": "The Favorites View All page: a full-page, uncapped list of every qualifying favorite ranked by decayed score, each rendered as a FavoriteRow with its rank-explaining stats and usage sparkline. Reads allUrls, activeTabs, and favoritesHidden from storage in an effect and stays live via chrome.storage.onChanged, calling rankFavorites with an Infinity limit and hiddenKeys so removed favorites appear dimmed with a Bring back action. Mirrors the History page shell (back link, heading, intro) and focuses an already-open tab on click or opens a new one. Reached from the sidebar Favorites section's View All link.",
+    "description": "The Favorites View All page: a full-page, uncapped list of every qualifying favorite ranked by decayed score, each rendered as a FavoriteRow showing its title, its URL as a clickable open control, rank-explaining stats, and a usage sparkline. Reads allUrls, activeTabs, and favoritesHidden from storage in an effect and stays live via chrome.storage.onChanged, calling rankFavorites with an Infinity limit and hiddenKeys so removed favorites appear dimmed with a Bring back action. Includes a FavoritesResetControl that clears the visit signal (visits/visitCount) and favoritesHidden so the favorites list starts over, leaving History and Search intact. Mirrors the History page shell and focuses an already-open tab on click or opens a new one. Reached from the sidebar Favorites section View All link.",
     "filePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
     "name": "ViewAllFavorites",
     "scenarios": [
@@ -803,6 +812,12 @@
     "filePath": "src/lib/utils/rankFavorites.js",
     "name": "rankFavorites",
     "testFile": "src/lib/utils/rankFavorites.test.js"
+  },
+  {
+    "description": "Records a visit when a tab is activated (switched to), throttled per site to ACCESS_THROTTLE_MS. Resolves the activated tab, ignores untrackable/missing tabs, and only counts the access as a visit when the sites most recent visit is older than the throttle window, otherwise the open-then-activate sequence and alt-tabbing would double-count. Delegates the write to newUrl so access-visits and open-visits stay identical in shape.",
+    "filePath": "service_worker.js",
+    "name": "recordAccess",
+    "testFile": "service_worker.test.js"
   },
   {
     "description": "Records an in-group tab's URL into its group's label, seeding the label with the group's mapped color when it does not exist yet, then persists via update. Runs only for non-auto-grouped tabs such as startup sync of pre-existing Chrome groups.",

@@ -29,6 +29,9 @@
   --c-lime-fg: #c7f04a;
   --c-lime-fg-hover: #a9d437;
 
+  /* Destructive accent as a FOREGROUND (destructive buttons/text). */
+  --c-danger-fg: #f26d6d;
+
   /* Lines & inputs */
   --border: rgba(255, 255, 255, 0.08);
   --search-bg: #1e1e1e;
@@ -71,6 +74,9 @@
      (page/sidebar/raised). Anchored to the existing --c-group-1 green. */
   --c-lime-fg: #1a8f4d;
   --c-lime-fg-hover: #147a40;
+
+  /* Darker red for destructive-as-foreground on light surfaces. */
+  --c-danger-fg: #c9392f;
 
   --border: rgba(0, 0, 0, 0.10);
   --search-bg: #ffffff;

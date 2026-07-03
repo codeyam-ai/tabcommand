@@ -1,0 +1,25 @@
+{
+  "completedAt": "2026-07-03T13:07:25Z",
+  "createdAt": "2026-07-03T00:00:00Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/__codeyam_components.js",
+    "src/__codeyam_isolate.jsx",
+    "src/component-scenarios.js",
+    "src/index.css",
+    "src/lib/components/FavoriteRow/FavoriteRow.css",
+    "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+    "src/lib/components/FavoritesResetControl/FavoritesResetControl.css",
+    "src/lib/components/FavoritesResetControl/FavoritesResetControl.jsx",
+    "src/lib/components/FavoritesResetControl/index.js",
+    "src/lib/components/index.js",
+    "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+    "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx"
+  ],
+  "journalTimestamp": "2026-07-03T13:07:25Z",
+  "mode": "ui",
+  "planFile": "completed/favorites-url-access-visits-reset.md",
+  "slug": "favorites-url-access-visits-reset",
+  "title": "Favorites: Show URL, Count Tab Access, and Reset Tracking"
+}

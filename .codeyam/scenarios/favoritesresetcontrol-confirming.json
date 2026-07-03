@@ -1,0 +1,17 @@
+{
+  "name": "FavoritesResetControl - Confirming",
+  "id": "4ceba3ba-0c80-466a-b5c3-acfa58106fae",
+  "url": "/?isolate=FavoritesResetControl",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FavoritesResetControl",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "text": "Reset favorites tracking"
+    }
+  ]
+}

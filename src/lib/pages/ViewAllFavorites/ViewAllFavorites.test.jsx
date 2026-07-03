@@ -60,4 +60,100 @@ describe('ViewAllFavorites', () => {
       expect(uxSettings.page.name).toBe(Pages.HOME);
     });
   });
+
+  describe('reset favorites tracking', () => {
+    const day = 1000 * 60 * 60 * 24;
+    const seedRich = () => {
+      const now = Date.now();
+      seed('allUrls', ['url-https://react.dev/learn', 'url-https://news.ycombinator.com']);
+      seed('url-https://react.dev/learn', {
+        title: 'Quick Start — React',
+        favicon: 'react-favicon',
+        visitCount: 3,
+        visits: [now - 2 * day, now - 1 * day, now - 60_000],
+      });
+      seed('url-https://news.ycombinator.com', {
+        title: 'Hacker News',
+        favicon: 'hn-favicon',
+        visitCount: 4,
+        visits: [now - 3 * day, now - 60_000],
+      });
+      seed('favoritesHidden', ['url-https://news.ycombinator.com']);
+    };
+
+    // The first click only reveals the confirm buttons — nothing is written yet,
+    // so the destructive action always takes a deliberate second click.
+    it('reveals the confirm buttons without writing storage', async () => {
+      seedRich();
+      installChromeShim();
+      render(<ViewAllFavorites />);
+
+      await userEvent.click(
+        await screen.findByRole('button', { name: /Reset favorites tracking/i })
+      );
+
+      expect(
+        screen.getByRole('button', { name: /Yes, reset everything/i })
+      ).toBeInTheDocument();
+      // The visit signal and hidden list are still intact (nothing cleared).
+      const react = JSON.parse(window.localStorage.getItem('url-https://react.dev/learn'));
+      expect(react.visits).toHaveLength(3);
+      expect(react.visitCount).toBe(3);
+      expect(JSON.parse(window.localStorage.getItem('favoritesHidden'))).toEqual([
+        'url-https://news.ycombinator.com',
+      ]);
+    });
+
+    // Confirming zeroes visits/visitCount on every url-* record and clears
+    // favoritesHidden, while preserving title/favicon so History & Search stay
+    // intact.
+    it('clears the visit signal and hidden list on confirm, preserving other fields', async () => {
+      seedRich();
+      installChromeShim();
+      render(<ViewAllFavorites />);
+
+      await userEvent.click(
+        await screen.findByRole('button', { name: /Reset favorites tracking/i })
+      );
+      await userEvent.click(
+        screen.getByRole('button', { name: /Yes, reset everything/i })
+      );
+
+      await waitFor(() => {
+        const react = JSON.parse(window.localStorage.getItem('url-https://react.dev/learn'));
+        expect(react.visits).toEqual([]);
+        expect(react.visitCount).toBe(0);
+      });
+      const react = JSON.parse(window.localStorage.getItem('url-https://react.dev/learn'));
+      const hn = JSON.parse(window.localStorage.getItem('url-https://news.ycombinator.com'));
+      // Every record is zeroed...
+      expect(hn.visits).toEqual([]);
+      expect(hn.visitCount).toBe(0);
+      // ...but title/favicon (shared with History & Search) are preserved.
+      expect(react.title).toBe('Quick Start — React');
+      expect(react.favicon).toBe('react-favicon');
+      expect(hn.title).toBe('Hacker News');
+      // favoritesHidden is emptied so hidden favorites "come back" on reset.
+      expect(JSON.parse(window.localStorage.getItem('favoritesHidden'))).toEqual([]);
+    });
+
+    // Cancel dismisses the confirm without touching storage.
+    it('dismisses the confirm on Cancel without writing', async () => {
+      seedRich();
+      installChromeShim();
+      render(<ViewAllFavorites />);
+
+      await userEvent.click(
+        await screen.findByRole('button', { name: /Reset favorites tracking/i })
+      );
+      await userEvent.click(screen.getByRole('button', { name: /Cancel/i }));
+
+      // Back to the single button, and the visit signal is untouched.
+      expect(
+        screen.getByRole('button', { name: /Reset favorites tracking/i })
+      ).toBeInTheDocument();
+      const react = JSON.parse(window.localStorage.getItem('url-https://react.dev/learn'));
+      expect(react.visits).toHaveLength(3);
+    });
+  });
 });

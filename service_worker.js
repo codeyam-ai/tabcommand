@@ -92,6 +92,13 @@ const AUTO_CLOSE_ALARM = 'auto-close-sweep';
 const VISIT_RETENTION_MS = 1000 * 60 * 60 * 24 * 56;
 const MAX_VISITS = 50;
 
+// A tab you switch back to earns a visit too, not just an open/navigation — so
+// Favorites rewards sites you keep open and return to. But debounce it: rapid
+// alt-tabbing between the same two tabs, or the open→immediately-activate
+// sequence a brand-new tab produces, must not inflate a rank. At most one
+// access-driven visit per site per this window.
+const ACCESS_THROTTLE_MS = 1000 * 60 * 30;
+
 // Drop visits older than the retention horizon and cap to the newest MAX_VISITS.
 // Mirror of pruneVisits() in visitDecay.js; kept pure so it's obviously correct.
 function pruneVisits(visits, now) {
@@ -274,8 +281,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   listenToProcesses();
 });
 
-chrome.tabs.onActivated.addListener((tabInfo) => {
+chrome.tabs.onActivated.addListener(async (tabInfo) => {
   updateActiveTabs();
+  const updates = await recordAccess(tabInfo.tabId);
+  if (updates) update(updates);
 });
 
 chrome.tabs.onCreated.addListener(async (tab) => {
@@ -520,6 +529,34 @@ async function newUrl(tabId, url) {
       resolve(updates)
     });
   });
+}
+
+// Record a visit when a tab is ACTIVATED (switched to), throttled per site.
+// Resolves the activated tab, ignores untrackable/missing tabs, and only counts
+// the access as a visit when the site's most recent visit is older than
+// ACCESS_THROTTLE_MS — otherwise the open→activate sequence and alt-tabbing
+// would double-count. Delegates the actual write to newUrl so access-visits and
+// open-visits stay identical in shape (allUrls maintenance, visits/visitCount,
+// pruning). Returns newUrl's updates object, or undefined when throttled/ineligible.
+async function recordAccess(tabId) {
+  let tab;
+  try {
+    tab = await chrome.tabs.get(tabId);
+  } catch (e) {
+    return; // tab gone / lastError — nothing to record
+  }
+  if (!tab || !tab.url || !isTrackableUrl(tab.url)) return;
+
+  const urlKey = getUrlKey(tab.url);
+  const result = await getLocalStorage(urlKey);
+  const record = result[urlKey];
+  const visits = (record && record.visits) || [];
+  const lastVisit = visits.length ? Math.max(...visits.map(Number)) : 0;
+
+  const now = Date.now();
+  if (now - lastVisit < ACCESS_THROTTLE_MS) return; // within throttle window
+
+  return newUrl(tab.id, tab.url);
 }
 
 function closeUrl(urlKey, callback) {

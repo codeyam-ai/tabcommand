@@ -63,6 +63,8 @@
 }
 
 .FavoriteRow-title {
+  flex-shrink: 0;
+  max-width: 55%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -70,24 +72,37 @@
   color: var(--text-primary);
 }
 
-/* The open-the-site link beside the title. Quiet at rest, brand accent on hover;
-   flex-shrink 0 so it never collapses when the title is long. */
-.FavoriteRow-open {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px;
+/* The site URL beside the title, doubling as the open control. Styled as a real
+   link — brand-accent colored with an underline at rest so it reads as clickable
+   (not just on hover) — and truncates with an ellipsis on one line so a long URL
+   never pushes the sparkline or breaks the row layout. It gives up width before
+   the title does (high flex-shrink), keeping the title readable. The full URL
+   stays in the button's title tooltip. */
+.FavoriteRow-url {
+  flex: 0 1 auto;
+  flex-shrink: 1000;
+  min-width: 0;
+  padding: 0;
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--text-muted);
-  transition: color 0.12s ease;
-}
-.FavoriteRow-open:hover {
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--c-lime-fg);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--c-lime-fg) 45%, transparent);
+  text-underline-offset: 2px;
+  transition: color 0.12s ease, text-decoration-color 0.12s ease;
 }
-.FavoriteRow-open:focus-visible {
+.FavoriteRow-url:hover {
+  color: var(--c-lime-fg-hover);
+  text-decoration-color: currentColor;
+}
+.FavoriteRow-url:focus-visible {
   outline: 1px solid var(--border);
   border-radius: 3px;
 }

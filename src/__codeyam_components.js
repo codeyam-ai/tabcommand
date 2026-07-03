@@ -2,6 +2,7 @@ import AppBrand from "./lib/components/AppBrand/AppBrand";
 import Favicon from "./lib/components/Favicon/Favicon";
 import FavoriteRow from "./lib/components/FavoriteRow/FavoriteRow";
 import Favorites from "./lib/components/Favorites/Favorites";
+import FavoritesResetControl from "/src/lib/components/FavoritesResetControl/FavoritesResetControl";
 import HistoryRow from "./lib/components/HistoryRow/HistoryRow";
 import Icon from "./lib/components/Icon/Icon";
 import LabelCollection from "./lib/components/LabelCollection/LabelCollection";
@@ -31,6 +32,7 @@ export const components = {
   Favicon: Favicon,
   FavoriteRow: FavoriteRow,
   Favorites: Favorites,
+  FavoritesResetControl: FavoritesResetControl,
   HistoryRow: HistoryRow,
   Icon: Icon,
   LabelCollection: LabelCollection,

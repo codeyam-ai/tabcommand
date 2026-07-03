@@ -1,6 +1,6 @@
 {
-  "feature": "view-all-favorites-time-decay-ranking",
-  "maxStep": 26,
-  "version": 1406,
-  "updatedAt": "2026-07-03T00:57:19.887609271+00:00"
+  "feature": "favorites-url-access-visits-reset",
+  "maxStep": 24,
+  "version": 420,
+  "updatedAt": "2026-07-03T13:10:49.424284939+00:00"
 }

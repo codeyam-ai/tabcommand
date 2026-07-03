@@ -18,10 +18,11 @@ const SHORT_FMT = { month: 'short', day: 'numeric' };
 // that explains the rank (visit count in the window, last-visited via
 // relativeTime, the decay score), and a UsageSparkline of usage over time.
 // Clicking the row EXPANDS it to reveal the per-day visit breakdown behind the
-// sparkline. An explicit open link beside the title opens/focuses the site's
-// tab (the row click no longer does — it toggles the detail). A site open in a
-// tab gets the accent open cue; a hidden (removed) favorite is dimmed and shows
-// a Bring back button instead of being filtered out.
+// sparkline. The site's URL is rendered as a link beside the title and is itself
+// the open control — clicking it opens/focuses the site's tab (the row click no
+// longer does — it toggles the detail). A site open in a tab gets the accent
+// open cue; a hidden (removed) favorite is dimmed and shows a Bring back button
+// instead of being filtered out.
 //
 // `favorite` is a row from `rankFavorites`:
 //   { urlKey, url, title, favicon, isOpen, isHidden, score, visitCount,
@@ -102,7 +103,7 @@ const FavoriteRow = ({ favorite, now, maxCount, onOpen, onBringBack }) => {
             <span className="FavoriteRow-title">{favorite.title}</span>
             <button
               type="button"
-              className="FavoriteRow-open"
+              className="FavoriteRow-url"
               aria-label={`Open ${favorite.title || favorite.url}`}
               title={`Open ${favorite.url}`}
               onClick={(e) => {
@@ -110,7 +111,7 @@ const FavoriteRow = ({ favorite, now, maxCount, onOpen, onBringBack }) => {
                 onOpen(e, favorite);
               }}
             >
-              <Icon name="globe" size={13} />
+              {favorite.url}
             </button>
           </div>
           <div className="FavoriteRow-stats">

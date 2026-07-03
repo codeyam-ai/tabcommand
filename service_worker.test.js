@@ -75,7 +75,7 @@ function loadWorker(chrome) {
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
-             newUrl, closeUrl, processProcesses, updateTotals, associateProcess,
+             newUrl, recordAccess, closeUrl, processProcesses, updateTotals, associateProcess,
              tabUpdates, urlUpdates, getUrlKey, validTab, getTabGroup, mapColors,
              getLocalStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs,
              initLoadSource, processesApiAvailable, systemApiAvailable,
@@ -436,6 +436,52 @@ describe('service_worker.js', () => {
       // The ancient visit is dropped; only the fresh one survives.
       expect(record.visits).toHaveLength(1);
       expect(record.visits).not.toContain(ancient);
+    });
+  });
+
+  describe('recordAccess', () => {
+    // Mirror of the worker's ACCESS_THROTTLE_MS (not exported through fns).
+    const ACCESS_THROTTLE_MS_TEST = 1000 * 60 * 30;
+    // Switching back to a tab whose last visit is older than the throttle
+    // window records a visit (delegating to newUrl), so a kept-open favorite
+    // you return to earns rank credit.
+    it('records a visit when the last visit is older than the throttle', async () => {
+      const stale = Date.now() - ACCESS_THROTTLE_MS_TEST - 1000; // just past the window
+      chrome.tabs.get.mockResolvedValue({ id: 7, url: 'https://a.com' });
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({
+          allUrls: ['url-https://a.com'],
+          labels: {},
+          'url-https://a.com': { url: 'https://a.com', title: 'A', visitCount: 2, visits: [stale] },
+        })
+      );
+      const updates = await fns.recordAccess(1);
+      const record = updates['url-https://a.com'];
+      expect(record.visitCount).toBe(3);
+      expect(record.visits).toHaveLength(2);
+    });
+
+    // Re-activating the same site within the throttle window records nothing, so
+    // rapid alt-tabbing and the open→activate sequence can't inflate a rank.
+    it('records nothing within the throttle window', async () => {
+      const recent = Date.now() - 1000 * 60; // a minute ago, well inside 30 min
+      chrome.tabs.get.mockResolvedValue({ id: 7, url: 'https://a.com' });
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ 'url-https://a.com': { url: 'https://a.com', visitCount: 2, visits: [recent] } })
+      );
+      await expect(fns.recordAccess(1)).resolves.toBeUndefined();
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+    });
+
+    // A missing tab (rejected get) or a non-trackable URL is ignored — no read,
+    // no write.
+    it('ignores missing tabs and non-trackable URLs', async () => {
+      chrome.tabs.get.mockRejectedValueOnce(new Error('No tab with id'));
+      await expect(fns.recordAccess(999)).resolves.toBeUndefined();
+
+      chrome.tabs.get.mockResolvedValueOnce({ id: 8, url: 'chrome://extensions' });
+      await expect(fns.recordAccess(8)).resolves.toBeUndefined();
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
     });
   });
 

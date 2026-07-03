@@ -1,0 +1,11 @@
+{
+  "name": "FavoritesResetControl - Default",
+  "id": "198cc672-edc0-4805-9ec8-607c1de805c3",
+  "url": "/?isolate=FavoritesResetControl",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FavoritesResetControl",
+  "scenarioType": "component"
+}

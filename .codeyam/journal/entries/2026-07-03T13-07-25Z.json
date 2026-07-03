@@ -1,0 +1,211 @@
+{
+  "timestamp": "2026-07-03T13:07:25Z",
+  "title": "Favorites: Show URL, Count Tab Access, and Reset Tracking",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThree related improvements to the Favorites experience. (1) On the Favorites\nView All page, each row currently shows a clickable **globe icon** to open the\nsite — replace it with the site's **actual URL**, shown as text and clickable to\nopen/focus the tab. (2) Make favorites ranking reward tabs you keep open and\nreturn to: record a visit when a tab is **accessed** (activated), not only when\nit is opened/navigated — throttled to at most once per ~30 min per site so rapid\nalt-tabbing can't inflate a rank. (3) Add a **\"Reset favorites tracking\"** button\nto the Favorites page that clears the visit signal (per-site `visits` /\n`visitCount`) and the `favoritesHidden` list so the favorites list starts over,\nguarded by an inline **confirmation button** before it executes. The reset keeps\nHistory & Search intact (their sites, titles, favicons, and closed-tab history\nare untouched).\n\n## Key Decisions\n\n- **Show the URL as the open control** — the globe button is replaced by the\n  URL text itself. Clicking the URL opens/focuses the tab (same `onOpen`\n  behavior the globe had), so no affordance is lost. Full URL kept in the\n  `title` tooltip; the visible URL is CSS-truncated so long URLs don't break\n  the row layout.\n- **Access counts as a visit, throttled ~30 min** (user-selected). A \"visit\" is\n  currently only recorded by `newUrl` on tab open / navigation. We add a\n  throttled access path in the `onActivated` handler so a tab you switch back to\n  earns credit, but re-activating the same site within ~30 min does not append a\n  second visit. The throttle also neatly avoids double-counting the\n  open-then-immediately-activate sequence a brand-new tab produces.\n- **Reset clears the favorites signal + hidden only** (user-selected), not all\n  history. It zeroes `visits` and `visitCount` on every `url-*` record and sets\n  `favoritesHidden: []`. Because `url-*` records are shared with History &\n  Search, we rewrite each record in place (preserving `title`, `favicon`, `url`,\n  and every other field) rather than deleting it — so only the ranking signal is\n  reset. With empty visits every site falls below `QUALIFY_MIN`, so the\n  Favorites sidebar and View All page go empty, i.e. a true \"start over\".\n- **Inline two-step confirmation, not `window.confirm`.** The request asks for a\n  confirmation *button*. Rather than the native `confirm()` used elsewhere in the\n  app, the button reveals an inline \"Yes, reset everything\" / \"Cancel\" pair\n  (component state), so the destructive action always takes a deliberate second\n  click.\n\n## Implementation\n\n### 1. Show the URL instead of the globe icon\n\n**File**: `src/lib/components/FavoriteRow/FavoriteRow.jsx`\n\nIn the `FavoriteRow-titleRow`, replace the globe `<button className=\"FavoriteRow-open\">`\n(currently rendering `<Icon name=\"globe\" size={13} />`) with a button whose\nvisible content is `favorite.url`, e.g. `className=\"FavoriteRow-url\"`. Keep the\nexisting click handler wiring exactly: `onClick={(e) => { e.stopPropagation();\nonOpen(e, favorite); }}` (so clicking the URL opens/focuses the tab and does not\ntoggle the row's expand), keep `aria-label={`Open ${favorite.title ||\nfavorite.url}`}` and `title={`Open ${favorite.url}`}`. Update the component's\ndoc comment (lines ~17–24 and the block describing \"An explicit open link\nbeside the title\") to describe the URL text as the open control instead of the\nglobe. The `Icon` import stays (still used for the caret and the \"Bring back\"\nrestore icon); `globe` is simply no longer referenced here.\n\n**File**: `src/lib/components/FavoriteRow/FavoriteRow.css`\n\nAdd a `.FavoriteRow-url` rule: link-styled (subtle/muted color, hover\nunderline/accent), single-line with `overflow: hidden; text-overflow: ellipsis;\nwhite-space: nowrap;` and a sensible `max-width` so long URLs truncate instead\nof pushing the sparkline. Repurpose or remove the old `.FavoriteRow-open`\n(globe-button) styles.\n\n### 2. Count tab access as a throttled visit\n\n**File**: `service_worker.js`\n\n- Add an access-throttle constant near the visit tunables (`VISIT_RETENTION_MS`\n  / `MAX_VISITS`, ~line 92): `const ACCESS_THROTTLE_MS = 1000 * 60 * 30;` with a\n  comment explaining it debounces access-driven visits so alt-tabbing and the\n  open→activate sequence don't inflate a rank.\n- Add a `recordAccess(tabId)` helper. It resolves the activated tab\n  (`chrome.tabs.get`), bails on `chrome.runtime.lastError` / missing tab /\n  non-trackable URL (`isTrackableUrl`), then reads the existing `url-<key>`\n  record (`getUrlKey(tab.url)`), computes `lastVisit = max(record.visits || [])`\n  (0 if none), and — only if `now - lastVisit >= ACCESS_THROTTLE_MS` — delegates\n  to the existing `newUrl(tab.id, tab.url)` so the record write, `allUrls`\n  maintenance, pruning, and `visitCount` bump all reuse the one code path.\n  Returns the `newUrl` updates object (or `undefined` when throttled/ineligible).\n- Wire it into the existing `onActivated` listener (line ~277), keeping the\n  current `updateActiveTabs()` call:\n  ```js\n  chrome.tabs.onActivated.addListener(async (tabInfo) => {\n    updateActiveTabs();\n    const updates = await recordAccess(tabInfo.tabId);\n    if (updates) update(updates);\n  });\n  ```\n- Export `recordAccess` in the test harness's returned `fns` block (the\n  `;return { fns: { ... } }` list at the bottom of `service_worker.js`, alongside\n  `newUrl`, `pruneVisits`, etc.) so it is unit-testable.\n\n**File**: `service_worker.test.js`\n\nAdd tests under a `recordAccess` describe: (a) records a visit (delegates to\n`newUrl`) when the site's last visit is older than `ACCESS_THROTTLE_MS`;\n(b) records **nothing** when the last visit is within the throttle window;\n(c) ignores non-trackable / missing tabs. Use the existing `makeChrome()` /\n`loadWorker()` harness and stub `chrome.tabs.get` + `chrome.storage.local.get`.\n\n### 3. \"Reset favorites tracking\" button with inline confirmation\n\n**File**: `src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx`\n\n- Add `confirmingReset` component state (`useState(false)`).\n- Render a reset control in the page header area (near the `Page-intro`): a\n  \"Reset favorites tracking\" button. When `confirmingReset` is false it shows the\n  single button; when true it shows an explanatory line plus a\n  \"Yes, reset everything\" (destructive) button and a \"Cancel\" button. Clicking\n  the first button sets `confirmingReset` true; Cancel sets it false; confirm\n  runs `resetFavorites()` then sets it false.\n- `resetFavorites()`:\n  ```js\n  Chrome.get('ViewAllFavoritesReset0', 'allUrls', ({ allUrls }) => {\n    const keys = allUrls || [];\n    const finish = (updates) => {\n      chrome.storage.local.set({ ...updates, favoritesHidden: [] });\n    };\n    if (keys.length === 0) return finish({});\n    Chrome.get('ViewAllFavoritesReset1', keys, (records) => {\n      const updates = {};\n      for (const key of keys) {\n        const rec = records[key];\n        if (!rec) continue;               // key with no record — nothing to clear\n        updates[key] = { ...rec, visits: [], visitCount: 0 };\n      }\n      finish(updates);\n    });\n  });\n  ```\n  Setting `visits: []` **and** `visitCount: 0` prevents `rankFavorites` from\n  lazily re-seeding visits from a legacy `visitCount`. The existing\n  `chrome.storage.onChanged` listener already reloads on `allUrls` / `url-*` /\n  `favoritesHidden` changes, so the list empties reactively — no extra reload\n  wiring needed. Preserving every other field on each record keeps History &\n  Search unaffected.\n\n**File**: `src/lib/pages/ViewAllFavorites/ViewAllFavorites.css`\n\nStyle the reset button and its inline confirm state — a quiet default button\nthat reads as secondary/utility, and a clearly destructive-styled \"Yes, reset\neverything\" button so the second click looks intentional.\n\n**File**: `src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx`\n\nAdd tests: (a) clicking \"Reset favorites tracking\" reveals the confirm buttons\nand does **not** yet write storage; (b) confirming writes every `url-*` record\nback with `visits: []` / `visitCount: 0` and sets `favoritesHidden: []`, while\npreserving `title`/`favicon`; (c) Cancel dismisses the confirm without writing.\n\n## Reused existing code\n\n- `newUrl` from `service_worker.js` — the single visit-recording path\n  (`allUrls` maintenance + `visits`/`visitCount` write + prune); `recordAccess`\n  delegates to it so access-visits and open-visits stay identical in shape.\n- `getUrlKey`, `isTrackableUrl`, `pruneVisits` from `service_worker.js` — URL\n  keying and trackability gating reused by the access throttle.\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — the `QUALIFY_MIN` gate is what makes reset \"just work\":\n  emptied visits drop every site from the list. Its `visitsFor` seed-from-count\n  behavior is why reset must also zero `visitCount`.\n- `FavoriteRow` (glossary entry: `FavoriteRow`) and `ViewAllFavorites` (glossary\n  entry: `ViewAllFavorites`) — the row and page being edited; `onOpen` /\n  `openFavorite` wiring is reused verbatim for the new URL open control.\n- `Chrome` from `src/lib/utils/Chrome/Chrome.js` — `get` / `set` storage\n  abstraction used for the reset read/write.\n- `makeChrome` / `loadWorker` harness in `service_worker.test.js` — reused to\n  unit-test `recordAccess`.\n\n## Scenarios to Demonstrate\n\n- **Favorites row shows its URL** — a populated row renders `favorite.url` as\n  text in place of the globe, clicking it opens/focuses the tab.\n- **Long URL truncates** — a favorite with a very long URL truncates with an\n  ellipsis and keeps the sparkline aligned (full URL in the tooltip).\n- **Open-cued row** — a favorite currently open in a tab still shows the open\n  accent alongside its URL.\n- **Hidden favorite** — a dimmed hidden row shows its URL and the \"Bring back\"\n  action together.\n- **Access bumps a kept-open favorite** — switching back to a long-open tab\n  after >30 min adds a visit and nudges its rank/sparkline up.\n- **Throttle holds** — rapidly re-activating the same tab within 30 min does not\n  add extra visits.\n- **Reset — confirm step** — clicking \"Reset favorites tracking\" reveals the\n  \"Yes, reset everything\" / \"Cancel\" pair and changes nothing until confirmed.\n- **Reset — executed** — after confirming, the Favorites list (including hidden\n  rows) is empty and starting over, while the History page still lists the same\n  sites.\n- **Reset — empty state** — resetting with no favorites yet is a harmless no-op.",
+  "description": "Three Favorites improvements. Each favorite row now shows its site URL to the right of the title as a clickable accent-colored link (the open control), replacing the globe icon. The service worker records a visit when a tab is activated (switched back to), throttled to once per ~30 min per site via recordAccess so alt-tabbing and the open-then-activate sequence cannot inflate a rank. A new FavoritesResetControl component adds a Reset favorites tracking button with a two-step inline confirm that zeroes visits/visitCount on every url record and clears favoritesHidden so the favorites list starts over, leaving History and Search intact.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/favorites-url-access-visits-reset.md\t.codeyam/plans/completed/favorites-url-access-visits-reset.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-hidden-bring-back--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-hidden-bring-back--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-monogram-long-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-monogram-long-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-open-cued--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-open-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_components.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/__codeyam_isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/index.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/FavoriteRow/FavoriteRow.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favoritesresetcontrol-confirming.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favoritesresetcontrol-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoritesresetcontrol-confirming--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoritesresetcontrol-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": "src/component-scenarios.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FavoritesResetControl/FavoritesResetControl.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FavoritesResetControl/FavoritesResetControl.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FavoritesResetControl/index.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "FavoriteRow - Default",
+      "screenshotPath": "favoriterow-default--desktop.png"
+    },
+    {
+      "name": "FavoriteRow - Expanded",
+      "screenshotPath": "favoriterow-expanded--desktop.png"
+    },
+    {
+      "name": "FavoriteRow - Hidden Bring Back",
+      "screenshotPath": "favoriterow-hidden-bring-back--desktop.png"
+    },
+    {
+      "name": "FavoriteRow - Monogram Long Title",
+      "screenshotPath": "favoriterow-monogram-long-title--desktop.png"
+    },
+    {
+      "name": "FavoriteRow - Open Cued",
+      "screenshotPath": "favoriterow-open-cued--desktop.png"
+    },
+    {
+      "name": "FavoritesResetControl - Confirming",
+      "screenshotPath": "favoritesresetcontrol-confirming--desktop.png"
+    },
+    {
+      "name": "FavoritesResetControl - Default",
+      "screenshotPath": "favoritesresetcontrol-default--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Empty",
+      "screenshotPath": "viewallfavorites-empty--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Rich",
+      "screenshotPath": "viewallfavorites-rich--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 476,
+    "passed": 476,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 476,
+        "passed": 476
+      }
+    ]
+  }
+}
