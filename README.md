@@ -89,8 +89,6 @@ States captured as runnable scenarios with codeyam-editor:
 <img src=".codeyam/scenarios/screenshots/home-light-theme--desktop.png" alt="Home - Light Theme" width="280">
 <!-- codeyam:scenario-gallery:end -->
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full workflow.
-
 ## License
 
 [MIT](./LICENSE) © 2026 NodLabs Inc.
