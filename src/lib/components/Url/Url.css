@@ -155,14 +155,14 @@
 
 .Url.Url-encourageDrag::before {
   position: absolute;
-  bottom: 6px;
+  top: 50%;
   height: 0;
   width: 0;
   left: -19px;
   border: 11px solid transparent;
   border-right-color: inherit;
   content: "";
-  transform: translateZ(-10px);
+  transform: translateY(-50%) translateZ(-10px);
 }
 
 .Url-actions .Url-action[data-tool-tip] {

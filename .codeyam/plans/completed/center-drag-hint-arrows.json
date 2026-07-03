@@ -1,0 +1,26 @@
+{
+  "completedAt": "2026-07-03T14:03:40Z",
+  "createdAt": "2026-07-03T00:00:00Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/__codeyam_components.js",
+    "src/__codeyam_isolate.jsx",
+    "src/component-scenarios.js",
+    "src/index.css",
+    "src/lib/components/FavoriteRow/FavoriteRow.css",
+    "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+    "src/lib/components/FavoritesResetControl/FavoritesResetControl.css",
+    "src/lib/components/FavoritesResetControl/FavoritesResetControl.jsx",
+    "src/lib/components/FavoritesResetControl/index.js",
+    "src/lib/components/Url/Url.css",
+    "src/lib/components/index.js",
+    "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+    "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx"
+  ],
+  "journalTimestamp": "2026-07-03T14:03:40Z",
+  "mode": "ui",
+  "planFile": "completed/center-drag-hint-arrows.md",
+  "slug": "center-drag-hint-arrows",
+  "title": "Vertically Center Drag-Hint Arrows"
+}

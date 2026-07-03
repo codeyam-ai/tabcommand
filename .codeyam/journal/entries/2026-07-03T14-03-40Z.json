@@ -1,0 +1,83 @@
+{
+  "timestamp": "2026-07-03T14:03:40Z",
+  "title": "Vertically Center Drag-Hint Arrows",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe little left-pointing triangle arrows that appear on the first ungrouped\ntab in the **Active Tabs** and **Automatically Closed** rail sections are not\nvertically centered on their row — they sit low, anchored near the bottom. These\narrows are the \"encourage drag\" hint drawn by the `.Url.Url-encourageDrag::before`\nCSS triangle. This plan re-anchors that pseudo-element to the vertical center of\nits `.Url` row so the arrow lines up with the row's title text.\n\n## Key Decisions\n\n- **Center rather than remove** — the user prefers centering, and it's a one-line\n  positioning change (removal is only the fallback if centering were hard, which\n  it isn't). The arrow still serves its purpose as a drag affordance, so we keep it.\n- **Anchor via `top: 50%` + `translateY(-50%)`** — the `.Url` row is\n  `position: relative` (set in `Tabs.css`) and the arrow is `position: absolute`\n  inside it, so centering vertically is a matter of swapping the current\n  `bottom: 6px` anchor for a `top: 50%` anchor plus a `translateY(-50%)` offset.\n  The existing `translateZ(-10px)` (which tucks the arrow behind the row) must be\n  preserved by combining both transforms.\n\n## Implementation\n\n### 1. Re-anchor the drag-hint arrow to vertical center\n\n**File**: `src/lib/components/Url/Url.css`\n\nThe current rule (around lines 156–166):\n\n```css\n.Url.Url-encourageDrag::before {\n  position: absolute;\n  bottom: 6px;\n  height: 0;\n  width: 0;\n  left: -19px;\n  border: 11px solid transparent;\n  border-right-color: inherit;\n  content: \"\";\n  transform: translateZ(-10px);\n}\n```\n\nChange the vertical anchor from `bottom: 6px` to a centered `top: 50%`, and fold\nthe centering offset into the existing transform:\n\n```css\n.Url.Url-encourageDrag::before {\n  position: absolute;\n  top: 50%;\n  height: 0;\n  width: 0;\n  left: -19px;\n  border: 11px solid transparent;\n  border-right-color: inherit;\n  content: \"\";\n  transform: translateY(-50%) translateZ(-10px);\n}\n```\n\nThis centers the 22px-tall triangle (11px transparent top border + 11px bottom\nborder, with the right border colored) against the middle of the `.Url` row\nregardless of the row's height, so it aligns with the title text instead of\nriding low. No JSX changes are needed — the arrow is purely CSS, driven by the\n`Url-encourageDrag` class that `Tabs.jsx` already applies to the first ungrouped\nrow in each section (`encourageDrag={name.indexOf('ungrouped') > -1}`).\n\n## Reused existing code\n\n- `.Url.Url-encourageDrag::before` triangle rule in\n  `src/lib/components/Url/Url.css` — the existing arrow being repositioned.\n- `.Tabs .Url { position: relative; }` in\n  `src/lib/components/Tabs/Tabs.css` — the positioning context the absolute\n  arrow is centered within (unchanged, relied upon).\n- `Url` component in `src/lib/components/Url/Url.jsx`, rendered via\n  `DraggableTabUrls` in `src/lib/components/Tabs/Tabs.jsx` with the\n  `encourageDrag` prop — the mechanism that adds the `Url-encourageDrag` class\n  (unchanged).\n\n## Reproduction Test\n\nPins the buggy behavior: the drag-hint arrow on the encourage-drag row is\nanchored to the bottom of the row instead of its vertical center.\n\n**Target**: no unit-level reproduction. This is a pure CSS visual-alignment\nregression — the arrow is a `::before` triangle whose position is not asserted by\nany component/DOM test, and there is no rendered geometry to assert against in\njsdom (which does not lay out or compute pseudo-element box positions). Verifying\n\"the arrow is vertically centered\" requires real layout, so it is demonstrated\nvia the scenarios below rather than a fabricated red test.\n\nStatus: PROPOSED — confirm visually via the \"Ungrouped active tabs\" scenario at\nexecution.\n\n## Scenarios to Demonstrate\n\n- Active Tabs section with a mix of grouped labels and at least one ungrouped\n  tab — the encourage-drag arrow appears on the first ungrouped row, centered.\n- Automatically Closed section with ungrouped auto-closed tabs — the arrow on\n  its first row is likewise centered.\n- A single-line (short-title) ungrouped row and a taller row — the arrow stays\n  centered against the row in both, confirming it tracks row height rather than a\n  fixed bottom offset.\n- Rail with no ungrouped tabs (all grouped) — no encourage-drag arrow renders,\n  unchanged from today.",
+  "description": "Re-anchored the encourage-drag hint arrow on the first ungrouped row of the Active Tabs and Automatically Closed rail sections so it sits at the row's vertical center instead of near the bottom. Single-property CSS change to .Url.Url-encourageDrag::before in src/lib/components/Url/Url.css: swapped bottom:6px for top:50% and folded translateY(-50%) into the existing transform (preserving translateZ(-10px)). No JSX, data, or test changes.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/center-drag-hint-arrows.md\t.codeyam/plans/completed/center-drag-hint-arrows.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/step-highwater.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.css",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/pending-build-launch",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Dragging",
+      "screenshotPath": "url-dragging--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 476,
+    "passed": 476,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 476,
+        "passed": 476
+      }
+    ]
+  }
+}
