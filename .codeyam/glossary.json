@@ -34,15 +34,6 @@
     "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
-    "description": "CodeYam component-isolation entrypoint for this router-less stack: with `?isolate=<Name>` it renders just that manifest-listed component (wrapped in #codeyam-capture, inside a DragDropContext, with representative isolation props); with no param it renders the normal full-page App. Mounted in index.jsx in place of App.",
-    "filePath": "src/__codeyam_isolate.jsx",
-    "name": "CodeyamIsolate",
-    "untestabilityReason": {
-      "justification": "Isolation harness scaffold — the capture entrypoint, not application UI.",
-      "kind": "scaffold"
-    }
-  },
-  {
     "description": "Renders a url row's favicon with a graceful fallback: the site's image when available, otherwise a deterministic colored monogram tile (via faviconMonogram). Falls back on image load error too.",
     "filePath": "src/lib/components/Favicon/Favicon.jsx",
     "name": "Favicon",
@@ -114,15 +105,6 @@
     "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
     "name": "ImportExport",
     "testFile": "src/lib/pages/ImportExport/ImportExport.test.jsx"
-  },
-  {
-    "description": "Error boundary used by the isolation harness so a propless/edge-case render of an isolated component surfaces a readable error message in the capture rather than a blank frame.",
-    "filePath": "src/__codeyam_isolate.jsx",
-    "name": "IsolationErrorBoundary",
-    "untestabilityReason": {
-      "justification": "Isolation harness scaffold helper — capture infrastructure, not application UI.",
-      "kind": "scaffold"
-    }
   },
   {
     "description": "Global keydown pub/sub over a single document.onkeydown listener: add/remove subscribers and trigger fans an event (real or synthetic) to all of them. Powers Search's Cmd/Ctrl+F focus + Escape close and SearchResults' arrow/enter navigation.",
@@ -836,15 +818,6 @@
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "removeUrlFromLabel",
     "testFile": "src/lib/utils/urlDetails.test.js"
-  },
-  {
-    "description": "Prop-lookup helper inside the CodeYam-generated component-isolation entrypoint scaffold. Maps an isolate component name plus optional variant key to its representative prop set, falling back to the default prop set for an absent or unknown variant.",
-    "filePath": "src/__codeyam_isolate.jsx",
-    "name": "resolveIsolationProps",
-    "untestabilityReason": {
-      "justification": "Helper within the generated CodeYam isolation harness scaffold; not application source.",
-      "kind": "scaffold"
-    }
   },
   {
     "description": "Attaches each label's resolved urls array (url/title/favicon, plus notes only when present) from the per-URL info map and drops urlKeys, returning the labels ready to JSON.stringify into the export.",

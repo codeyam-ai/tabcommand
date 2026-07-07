@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { installChromeShim } from './lib/utils/chromeShim';
 import './lib/styles/theme.css';
 import './index.css';
-import CodeyamIsolate from './__codeyam_isolate';
+import CodeyamIsolate from 'codeyam:isolate';
 
 // Install the in-app chrome shim before the first render. When running outside
 // the extension (the dev server), there is no extension `chrome`, so the shim

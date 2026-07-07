@@ -2,9 +2,15 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { crx } from '@crxjs/vite-plugin';
 import manifest from './manifest.json';
+import { codeyamPlugin } from './codeyam/vite-plugin-codeyam.mjs';
 
+// `codeyamPlugin()` exposes the codeyam-generated component manifest and
+// scenario-props map as virtual modules (`codeyam:components`,
+// `codeyam:component-scenarios`) plus the isolation harness (`codeyam:isolate`)
+// backed by `.codeyam/`, so those derived/harness files stay out of `src/`. It
+// is a no-op for ordinary use until the App tab's isolation is exercised.
 export default defineConfig({
-  plugins: [react(), crx({ manifest })],
+  plugins: [codeyamPlugin(), react(), crx({ manifest })],
   build: {
     outDir: 'build',
     emptyOutDir: true,

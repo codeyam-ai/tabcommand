@@ -1,15 +1,24 @@
 import React from 'react';
 import { DragDropContext } from '@hello-pangea/dnd';
-import { App } from './lib/pages';
-import { components } from './__codeyam_components';
+import { App } from '/src/lib/pages';
+import { components } from 'codeyam:components';
 
 // CodeYam component-isolation entrypoint for this router-less stack.
 //
+// This harness lives under `.codeyam/harness/` (committed source, not a
+// generated cache) and is exposed to the app entry as the `codeyam:isolate`
+// virtual module by `codeyam/vite-plugin-codeyam.mjs`, so `src/` carries no
+// `__codeyam_*` file. Because it is served from outside `src/`, it imports the
+// app root with a root-relative specifier (`/src/lib/pages`) — Vite resolves
+// that from the project root regardless of where the module physically lives,
+// the same trick the `codeyam:components` manifest uses.
+//
 // With `?isolate=<Name>` in the URL it renders just that component — looked up
-// in the manifest (`./__codeyam_components`) and wrapped in #codeyam-capture so
-// the screenshot pipeline frames it. With no `?isolate=` param it renders the
-// normal <App /> (the full-page app), so mounting this in place of <App /> in
-// index.jsx is a no-op for ordinary use and for the packaged extension.
+// in the manifest (the `codeyam:components` virtual module, backed by
+// `.codeyam/generated/`) and wrapped in #codeyam-capture so the screenshot
+// pipeline frames it. With no `?isolate=` param it renders the normal <App />
+// (the full-page app), so mounting this in place of <App /> in index.jsx is a
+// no-op for ordinary use and for the packaged extension.
 //
 // The in-app chrome shim is installed in index.jsx before this renders, so an
 // isolated component reads the same localStorage-backed seed storage the full
@@ -770,7 +779,7 @@ export default function CodeyamIsolate() {
   if (!Component) {
     return (
       <div id="codeyam-capture" style={{ padding: 16, fontFamily: 'system-ui' }}>
-        No such component &quot;{isolate}&quot; — check src/__codeyam_components.js.
+        No such component &quot;{isolate}&quot; — register it with `codeyam-editor editor isolate {isolate}`.
       </div>
     );
   }

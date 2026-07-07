@@ -174,11 +174,6 @@
         "filePath": ".claude/hooks/editor-step-hook.py",
         "name": "resolve_mode",
         "reason": "derive-generated"
-      },
-      {
-        "filePath": "src/__codeyam_isolate.jsx",
-        "name": "noop",
-        "reason": "test-fixture"
       }
     ],
     "stepBudget": {

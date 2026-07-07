@@ -54,7 +54,8 @@
   },
   "routing": {
     "type": "query-param",
-    "componentManifest": "src/__codeyam_components.js"
+    "componentManifest": ".codeyam/generated/components.ts",
+    "isolationEntry": ".codeyam/harness/isolate.jsx"
   },
   "screenSizes": {
     "Desktop": {
