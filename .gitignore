@@ -11,6 +11,7 @@ blob-report/
 .codeyam/captures/
 .codeyam/uploads/
 .codeyam/results/
+.codeyam/reviews/
 .codeyam/tmp/
 .codeyam/_legacy/
 .codeyam/rules/
