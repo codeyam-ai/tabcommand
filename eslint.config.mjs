@@ -54,8 +54,13 @@ export default [
     },
   },
   {
-    // Build/lint config files run under Node.
-    files: ['*.config.{js,mjs}', 'vite.config.mjs', 'eslint.config.mjs'],
+    // Build/lint config files and codeyam build tooling run under Node.
+    files: [
+      '*.config.{js,mjs}',
+      'vite.config.mjs',
+      'eslint.config.mjs',
+      'codeyam/**/*.{js,mjs}',
+    ],
     languageOptions: {
       sourceType: 'module',
       globals: {
