@@ -1,6 +1,6 @@
 {
-  "feature": "edited-url-and-title-not-persisting",
-  "maxStep": 28,
-  "version": 179,
-  "updatedAt": "2026-07-11T01:45:36.533332803+00:00"
+  "feature": "history-live-updates-and-day-grouping",
+  "maxStep": 26,
+  "version": 73,
+  "updatedAt": "2026-07-11T10:08:24.836781698+00:00"
 }

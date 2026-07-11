@@ -22,7 +22,7 @@
       "url-https://twitter.com/home": "{\"title\":\"Home / X\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":204800,\"cpu\":31000,\"privateMemory\":2100000000,\"jsMemoryAllocated\":1680000000,\"jsMemoryUsed\":1260000000}}",
       "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\",\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\",\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\",\"url-https://news.ycombinator.com\"]",
       "url-https://www.amazon.com/wishlist": "{\"title\":\"Your Wish List – Amazon\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "autoClosed": "{}",
+      "autoClosed": "{\"url-https://github.com/codeyam/tabcommand\":1783728060655,\"url-https://www.figma.com/file/tabcommand\":1783717260655,\"url-https://react.dev/learn\":1783634460655,\"url-https://developer.mozilla.org/en-US/docs/Web/API\":1783620060655,\"url-https://twitter.com/home\":1783476060655,\"url-https://www.reddit.com/r/programming\":1783389660655,\"url-https://www.amazon.com/wishlist\":1783303260655}",
       "uxSettings": "{\"page\": {\"name\": \"History\"}}"
     }
   },

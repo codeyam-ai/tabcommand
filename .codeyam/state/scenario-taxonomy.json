@@ -31,7 +31,7 @@
     "History": {
       "empty": {
         "status": "n-a",
-        "reason": "Empty History has no rows, so the clickable-row behavior this feature adds cannot manifest; the empty state is unchanged."
+        "reason": "Empty state ('No history yet.') IS demonstrated by the registered+captured history-empty app scenario; marked n-a only because the mechanical state-matrix parses the DB-table 'seed' field and cannot auto-confirm this localStorage stack's browserState.localStorage seeds (same reason it can't auto-confirm single/many here)."
       },
       "single": {
         "status": "n-a",

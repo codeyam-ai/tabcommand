@@ -208,12 +208,21 @@
       "runner": "tests"
     },
     {
-      "description": "a tab closed just now renders under the \"Today\" group with its title",
+      "description": "Reproduction: the service worker stores autoClosed[urlKey] as a bare numeric epoch, so a numerically-timestamped closed tab must group under \"Today\" (before the fix its ts read as null → \"Earlier this week\").",
       "file": "src/lib/pages/History/History.test.jsx",
       "format": "vitest",
-      "key": "History › groups a recently closed tab under Today",
-      "line": 32,
-      "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "key": "History › groups a numerically-timestamped closed tab under Today",
+      "line": 34,
+      "registeredAt": "2026-07-11T09:44:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Back-compat: legacy object-form entries { time } still bucket under Today.",
+      "file": "src/lib/pages/History/History.test.jsx",
+      "format": "vitest",
+      "key": "History › groups an object-form closed tab under Today",
+      "line": 46,
+      "registeredAt": "2026-07-11T09:44:32Z",
       "runner": "tests"
     },
     {
@@ -221,8 +230,17 @@
       "file": "src/lib/pages/History/History.test.jsx",
       "format": "vitest",
       "key": "History › navigates back to Home when the back button is clicked",
-      "line": 44,
+      "line": 84,
       "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Live update: a tab closed while the page is open appears without a remount, driven by the chrome.storage.onChanged listener.",
+      "file": "src/lib/pages/History/History.test.jsx",
+      "format": "vitest",
+      "key": "History › shows a newly closed tab live via storage.onChanged",
+      "line": 59,
+      "registeredAt": "2026-07-11T09:44:32Z",
       "runner": "tests"
     },
     {

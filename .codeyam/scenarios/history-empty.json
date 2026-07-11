@@ -1,0 +1,19 @@
+{
+  "name": "History - Empty",
+  "id": "10603f5e-3eec-4ba8-906f-5501a98e74f3",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "uxSettings": "{\"page\": {\"name\": \"History\"}}",
+      "allUrls": "[]",
+      "autoClosed": "{}",
+      "labels": "{}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/History/History.jsx"
+}

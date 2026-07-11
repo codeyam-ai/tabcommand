@@ -56,6 +56,10 @@ States captured as runnable scenarios with codeyam-editor:
 
 <img src=".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png" alt="Favorites - Sidebar With View All Link" width="280">
 
+### History - Empty
+
+<img src=".codeyam/scenarios/screenshots/history-empty--desktop.png" alt="History - Empty" width="280">
+
 ### History - Populated
 
 <img src=".codeyam/scenarios/screenshots/history-populated--desktop.png" alt="History - Populated" width="280">
@@ -79,10 +83,6 @@ States captured as runnable scenarios with codeyam-editor:
 ### Home - Four Columns
 
 <img src=".codeyam/scenarios/screenshots/home-four-columns--desktop.png" alt="Home - Four Columns" width="280">
-
-### Home - Grouped
-
-<img src=".codeyam/scenarios/screenshots/home-grouped--desktop.png" alt="Home - Grouped" width="280">
 <!-- codeyam:scenario-gallery:end -->
 
 ## License
