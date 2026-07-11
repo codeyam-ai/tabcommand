@@ -98,10 +98,16 @@ function handleConsoleMessage(message) {
   const advisory = insecureContextAdvisory(text);
   if (advisory) return advisory;
 
-  // Ignore known dev-server WebSocket/HMR errors from Vite proxy
+  // Ignore known dev-server WebSocket/HMR errors from Vite proxy, plus the
+  // crxjs/Vite dynamic-import reload race: dev loaders `import()` the app entry
+  // with a `?t=<timestamp>` cache-buster, and a rapid scenario-reactivation
+  // reload aborts the in-flight import, logging "TypeError: Failed to fetch
+  // dynamically imported module" (Chrome) or "error loading dynamically
+  // imported module" (Vite). Benign — the entry reloads on the next nav.
   if (
     text.includes("WebSocket connection to") ||
-    text.includes("Unsupported Media Type")
+    text.includes("Unsupported Media Type") ||
+    text.includes("dynamically imported module")
   ) {
     return null;
   }
@@ -122,7 +128,13 @@ function handleConsoleMessage(message) {
     return null;
   }
 
-  return createIssue("console", text);
+  // Attach the offending resource URL the console message already exposes, so
+  // the capture-failure message can name the unmocked route (e.g.
+  // `GET /api/questions/<id>/research`) instead of an opaque "Failed to load
+  // resource". `message.location().url` is the resource that produced the
+  // error; `format_issue` renders it as `[<url>]` when populated.
+  const url = message.location && message.location().url;
+  return createIssue("console", text, url ? { url } : {});
 }
 
 function handlePageError(error) {

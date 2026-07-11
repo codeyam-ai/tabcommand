@@ -87,13 +87,16 @@ If a slice spans UI **and** backend, scope to the UI portion and name the backen
 
 Write a plan scoped to the confirmed slice that boots the editor workflow at the **Deconstruct** step over the slice's already-existing code. Pick a kebab-case slug describing the slice.
 
-Write `.codeyam/plans/<slug>.md` with frontmatter:
+Write `.codeyam/plans/<slug>.md` with frontmatter. For `createdAt`, run
+`date -u +"%Y-%m-%dT%H:%M:%SZ"` and paste its output verbatim — never
+hand-author or guess the timestamp; the model has no reliable clock, and
+`editor plans --fix` will otherwise flag and rewrite an implausible value.
 
 ```
 ---
 title: "Adopt slice: <feature/route name>"
 mode: ui            # or: backend (from Step 4)
-createdAt: "<ISO 8601 timestamp>"
+createdAt: "<paste the `date -u +"%Y-%m-%dT%H:%M:%SZ"` output>"
 source: slice
 step: 11            # Deconstruct (ui). Use 8 for backend mode.
 ---

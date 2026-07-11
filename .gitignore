@@ -46,6 +46,18 @@ blob-report/
 .codeyam/glossary-index.txt
 .codeyam/deps-index.txt
 .codeyam/generated/
+.codeyam/.last-reconcile.json
+.codeyam/.pending-decisions.json
+.codeyam/cache/
+.codeyam/reconciliation-log.jsonl
+.codeyam/runner-timing-history.json
+.codeyam/state/last-advance.txt
+.codeyam/state/provider-auth-verdict.json
+.codeyam/state/session-results-snapshot.json
+.codeyam/state/step-highwater.json
+.codeyam/test-run-marker.json
+.claude/settings.local.json
+.claude/hooks/__pycache__/
 # codeyam-editor:end
 
 # CodeYam - local runtime state

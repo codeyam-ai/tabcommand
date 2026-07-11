@@ -245,6 +245,12 @@ returns `[[1, 3], [2, 5]]`, so the `toEqual([[1, 5]])` assertion fails.
   feature name, e.g. `title: "Dark Mode Toggle"`.
 - `mode` (required) — `"ui"` or `"backend"`. Default to `"ui"` unless the change is purely backend.
 - `createdAt` (required) — ISO 8601 UTC timestamp of when the plan was created.
+  **Obtain it by running `date -u +"%Y-%m-%dT%H:%M:%SZ"` and pasting the output
+  verbatim — never hand-author or guess the timestamp; the model has no reliable
+  clock and a plausible-looking placeholder (e.g. midnight UTC on the wrong day)
+  is the bug this field's verifier exists to catch.** `editor plans` flags a
+  `createdAt` that diverges from the plan's git creation time and `editor plans
+  --fix` rewrites it, so an accurate value here avoids a later repair.
 - `source` (required) — Always `"manual"` for this skill.
 - `prefix` (optional) — The author/work-item prefix, written **verbatim** (any
   double-quotes stripped) when Step 2 produced one. This is the canonical record

@@ -161,6 +161,7 @@ const {
 const {
   attachHttpMocks,
   isDeclaredErrorMock,
+  unmockedRouteFrom,
 } = require("./scenario-mocks");
 
 const {
@@ -710,6 +711,15 @@ async function runScenarioCheck(
   let interactionEffect = null;
   let interactionRetried = false;
   const issues = [];
+  // Actionable set for self-healing: same-origin routes that returned 4xx with
+  // no scenario mock. A hermetic-proxy/upstream 404 is a *successful* HTTP
+  // response with status 404 (not a Playwright `requestfailed`), so the only
+  // place with method + path + status together is the `page.on("response")`
+  // collector below. De-duped by `"<METHOD> <path>"`; surfaced through
+  // `buildResult` so the Rust failure message can name each unmocked route and
+  // `stub-unmocked-routes` can add stub mocks for them.
+  const unmockedRoutes = [];
+  const unmockedRouteKeys = new Set();
   // Origin of the captured page, used to classify failed requests: only a
   // failure on the page's OWN origin should fail the capture (see
   // `isCaptureFatalRequestFailure`). Derived from `config.url` exactly as
@@ -791,6 +801,30 @@ async function runScenarioCheck(
     // predicate, as the requestfailed handler below.
     if (sourceUrl && !isCaptureFatalRequestFailure(sourceUrl, appOrigin)) return;
     pushIssue(issues, issue);
+  });
+
+  page.on("response", (response) => {
+    // Collect same-origin 4xx responses that no scenario mock covers — the set
+    // a stub mock would fix. Mirrors the console-guard predicates exactly so the
+    // reported set matches the guard's tolerances: a scenario that provokes
+    // errors by design (`expectedConsoleErrors`) reports none, and a route the
+    // scenario already declares an error mock for is the mock's intended 4xx,
+    // not a missing mock.
+    if (expectedConsoleErrors) return;
+    const req = response.request();
+    const reqUrl = req.url();
+    // Same-origin only — mirror the console/requestfailed origin gate so a
+    // cross-origin sub-resource 4xx is never reported as an unmocked route.
+    if (!isCaptureFatalRequestFailure(reqUrl, appOrigin)) return;
+    // The status-threshold, declared-mock, and path-extraction decision is the
+    // pure `unmockedRouteFrom` helper; the listener keeps only the stateful
+    // same-origin gate above and the dedup below.
+    const route = unmockedRouteFrom(req.method(), reqUrl, response.status(), httpMocks);
+    if (!route) return;
+    const key = `${route.method} ${route.path}`;
+    if (unmockedRouteKeys.has(key)) return;
+    unmockedRouteKeys.add(key);
+    unmockedRoutes.push(route);
   });
 
   page.on("requestfailed", (request) => {
@@ -1085,6 +1119,7 @@ async function runScenarioCheck(
       issues,
       outputPath,
       url: frame.url() || url,
+      unmockedRoutes,
     });
 
     if (config.interaction) {
@@ -1119,6 +1154,7 @@ async function runScenarioCheck(
       issues,
       outputPath,
       url,
+      unmockedRoutes,
     });
   } finally {
     await browser.close();
