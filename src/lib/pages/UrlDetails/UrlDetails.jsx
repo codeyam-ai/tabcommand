@@ -6,7 +6,7 @@ import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
 import { UrlField, UrlLabel } from '../../components';
 import { Icon } from '../../components/Icon';
-import { deriveUrlLabels, buildUrlInfo, removeUrlFromLabel } from '../../utils/urlDetails';
+import { deriveUrlLabels, buildUrlInfo, removeUrlFromLabel, getUrlKey, reassignUrlKeyInLabels } from '../../utils/urlDetails';
 
 // The URL Details page: a full-screen form for editing one saved URL — its
 // title/url/favicon, free-form notes, and its group (label) memberships.
@@ -58,12 +58,42 @@ const UrlDetails = ({ urlKey }) => {
     e.stopPropagation();
     e.preventDefault();
 
-    Chrome.set('UrlDetails1', {
-      [urlKey]: buildUrlInfo({ title, url, favicon, notes }),
-      labels: labels
-    });
+    const newUrlKey = getUrlKey(url);
+    const urlInfo = buildUrlInfo({ title, url, favicon, notes });
 
-    goHome();
+    if (newUrlKey === urlKey) {
+      // URL unchanged (or only its #fragment changed) — update in place.
+      Chrome.set('UrlDetails1', {
+        [urlKey]: urlInfo,
+        labels: labels
+      });
+      goHome();
+      return;
+    }
+
+    // URL changed: re-key the record — akin to deleting the old URL and adding
+    // the new one. Store under the new key, migrate the `allUrls` position and
+    // every label membership, then drop the stale old key.
+    Chrome.get('UrlDetails3', 'allUrls', ({ allUrls }) => {
+      const idx = allUrls.indexOf(urlKey);
+      const newAllUrls = allUrls.slice();
+      if (idx > -1) {
+        if (newAllUrls.indexOf(newUrlKey) > -1) {
+          // New key already listed — drop the old entry so there's no duplicate.
+          newAllUrls.splice(idx, 1);
+        } else {
+          newAllUrls[idx] = newUrlKey;
+        }
+      }
+
+      Chrome.set('UrlDetails1', {
+        [newUrlKey]: urlInfo,
+        allUrls: newAllUrls,
+        labels: reassignUrlKeyInLabels(labels, urlKey, newUrlKey)
+      });
+      Chrome.remove('UrlDetails1', urlKey);
+      goHome();
+    });
   };
 
   const goHome = (e) => {

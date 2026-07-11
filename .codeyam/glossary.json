@@ -275,7 +275,7 @@
     "testFile": "src/lib/components/Url/Url.test.jsx"
   },
   {
-    "description": "The URL Details page (entry point for Pages.URL in App): the full-screen form to edit one saved URL — title/url/favicon inputs, a notes textarea, and removable Groups chips for its label memberships. Reads the per-URL object + labels from Chrome storage; Save persists the four form fields (notes only when non-empty) and returns Home, Cancel returns Home. Composes UrlField and UrlLabel; pure logic lives in utils/urlDetails.",
+    "description": "The URL Details page (entry point for Pages.URL in App): the full-screen form to edit one saved URL — title/url/favicon inputs, a notes textarea, and removable Groups chips for its label memberships. Reads the per-URL object + labels from Chrome storage. On Save: an unchanged URL key updates in place; a changed URL re-keys the record (writes under the new url-key, migrates its allUrls position and every label membership, removes the old key) — akin to delete-old, add-new — and stamps edited so the tracker keeps the curated title/favicon. Then returns Home; Cancel returns Home. Composes UrlField and UrlLabel; pure logic lives in utils/urlDetails.",
     "filePath": "src/lib/pages/UrlDetails/UrlDetails.jsx",
     "name": "UrlDetails",
     "testFile": "src/lib/pages/UrlDetails/UrlDetails.test.jsx"
@@ -395,7 +395,7 @@
     "testFile": "src/lib/utils/buildSearchDocuments.test.js"
   },
   {
-    "description": "Builds the per-URL object persisted on Save from the UrlDetails form fields: always title/url/favicon, plus notes only when non-empty. Faithfully reproduces the reference's behavior of DROPPING the per-URL processes object (it writes only the form fields). Extracted from the page's handleSubmit.",
+    "description": "Builds the per-URL object persisted on Save from the UrlDetails form fields: always title/url/favicon plus edited:true (marking the record user-curated so the tab tracker stops overwriting title/favicon), plus notes only when non-empty. DROPS the per-URL processes object. Extracted from the page handleSubmit.",
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "buildUrlInfo",
     "testFile": "src/lib/utils/urlDetails.test.js"
@@ -416,6 +416,12 @@
       "storage"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Vite plugin for the query-param component-isolation stack: exposes the codeyam-generated components and component-scenarios artifacts as codeyam:components / codeyam:component-scenarios virtual ES modules (returning a valid empty module before first generation), resolves codeyam:isolate to the on-disk .codeyam/harness/isolate.jsx so Vite transforms it as real JSX (throwing loud if missing), and invalidates the virtual modules when .codeyam/generated changes.",
+    "filePath": "codeyam/vite-plugin-codeyam.mjs",
+    "name": "codeyamPlugin",
+    "testFile": "codeyam/vite-plugin-codeyam.test.js"
   },
   {
     "description": "Returns the de-duplicated list of urlKeys across the sorted labels — the exact set the Import/Export page hands to Chrome.get to resolve each per-URL object before serializing the export.",
@@ -595,6 +601,12 @@
       "util"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "UI-side twin of the service worker getUrlKey: derives the storage key url-<url-without-#hash> for a URL. Codified in one reusable place so the UrlDetails re-key logic on Save mirrors the service worker canonical keying rule.",
+    "filePath": "src/lib/utils/urlDetails.js",
+    "name": "getUrlKey",
+    "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
     "description": "Reconciles Chrome tab groups against the labels model: groups labeled tabs (creating/coloring groups as needed) and ungroups tabs that no longer belong to any label, skipping pinned tabs. Refuses to record a tab whose ungroup is in flight (in pendingUngroups) so a tab navigating out of a group is never captured into it.",
@@ -796,6 +808,12 @@
     "testFile": "src/lib/utils/rankFavorites.test.js"
   },
   {
+    "description": "Returns a new labels map where every label containing oldUrlKey has it replaced by newUrlKey, position preserved, de-duplicating when newUrlKey is already present. Pure and non-mutating; mirrors the service worker label drift-healing. Used when an edited URL re-keys a record so its group memberships follow.",
+    "filePath": "src/lib/utils/urlDetails.js",
+    "name": "reassignUrlKeyInLabels",
+    "testFile": "src/lib/utils/urlDetails.test.js"
+  },
+  {
     "description": "Records a visit when a tab is activated (switched to), throttled per site to ACCESS_THROTTLE_MS. Resolves the activated tab, ignores untrackable/missing tabs, and only counts the access as a visit when the sites most recent visit is older than the throttle window, otherwise the open-then-activate sequence and alt-tabbing would double-count. Delegates the write to newUrl so access-visits and open-visits stay identical in shape.",
     "filePath": "service_worker.js",
     "name": "recordAccess",
@@ -963,7 +981,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Merges a tab's current title/favicon/groupId into a stored url record and accumulates rolling process metrics, normalizing the running averages once a sample window exceeds 100.",
+    "description": "Merges a tab current title/favicon/groupId into a stored url record and accumulates rolling process metrics, normalizing running averages past a 100-sample window. Skips the live-tab title/favicon reassignment when the record has edited:true so a user-curated title/favicon is not clobbered on the next tracking tick.",
     "filePath": "service_worker.js",
     "name": "urlUpdates",
     "tags": [

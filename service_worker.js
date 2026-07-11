@@ -757,9 +757,11 @@ function urlUpdates(url, tab, process) {
     }
   }
 
-  if (tab.status !== "loading" && tab.title && tab.title.length > 0) url.title = tab.title;
+  // A user-edited record pins its title/favicon: skip the live-tab reassignment
+  // so a curated title/favicon isn't clobbered on the next tracking tick.
+  if (!url.edited && tab.status !== "loading" && tab.title && tab.title.length > 0) url.title = tab.title;
   if (!url.title || !url.title.length) url.title = url.url;
-  if (tab.favIconUrl) url.favicon = tab.favIconUrl;
+  if (!url.edited && tab.favIconUrl) url.favicon = tab.favIconUrl;
   if (tab.groupId !== url.groupId) url.groupId = tab.groupId;
 
   if (process) {

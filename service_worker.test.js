@@ -281,6 +281,26 @@ describe('service_worker.js', () => {
       const out = fns.urlUpdates({ url: 'https://c.com' }, { status: 'complete', url: 'https://c.com' });
       expect(out.title).toBe('https://c.com');
     });
+
+    // an edited record keeps its user title/favicon instead of taking the live tab's values
+    it('preserves an edited title and favicon', () => {
+      const out = fns.urlUpdates(
+        { url: 'https://a.com', title: 'My Title', favicon: 'mine.png', edited: true },
+        { status: 'complete', title: 'Live Title', favIconUrl: 'live.png', groupId: -1, url: 'https://a.com' }
+      );
+      expect(out.title).toBe('My Title');
+      expect(out.favicon).toBe('mine.png');
+    });
+
+    // a non-edited record still takes the live tab's title/favicon (guards the flag's scope)
+    it('still copies the live title and favicon when not edited', () => {
+      const out = fns.urlUpdates(
+        { url: 'https://a.com', title: 'Old', favicon: 'old.png' },
+        { status: 'complete', title: 'Live Title', favIconUrl: 'live.png', groupId: -1, url: 'https://a.com' }
+      );
+      expect(out.title).toBe('Live Title');
+      expect(out.favicon).toBe('live.png');
+    });
   });
 
   describe('update', () => {

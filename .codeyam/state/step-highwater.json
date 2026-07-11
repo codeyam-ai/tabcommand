@@ -1,6 +1,6 @@
 {
-  "feature": "favorites-page-identity-open-detection",
+  "feature": "edited-url-and-title-not-persisting",
   "maxStep": 26,
-  "version": 105,
-  "updatedAt": "2026-07-03T20:46:26.717508884+00:00"
+  "version": 176,
+  "updatedAt": "2026-07-11T01:40:29.722940966+00:00"
 }

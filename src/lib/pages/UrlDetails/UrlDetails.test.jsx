@@ -83,7 +83,8 @@ describe('UrlDetails', () => {
         title: 'GitHub',
         url: 'https://github.com/codeyam/tabcommand',
         favicon: 'https://gh/icon.svg',
-        notes: 'fresh note'
+        notes: 'fresh note',
+        edited: true
       });
     });
 
@@ -105,6 +106,49 @@ describe('UrlDetails', () => {
       const stored = await get(urlKey);
       expect(stored[urlKey]).toBeTruthy();
       expect('notes' in stored[urlKey]).toBe(false);
+    });
+  });
+
+  // editing the url re-keys the record: the new url-key holds the record and the old key is gone
+  it('editing the url migrates the record to the new key', async () => {
+    seedUrl({ notes: '' });
+    seedLabels({ Work: { title: 'Work', urlKeys: [urlKey] } });
+    window.localStorage.setItem('allUrls', JSON.stringify([urlKey]));
+    installChromeShim();
+    render(<UrlDetails urlKey={urlKey} />);
+
+    const urlField = await screen.findByDisplayValue('https://github.com/codeyam/tabcommand');
+    await userEvent.clear(urlField);
+    await userEvent.type(urlField, 'https://github.com/codeyam/tabcommand-v2');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    const newKey = 'url-https://github.com/codeyam/tabcommand-v2';
+    await waitFor(async () => {
+      const stored = await get([newKey, urlKey, 'allUrls', 'labels']);
+      expect(stored[newKey]).toMatchObject({ url: 'https://github.com/codeyam/tabcommand-v2' });
+      expect(stored[urlKey]).toBeUndefined();                 // old key deleted
+      expect(stored.allUrls).toEqual([newKey]);               // list migrated in place
+      expect(stored.labels.Work.urlKeys).toEqual([newKey]);   // group membership migrated
+    });
+  });
+
+  // editing only the #fragment keeps the same key: the record updates in place, nothing is duplicated
+  it('editing only the fragment updates in place', async () => {
+    seedUrl({ notes: '' });
+    seedLabels({});
+    window.localStorage.setItem('allUrls', JSON.stringify([urlKey]));
+    installChromeShim();
+    render(<UrlDetails urlKey={urlKey} />);
+
+    const urlField = await screen.findByDisplayValue('https://github.com/codeyam/tabcommand');
+    await userEvent.clear(urlField);
+    await userEvent.type(urlField, 'https://github.com/codeyam/tabcommand#readme');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(async () => {
+      const stored = await get([urlKey, 'allUrls']);
+      expect(stored[urlKey]).toMatchObject({ url: 'https://github.com/codeyam/tabcommand#readme' });
+      expect(stored.allUrls).toEqual([urlKey]);               // unchanged, no duplicate
     });
   });
 });

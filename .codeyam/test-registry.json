@@ -1252,11 +1252,29 @@
       "runner": "tests"
     },
     {
+      "description": "editing only the #fragment keeps the same key: the record updates in place, nothing is duplicated",
+      "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "format": "vitest",
+      "key": "UrlDetails › editing only the fragment updates in place",
+      "line": 136,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "editing the url re-keys the record: the new url-key holds the record and the old key is gone",
+      "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "format": "vitest",
+      "key": "UrlDetails › editing the url migrates the record to the new key",
+      "line": 113,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
       "description": "saving with the notes field left empty omits the notes key entirely",
       "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
       "format": "vitest",
       "key": "UrlDetails › omits notes when the field is left empty",
-      "line": 96,
+      "line": 97,
       "registeredAt": "2026-06-12T23:19:22.408203+00:00",
       "runner": "tests"
     },
@@ -1778,7 +1796,7 @@
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "buildUrlInfo › drops processes from the persisted object",
-      "line": 60,
+      "line": 67,
       "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
@@ -1787,7 +1805,7 @@
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "buildUrlInfo › includes notes when non-empty",
-      "line": 44,
+      "line": 45,
       "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
@@ -1796,8 +1814,17 @@
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "buildUrlInfo › omits the notes key when notes is empty or undefined",
-      "line": 54,
+      "line": 61,
       "registeredAt": "2026-06-12T23:11:16Z",
+      "runner": "tests"
+    },
+    {
+      "description": "every save marks the record as user-curated so the tracker stops overwriting it",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "buildUrlInfo › stamps edited: true on the persisted object",
+      "line": 56,
+      "registeredAt": "2026-07-11T01:17:42Z",
       "runner": "tests"
     },
     {
@@ -1915,6 +1942,69 @@
       "key": "chromeShim › shares the known TabCommand storage keys",
       "line": 133,
       "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "load returns the empty module when the generated file has not been written yet",
+      "file": "codeyam/vite-plugin-codeyam.test.js",
+      "format": "vitest",
+      "key": "codeyamPlugin › load falls back to an empty module before generation",
+      "line": 47,
+      "registeredAt": "2026-07-11T01:31:50.941300772+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "load ignores ids that are not virtual (no leading NUL) or not owned",
+      "file": "codeyam/vite-plugin-codeyam.test.js",
+      "format": "vitest",
+      "key": "codeyamPlugin › load returns null for non-virtual or unknown ids",
+      "line": 59,
+      "registeredAt": "2026-07-11T01:31:50.941300772+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "load returns the generated file contents once it exists",
+      "file": "codeyam/vite-plugin-codeyam.test.js",
+      "format": "vitest",
+      "key": "codeyamPlugin › load returns the generated file contents when present",
+      "line": 52,
+      "registeredAt": "2026-07-11T01:31:50.941300772+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a known virtual specifier is marked virtual with a leading NUL byte",
+      "file": "codeyam/vite-plugin-codeyam.test.js",
+      "format": "vitest",
+      "key": "codeyamPlugin › resolves a generated virtual module to a NUL-prefixed id",
+      "line": 24,
+      "registeredAt": "2026-07-11T01:33:43.489830494+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the isolate specifier resolves to the harness's real on-disk path when present",
+      "file": "codeyam/vite-plugin-codeyam.test.js",
+      "format": "vitest",
+      "key": "codeyamPlugin › resolves codeyam:isolate to the harness file when it exists",
+      "line": 35,
+      "registeredAt": "2026-07-11T01:31:50.941300772+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an unrelated specifier is left for the rest of the pipeline",
+      "file": "codeyam/vite-plugin-codeyam.test.js",
+      "format": "vitest",
+      "key": "codeyamPlugin › returns null for a specifier it does not own",
+      "line": 30,
+      "registeredAt": "2026-07-11T01:31:50.941300772+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a missing harness is a loud failure (the popup entry imports it, no empty stub)",
+      "file": "codeyam/vite-plugin-codeyam.test.js",
+      "format": "vitest",
+      "key": "codeyamPlugin › throws when codeyam:isolate harness is missing",
+      "line": 42,
+      "registeredAt": "2026-07-11T01:31:50.941300772+00:00",
       "runner": "tests"
     },
     {
@@ -2539,6 +2629,42 @@
       "runner": "tests"
     },
     {
+      "description": "a non-string input is coerced rather than throwing",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "getUrlKey › coerces a non-string input",
+      "line": 121,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a url with no fragment is unchanged apart from the prefix",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "getUrlKey › leaves a fragmentless url intact",
+      "line": 116,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a plain url is keyed as `url-<url>`",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "getUrlKey › prefixes the url with url-",
+      "line": 105,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the #hash fragment is stripped so two urls differing only by fragment share a key",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "getUrlKey › strips the hash fragment",
+      "line": 110,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
       "description": "millions group every three digits",
       "file": "src/lib/utils/humanReadableNumber.test.js",
       "format": "vitest",
@@ -2971,6 +3097,51 @@
       "runner": "tests"
     },
     {
+      "description": "when the new key already exists in a label, the old slot is dropped rather than duplicated",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "reassignUrlKeyInLabels › de-duplicates when the new key is already present",
+      "line": 147,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "does not mutate the input labels map or its arrays",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "reassignUrlKeyInLabels › does not mutate the input",
+      "line": 92,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "labels that do not contain the old key are returned untouched",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "reassignUrlKeyInLabels › leaves labels without the old key unchanged",
+      "line": 141,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "every label containing the old key has it replaced by the new key, position preserved",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "reassignUrlKeyInLabels › replaces the old key with the new key in each containing label",
+      "line": 134,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty or undefined labels map yields an empty map",
+      "file": "src/lib/utils/urlDetails.test.js",
+      "format": "vitest",
+      "key": "reassignUrlKeyInLabels › tolerates an empty or undefined labels map",
+      "line": 161,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
       "description": "A future timestamp (clock skew) is clamped to just now, never negative.",
       "file": "src/lib/utils/relativeTime.test.js",
       "format": "vitest",
@@ -3029,7 +3200,7 @@
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "removeUrlFromLabel › does not mutate the input",
-      "line": 85,
+      "line": 92,
       "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
@@ -3038,7 +3209,7 @@
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "removeUrlFromLabel › leaves other labels unchanged",
-      "line": 79,
+      "line": 86,
       "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
@@ -3047,7 +3218,7 @@
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "removeUrlFromLabel › removes the urlKey from the targeted label",
-      "line": 73,
+      "line": 80,
       "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
@@ -3056,7 +3227,7 @@
       "file": "src/lib/utils/urlDetails.test.js",
       "format": "vitest",
       "key": "removeUrlFromLabel › returns labels unchanged for an unknown label title",
-      "line": 91,
+      "line": 98,
       "registeredAt": "2026-06-12T23:11:16Z",
       "runner": "tests"
     },
@@ -3317,7 +3488,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
-      "line": 554,
+      "line": 574,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3326,7 +3497,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag on a deliberate group change",
-      "line": 801,
+      "line": 821,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3335,7 +3506,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag when a flagged tab is removed",
-      "line": 817,
+      "line": 837,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3344,7 +3515,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › ejects an auto-grouped non-member and does not record its URL",
-      "line": 770,
+      "line": 790,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3353,7 +3524,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › keeps an auto-grouped tab whose URL is a deliberate member",
-      "line": 787,
+      "line": 807,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3362,7 +3533,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › autoCloseThresholdMinutes › falls back to the default and maps Off to 0",
-      "line": 1317,
+      "line": 1337,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3371,7 +3542,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes a grouped/labeled inactive tab",
-      "line": 1257,
+      "line": 1277,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3380,7 +3551,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes and records an inactive ungrouped tab",
-      "line": 1222,
+      "line": 1242,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3389,7 +3560,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes nothing when autoCloseMinutes is 0 meaning Off",
-      "line": 1307,
+      "line": 1327,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3398,7 +3569,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › continues the sweep when one tab removal throws",
-      "line": 1265,
+      "line": 1285,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3407,7 +3578,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › keeps a tab that was active within the window",
-      "line": 1248,
+      "line": 1268,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3416,7 +3587,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › never closes pinned, tabCommandPinned, or the active tab",
-      "line": 1231,
+      "line": 1251,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3425,7 +3596,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › prunes autoClosed entries older than MAX_AUTO_CLOSED_TIME",
-      "line": 1283,
+      "line": 1303,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3434,7 +3605,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › registers the auto-close alarm at load",
-      "line": 1216,
+      "line": 1236,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3443,7 +3614,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › respects a custom settings.autoCloseMinutes",
-      "line": 1297,
+      "line": 1317,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3452,7 +3623,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback",
-      "line": 351,
+      "line": 371,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3461,7 +3632,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › does not persist when the runtime flag is off",
-      "line": 852,
+      "line": 872,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3470,7 +3641,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › is a no-op that does not throw when disabled",
-      "line": 829,
+      "line": 849,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3479,7 +3650,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › persists a breadcrumb to groupingLog when the runtime flag is on",
-      "line": 837,
+      "line": 857,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3488,7 +3659,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › keeps the tab and clears the flag when fresh storage shows membership",
-      "line": 735,
+      "line": 755,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3497,7 +3668,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › returns wait and does nothing while the URL is still unloaded",
-      "line": 721,
+      "line": 741,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3506,7 +3677,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › ungroups a confirmed non-member and tracks the in-flight ungroup",
-      "line": 751,
+      "line": 771,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3515,7 +3686,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getLocalStorage › invokes the callback with the storage result",
-      "line": 296,
+      "line": 316,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3524,7 +3695,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getLocalStorage › resolves with the result when no callback is passed",
-      "line": 304,
+      "line": 324,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3533,7 +3704,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves null for id -1 or null",
-      "line": 312,
+      "line": 332,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3542,7 +3713,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves the group for a real id",
-      "line": 318,
+      "line": 338,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3560,7 +3731,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › captures a genuinely grouped tab",
-      "line": 644,
+      "line": 664,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3569,7 +3740,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › does not capture a tab whose ungroup is pending",
-      "line": 631,
+      "line": 651,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3578,7 +3749,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ignores pinned tabs",
-      "line": 624,
+      "line": 644,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3587,7 +3758,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
-      "line": 617,
+      "line": 637,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3596,7 +3767,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
-      "line": 582,
+      "line": 602,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3605,7 +3776,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › seeds a missing label on the add path without throwing",
-      "line": 592,
+      "line": 612,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3614,7 +3785,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › does not throw when the processes API throws",
-      "line": 341,
+      "line": 361,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3623,7 +3794,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › registers the processes listener",
-      "line": 334,
+      "line": 354,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3632,7 +3803,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › degrades to none when a system call throws",
-      "line": 1169,
+      "line": 1189,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3641,7 +3812,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › falls back to chrome.system and tags 'system' when processes is absent",
-      "line": 1134,
+      "line": 1154,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3650,7 +3821,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'none' and never throws when no load API is available",
-      "line": 1160,
+      "line": 1180,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3659,7 +3830,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'processes' and keeps processing when chrome.processes is present",
-      "line": 1124,
+      "line": 1144,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3704,7 +3875,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › appends a visit timestamp on a repeat visit",
-      "line": 406,
+      "line": 426,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -3713,7 +3884,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › does not record non-website URLs",
-      "line": 377,
+      "line": 397,
       "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
@@ -3722,7 +3893,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prepends an unseen url key to allUrls",
-      "line": 368,
+      "line": 388,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3731,7 +3902,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prunes visits older than the retention horizon on write",
-      "line": 425,
+      "line": 445,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -3740,7 +3911,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › records a first visit timestamp and visitCount on a new url",
-      "line": 394,
+      "line": 414,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -3749,7 +3920,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › returns early without tabId/url",
-      "line": 362,
+      "line": 382,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3758,7 +3929,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated group removal › removes a hashed URL using the normalized key when a tab leaves a group",
-      "line": 874,
+      "line": 894,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3767,7 +3938,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not heal the label on a real navigation",
-      "line": 1068,
+      "line": 1088,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3776,7 +3947,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a fragment-only change",
-      "line": 955,
+      "line": 975,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -3785,7 +3956,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a query-string-only change",
-      "line": 939,
+      "line": 959,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -3794,7 +3965,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals a stale slot even when it is a third query variant",
-      "line": 1025,
+      "line": 1045,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3803,7 +3974,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals the drifted label urlKey to the live key on a query-only change",
-      "line": 1002,
+      "line": 1022,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3812,7 +3983,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals via the getTabGroup fallback when the groups map is cold",
-      "line": 1089,
+      "line": 1109,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3821,7 +3992,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › removes the stale slot without duplicating an already-present live key",
-      "line": 1047,
+      "line": 1067,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3830,7 +4001,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different origin",
-      "line": 985,
+      "line": 1005,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -3839,7 +4010,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different path",
-      "line": 971,
+      "line": 991,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -3866,7 +4037,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
-      "line": 544,
+      "line": 564,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3875,7 +4046,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › caps length to the newest 50 visits",
-      "line": 515,
+      "line": 535,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -3884,7 +4055,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › drops visits older than the retention horizon",
-      "line": 497,
+      "line": 517,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -3893,7 +4064,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › returns [] for non-array or empty input",
-      "line": 490,
+      "line": 510,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -3902,7 +4073,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › sorts ascending and filters non-finite entries",
-      "line": 506,
+      "line": 526,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -3911,7 +4082,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › ignores missing tabs and non-trackable URLs",
-      "line": 478,
+      "line": 498,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -3920,7 +4091,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › records a visit when the last visit is older than the throttle",
-      "line": 448,
+      "line": 468,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -3929,7 +4100,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › records nothing within the throttle window",
-      "line": 466,
+      "line": 486,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -3938,7 +4109,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › persists the updated labels to storage",
-      "line": 706,
+      "line": 726,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3947,7 +4118,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › pushes the urlKey into an existing label",
-      "line": 695,
+      "line": 715,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3956,7 +4127,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › seeds a missing label with the tab urlKey and mapped color",
-      "line": 683,
+      "line": 703,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3965,7 +4136,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
-      "line": 573,
+      "line": 593,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3974,7 +4145,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
-      "line": 568,
+      "line": 588,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3983,7 +4154,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › trackGroup › stores the group title by id",
-      "line": 326,
+      "line": 346,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3992,7 +4163,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › update › persists updates to chrome.storage.local",
-      "line": 288,
+      "line": 308,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4001,7 +4172,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
-      "line": 527,
+      "line": 547,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4028,7 +4199,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false for a label with no urlKeys",
-      "line": 669,
+      "line": 689,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4037,7 +4208,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the label is undefined or null",
-      "line": 675,
+      "line": 695,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4046,7 +4217,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the urlKey is absent",
-      "line": 663,
+      "line": 683,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4055,7 +4226,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is true when the urlKey is present in the label",
-      "line": 657,
+      "line": 677,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4075,6 +4246,24 @@
       "key": "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId",
       "line": 257,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an edited record keeps its user title/favicon instead of taking the live tab's values",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › urlUpdates › preserves an edited title and favicon",
+      "line": 286,
+      "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a non-edited record still takes the live tab's title/favicon (guards the flag's scope)",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › urlUpdates › still copies the live title and favicon when not edited",
+      "line": 296,
+      "registeredAt": "2026-07-11T01:17:42Z",
       "runner": "tests"
     },
     {
