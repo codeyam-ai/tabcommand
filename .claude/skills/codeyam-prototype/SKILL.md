@@ -104,16 +104,13 @@ this exact instruction string:
 When you receive that message:
 
 1. Pick a kebab-case slug that describes the feature.
-2. Write `.codeyam/plans/<slug>.md` with frontmatter. For `createdAt`, run
-   `date -u +"%Y-%m-%dT%H:%M:%SZ"` and paste its output verbatim — never
-   hand-author or guess the timestamp; the model has no reliable clock, and
-   `editor plans --fix` will otherwise flag and rewrite an implausible value.
+2. Write `.codeyam/plans/<slug>.md` with frontmatter:
 
    ```
    ---
    title: "<the feature name>"
    mode: ui            # or: backend
-   createdAt: "<paste the `date -u +"%Y-%m-%dT%H:%M:%SZ"` output>"
+   createdAt: "<ISO 8601 timestamp>"
    source: prototype
    step: 11            # or: 8 for backend mode
    ---

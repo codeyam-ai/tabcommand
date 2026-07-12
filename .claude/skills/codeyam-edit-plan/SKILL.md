@@ -47,7 +47,7 @@ End your turn here.
 
 ### Step 3: Apply the edits
 
-When the user replies, write the updated plan back with the Write tool. Preserve the frontmatter fields exactly: `title`, `mode`, `createdAt`, `source`, `order` if present, and `dependsOn` if present (a bracket array of prerequisite plan slugs, e.g. `dependsOn: ["session-recovery-ux"]`). Only the fields the user asks to change should change — `dependsOn` is preserved through edits unless the user explicitly asks to add or remove a dependency. **Keep `createdAt` verbatim — editing a plan is not re-creating it, so never run `date -u` or otherwise regenerate the timestamp; a bumped `createdAt` would misreport when the plan was created and diverge from its git creation time.**
+When the user replies, write the updated plan back with the Write tool. Preserve the frontmatter fields exactly: `title`, `mode`, `createdAt`, `source`, `order` if present, and `dependsOn` if present (a bracket array of prerequisite plan slugs, e.g. `dependsOn: ["session-recovery-ux"]`). Only the fields the user asks to change should change — `dependsOn` is preserved through edits unless the user explicitly asks to add or remove a dependency.
 
 After writing, briefly confirm what was updated (one or two short bullets). Then loop back to Step 2 and ask again — the user may want to make several changes in the same session.
 

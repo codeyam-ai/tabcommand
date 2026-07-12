@@ -2,7 +2,7 @@
 // Source of truth: crates/types/src/step.rs
 
 export const EDITOR_TOTAL_STEPS = 28;
-export const BACKEND_TOTAL_STEPS = 20;
+export const BACKEND_TOTAL_STEPS = 21;
 
 export const UI_STEP_LABELS: Record<number, string> = {
   1: "Plan",
@@ -49,13 +49,14 @@ export const BACKEND_STEP_LABELS: Record<number, string> = {
   11: "Glossary",
   12: "Dependency Graph",
   13: "Present",
-  14: "Reconcile",
-  15: "Journal",
-  16: "Pre-Commit Sync",
-  17: "Finalize",
-  18: "Commit",
-  19: "Push",
-  20: "Feature Complete",
+  14: "Review",
+  15: "Reconcile",
+  16: "Journal",
+  17: "Pre-Commit Sync",
+  18: "Finalize",
+  19: "Commit",
+  20: "Push",
+  21: "Feature Complete",
 };
 
 export const UI_STEP_DESCRIPTIONS: Record<number, string> = {
@@ -102,12 +103,13 @@ export const BACKEND_STEP_DESCRIPTIONS: Record<number, string> = {
   10: "Test-runner and tooling discipline for the backend extract-TDD loop.",
   11: "Register every new test and glossary entry produced in the prior step.",
   12: "Rebuild the dependency graph after extraction.",
-  13: "Present the /results page with architecture diagram, tests, and changed files.",
-  14: "Run the audit gate, reconcile any registry/glossary drift until clean.",
-  15: "Author the session narrative against post-Verify code, then create the journal entry.",
-  16: "Sync local state with the remote so the next commit lands on a merged tree.",
-  17: "Finalize the session — run the full suite once.",
-  18: "Commit all changes to git.",
-  19: "Push the branch to the remote repository.",
-  20: "Fire the feature-complete modal — the cycle ends here.",
+  13: "Author a first pass of the session narrative, then present the /results page with the behavior gallery, tests, and changed files.",
+  14: "Review the results page with the user — summary, ways-to-test, weakened-test flag, audit status — and gate on the Save / Fast-Commit / change decision.",
+  15: "Run the audit gate, reconcile any registry/glossary drift until clean.",
+  16: "Finalize the session narrative against post-Verify code, then create the journal entry.",
+  17: "Sync local state with the remote so the next commit lands on a merged tree.",
+  18: "Finalize the session — run the full suite once.",
+  19: "Commit all changes to git.",
+  20: "Push the branch to the remote repository.",
+  21: "Fire the feature-complete modal — the cycle ends here.",
 };
