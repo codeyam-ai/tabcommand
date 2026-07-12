@@ -135,25 +135,33 @@ const ISOLATION_PROPS = {
     },
   },
   SearchResults: {
+    // Grouped URL hits carry `urlLabelTitle` + `urlLabelColor` (stamped onto
+    // each document by buildUrlDocuments); SearchResults splits them into one
+    // sub-section per group. The default spans two groups so the flagship view
+    // shows the grouped headers directly.
     default: {
       labels: [{ id: 'Work', color: '#1873E4', labelTitle: 'Work' }],
       urls: [
         {
           id: 'url-https://news.ycombinator.com',
           url: 'https://news.ycombinator.com',
-          title: 'Hacker News',
+          urlTitle: 'Hacker News',
+          urlLabelTitle: 'Work',
+          urlLabelColor: '#1873E4',
           favicon: '',
           notes: 'Tech news and discussion threads',
-          match: { title: ['title'] },
+          match: { urlTitle: ['title'] },
           terms: ['hacker'],
         },
         {
           id: 'url-https://react.dev/learn',
           url: 'https://react.dev/learn',
-          title: 'Quick Start – React',
+          urlTitle: 'Quick Start – React',
+          urlLabelTitle: 'Reading',
+          urlLabelColor: '#1F8E43',
           favicon: '',
           notes: '',
-          match: { title: ['title'] },
+          match: { urlTitle: ['title'] },
           terms: ['react'],
         },
       ],
@@ -174,16 +182,31 @@ const ISOLATION_PROPS = {
           {
             id: 'url-https://news.ycombinator.com',
             url: 'https://news.ycombinator.com',
-            title: 'Hacker News',
+            urlTitle: 'Hacker News',
+            urlLabelTitle: 'Work',
+            urlLabelColor: '#1873E4',
             favicon: '',
             notes: 'Tech news and discussion threads',
-            match: { title: ['news'] },
+            match: { urlTitle: ['news'] },
             terms: ['news'],
+          },
+          {
+            id: 'url-https://www.notion.so/codeyam/Roadmap',
+            url: 'https://www.notion.so/codeyam/Roadmap',
+            urlTitle: 'Roadmap – Notion',
+            urlLabelTitle: 'Work',
+            urlLabelColor: '#1873E4',
+            favicon: '',
+            notes: 'Quarterly planning doc',
+            match: { urlTitle: ['Roadmap'] },
+            terms: ['roadmap'],
           },
           {
             id: 'url-https://react.dev/learn',
             url: 'https://react.dev/learn',
-            title: 'Quick Start – React',
+            urlTitle: 'Quick Start – React',
+            urlLabelTitle: 'Reading',
+            urlLabelColor: '#1F8E43',
             favicon: '',
             notes: 'Official React tutorial and docs',
             match: { notes: ['React'] },
@@ -192,35 +215,125 @@ const ISOLATION_PROPS = {
           {
             id: 'url-https://developer.mozilla.org/en-US/docs/Web/API',
             url: 'https://developer.mozilla.org/en-US/docs/Web/API',
-            title: 'Web APIs | MDN',
+            urlTitle: 'Web APIs | MDN',
+            urlLabelTitle: 'Reading',
+            urlLabelColor: '#1F8E43',
             favicon: '',
             notes: '',
-            match: { title: ['API'] },
+            match: { urlTitle: ['API'] },
             terms: ['api'],
-          },
-          {
-            id: 'url-https://www.notion.so/codeyam/Roadmap',
-            url: 'https://www.notion.so/codeyam/Roadmap',
-            title: 'Roadmap – Notion',
-            favicon: '',
-            notes: 'Quarterly planning doc',
-            match: { title: ['Roadmap'] },
-            terms: ['roadmap'],
           },
           {
             id: 'url-https://github.com/codeyam/tabcommand',
             url: 'https://github.com/codeyam/tabcommand',
-            title: 'codeyam/tabcommand — GitHub',
+            urlTitle: 'codeyam/tabcommand — GitHub',
+            urlLabelTitle: 'Shopping',
+            urlLabelColor: '#E47415',
             favicon: '',
             notes: '',
-            match: { title: ['tabcommand'] },
+            match: { urlTitle: ['tabcommand'] },
             terms: ['tab'],
           },
         ],
       },
-      // Demonstrates this session's change: unlabeled hits render under their
-      // own Archived URLs section (the old "coming soon" affordance is gone),
-      // including a highlighted notes match — alongside a Group and a Grouped URL.
+      // Grouped results spanning multiple groups — each rendered under its own
+      // colored header, in first-appearance order (Work, then Reading).
+      'grouped-multi': {
+        labels: [],
+        urls: [
+          {
+            id: 'url-https://news.ycombinator.com',
+            url: 'https://news.ycombinator.com',
+            urlTitle: 'Hacker News',
+            urlLabelTitle: 'Work',
+            urlLabelColor: '#1873E4',
+            favicon: '',
+            notes: 'Tech news and discussion threads',
+            match: { urlTitle: ['news'] },
+            terms: ['news'],
+          },
+          {
+            id: 'url-https://www.notion.so/codeyam/Roadmap',
+            url: 'https://www.notion.so/codeyam/Roadmap',
+            urlTitle: 'Roadmap – Notion',
+            urlLabelTitle: 'Work',
+            urlLabelColor: '#1873E4',
+            favicon: '',
+            notes: '',
+            match: { urlTitle: ['Roadmap'] },
+            terms: ['roadmap'],
+          },
+          {
+            id: 'url-https://react.dev/learn',
+            url: 'https://react.dev/learn',
+            urlTitle: 'Quick Start – React',
+            urlLabelTitle: 'Reading',
+            urlLabelColor: '#1F8E43',
+            favicon: '',
+            notes: 'Official React tutorial and docs',
+            match: { urlTitle: ['react'] },
+            terms: ['react'],
+          },
+        ],
+      },
+      // A single group — every grouped hit belongs to one label, so exactly one
+      // colored header is rendered.
+      'grouped-single': {
+        labels: [],
+        urls: [
+          {
+            id: 'url-https://news.ycombinator.com',
+            url: 'https://news.ycombinator.com',
+            urlTitle: 'Hacker News',
+            urlLabelTitle: 'Work',
+            urlLabelColor: '#1873E4',
+            favicon: '',
+            notes: 'Tech news and discussion threads',
+            match: { urlTitle: ['news'] },
+            terms: ['news'],
+          },
+          {
+            id: 'url-https://www.notion.so/codeyam/Roadmap',
+            url: 'https://www.notion.so/codeyam/Roadmap',
+            urlTitle: 'Roadmap – Notion',
+            urlLabelTitle: 'Work',
+            urlLabelColor: '#1873E4',
+            favicon: '',
+            notes: '',
+            match: { urlTitle: ['Roadmap'] },
+            terms: ['roadmap'],
+          },
+        ],
+      },
+      // No grouped hits — the grouped area is hidden and only the Archived URLs
+      // section renders, unchanged by this feature.
+      'archived-only': {
+        labels: [],
+        urls: [],
+        archived: [
+          {
+            id: 'url-https://news.ycombinator.com',
+            url: 'https://news.ycombinator.com',
+            urlTitle: 'Hacker News',
+            favicon: '',
+            notes: 'Show HN thread on searching your archived tabs',
+            match: { archived: ['notes'] },
+            terms: ['archived'],
+          },
+          {
+            id: 'url-https://stackoverflow.com/questions/78912345/chrome-storage-local-quota',
+            url: 'https://stackoverflow.com/questions/78912345/chrome-storage-local-quota',
+            urlTitle: 'chrome.storage.local quota exceeded - Stack Overflow',
+            favicon: '',
+            notes: '',
+            match: { storage: ['urlTitle'] },
+            terms: ['storage'],
+          },
+        ],
+      },
+      // Groups + Archived together: grouped sub-sections (spanning two groups)
+      // followed by the unchanged Archived URLs section, including a highlighted
+      // notes match.
       mixed: {
         labels: [{ id: 'Work', color: '#1873E4', labelTitle: 'Work' }],
         urls: [
@@ -228,10 +341,23 @@ const ISOLATION_PROPS = {
             id: 'url-https://react.dev/learn',
             url: 'https://react.dev/learn',
             urlTitle: 'Quick Start – React',
+            urlLabelTitle: 'Reading',
+            urlLabelColor: '#1F8E43',
             favicon: '',
             notes: '',
             match: { react: ['urlTitle'] },
             terms: ['react'],
+          },
+          {
+            id: 'url-https://github.com/codeyam/tabcommand',
+            url: 'https://github.com/codeyam/tabcommand',
+            urlTitle: 'codeyam/tabcommand — GitHub',
+            urlLabelTitle: 'Work',
+            urlLabelColor: '#1873E4',
+            favicon: '',
+            notes: '',
+            match: { tabcommand: ['urlTitle'] },
+            terms: ['tab'],
           },
         ],
         archived: [

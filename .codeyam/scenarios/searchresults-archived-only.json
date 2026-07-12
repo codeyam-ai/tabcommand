@@ -1,0 +1,11 @@
+{
+  "name": "SearchResults - Archived Only",
+  "id": "b017808a-3de1-4321-b2af-3db90db4ee40",
+  "url": "/?isolate=SearchResults&variant=archived-only",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SearchResults",
+  "scenarioType": "component"
+}

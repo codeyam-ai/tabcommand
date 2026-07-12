@@ -215,7 +215,7 @@
     }
   },
   {
-    "description": "The search overlay rendered by Search: sections for Groups, Grouped URLs, and Archived URLs — the last rendering unlabeled hits with the same url row renderer as grouped urls, including a highlighted notes snippet via searchNotesSnippet — plus a No Results empty state. A section renders only when it has hits. Keyboard navigation with Arrow up/down + Enter and mouse hover move the selection across the flat labels-then-urls-then-archived list; activating a label selects it and routes Home, activating a url focuses or opens its tab, and the edit pencil routes to the URL detail page.",
+    "description": "The search overlay rendered by Search: sections for Groups, Grouped URLs, and Archived URLs. The Grouped URLs section is split into one sub-section per group via groupSearchUrlsByLabel, each headed by the group's color dot and title, with url rows rendered beneath; Archived URLs renders unlabeled hits with the same url row renderer, including a highlighted notes snippet via searchNotesSnippet. Plus a No Results empty state; a section renders only when it has hits. Keyboard navigation with Arrow up/down + Enter and mouse hover move the selection across the flat labels-then-grouped-urls-then-archived list (grouped urls flattened group by group so activation indices stay aligned with render order); activating a label selects it and routes Home, activating a url focuses or opens its tab, and the edit pencil routes to the URL detail page.",
     "filePath": "src/lib/components/SearchResults/SearchResults.jsx",
     "name": "SearchResults",
     "testFile": "src/lib/components/SearchResults/SearchResults.test.jsx"
@@ -383,7 +383,7 @@
     "testFile": "src/lib/utils/importExport.test.js"
   },
   {
-    "description": "Turns the stored labels map into the synchronous half of the Search index: one minisearch document per label (id 'label-<title>' with color) plus a labelMap of every labeled urlKey to its label title. Pure, so index shaping is testable independent of minisearch/Chrome.",
+    "description": "Turns the stored labels map into the synchronous half of the Search index: one minisearch document per label (id 'label-<title>' with color), a labelMap of every labeled urlKey to its label title, and a labelColorMap of every label title to its color. Its companion buildUrlDocuments stamps each grouped URL document with urlLabelColor (from labelColorMap) alongside urlLabelTitle, so grouped hits can be headed by their group's color downstream. Pure, so index shaping is testable independent of minisearch/Chrome.",
     "filePath": "src/lib/utils/buildSearchDocuments.js",
     "name": "buildSearchDocuments",
     "testFile": "src/lib/utils/buildSearchDocuments.test.js"
@@ -607,6 +607,12 @@
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "getUrlKey",
     "testFile": "src/lib/utils/urlDetails.test.js"
+  },
+  {
+    "description": "Pure helper that turns the flat list of grouped-URL search hits into an ordered set of per-group sub-sections for the SearchResults overlay. Each hit carries urlLabelTitle and urlLabelColor; this collapses them into an array of {title, color, urls} where groups appear in first-appearance order and urls keep their input order within a group. A null, empty, or non-array input yields an empty array. Kept free of React so the grouping is unit-testable; consumers flatten the groups to recover the flat activation order that stays aligned with render order.",
+    "filePath": "src/lib/utils/groupSearchUrlsByLabel.js",
+    "name": "groupSearchUrlsByLabel",
+    "testFile": "src/lib/utils/groupSearchUrlsByLabel.test.js"
   },
   {
     "description": "Reconciles Chrome tab groups against the labels model: groups labeled tabs (creating/coloring groups as needed) and ungroups tabs that no longer belong to any label, skipping pinned tabs. Refuses to record a tab whose ungroup is in flight (in pendingUngroups) so a tab navigating out of a group is never captured into it.",

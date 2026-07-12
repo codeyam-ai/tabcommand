@@ -10,15 +10,22 @@ import { Icon } from '../Icon';
 import { Favicon } from '../Favicon';
 import { Chrome } from '../../utils/Chrome';
 import searchNotesSnippet from '../../utils/searchNotesSnippet';
+import groupSearchUrlsByLabel from '../../utils/groupSearchUrlsByLabel';
 
 const SearchResults = ({ labels, urls, archived }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
+  // Grouped URL hits, split into one sub-section per group. `flatUrls` recovers
+  // the render order (group by group), so keyboard/click activation indices
+  // still line up with what's on screen regardless of the input's order.
+  const urlGroups = groupSearchUrlsByLabel(urls);
+  const flatUrls = urlGroups.flatMap((group) => group.urls);
+
   const handleClick = (e, index) => {
     KeyDown.trigger(event({ key: "Escape" }));
     // The flat activation order matches the render order below:
-    // Groups, then Grouped URLs, then Archived URLs.
-    const selectedItem = [...labels, ...urls, ...(archived || [])][index];
+    // Groups, then Grouped URLs (group by group), then Archived URLs.
+    const selectedItem = [...labels, ...flatUrls, ...(archived || [])][index];
     if (selectedItem.labelTitle) {
       // Navigation lives entirely on `uxSettings`: select the label by title
       // (a string, matching LabelCollection) and route Home via
@@ -48,7 +55,7 @@ const SearchResults = ({ labels, urls, archived }) => {
 
   useEffect(() => {
     setSelectedIndex(0);
-    const totalItems = (labels || []).length + (urls || []).length + (archived || []).length;
+    const totalItems = (labels || []).length + flatUrls.length + (archived || []).length;
     let _selectedIndex = selectedIndex;
 
     const handleKeyDown = (e) => {
@@ -154,9 +161,23 @@ const SearchResults = ({ labels, urls, archived }) => {
       {urls && urls.length > 0 &&
         <div className='SearchResults-section'>
           <div className='SearchResults-section-title'>Grouped URLs</div>
-          {urls.map((url) => {
-            index += 1;
-            return urlResult(index, url);
+          {urlGroups.map((group) => {
+            if (!group.urls.length) return null;
+            return (
+              <div className='SearchResults-group' key={`searchGroup-${group.title}`}>
+                <div className='SearchResults-group-header'>
+                  <div
+                    className='SearchResults-labelIcon'
+                    style={{ backgroundColor: group.color }}
+                  ></div>
+                  <div className='SearchResults-group-title'>{group.title}</div>
+                </div>
+                {group.urls.map((url) => {
+                  index += 1;
+                  return urlResult(index, url);
+                })}
+              </div>
+            );
           })}
         </div>
       }

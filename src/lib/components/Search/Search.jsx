@@ -16,7 +16,7 @@ const Search = () => {
   const [miniSearch] = useState(
     new MiniSearch({
       fields: ['labelTitle', 'urlTitle', 'url', 'notes'],
-      storeFields: ['labelTitle', 'urlTitle', 'url', 'urlLabelTitle', 'color', 'favicon', 'notes'],
+      storeFields: ['labelTitle', 'urlTitle', 'url', 'urlLabelTitle', 'urlLabelColor', 'color', 'favicon', 'notes'],
       searchOptions: {
         boost: { labelTitle: 100, urlTitle: 50, notes: 5 }
       }
@@ -79,6 +79,7 @@ const Search = () => {
 
       const built = buildSearchDocuments(labels);
       labelMap = built.labelMap;
+      const labelColorMap = built.labelColorMap;
       miniSearch.addAll(built.labelDocuments);
 
       // Index the WHOLE archive, not just labeled URLs: the deduped union of
@@ -90,7 +91,7 @@ const Search = () => {
       if (urlKeys.length > 0) {
         Chrome.get('Search1', urlKeys, (result) => {
           if (myToken !== buildToken) return;
-          const documents = buildUrlDocuments(urlKeys, labelMap, result);
+          const documents = buildUrlDocuments(urlKeys, labelMap, labelColorMap, result);
 
           miniSearch.addAllAsync(documents).then(
             () => console.log("Search Indexing Complete For URLs")

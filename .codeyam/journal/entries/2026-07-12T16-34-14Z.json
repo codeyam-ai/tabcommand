@@ -1,0 +1,183 @@
+{
+  "timestamp": "2026-07-12T16:34:14Z",
+  "title": "Group Search Results by Group",
+  "type": "feature",
+  "userRequest": "## Summary\n\nIn the search overlay, grouped-URL hits are currently rendered as one flat\n\"Grouped URLs\" list, with no indication of which group each URL belongs to.\nThis plan re-organizes those hits so that grouped URLs are split into a\nsub-section per group, each headed by the group's color dot and name, and the\nURLs are listed beneath their group. Archived (ungrouped) URLs and the Groups\nsection are unchanged. This makes it immediately clear which group a matching\nURL lives in and clusters related results together.\n\n## Key Decisions\n\n- **Colored header per group** (chosen over an inline per-row badge) — the\n  grouped-URL section becomes one sub-section per group, each with a header\n  showing the group's color dot + title, matching the existing \"Groups\" header\n  visual language. A per-row badge was considered but the header already\n  conveys membership without repeating it on every row.\n- **Carry the group color onto URL documents.** `SearchResults` only receives\n  the search hits, so a grouped URL whose group didn't itself match the query\n  has no color available today. Rather than pass the whole labels map down, add\n  a `urlLabelColor` field to each URL document (alongside the existing\n  `urlLabelTitle`) so every grouped URL hit already knows its group's color.\n- **Group + order in a pure helper, flatten for activation.** A new pure\n  `groupSearchUrlsByLabel` helper turns the flat `urls` array into ordered\n  `{ title, color, urls }` groups (first-appearance order, preserving\n  within-group order). `SearchResults` derives its flat keyboard/click\n  activation list by flattening those groups, so render order and activation\n  index stay perfectly aligned regardless of input order — the same invariant\n  the current `[...labels, ...urls, ...archived]` code relies on.\n\n## Implementation\n\n### 1. Carry the group color through the index\n\n**File**: `src/lib/utils/buildSearchDocuments.js`\n\n- In `buildSearchDocuments`, also build and return a `labelColorMap` of\n  `label.title -> label.backgroundColor` (the same source the label documents\n  already use for their `color`).\n- In `buildUrlDocuments`, accept the new `labelColorMap` argument and set\n  `urlLabelColor: labelColorMap[title]` on each document, present only for\n  grouped URLs (mirrors how `urlLabelTitle` is present only for labeled URLs).\n  Leave it undefined for archived URLs.\n\n**File**: `src/lib/components/Search/Search.jsx`\n\n- Destructure `labelColorMap` from `buildSearchDocuments(labels)` and pass it\n  into `buildUrlDocuments(urlKeys, labelMap, labelColorMap, result)`.\n- Add `'urlLabelColor'` to the MiniSearch `storeFields` array so the color is\n  returned on each hit.\n\n### 2. Group the URL hits by their group\n\n**New file**: `src/lib/utils/groupSearchUrlsByLabel.js`\n\nPure helper: given the flat `urls` array (each hit carrying `urlLabelTitle` and\n`urlLabelColor`), return an ordered array of `{ title, color, urls }` groups.\nGroups appear in first-appearance order across the input; URLs keep their input\norder within each group. Guards a null/empty input to `[]`. Kept free of React\nso the grouping is unit-testable in isolation.\n\n### 3. Render one sub-section per group\n\n**File**: `src/lib/components/SearchResults/SearchResults.jsx`\n\n- Compute `const urlGroups = groupSearchUrlsByLabel(urls)` and derive the flat\n  grouped-URL list `const flatUrls = urlGroups.flatMap((g) => g.urls)`.\n- Replace every use of the raw `urls` prop in the flat activation ordering with\n  `flatUrls` — specifically the `handleClick` array\n  (`[...labels, ...flatUrls, ...(archived || [])]`) and the `totalItems` count\n  in the keydown effect — so indices still line up with render order.\n- Replace the single flat \"Grouped URLs\" section with: for each group in\n  `urlGroups`, render a sub-section whose header shows a color dot\n  (`style={{ backgroundColor: group.color }}`, reusing the\n  `SearchResults-labelIcon` visual) next to the group title, followed by that\n  group's URL rows via the existing `urlResult(index, url)` renderer. The\n  running `index` continues to increment per URL row across all groups (headers\n  are not selectable, matching today's section-title behavior).\n- Keep the \"only render when non-empty\" guard: render the grouped area only when\n  `urls` has hits, and skip any empty group.\n\n**File**: `src/lib/components/SearchResults/SearchResults.css`\n\n- Add styles for the per-group header (reuse/extend the existing\n  `SearchResults-labelIcon` dot and section-title styling) so the group headers\n  sit visually as lighter sub-headers under the results, distinct from the\n  top-level \"Groups\"/\"Archived URLs\" section titles.\n\n## Reused existing code\n\n- `segmentSearchResults` from `src/lib/utils/segmentSearchResults.js` (glossary\n  entry: `segmentSearchResults`) — still produces the `{ labels, urls, archived }`\n  split; the new grouping consumes its `urls` output unchanged.\n- `buildSearchDocuments` / `buildUrlDocuments` from\n  `src/lib/utils/buildSearchDocuments.js` (glossary entry: `buildSearchDocuments`)\n  — extended to carry `urlLabelColor`.\n- `urlResult` renderer and `SearchResults-labelIcon` color-dot styling inside\n  `SearchResults` (glossary entry: `SearchResults`) — reused for the URL rows\n  and the new group headers.\n- `searchNotesSnippet` from `src/lib/utils/searchNotesSnippet.js` (glossary\n  entry: `searchNotesSnippet`) — unchanged; still highlights notes matches on\n  each URL row.\n\n## Scenarios to Demonstrate\n\n- Grouped results spanning multiple groups — a query matching URLs in two or\n  three different groups, each rendered under its own colored header.\n- Single group — a query whose grouped hits all belong to one group (one header).\n- Groups + Archived together — grouped sub-sections followed by the unchanged\n  Archived URLs section.\n- No grouped hits, only archived — grouped area hidden, archived shown as today.\n- Empty state — a query with no matches still shows \"No Results\".",
+  "description": "The search overlay now splits grouped-URL hits into one sub-section per group, each headed by the group's color dot and name, instead of a single flat 'Grouped URLs' list. A new pure groupSearchUrlsByLabel helper orders the hits (first-appearance group order, preserving within-group order) and SearchResults flattens those groups to keep keyboard/click activation indices aligned with render order. Each grouped URL now carries its group's color through the search index via a new urlLabelColor field (from labelColorMap in buildSearchDocuments), so a grouped hit knows its color even when the group itself didn't match the query. Archived URLs and the Groups section are unchanged.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/group-search-results-by-group.md\t.codeyam/plans/completed/group-search-results-by-group.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-mixed-with-archived--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-mixed-with-archived--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Search/Search.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/buildSearchDocuments.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/buildSearchDocuments.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-archived-only--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-archived-only--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-multiple-groups--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-multiple-groups--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-single-group--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-single-group--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/searchresults-archived-only.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/searchresults-grouped-multiple-groups.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/searchresults-grouped-single-group.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/groupSearchUrlsByLabel.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/groupSearchUrlsByLabel.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Search - Empty Query",
+      "screenshotPath": "search-empty-query--desktop.png"
+    },
+    {
+      "name": "SearchResults - Archived Only",
+      "screenshotPath": "searchresults-archived-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Empty",
+      "screenshotPath": "searchresults-empty--desktop.png"
+    },
+    {
+      "name": "SearchResults - Grouped Multiple Groups",
+      "screenshotPath": "searchresults-grouped-multiple-groups--desktop.png"
+    },
+    {
+      "name": "SearchResults - Grouped Single Group",
+      "screenshotPath": "searchresults-grouped-single-group--desktop.png"
+    },
+    {
+      "name": "SearchResults - Labels Only",
+      "screenshotPath": "searchresults-labels-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Many Results",
+      "screenshotPath": "searchresults-many--desktop.png"
+    },
+    {
+      "name": "SearchResults - Matches",
+      "screenshotPath": "searchresults-matches--desktop.png"
+    },
+    {
+      "name": "SearchResults - Mixed With Archived",
+      "screenshotPath": "searchresults-mixed-with-archived--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 80,
+    "passed": 80,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 80,
+        "passed": 80
+      }
+    ]
+  }
+}

@@ -22,6 +22,12 @@ describe('buildSearchDocuments', () => {
     expect(labelMap).toEqual({ 'url-a': 'Work', 'url-b': 'Work', 'url-c': 'Reading' });
   });
 
+  // every label title maps to its color, so grouped URLs can be headed by it
+  it('builds a labelColorMap of label title to color', () => {
+    const { labelColorMap } = buildSearchDocuments(labels);
+    expect(labelColorMap).toEqual({ Work: '#1873E4', Reading: '#1F8E43' });
+  });
+
   // a label with no urlKeys is tolerated and contributes no map entries
   it('tolerates a label with missing urlKeys', () => {
     const { labelDocuments, labelMap } = buildSearchDocuments({
@@ -33,67 +39,68 @@ describe('buildSearchDocuments', () => {
 
   // an empty or missing labels map yields empty outputs, never throws
   it('returns empty outputs for no labels', () => {
-    expect(buildSearchDocuments({})).toEqual({ labelDocuments: [], labelMap: {} });
-    expect(buildSearchDocuments(undefined)).toEqual({ labelDocuments: [], labelMap: {} });
+    expect(buildSearchDocuments({})).toEqual({ labelDocuments: [], labelMap: {}, labelColorMap: {} });
+    expect(buildSearchDocuments(undefined)).toEqual({ labelDocuments: [], labelMap: {}, labelColorMap: {} });
   });
 });
 
 describe('buildUrlDocuments', () => {
   const labelMap = { 'url-a': 'Work', 'url-b': 'Work' };
+  const labelColorMap = { Work: '#1873E4' };
   const records = {
     'url-a': { title: 'Alpha', url: 'https://a.com', favicon: 'fa', notes: 'note a' },
     'url-b': { url: 'https://b.com' },
     'url-c': { title: 'Gamma', url: 'https://c.com', favicon: 'fc', notes: 'note c' },
   };
 
-  // a labeled key becomes a document tagged with its label title
-  it('tags a labeled url with its label title', () => {
-    const docs = buildUrlDocuments(['url-a'], labelMap, records);
+  // a labeled key becomes a document tagged with its label title AND color
+  it('tags a labeled url with its label title and color', () => {
+    const docs = buildUrlDocuments(['url-a'], labelMap, labelColorMap, records);
     expect(docs).toEqual([
-      { id: 'url-a', urlLabelTitle: 'Work', urlTitle: 'Alpha', url: 'https://a.com', favicon: 'fa', notes: 'note a' },
+      { id: 'url-a', urlLabelTitle: 'Work', urlLabelColor: '#1873E4', urlTitle: 'Alpha', url: 'https://a.com', favicon: 'fa', notes: 'note a' },
     ]);
   });
 
-  // an archived key (present in urlKeys but not the labelMap) gets no urlLabelTitle,
-  // which is the signal used downstream to bucket it as archived
-  it('leaves urlLabelTitle undefined for an archived url', () => {
-    const docs = buildUrlDocuments(['url-c'], labelMap, records);
+  // an archived key (present in urlKeys but not the labelMap) gets no urlLabelTitle
+  // and no urlLabelColor, which is the signal used downstream to bucket it as archived
+  it('leaves urlLabelTitle and urlLabelColor undefined for an archived url', () => {
+    const docs = buildUrlDocuments(['url-c'], labelMap, labelColorMap, records);
     expect(docs).toEqual([
-      { id: 'url-c', urlLabelTitle: undefined, urlTitle: 'Gamma', url: 'https://c.com', favicon: 'fc', notes: 'note c' },
+      { id: 'url-c', urlLabelTitle: undefined, urlLabelColor: undefined, urlTitle: 'Gamma', url: 'https://c.com', favicon: 'fc', notes: 'note c' },
     ]);
   });
 
   // spans the whole archive: labeled and archived keys build in one pass
   it('builds documents across both labeled and archived urls', () => {
-    const docs = buildUrlDocuments(['url-a', 'url-b', 'url-c'], labelMap, records);
-    expect(docs.map((d) => [d.id, d.urlLabelTitle])).toEqual([
-      ['url-a', 'Work'],
-      ['url-b', 'Work'],
-      ['url-c', undefined],
+    const docs = buildUrlDocuments(['url-a', 'url-b', 'url-c'], labelMap, labelColorMap, records);
+    expect(docs.map((d) => [d.id, d.urlLabelTitle, d.urlLabelColor])).toEqual([
+      ['url-a', 'Work', '#1873E4'],
+      ['url-b', 'Work', '#1873E4'],
+      ['url-c', undefined, undefined],
     ]);
   });
 
   // a missing title falls back to the url as the searchable/display title
   it('falls back to the url when the title is missing', () => {
-    const docs = buildUrlDocuments(['url-b'], labelMap, records);
+    const docs = buildUrlDocuments(['url-b'], labelMap, labelColorMap, records);
     expect(docs[0].urlTitle).toBe('https://b.com');
   });
 
   // a key with no backing record is skipped rather than throwing
   it('skips url keys with no backing record', () => {
-    const docs = buildUrlDocuments(['url-a', 'url-missing'], labelMap, records);
+    const docs = buildUrlDocuments(['url-a', 'url-missing'], labelMap, labelColorMap, records);
     expect(docs.map((d) => d.id)).toEqual(['url-a']);
   });
 
   // a duplicate key is emitted once, guarding minisearch's id map from a double-add
   it('dedupes duplicate url keys', () => {
-    const docs = buildUrlDocuments(['url-a', 'url-a'], labelMap, records);
+    const docs = buildUrlDocuments(['url-a', 'url-a'], labelMap, labelColorMap, records);
     expect(docs.map((d) => d.id)).toEqual(['url-a']);
   });
 
   // an empty or missing key list yields no documents, and never throws
   it('returns no documents for an empty key list', () => {
-    expect(buildUrlDocuments([], labelMap, records)).toEqual([]);
-    expect(buildUrlDocuments(undefined, undefined, undefined)).toEqual([]);
+    expect(buildUrlDocuments([], labelMap, labelColorMap, records)).toEqual([]);
+    expect(buildUrlDocuments(undefined, undefined, undefined, undefined)).toEqual([]);
   });
 });

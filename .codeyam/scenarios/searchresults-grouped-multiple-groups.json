@@ -1,0 +1,11 @@
+{
+  "name": "SearchResults - Grouped Multiple Groups",
+  "id": "f9fd5539-3424-4fa4-a64f-195b6075ce62",
+  "url": "/?isolate=SearchResults&variant=grouped-multi",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SearchResults",
+  "scenarioType": "component"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "SearchResults - Grouped Single Group",
+  "id": "24fa3b1b-4f59-4cc5-b440-dd86b0cd6a96",
+  "url": "/?isolate=SearchResults&variant=grouped-single",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SearchResults",
+  "scenarioType": "component"
+}

@@ -1774,6 +1774,15 @@
       "runner": "tests"
     },
     {
+      "description": "every label title maps to its color, so grouped URLs can be headed by it",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildSearchDocuments › builds a labelColorMap of label title to color",
+      "line": 26,
+      "registeredAt": "2026-07-12T16:21:49Z",
+      "runner": "tests"
+    },
+    {
       "description": "every labeled urlKey maps back to its label title",
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
@@ -1796,7 +1805,7 @@
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
       "key": "buildSearchDocuments › returns empty outputs for no labels",
-      "line": 35,
+      "line": 41,
       "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
@@ -1805,7 +1814,7 @@
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
       "key": "buildSearchDocuments › tolerates a label with missing urlKeys",
-      "line": 26,
+      "line": 32,
       "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
@@ -1814,7 +1823,7 @@
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
       "key": "buildUrlDocuments › builds documents across both labeled and archived urls",
-      "line": 67,
+      "line": 74,
       "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
@@ -1823,7 +1832,7 @@
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
       "key": "buildUrlDocuments › dedupes duplicate url keys",
-      "line": 89,
+      "line": 96,
       "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
@@ -1832,17 +1841,17 @@
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
       "key": "buildUrlDocuments › falls back to the url when the title is missing",
-      "line": 77,
+      "line": 84,
       "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
     {
-      "description": "an archived key (present in urlKeys but not the labelMap) gets no urlLabelTitle, which is the signal used downstream to bucket it as archived",
+      "description": "an archived key (present in urlKeys but not the labelMap) gets no urlLabelTitle and no urlLabelColor, which is the signal used downstream to bucket it as archived",
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
-      "key": "buildUrlDocuments › leaves urlLabelTitle undefined for an archived url",
-      "line": 59,
-      "registeredAt": "2026-07-12T14:31:17Z",
+      "key": "buildUrlDocuments › leaves urlLabelTitle and urlLabelColor undefined for an archived url",
+      "line": 66,
+      "registeredAt": "2026-07-12T16:21:49Z",
       "runner": "tests"
     },
     {
@@ -1850,7 +1859,7 @@
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
       "key": "buildUrlDocuments › returns no documents for an empty key list",
-      "line": 95,
+      "line": 102,
       "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
@@ -1859,17 +1868,17 @@
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
       "key": "buildUrlDocuments › skips url keys with no backing record",
-      "line": 83,
+      "line": 90,
       "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
     {
-      "description": "a labeled key becomes a document tagged with its label title",
+      "description": "a labeled key becomes a document tagged with its label title AND color",
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
-      "key": "buildUrlDocuments › tags a labeled url with its label title",
-      "line": 50,
-      "registeredAt": "2026-07-12T14:31:17Z",
+      "key": "buildUrlDocuments › tags a labeled url with its label title and color",
+      "line": 57,
+      "registeredAt": "2026-07-12T16:21:49Z",
       "runner": "tests"
     },
     {
@@ -2743,6 +2752,51 @@
       "key": "getUrlKey › strips the hash fragment",
       "line": 110,
       "registeredAt": "2026-07-11T01:17:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the group carries the color off the first url seen for that label",
+      "file": "src/lib/utils/groupSearchUrlsByLabel.test.js",
+      "format": "vitest",
+      "key": "groupSearchUrlsByLabel › carries the group color from the first url in the group",
+      "line": 51,
+      "registeredAt": "2026-07-12T16:21:49Z",
+      "runner": "tests"
+    },
+    {
+      "description": "groups appear in first-appearance order; urls keep their input order within a group",
+      "file": "src/lib/utils/groupSearchUrlsByLabel.test.js",
+      "format": "vitest",
+      "key": "groupSearchUrlsByLabel › groups urls by label in first-appearance order",
+      "line": 14,
+      "registeredAt": "2026-07-12T16:21:49Z",
+      "runner": "tests"
+    },
+    {
+      "description": "flattening the groups recovers the input order, keeping activation indices aligned",
+      "file": "src/lib/utils/groupSearchUrlsByLabel.test.js",
+      "format": "vitest",
+      "key": "groupSearchUrlsByLabel › preserves overall order when flattened",
+      "line": 38,
+      "registeredAt": "2026-07-12T16:21:49Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a single group yields exactly one sub-section",
+      "file": "src/lib/utils/groupSearchUrlsByLabel.test.js",
+      "format": "vitest",
+      "key": "groupSearchUrlsByLabel › returns a single group when all urls share a label",
+      "line": 27,
+      "registeredAt": "2026-07-12T16:21:49Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a null/empty/non-array input yields an empty list, never throws",
+      "file": "src/lib/utils/groupSearchUrlsByLabel.test.js",
+      "format": "vitest",
+      "key": "groupSearchUrlsByLabel › returns an empty array for empty or invalid input",
+      "line": 57,
+      "registeredAt": "2026-07-12T16:21:49Z",
       "runner": "tests"
     },
     {

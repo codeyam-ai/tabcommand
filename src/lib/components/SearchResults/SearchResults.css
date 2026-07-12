@@ -31,6 +31,41 @@
   letter-spacing: 0.04em;
 }
 
+/* A grouped-URL sub-section: a lighter per-group header over that group's rows,
+   sitting one level under the uppercase "Grouped URLs" section title. */
+.SearchResults-group {
+  margin-bottom: 6px;
+}
+
+.SearchResults-group:last-child {
+  margin-bottom: 0;
+}
+
+.SearchResults-group-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 2px;
+}
+
+.SearchResults-group-header .SearchResults-labelIcon {
+  /* The base labelIcon carries order:1 for the label-row layout; here the dot
+     leads the header, so reset it ahead of the title. */
+  order: 0;
+  height: 10px;
+  width: 10px;
+  margin-right: 6px;
+}
+
+.SearchResults-group-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .SearchResults-result {
   display: flex;
   flex-wrap: wrap;
