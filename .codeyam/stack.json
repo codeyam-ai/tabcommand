@@ -50,7 +50,8 @@
   "name": "Chrome Extension + React",
   "preview": {
     "defaultPort": 3000,
-    "kind": "iframe"
+    "kind": "iframe",
+    "sameOriginSafe": false
   },
   "routing": {
     "type": "query-param",

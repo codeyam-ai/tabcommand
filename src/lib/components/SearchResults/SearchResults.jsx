@@ -11,12 +11,14 @@ import { Favicon } from '../Favicon';
 import { Chrome } from '../../utils/Chrome';
 import searchNotesSnippet from '../../utils/searchNotesSnippet';
 
-const SearchResults = ({ labels, urls }) => {
+const SearchResults = ({ labels, urls, archived }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const handleClick = (e, index) => {
     KeyDown.trigger(event({ key: "Escape" }));
-    const selectedItem = [...labels, ...urls][index];
+    // The flat activation order matches the render order below:
+    // Groups, then Grouped URLs, then Archived URLs.
+    const selectedItem = [...labels, ...urls, ...(archived || [])][index];
     if (selectedItem.labelTitle) {
       // Navigation lives entirely on `uxSettings`: select the label by title
       // (a string, matching LabelCollection) and route Home via
@@ -46,7 +48,7 @@ const SearchResults = ({ labels, urls }) => {
 
   useEffect(() => {
     setSelectedIndex(0);
-    const totalItems = (labels || []).length + (urls || []).length;
+    const totalItems = (labels || []).length + (urls || []).length + (archived || []).length;
     let _selectedIndex = selectedIndex;
 
     const handleKeyDown = (e) => {
@@ -66,7 +68,7 @@ const SearchResults = ({ labels, urls }) => {
     KeyDown.add(handleKeyDown);
 
     return () => KeyDown.remove(handleKeyDown);
-  }, [labels, urls]);
+  }, [labels, urls, archived]);
 
   const labelResult = (i, label) => {
     return (
@@ -135,7 +137,7 @@ const SearchResults = ({ labels, urls }) => {
   let index = -1;
   return (
     <div id='SearchResults' className='SearchResults'>
-      {(!labels || !labels.length) && (!urls || !urls.length) &&
+      {(!labels || !labels.length) && (!urls || !urls.length) && (!archived || !archived.length) &&
         <div className='SearchResults-section'>
           <div className='SearchResults-section-title'>No Results</div>
         </div>
@@ -158,23 +160,23 @@ const SearchResults = ({ labels, urls }) => {
           })}
         </div>
       }
-      <div className='SearchResults-section'>
-        <div className='SearchResults-section-title'>Archived URLs</div>
-        <div
-          className='SearchResults-search-archived'
-          aria-disabled='true'
-          title='Archived search is coming soon'
-        >
-          Search Archived URLs
+      {archived && archived.length > 0 &&
+        <div className='SearchResults-section'>
+          <div className='SearchResults-section-title'>Archived URLs</div>
+          {archived.map((url) => {
+            index += 1;
+            return urlResult(index, url);
+          })}
         </div>
-      </div>
+      }
     </div>
   )
 }
 
 SearchResults.propTypes = {
   labels: PropTypes.array,
-  urls: PropTypes.array
+  urls: PropTypes.array,
+  archived: PropTypes.array
 }
 
 export default SearchResults;

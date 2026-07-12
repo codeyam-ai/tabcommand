@@ -123,6 +123,36 @@
         "reason": "Gauge to Load and Home-link back navigation is shown in the demo-flow filmstrip, not a static app scenario."
       }
     },
+    "SearchResults": {
+      "empty": {
+        "status": "covered"
+      },
+      "single": {
+        "status": "n-a",
+        "reason": "A single result renders one row identical to a row of the populated list; no distinct visual treatment vs the typical/many states."
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "covered"
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "The overlay renders synchronously from props; there is no async/pending UI."
+      },
+      "edge": {
+        "status": "covered"
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "The overlay has no failure UI; the only non-result state is the No Results empty state, captured as searchresults-empty."
+      },
+      "key-interaction": {
+        "status": "n-a",
+        "reason": "Keyboard nav (Arrow/Enter across labels, grouped, and archived rows) and click-to-open produce a transient selection highlight, not a distinct seeded display state; behavior is covered by SearchResults unit tests."
+      }
+    },
     "UrlDetails": {
       "empty": {
         "status": "n-a",

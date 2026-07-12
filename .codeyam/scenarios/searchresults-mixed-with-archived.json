@@ -1,0 +1,12 @@
+{
+  "name": "SearchResults - Mixed With Archived",
+  "id": "22989ca6-1f12-48da-8ffb-0af83d95f763",
+  "url": "/?isolate=SearchResults&variant=mixed",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {},
+  "componentName": "SearchResults",
+  "scenarioType": "component"
+}

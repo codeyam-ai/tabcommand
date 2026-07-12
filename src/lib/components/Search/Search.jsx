@@ -73,7 +73,7 @@ const Search = () => {
     // id map (the same url indexed twice → duplicate React keys). A monotonic
     // token lets only the latest rebuild commit its async url batch.
     let buildToken = 0;
-    const addDocuments = (labels) => {
+    const addDocuments = (labels, allUrls) => {
       const myToken = ++buildToken;
       miniSearch.removeAll();
 
@@ -81,41 +81,54 @@ const Search = () => {
       labelMap = built.labelMap;
       miniSearch.addAll(built.labelDocuments);
 
-      const labelMapKeys = Object.keys(labelMap);
-      if (labelMapKeys.length > 0) {
-        Chrome.get('Search1', labelMapKeys, (result) => {
+      // Index the WHOLE archive, not just labeled URLs: the deduped union of
+      // `allUrls` (the authoritative full set History reads) and the labeled
+      // keys. Archived URLs come through with no `urlLabelTitle`.
+      const urlKeys = Array.from(
+        new Set([...(allUrls || []), ...Object.keys(labelMap)])
+      );
+      if (urlKeys.length > 0) {
+        Chrome.get('Search1', urlKeys, (result) => {
           if (myToken !== buildToken) return;
-          const documents = buildUrlDocuments(labelMap, result);
+          const documents = buildUrlDocuments(urlKeys, labelMap, result);
 
           miniSearch.addAllAsync(documents).then(
-            () => console.log("Search Indexing Complete For Labeled URLs")
+            () => console.log("Search Indexing Complete For URLs")
           ).catch(e => console.log("Search Error", e));
         })
       }
     }
 
-    Chrome.get('Search2', ['labels'], ({ labels }) => {
-      addDocuments(labels);
+    Chrome.get('Search2', ['labels', 'allUrls'], ({ labels, allUrls }) => {
+      addDocuments(labels, allUrls);
     });
+
+    // Re-read both `labels` and `allUrls` for a full rebuild — mirrors how
+    // History.jsx re-reads the archive on change so newly visited/closed URLs
+    // become searchable live.
+    const rebuildFromStorage = () => {
+      Chrome.get('Search3', ['labels', 'allUrls'], ({ labels, allUrls }) => {
+        addDocuments(labels || {}, allUrls || []);
+      });
+    };
 
     const handleStorageChange = (changes, areaName) => {
       if (areaName !== 'local') return;
 
-      if (changes.labels) {
-        addDocuments(changes.labels.newValue);
+      // A label change OR a grow/shrink of the archive re-indexes everything.
+      if (changes.labels || changes.allUrls) {
+        rebuildFromStorage();
         return;
       }
 
-      for (const urlKey of Object.keys(labelMap)) {
-        if (changes[urlKey]) {
-          const {newValue, oldValue} = changes[urlKey];
-          if (newValue.notes !== oldValue.notes) {
-            Chrome.get('Search3', ['labels'], (result) => {
-              const labels = result.labels || {};
-              addDocuments(labels);
-            });
-            return;
-          }
+      // A notes edit on any already-indexed URL (labeled or archived) re-indexes
+      // so its updated notes are searchable.
+      for (const changedKey of Object.keys(changes)) {
+        if (!changedKey.startsWith('url-')) continue;
+        const { newValue, oldValue } = changes[changedKey];
+        if (newValue && oldValue && newValue.notes !== oldValue.notes) {
+          rebuildFromStorage();
+          return;
         }
       }
     };
@@ -144,6 +157,7 @@ const Search = () => {
           <SearchResults
             labels={results.labels}
             urls={results.urls.slice(0,10)}
+            archived={results.archived.slice(0,10)}
           />
           <div id="BackgroundOverlay" onClick={close}></div>
         </div>

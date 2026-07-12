@@ -105,4 +105,40 @@ describe('Search', () => {
     type('Trav');
     expect(await screen.findByText('Travel')).toBeInTheDocument();
   });
+
+  // an unlabeled url from allUrls is indexed and surfaces under Archived URLs
+  it('shows an archived unlabeled url in the results', async () => {
+    seedLabelsAndUrls();
+    seed('allUrls', ['url-https://github.com/x', 'url-https://react.dev/learn', 'url-https://news.ycombinator.com']);
+    seed('url-https://news.ycombinator.com', { title: 'Hacker News', url: 'https://news.ycombinator.com', favicon: '', notes: '' });
+    installChromeShim();
+    render(<Search />);
+    await flushIndex();
+
+    type('hacker');
+    expect(await screen.findByText('Archived URLs')).toBeInTheDocument();
+    expect(screen.getByText('Hacker News')).toBeInTheDocument();
+  });
+
+  // re-indexes when allUrls grows, making a newly-archived url searchable live
+  it('re-indexes when allUrls changes', async () => {
+    seedLabelsAndUrls();
+    seed('allUrls', ['url-https://github.com/x', 'url-https://react.dev/learn']);
+    installChromeShim();
+    render(<Search />);
+    await flushIndex();
+
+    await act(async () => {
+      globalThis.chrome.storage.local.set({
+        'url-https://news.ycombinator.com': { title: 'Hacker News', url: 'https://news.ycombinator.com', favicon: '', notes: '' },
+      });
+      globalThis.chrome.storage.local.set({
+        allUrls: ['url-https://github.com/x', 'url-https://react.dev/learn', 'url-https://news.ycombinator.com'],
+      });
+      await new Promise((r) => setTimeout(r, 30));
+    });
+
+    type('hacker');
+    expect(await screen.findByText('Hacker News')).toBeInTheDocument();
+  });
 });

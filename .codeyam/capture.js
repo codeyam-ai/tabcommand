@@ -710,6 +710,10 @@ async function runScenarioCheck(
   const expectedConsoleErrors = !!(config && config.expectedConsoleErrors);
   let interactionEffect = null;
   let interactionRetried = false;
+  // Non-fatal warnings raised while resolving interaction/flow targets — e.g. a
+  // substring text match that hit more than one element. Surfaced on the result
+  // so the agent sees the ambiguity instead of a silently-wrong first-match.
+  const interactionWarnings = [];
   const issues = [];
   // Actionable set for self-healing: same-origin routes that returned 4xx with
   // no scenario mock. A hermetic-proxy/upstream 404 is a *successful* HTTP
@@ -1054,6 +1058,7 @@ async function runScenarioCheck(
         iframeBackground: config.iframeBackground,
         preflight,
         harnessOrigin: resolvedHarnessOrigin,
+        warnings: interactionWarnings,
       });
     } else if (config.interaction) {
       // Record fingerprint before interaction
@@ -1064,7 +1069,9 @@ async function runScenarioCheck(
       // fill / press (expanded accordion, open modal) without editing app
       // source. A no-match target throws here and is caught below as a failed
       // capture with the candidate-labels hint — never a silent blank shot.
-      await performInteraction(frame, config.interaction);
+      await performInteraction(frame, config.interaction, {
+        warnings: interactionWarnings,
+      });
       await waitForStablePage(page, frame, 5000, loadingMarkers);
 
       // Record fingerprint after interaction
@@ -1074,6 +1081,8 @@ async function runScenarioCheck(
       if (beforeFingerprint === afterFingerprint && config.interaction.action === "click") {
         interactionRetried = true;
         await new Promise((resolve) => setTimeout(resolve, 500));
+        // The retry re-resolves the same target; suppress its ambiguity warning
+        // (already captured on the first attempt) to avoid a duplicate.
         await performInteraction(frame, config.interaction);
         await waitForStablePage(page, frame, 5000, loadingMarkers);
         afterFingerprint = await getDOMFingerprint(frame);
@@ -1092,6 +1101,7 @@ async function runScenarioCheck(
       await performInteractionSequence(page, frame, config.interactions, {
         settleMs: 5000,
         loadingMarkers,
+        warnings: interactionWarnings,
       });
     }
 
@@ -1125,6 +1135,14 @@ async function runScenarioCheck(
     if (config.interaction) {
       result.interactionEffect = interactionEffect;
       result.interactionRetried = interactionRetried;
+    }
+
+    // Surface any non-fatal interaction/flow warnings (e.g. an ambiguous
+    // substring text match) so the CLI can print them and the agent can switch
+    // to a precise selector. Only attached when present — a clean run is
+    // byte-for-byte unchanged.
+    if (interactionWarnings.length > 0) {
+      result.warnings = interactionWarnings.slice();
     }
 
     // `capture-state` mode: attach the read-only page-state snapshot so the

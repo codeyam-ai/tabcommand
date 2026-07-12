@@ -60,10 +60,28 @@ describe('SearchResults', () => {
     expect(notes.querySelector('span')).toHaveTextContent('read');
   });
 
-  // the Archived URLs affordance is always present, even with results
-  it('always renders the Archived URLs section', () => {
-    render(<SearchResults labels={[labelHit]} urls={[urlHit()]} />);
+  // archived (unlabeled) hits render under their own Archived URLs section, reusing the url row
+  it('renders archived hits under Archived URLs', () => {
+    const archivedHit = urlHit({ id: 'url-https://news.ycombinator.com', urlTitle: 'Hacker News', url: 'https://news.ycombinator.com' });
+    render(<SearchResults labels={[]} urls={[]} archived={[archivedHit]} />);
     expect(screen.getByText('Archived URLs')).toBeInTheDocument();
+    expect(screen.getByText('Hacker News')).toBeInTheDocument();
+  });
+
+  // with no archived hits the section is absent — the old "coming soon" affordance is gone
+  it('omits the Archived URLs section when there are no archived hits', () => {
+    render(<SearchResults labels={[labelHit]} urls={[urlHit()]} archived={[]} />);
+    expect(screen.queryByText('Archived URLs')).toBeNull();
+  });
+
+  // keyboard navigation folds archived rows into the flat activation list
+  it('reaches an archived row with successive ArrowDown presses', () => {
+    const archivedHit = urlHit({ id: 'url-https://news.ycombinator.com', urlTitle: 'Hacker News', url: 'https://news.ycombinator.com' });
+    const { container } = render(<SearchResults labels={[labelHit]} urls={[urlHit()]} archived={[archivedHit]} />);
+    fireEvent.keyDown(document, { key: 'ArrowDown' }); // Groups -> Grouped URL
+    fireEvent.keyDown(document, { key: 'ArrowDown' }); // Grouped URL -> Archived URL
+    const selected = container.querySelector('.SearchResults-result-selected');
+    expect(selected).toHaveTextContent('Hacker News');
   });
 
   // an empty Grouped URLs section must not leak a stray 0 (the && length bug)

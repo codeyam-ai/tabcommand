@@ -793,6 +793,15 @@
       "runner": "tests"
     },
     {
+      "description": "re-indexes when allUrls grows, making a newly-archived url searchable live",
+      "file": "src/lib/components/Search/Search.test.jsx",
+      "format": "vitest",
+      "key": "Search › re-indexes when allUrls changes",
+      "line": 124,
+      "registeredAt": "2026-07-12T14:31:17Z",
+      "runner": "tests"
+    },
+    {
       "description": "re-indexes when the labels storage key changes, surfacing the new label",
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
@@ -838,20 +847,20 @@
       "runner": "tests"
     },
     {
+      "description": "an unlabeled url from allUrls is indexed and surfaces under Archived URLs",
+      "file": "src/lib/components/Search/Search.test.jsx",
+      "format": "vitest",
+      "key": "Search › shows an archived unlabeled url in the results",
+      "line": 110,
+      "registeredAt": "2026-07-12T14:31:17Z",
+      "runner": "tests"
+    },
+    {
       "description": "Enter on the selected label activates it: selects the label and routes Home",
       "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
       "format": "vitest",
       "key": "SearchResults › activates a label on Enter",
-      "line": 92,
-      "registeredAt": "2026-06-12T17:28:36.131235+00:00",
-      "runner": "tests"
-    },
-    {
-      "description": "the Archived URLs affordance is always present, even with results",
-      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
-      "format": "vitest",
-      "key": "SearchResults › always renders the Archived URLs section",
-      "line": 64,
+      "line": 110,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -860,7 +869,7 @@
       "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
       "format": "vitest",
       "key": "SearchResults › does not render a stray 0 when there are labels but no urls",
-      "line": 70,
+      "line": 88,
       "registeredAt": "2026-06-29T01:23:31.310019407+00:00",
       "runner": "tests"
     },
@@ -869,7 +878,7 @@
       "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
       "format": "vitest",
       "key": "SearchResults › does not render a stray 0 when there are urls but no labels",
-      "line": 77,
+      "line": 95,
       "registeredAt": "2026-06-29T01:23:31.310019407+00:00",
       "runner": "tests"
     },
@@ -878,7 +887,7 @@
       "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
       "format": "vitest",
       "key": "SearchResults › moves the selection down on ArrowDown",
-      "line": 84,
+      "line": 102,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -887,8 +896,26 @@
       "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
       "format": "vitest",
       "key": "SearchResults › navigates to the URL page from the edit affordance",
-      "line": 106,
+      "line": 124,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "with no archived hits the section is absent — the old \"coming soon\" affordance is gone",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › omits the Archived URLs section when there are no archived hits",
+      "line": 72,
+      "registeredAt": "2026-07-12T14:31:17Z",
+      "runner": "tests"
+    },
+    {
+      "description": "keyboard navigation folds archived rows into the flat activation list",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › reaches an archived row with successive ArrowDown presses",
+      "line": 78,
+      "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
     {
@@ -907,6 +934,15 @@
       "key": "SearchResults › renders a highlighted notes snippet when the match is in notes",
       "line": 55,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "archived (unlabeled) hits render under their own Archived URLs section, reusing the url row",
+      "file": "src/lib/components/SearchResults/SearchResults.test.jsx",
+      "format": "vitest",
+      "key": "SearchResults › renders archived hits under Archived URLs",
+      "line": 64,
+      "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
     {
@@ -1774,12 +1810,21 @@
       "runner": "tests"
     },
     {
-      "description": "each labeled url becomes a document tagged with its label title",
+      "description": "spans the whole archive: labeled and archived keys build in one pass",
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
-      "key": "buildUrlDocuments › builds one document per labeled url",
-      "line": 49,
-      "registeredAt": "2026-06-12T17:21:31Z",
+      "key": "buildUrlDocuments › builds documents across both labeled and archived urls",
+      "line": 67,
+      "registeredAt": "2026-07-12T14:31:17Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a duplicate key is emitted once, guarding minisearch's id map from a double-add",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildUrlDocuments › dedupes duplicate url keys",
+      "line": 89,
+      "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
     {
@@ -1787,26 +1832,44 @@
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
       "key": "buildUrlDocuments › falls back to the url when the title is missing",
-      "line": 58,
+      "line": 77,
       "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
     {
-      "description": "an empty labelMap yields no documents",
+      "description": "an archived key (present in urlKeys but not the labelMap) gets no urlLabelTitle, which is the signal used downstream to bucket it as archived",
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
-      "key": "buildUrlDocuments › returns no documents for an empty labelMap",
-      "line": 70,
-      "registeredAt": "2026-06-12T17:21:31Z",
+      "key": "buildUrlDocuments › leaves urlLabelTitle undefined for an archived url",
+      "line": 59,
+      "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
     {
-      "description": "a url with no backing record is skipped rather than throwing",
+      "description": "an empty or missing key list yields no documents, and never throws",
       "file": "src/lib/utils/buildSearchDocuments.test.js",
       "format": "vitest",
-      "key": "buildUrlDocuments › skips urls with no backing record",
-      "line": 64,
-      "registeredAt": "2026-06-12T17:21:31Z",
+      "key": "buildUrlDocuments › returns no documents for an empty key list",
+      "line": 95,
+      "registeredAt": "2026-07-12T14:31:17Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a key with no backing record is skipped rather than throwing",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildUrlDocuments › skips url keys with no backing record",
+      "line": 83,
+      "registeredAt": "2026-07-12T14:31:17Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a labeled key becomes a document tagged with its label title",
+      "file": "src/lib/utils/buildSearchDocuments.test.js",
+      "format": "vitest",
+      "key": "buildUrlDocuments › tags a labeled url with its label title",
+      "line": 50,
+      "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
     {
@@ -3452,7 +3515,7 @@
       "file": "src/lib/utils/segmentSearchResults.test.js",
       "format": "vitest",
       "key": "segmentSearchResults › dedupes a label and a url independently",
-      "line": 27,
+      "line": 37,
       "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
@@ -3461,7 +3524,7 @@
       "file": "src/lib/utils/segmentSearchResults.test.js",
       "format": "vitest",
       "key": "segmentSearchResults › dedupes by id, keeping the first occurrence",
-      "line": 17,
+      "line": 27,
       "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
@@ -3470,17 +3533,26 @@
       "file": "src/lib/utils/segmentSearchResults.test.js",
       "format": "vitest",
       "key": "segmentSearchResults › returns empty arrays for no results",
-      "line": 38,
+      "line": 48,
       "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
     {
-      "description": "hits carrying labelTitle are labels; the rest are urls",
+      "description": "an unlabeled hit routes to archived, not grouped urls, even when it matched on notes",
       "file": "src/lib/utils/segmentSearchResults.test.js",
       "format": "vitest",
-      "key": "segmentSearchResults › splits hits into labels and urls",
+      "key": "segmentSearchResults › routes an unlabeled hit to archived",
+      "line": 18,
+      "registeredAt": "2026-07-12T14:31:17Z",
+      "runner": "tests"
+    },
+    {
+      "description": "labelTitle => label; urlLabelTitle => grouped url; neither => archived",
+      "file": "src/lib/utils/segmentSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentSearchResults › splits hits into labels, grouped urls, and archived urls",
       "line": 6,
-      "registeredAt": "2026-06-12T17:21:31Z",
+      "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
     {
@@ -3488,17 +3560,17 @@
       "file": "src/lib/utils/segmentSearchResults.test.js",
       "format": "vitest",
       "key": "segmentSearchResults › tolerates a missing results list",
-      "line": 43,
+      "line": 53,
       "registeredAt": "2026-06-12T17:21:31Z",
       "runner": "tests"
     },
     {
-      "description": "an empty-string labelTitle is treated as a url, matching the truthy filter",
+      "description": "an empty-string labelTitle is not a label; with no urlLabelTitle it's archived",
       "file": "src/lib/utils/segmentSearchResults.test.js",
       "format": "vitest",
-      "key": "segmentSearchResults › treats a falsy labelTitle as a url",
-      "line": 49,
-      "registeredAt": "2026-06-12T17:21:31Z",
+      "key": "segmentSearchResults › treats a falsy labelTitle as a non-label, archived url",
+      "line": 59,
+      "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
     {

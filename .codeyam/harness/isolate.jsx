@@ -218,6 +218,43 @@ const ISOLATION_PROPS = {
           },
         ],
       },
+      // Demonstrates this session's change: unlabeled hits render under their
+      // own Archived URLs section (the old "coming soon" affordance is gone),
+      // including a highlighted notes match — alongside a Group and a Grouped URL.
+      mixed: {
+        labels: [{ id: 'Work', color: '#1873E4', labelTitle: 'Work' }],
+        urls: [
+          {
+            id: 'url-https://react.dev/learn',
+            url: 'https://react.dev/learn',
+            urlTitle: 'Quick Start – React',
+            favicon: '',
+            notes: '',
+            match: { react: ['urlTitle'] },
+            terms: ['react'],
+          },
+        ],
+        archived: [
+          {
+            id: 'url-https://news.ycombinator.com',
+            url: 'https://news.ycombinator.com',
+            urlTitle: 'Hacker News',
+            favicon: '',
+            notes: 'Show HN thread on searching your archived tabs',
+            match: { archived: ['notes'] },
+            terms: ['archived'],
+          },
+          {
+            id: 'url-https://stackoverflow.com/questions/78912345/chrome-storage-local-quota',
+            url: 'https://stackoverflow.com/questions/78912345/chrome-storage-local-quota',
+            urlTitle: 'chrome.storage.local quota exceeded - Stack Overflow',
+            favicon: '',
+            notes: '',
+            match: { storage: ['urlTitle'] },
+            terms: ['storage'],
+          },
+        ],
+      },
     },
   },
   LoadUrl: {

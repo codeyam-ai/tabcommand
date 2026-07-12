@@ -196,7 +196,7 @@
     "testFile": "src/lib/components/LoadUrl/LoadUrl.test.jsx"
   },
   {
-    "description": "Sidebar search box: builds a minisearch index over labels and their labeled URLs (fields labelTitle/urlTitle/url/notes with boosts), rebuilds it on chrome.storage onChanged (labels change, or a labeled URL notes change), and renders #Search-Input. Typing runs a prefix search; results are deduped + segmented (segmentSearchResults) into the SearchResults overlay (labels, urls capped at 10). Cmd/Ctrl+F focuses, Escape/#BackgroundOverlay closes. A build-token guards overlapping async rebuilds. Index document shaping is factored into buildSearchDocuments/buildUrlDocuments.",
+    "description": "Sidebar search box: builds a minisearch index over labels and the WHOLE allUrls archive — labeled and unlabeled URLs — with fields labelTitle/urlTitle/url/notes and boosts. Rebuilds on chrome.storage onChanged for a labels change, an allUrls grow or shrink, or a notes edit on any indexed url, re-reading labels and allUrls each time. Typing runs a prefix search; results are deduped and segmented via segmentSearchResults into the SearchResults overlay as labels, grouped urls, and archived urls, each capped at 10. Cmd/Ctrl+F focuses, Escape closes. A build-token guards overlapping async rebuilds. Document shaping is factored into buildSearchDocuments and buildUrlDocuments.",
     "filePath": "src/lib/components/Search/Search.jsx",
     "name": "Search",
     "testFile": "src/lib/components/Search/Search.test.jsx",
@@ -215,7 +215,7 @@
     }
   },
   {
-    "description": "The search overlay rendered by Search: sections for Groups (label hits, colored icon), Grouped URLs (favicon + title, with a highlighted notes snippet via searchNotesSnippet when the match is in notes), and an Archived URLs affordance, plus a No Results empty state. Keyboard navigation (Arrow up/down + Enter via the KeyDown pub/sub) and mouse hover move the selection; activating a label selects it and routes Home, activating a url focuses/opens its tab, and the edit pencil routes to the URL detail page.",
+    "description": "The search overlay rendered by Search: sections for Groups, Grouped URLs, and Archived URLs — the last rendering unlabeled hits with the same url row renderer as grouped urls, including a highlighted notes snippet via searchNotesSnippet — plus a No Results empty state. A section renders only when it has hits. Keyboard navigation with Arrow up/down + Enter and mouse hover move the selection across the flat labels-then-urls-then-archived list; activating a label selects it and routes Home, activating a url focuses or opens its tab, and the edit pencil routes to the URL detail page.",
     "filePath": "src/lib/components/SearchResults/SearchResults.jsx",
     "name": "SearchResults",
     "testFile": "src/lib/components/SearchResults/SearchResults.test.jsx"
@@ -389,7 +389,7 @@
     "testFile": "src/lib/utils/buildSearchDocuments.test.js"
   },
   {
-    "description": "Builds one minisearch document per labeled URL from a labelMap and the per-URL storage records (urlTitle falling back to url; tagged with its label title). URLs with no backing record are skipped so a partially-seeded store never throws.",
+    "description": "Builds one minisearch document per URL across the WHOLE archive — the deduped union of allUrls and labeled keys — from the per-URL storage records. urlTitle falls back to url; urlLabelTitle is set only for labeled keys and left undefined for archived URLs, which is the signal used downstream to bucket archived hits. Keys with no backing record, and duplicate keys, are skipped so a partially-seeded store never throws and minisearch is never double-added.",
     "filePath": "src/lib/utils/buildSearchDocuments.js",
     "name": "buildUrlDocuments",
     "testFile": "src/lib/utils/buildSearchDocuments.test.js"
@@ -862,7 +862,7 @@
     "testFile": "src/lib/utils/visitDecay.test.js"
   },
   {
-    "description": "Shapes raw minisearch hits for the SearchResults overlay: dedupes hits by document id (guarding the duplicate-React-key crash from overlapping index rebuilds), then splits them into { labels, urls } — a hit is a label when it carries labelTitle, otherwise a labeled URL.",
+    "description": "Shapes raw minisearch hits for the SearchResults overlay: dedupes hits by document id, then splits them into { labels, urls, archived } — a hit is a label when it carries labelTitle, a grouped url when it carries urlLabelTitle, and an archived url otherwise.",
     "filePath": "src/lib/utils/segmentSearchResults.js",
     "name": "segmentSearchResults",
     "testFile": "src/lib/utils/segmentSearchResults.test.js"

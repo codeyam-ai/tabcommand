@@ -704,6 +704,38 @@ async function collectInteractiveLabels(frame) {
   });
 }
 
+// Describe the elements a substring text match resolved, so an ambiguity
+// warning can name the competing controls (e.g. the preset button "Bet" vs the
+// disclosure button "…or bet on"). Reads each matched element's inner text via
+// Playwright's `allInnerTexts`, caps the list at 5, and trims each to a single
+// short line. Pure read; degrades to a count-only description if the locator
+// API or the page can't produce texts.
+async function describeMatchCandidates(baseLocator, matchCount) {
+  const CAP = 5;
+  const MAX_LEN = 60;
+  let texts = [];
+  try {
+    if (typeof baseLocator.allInnerTexts === "function") {
+      texts = await baseLocator.allInnerTexts();
+    }
+  } catch (_) {
+    texts = [];
+  }
+  const described = texts
+    .map((t) => String(t).replace(/\s+/g, " ").trim())
+    .filter((t) => t.length > 0)
+    .slice(0, CAP)
+    .map((t) => (t.length > MAX_LEN ? `${t.slice(0, MAX_LEN)}…` : t))
+    .map((t) => `"${t}"`);
+  if (described.length === 0) {
+    return [`${matchCount} elements (text unavailable)`];
+  }
+  if (matchCount > described.length) {
+    described.push(`…and ${matchCount - described.length} more`);
+  }
+  return described;
+}
+
 // Drive a single user-style interaction against the settled frame before the
 // screenshot, so an interactive state (expanded accordion, open modal, filled
 // field) can be captured without editing app source.
@@ -714,16 +746,31 @@ async function collectInteractiveLabels(frame) {
 // `Enter`). On a no-match target this THROWS with the list of candidate
 // interactive labels — the capture script's outer catch turns that into a
 // failed capture with an actionable message, never a silent blank screenshot.
-async function performInteraction(frame, interaction, { timeoutMs = 5000 } = {}) {
+//
+// Text matching is a case-insensitive SUBSTRING, so a label can match more than
+// one element. When it does, acting on `.first()` silently may hit the wrong
+// control (observed: a `"Bet"` click matched a disclosure button described "or
+// bet on" and toggled the panel shut). Rather than change the matching
+// semantics, push an actionable warning naming every candidate into the
+// optional `warnings` array so the agent can switch to an exact selector; a
+// zero-match likewise throws an error that spells out the substring caveat and
+// the exact-selector / URL-query-param alternatives.
+async function performInteraction(
+  frame,
+  interaction,
+  { timeoutMs = 5000, warnings } = {},
+) {
   const { action, selector, text, value } = interaction || {};
 
-  let locator;
+  let baseLocator;
   let targetDesc;
+  let matchedByText = false;
   if (typeof text === "string" && text.length > 0) {
-    locator = frame.getByText(text, { exact: false }).first();
+    baseLocator = frame.getByText(text, { exact: false });
     targetDesc = `text "${text}"`;
+    matchedByText = true;
   } else if (typeof selector === "string" && selector.length > 0) {
-    locator = frame.locator(selector).first();
+    baseLocator = frame.locator(selector);
     targetDesc = `selector "${selector}"`;
   } else {
     throw new Error(
@@ -731,14 +778,33 @@ async function performInteraction(frame, interaction, { timeoutMs = 5000 } = {})
     );
   }
 
-  const matchCount = await locator.count();
+  const locator = baseLocator.first();
+  const matchCount = await baseLocator.count();
   if (matchCount === 0) {
     const candidates = await collectInteractiveLabels(frame);
     const candidateList =
       candidates.length > 0 ? candidates.join(", ") : "(none found on page)";
     throw new Error(
       `preview-interact: no element matched ${targetDesc}. ` +
-        `Candidate interactive labels: ${candidateList}`,
+        `Text is matched as a case-insensitive SUBSTRING, so a misspelled or ` +
+        `over-specific label matches nothing — prefer an exact/role/testid CSS ` +
+        `selector (e.g. {"selector":"[data-testid=\\"save\\"]"}) for a precise ` +
+        `target. Many filter/status/sort states are also reachable directly via a ` +
+        `URL query param (e.g. add "?status=active" to the path) with no ` +
+        `interaction at all. Candidate interactive labels: ${candidateList}`,
+    );
+  }
+
+  // Ambiguity warning: a substring text match that resolves >1 element acts on
+  // the first, which may not be the one intended. Name the competing elements
+  // instead of silently proceeding. Only fires for text matches — an explicit
+  // selector that matches many is the caller's deliberate choice.
+  if (matchedByText && matchCount > 1 && Array.isArray(warnings)) {
+    warnings.push(
+      `preview-interact: ${targetDesc} matched ${matchCount} elements — acting on the first. ` +
+        `Text matching is substring-based, so this may not be the element you meant. ` +
+        `Candidates: ${(await describeMatchCandidates(baseLocator, matchCount)).join(" | ")}. ` +
+        `Use an exact/role/testid selector to disambiguate.`,
     );
   }
 
@@ -829,11 +895,12 @@ async function performInteractionSequence(
     settleMs = 5000,
     loadingMarkers,
     settle = waitForStablePage,
+    warnings,
   } = {},
 ) {
   for (let i = 0; i < interactions.length; i += 1) {
     try {
-      await performInteraction(frame, interactions[i], { timeoutMs });
+      await performInteraction(frame, interactions[i], { timeoutMs, warnings });
     } catch (err) {
       // Prefix the failing step's index so a miss in a multi-step sequence is
       // locatable, matching the model-side `interactions[i]` validator.
@@ -865,6 +932,7 @@ module.exports = {
   loadScenarioInIframe,
   loadScenarioTopLevel,
   collectInteractiveLabels,
+  describeMatchCandidates,
   performInteraction,
   waitForPredicate,
   performInteractionSequence,
