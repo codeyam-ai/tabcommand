@@ -92,9 +92,12 @@ remove exactly what this flow created and nothing else.
 Then branch on `visualCaptureViable` from Phase 1:
 
 - **Visual stack, preview up:** capture screenshots with
-  `codeyam-editor editor recapture-stale --skip-when-clean`. The user sees their
-  real app rendered in real states — this is the payoff; surface the captured
-  scenarios.
+  `codeyam-editor editor recapture-stale --skip-when-clean --prefer-touched`.
+  `--prefer-touched` orders the scenarios you just registered first so the
+  `--max-seconds` budget captures them before any unrelated
+  environmentally-drifted surface (pure reordering, never expands the set). The
+  user sees their real app rendered in real states — this is the payoff; surface
+  the captured scenarios.
 - **Visual stack, preview down:** register the scenarios anyway and tell the
   user plainly that capture is **pending** — the scenarios exist and will
   capture the next time the dev server / preview is up. Do not fail the flow.

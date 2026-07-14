@@ -91,8 +91,10 @@ artifact — do not silently compare against a stale frame.
 2. For high-value **uncovered** surfaces from Phase 3, register scenarios
    with a `pr-review-` slug prefix (surgical teardown, exactly like
    `recent-change-` in `/codeyam-see-recent-change`) and capture them.
-3. `codeyam-editor editor recapture-stale --skip-when-clean` to refresh what
-   the edit actually moved.
+3. `codeyam-editor editor recapture-stale --skip-when-clean --prefer-touched` to
+   refresh what the edit actually moved — `--prefer-touched` orders the
+   PR-touched surfaces first so the budget captures them before any unrelated
+   environmentally-drifted screenshot (pure reordering, never expands the set).
 4. Copy the resulting PNGs into `.codeyam/reviews/pr-<number>/after/`.
 
 **Backend-only / CLI / library PRs:** skip this phase. Record the change in

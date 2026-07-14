@@ -208,7 +208,7 @@ Two goals: (a) prove the registration pipeline works on this project, (b) leave 
    ```
 
    `register` deletes the scratch file on success. Do NOT reuse the same filename across calls — each invocation needs a unique path.
-3. If the dev server is running, attempt capture via `codeyam-editor editor recapture-stale --skip-when-clean`. If not running, skip and note it.
+3. If the dev server is running, attempt capture via `codeyam-editor editor recapture-stale --skip-when-clean --prefer-touched` (`--prefer-touched` orders the scenarios you just registered first so the budget captures them before any unrelated environmentally-drifted surface; pure reordering, never expands the set). If not running, skip and note it.
 
 This phase is **best-effort**. If registration fails on a specific component, log it in the report and continue — do not block the whole onboarding on one bad scenario.
 

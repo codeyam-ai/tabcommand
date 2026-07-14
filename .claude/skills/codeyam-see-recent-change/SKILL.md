@@ -108,8 +108,13 @@ exactly what this flow created and nothing else.
 Then capture screenshots for what you registered:
 
 ```
-codeyam-editor editor recapture-stale --skip-when-clean
+codeyam-editor editor recapture-stale --skip-when-clean --prefer-touched
 ```
+
+`--prefer-touched` orders the just-changed surfaces first so the `--max-seconds`
+budget captures the change you came to see before any unrelated
+environmentally-drifted screenshots. It only reorders — it never excludes or
+expands the set.
 
 - **Preview up:** the user sees their change rendered — surface the captures.
 - **Preview down:** register anyway and say capture is **pending** — the
