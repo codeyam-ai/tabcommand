@@ -1,7 +1,7 @@
 # TabCommand — Chrome Web Store listing copy
 
 Paste-ready text for the Web Store listing form. Character limits noted per field.
-Prepared for a **Public** listing of version **0.17**.
+Prepared for a **Public** listing of version **0.18**.
 
 ---
 
