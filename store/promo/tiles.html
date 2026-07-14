@@ -1,0 +1,86 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#666;font-family:'IBM Plex Sans',sans-serif;display:flex;flex-direction:column;gap:30px;padding:30px;align-items:flex-start}
+.t{position:relative;overflow:hidden}
+.wm{font-weight:600;letter-spacing:-.5px;color:#f2f2f2;white-space:nowrap}
+.wm b{color:#c7f04a;font-weight:600}
+
+/* ---------------- SMALL 440x280 ---------------- */
+#small{width:440px;height:280px;background:radial-gradient(130% 130% at 12% 8%,#1e1e1e 0%,#0b0b0b 62%);
+  display:flex;flex-direction:column;justify-content:center;padding:0 40px;gap:16px}
+#small .row{display:flex;align-items:center;gap:14px}
+#small img{width:60px;height:60px;border-radius:14px}
+#small .wm{font-size:32px}
+#small .tag{font-size:15.5px;line-height:1.5;color:#a5a5a5;max-width:344px}
+#small .tag em{color:#ececec;font-style:normal;font-weight:500}
+#small .chips{display:flex;gap:6px;margin-top:2px}
+#small .chip{height:5px;width:40px;border-radius:3px}
+
+/* ---------------- MARQUEE 1400x560 ---------------- */
+#mq{width:1400px;height:560px;background:radial-gradient(100% 140% at 8% 10%,#202020 0%,#0a0a0a 58%);
+  display:flex;align-items:center}
+#mq .left{width:640px;padding-left:84px;display:flex;flex-direction:column;gap:26px;flex:none}
+#mq .row{display:flex;align-items:center;gap:22px}
+#mq img{width:96px;height:96px;border-radius:22px}
+#mq .wm{font-size:54px}
+#mq .tag{font-size:25px;line-height:1.5;color:#a5a5a5;max-width:520px}
+#mq .tag em{color:#f0f0f0;font-style:normal;font-weight:500}
+#mq .chips{display:flex;gap:9px;margin-top:2px}
+#mq .chip{height:7px;width:66px;border-radius:4px}
+/* board motif */
+#mq .board{flex:1;height:100%;display:flex;align-items:center;justify-content:center;gap:22px;padding-right:40px}
+#mq .col{display:flex;flex-direction:column;gap:20px}
+#mq .card{width:196px;border-radius:13px;background:#171717;border:1px solid rgba(255,255,255,.08);overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,.45)}
+#mq .card .h{height:26px;display:flex;align-items:center;padding:0 11px;font-size:11.5px;font-weight:600;color:#fff}
+#mq .card .body{padding:11px 11px 14px;display:flex;flex-direction:column;gap:8px}
+#mq .card .l{height:8px;border-radius:4px;background:#2b2b2b}
+#mq .card .l.s{width:62%}
+#mq .card .l.m{width:84%}
+</style></head><body>
+
+<div class="t" id="small">
+  <div class="row">
+    <img src="data:image/png;base64,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">
+    <div class="wm">tab<b>command</b></div>
+  </div>
+  <div class="tag">Organize, search, and auto-close your tabs — and <em>see which ones are slowing Chrome down.</em></div>
+  <div class="chips">
+    <div class="chip" style="background:#2f7de1"></div>
+    <div class="chip" style="background:#18a558"></div>
+    <div class="chip" style="background:#f28a3c"></div>
+    <div class="chip" style="background:#e0409a"></div>
+    <div class="chip" style="background:#c7f04a"></div>
+  </div>
+</div>
+
+<div class="t" id="mq">
+  <div class="left">
+    <div class="row">
+      <img src="data:image/png;base64,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">
+      <div class="wm">tab<b>command</b></div>
+    </div>
+    <div class="tag">Organize, search, and auto-close your tabs — and <em>see which ones are slowing Chrome down.</em></div>
+    <div class="chips">
+      <div class="chip" style="background:#2f7de1"></div>
+      <div class="chip" style="background:#18a558"></div>
+      <div class="chip" style="background:#f28a3c"></div>
+      <div class="chip" style="background:#e0409a"></div>
+      <div class="chip" style="background:#c7f04a"></div>
+    </div>
+  </div>
+  <div class="board">
+    <div class="col">
+      <div class="card"><div class="h" style="background:#2f7de1">Work</div><div class="body"><div class="l m"></div><div class="l"></div><div class="l s"></div></div></div>
+      <div class="card"><div class="h" style="background:#f28a3c">Shopping</div><div class="body"><div class="l"></div><div class="l s"></div></div></div>
+    </div>
+    <div class="col">
+      <div class="card"><div class="h" style="background:#18a558">Reading</div><div class="body"><div class="l"></div><div class="l m"></div><div class="l s"></div></div></div>
+      <div class="card"><div class="h" style="background:#e0409a">Social</div><div class="body"><div class="l m"></div><div class="l"></div></div></div>
+    </div>
+  </div>
+</div>
+
+</body></html>
