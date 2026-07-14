@@ -189,7 +189,7 @@ const {
 } = require("./scenario-handlers");
 
 const {
-  probeInteractivity,
+  probeHydrationState,
 } = require("./scenario-interactivity");
 
 // Read project-specific loading markers from `.codeyam/stack.json`
@@ -236,6 +236,27 @@ function scenarioScriptsLiveSocket(config) {
   } catch (_) {
     return false;
   }
+}
+
+// Classify what a driven interaction actually did, from the DOM fingerprint on
+// either side of it plus the page's hydration state. Pure, so the distinction
+// this encodes is unit-tested without a browser.
+//
+// A click that changed nothing has two very different causes, and reporting both
+// as "none" is what let a dead page masquerade as a flaky harness: a page that
+// NEVER HYDRATED could not have responded to ANY interaction (no client JS is
+// running), whereas a hydrated page with an unchanged DOM really does mean the
+// control is inert. Keeping them apart is what tells a reader whether to go look
+// at their component or at the environment.
+//
+// `hydrated` is the three-valued signal from `probeHydrationState`: only a PROVEN
+// dead page (`false`) earns "unhydrated". `null` means the probe could not judge
+// (unknown framework, no controls, probe threw) and must keep reporting "none" —
+// never invent a hydration fault we cannot prove.
+function classifyInteractionEffect(beforeFingerprint, afterFingerprint, hydrated) {
+  if (beforeFingerprint !== afterFingerprint) return "changed";
+  if (hydrated === false) return "unhydrated";
+  return "none";
 }
 
 async function getDOMFingerprint(frame) {
@@ -1041,11 +1062,14 @@ async function runScenarioCheck(
     // to run before the screenshot. Stack-gated and fail-safe — see
     // scenario-interactivity.js — so backend / static / unknown-framework
     // captures are an automatic pass.
-    const hydrationIssue = await probeInteractivity(frame, {
+    // `hydration.hydrated` is also consulted below to classify interactionEffect:
+    // the probe runs BEFORE any interaction, which is exactly the reading we want
+    // — "was this page alive when we found it," not "did our click revive it."
+    const hydration = await probeHydrationState(frame, {
       url: page.url() || url,
     });
-    if (hydrationIssue) {
-      pushIssue(issues, hydrationIssue);
+    if (hydration.issue) {
+      pushIssue(issues, hydration.issue);
     }
 
     // Assert the injected seed actually landed in the capture browser, at rest
@@ -1103,7 +1127,11 @@ async function runScenarioCheck(
         afterFingerprint = await getDOMFingerprint(frame);
       }
 
-      interactionEffect = beforeFingerprint === afterFingerprint ? "none" : "changed";
+      interactionEffect = classifyInteractionEffect(
+        beforeFingerprint,
+        afterFingerprint,
+        hydration.hydrated,
+      );
     }
 
     // Replay the scenario's PERSISTED interaction sequence (if any) in order,
@@ -1215,6 +1243,7 @@ async function main() {
 
 module.exports = {
   runScenarioCheck,
+  classifyInteractionEffect,
   mergeVisibleTextLength,
   runFlowSteps,
   dumpPageState,

@@ -214,24 +214,40 @@ function interpretHydration({
 // project's stack.json unless the caller injects a `stack`), short-circuit when
 // no client runtime is expected, collect the in-page state, and interpret it.
 // Never throws — a probe failure must not break an otherwise-good capture.
-async function probeInteractivity(frame, { url, stack } = {}) {
+//
+// Returns `{ hydrated, issue }`:
+//   hydrated — `true` (runtime demonstrably attached), `false` (PROVEN dead:
+//     framework-owned controls rendered but nothing attached), or `null`
+//     ("cannot determine" — no client runtime expected, no control to probe, no
+//     detector for the framework, or the probe threw).
+//   issue — the `hydration` issue to surface, or `null` to pass.
+//
+// `hydrated` is deliberately three-valued rather than a bare boolean: the
+// capture flow branches a page to `interactionEffect: "unhydrated"` ONLY on a
+// proven `false`. A `null` must never be read as "dead" — that would turn every
+// unknown-framework page into a false hydration failure.
+async function probeHydrationState(frame, { url, stack } = {}) {
   const descriptor = stack !== undefined ? stack : readStackJson();
   const { expectInteractive, framework } =
     resolveInteractivityExpectation(descriptor);
-  if (!expectInteractive) return null;
+  if (!expectInteractive) return { hydrated: null, issue: null };
   let state;
   try {
     state = await collectHydrationState(frame, { framework });
   } catch (_) {
-    return null;
+    return { hydrated: null, issue: null };
   }
-  return interpretHydration({
+  const issue = interpretHydration({
     expectInteractive: true,
     controlCount: state.controlCount,
     frameworkAttached: state.frameworkAttached,
     framework,
     url,
   });
+  // `frameworkAttached` is already the three-valued signal `hydrated` needs —
+  // pass it through rather than re-deriving it from the presence of an issue,
+  // which would conflate "no issue" (a pass) with "hydrated" (a positive).
+  return { hydrated: state.frameworkAttached, issue };
 }
 
 module.exports = {
@@ -241,5 +257,5 @@ module.exports = {
   resolveInteractivityExpectation,
   collectHydrationState,
   interpretHydration,
-  probeInteractivity,
+  probeHydrationState,
 };
