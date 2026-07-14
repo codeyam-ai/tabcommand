@@ -96,7 +96,10 @@ dev-dist/
 .codeyam/state/last-advance.txt
 .codeyam/state/session-results-snapshot.json
 .codeyam/state/provider-auth-verdict.json
-.codeyam/state/finalize-debt.json
+
+# NOT ignored: .codeyam/state/finalize-debt.json — verify-full-finalize compares
+# the COMMITTED marker against the working tree, so ignoring it deadlocks the
+# merge-ready gate. It must stay tracked (see .gitattributes merge driver).
 
 # Internal codeyam-editor skill (regenerated locally; not part of this app)
 .claude/skills/review-session/
