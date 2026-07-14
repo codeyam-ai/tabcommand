@@ -1,0 +1,20 @@
+{
+  "name": "Favorites - Query Distinct Pages Rolled Up And Cued",
+  "id": "08173e84-8bc4-4145-b62a-873dfa52de50",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "activeTabs": "[{\"tabKey\": \"tab-1\", \"urlKey\": \"url-https://shop.example/item?id=green-mug\", \"pinned\": false}]",
+      "allUrls": "[\"url-https://shop.example/item?id=blue-mug\", \"url-https://shop.example/item?id=red-mug\", \"url-https://news.ycombinator.com\"]",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 12}",
+      "url-https://shop.example/item?id=blue-mug": "{\"title\": \"Blue Mug \\u2014 Shop\", \"favicon\": \"\", \"visitCount\": 9}",
+      "url-https://shop.example/item?id=red-mug": "{\"title\": \"Red Mug \\u2014 Shop\", \"favicon\": \"\", \"visitCount\": 7}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

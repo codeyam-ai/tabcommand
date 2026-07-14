@@ -375,6 +375,18 @@ describe('service_worker.js', () => {
       expect(chrome.storage.local.set).toHaveBeenCalledWith({ allUrls: ['url-c', 'url-a', 'url-b'] });
       expect(done).toHaveBeenCalled();
     });
+
+    // REGRESSION: an UNTRACKED key has indexOf -1, and splice at -1 removes the
+    // LAST element — so the unguarded move-to-front silently promoted the OLDEST
+    // key to the front, corrupting the recency order the eviction trim relies on.
+    // Nothing to reorder for a key we never tracked: leave allUrls alone.
+    it('leaves allUrls untouched when the key is not tracked', () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: ['url-a', 'url-b', 'url-c'] }));
+      const done = vi.fn();
+      fns.closeUrl('url-never-seen', done);
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+      expect(done).toHaveBeenCalled();
+    });
   });
 
   describe('newUrl', () => {
@@ -389,6 +401,64 @@ describe('service_worker.js', () => {
       chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: ['url-old'], labels: {} }));
       const updates = await fns.newUrl(1, 'https://new.com');
       expect(updates.allUrls[0]).toBe('url-https://new.com');
+    });
+
+    // REGRESSION: a REVISIT must move the url key back to the front of allUrls.
+    // allUrls is the recency list the tracked-URL cap trims from the TAIL, so a
+    // key that never moves on revisit drifts out, gets evicted, and has its whole
+    // url-* record — visits and all — deleted. That is what reset a daily-visited
+    // site to "1 visit". Previously newUrl only inserted when the key was ABSENT,
+    // so for an already-present key it never touched allUrls at all.
+    it('moves a revisited url key to the front of allUrls', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({
+          allUrls: ['url-https://new.com', 'url-https://a.com', 'url-https://b.com'],
+          labels: {},
+        })
+      );
+      const updates = await fns.newUrl(1, 'https://b.com');
+      expect(updates.allUrls[0]).toBe('url-https://b.com');
+      expect(updates.allUrls).toHaveLength(3);
+    });
+
+    // The durable half of a visit: it accumulates under the site's HOST in
+    // siteVisits, which the eviction branch never touches.
+    it('records the visit under the site host in siteVisits', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
+      const before = Date.now();
+      const updates = await fns.newUrl(1, 'https://www.espn.com/nfl/story/id/1');
+      expect(updates.siteVisits['espn.com']).toHaveLength(1);
+      expect(updates.siteVisits['espn.com'][0]).toBeGreaterThanOrEqual(before);
+    });
+
+    // Every page of a content site credits the SITE, not its own orphan key: a
+    // second article on the same host appends to the same siteVisits bucket.
+    it('accumulates visits from different pages of one site under one host', async () => {
+      const earlier = Date.now() - 1000 * 60 * 60;
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ allUrls: [], labels: {}, siteVisits: { 'espn.com': [earlier] } })
+      );
+      const updates = await fns.newUrl(1, 'https://espn.com/nba/standings');
+      expect(updates.siteVisits['espn.com']).toHaveLength(2);
+      expect(updates.siteVisits['espn.com'][0]).toBe(earlier);
+    });
+
+    // siteVisits must SURVIVE the eviction that deletes url-* records: the
+    // durable store is written even while the tracked-URL cap is trimming keys,
+    // so a site's stats outlive its record. This is the whole point of the store.
+    it('keeps siteVisits history for a site whose url record is evicted', async () => {
+      const history = [Date.now() - 1000 * 60 * 60 * 24 * 3, Date.now() - 1000 * 60 * 60];
+      // A full recency list, so this visit pushes the tail past the cap.
+      const allUrls = Array.from({ length: 500 }, (_, i) => `url-https://pad-${i}.com`);
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ allUrls, labels: {}, siteVisits: { 'wikipedia.org': history } })
+      );
+      const updates = await fns.newUrl(1, 'https://wikipedia.org/wiki/Main_Page');
+      // Keys past the cap were evicted...
+      expect(updates.allUrls).toHaveLength(500);
+      // ...but the site's history is intact and grew by this visit.
+      expect(updates.siteVisits['wikipedia.org']).toHaveLength(history.length + 1);
+      expect(updates.siteVisits['wikipedia.org'].slice(0, 2)).toEqual(history);
     });
 
     // Non-website navigations (about:blank, file://, chrome://, data:) are

@@ -1,6 +1,6 @@
 {
   "name": "Favorites - Populated",
-  "id": "de6f2d80-419e-4e69-8028-173aaece8398",
+  "id": "c20a5c75-e428-4159-8f59-8950bff576b4",
   "url": "/?isolate=Favorites",
   "dimensions": [
     "Desktop"
@@ -8,16 +8,16 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "url-https://linear.app/team/issues": "{\"title\": \"Issues \\u2014 Linear\", \"favicon\": \"\", \"visitCount\": 16}",
-      "url-https://docs.anthropic.com/en/api": "{\"title\": \"Claude API Reference \\u2014 Anthropic Docs\", \"favicon\": \"\", \"visitCount\": 7}",
       "url-https://mail.google.com/mail/u/0": "{\"title\": \"Inbox \\u2014 Gmail\", \"favicon\": \"\", \"visitCount\": 18}",
-      "url-https://stackoverflow.com/questions": "{\"title\": \"Newest Questions \\u2014 Stack Overflow\", \"favicon\": \"\", \"visitCount\": 21}",
-      "url-https://www.youtube.com": "{\"title\": \"YouTube\", \"favicon\": \"\", \"visitCount\": 6}",
-      "url-https://vercel.com/dashboard": "{\"title\": \"Dashboard \\u2014 Vercel\", \"favicon\": \"\", \"visitCount\": 12}",
-      "url-https://en.wikipedia.org/wiki/Main_Page": "{\"title\": \"Wikipedia, the Free Encyclopedia\", \"favicon\": \"\", \"visitCount\": 9}",
       "activeTabs": "[]",
       "allUrls": "[\"url-https://stackoverflow.com/questions\", \"url-https://linear.app/team/issues\", \"url-https://vercel.com/dashboard\", \"url-https://en.wikipedia.org/wiki/Main_Page\", \"url-https://docs.anthropic.com/en/api\", \"url-https://mail.google.com/mail/u/0\", \"url-https://www.youtube.com\", \"url-https://calendar.google.com\"]",
-      "url-https://calendar.google.com": "{\"title\": \"Google Calendar\", \"favicon\": \"\", \"visitCount\": 5}"
+      "url-https://docs.anthropic.com/en/api": "{\"title\": \"Claude API Reference \\u2014 Anthropic Docs\", \"favicon\": \"\", \"visitCount\": 7}",
+      "url-https://linear.app/team/issues": "{\"title\": \"Issues \\u2014 Linear\", \"favicon\": \"\", \"visitCount\": 16}",
+      "url-https://stackoverflow.com/questions": "{\"title\": \"Newest Questions \\u2014 Stack Overflow\", \"favicon\": \"\", \"visitCount\": 21}",
+      "url-https://vercel.com/dashboard": "{\"title\": \"Dashboard \\u2014 Vercel\", \"favicon\": \"\", \"visitCount\": 12}",
+      "url-https://www.youtube.com": "{\"title\": \"YouTube\", \"favicon\": \"\", \"visitCount\": 6}",
+      "url-https://calendar.google.com": "{\"title\": \"Google Calendar\", \"favicon\": \"\", \"visitCount\": 5}",
+      "url-https://en.wikipedia.org/wiki/Main_Page": "{\"title\": \"Wikipedia, the Free Encyclopedia\", \"favicon\": \"\", \"visitCount\": 9}"
     }
   },
   "componentName": "Favorites",

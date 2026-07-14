@@ -267,10 +267,12 @@ describe('rankFavorites', () => {
     expect(result[0].isOpen).toBe(false);
   });
 
-  // normalizeUrl is untouched: two favorites that differ only by ?query remain
-  // TWO distinct rows — but page-identity open detection lights BOTH when a live
-  // tab is on that same origin+path under any query.
-  it('keeps query-distinct favorites as separate rows while page identity drives the open cue', () => {
+  // Rows are SITE-level now: two pages of one host — even query-distinct ones —
+  // roll into a single row whose representative is the most-recent member, and
+  // whose visits are the merged history. The open cue still comes from page
+  // identity, so a live tab query-drifted off one of the members still lights the
+  // site's row.
+  it('rolls query-distinct pages of one site into a single row and keeps the open cue', () => {
     const allUrls = [
       'url-https://shop.example/item?id=1',
       'url-https://shop.example/item?id=2',
@@ -286,9 +288,86 @@ describe('rankFavorites', () => {
     const result = rankFavorites(allUrls, records, 5, undefined, opts({
       openKeys: new Set(['url-https://shop.example/item?id=99']),
     }));
-    // Two distinct rows — normalizeUrl preserves the query.
-    expect(result).toHaveLength(2);
-    // Both light up — same origin+path as the live tab, despite query drift.
-    expect(result.every((r) => r.isOpen)).toBe(true);
+    // One row — both pages share the host `shop.example`.
+    expect(result).toHaveLength(1);
+    // The representative is the most-recent — i.e. lowest-index — member.
+    expect(result[0].title).toBe('Item One');
+    // It lights up: same origin+path as the live tab, despite query drift.
+    expect(result[0].isOpen).toBe(true);
+  });
+
+  // The DURABLE store is the authoritative history: a site whose url-* record was
+  // evicted and recreated carries only a single visit on the record, yet its row
+  // must reflect the full history siteVisits retained. This is the reported bug —
+  // a daily-visited site rendering "1 visit" — expressed at the ranking layer.
+  it('ranks from siteVisits when the url record was evicted and recreated', () => {
+    const allUrls = ['url-https://en.wikipedia.org/wiki/Main_Page'];
+    const records = {
+      // Recreated from scratch: one visit, moments ago.
+      'url-https://en.wikipedia.org/wiki/Main_Page': rec('Wikipedia', [0], {
+        url: 'https://en.wikipedia.org/wiki/Main_Page',
+      }),
+    };
+    const durable = [1, 2, 3, 4, 5, 6].map((d) => NOW - d * DAY);
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({
+      siteVisits: { 'en.wikipedia.org': durable },
+    }));
+    expect(result).toHaveLength(1);
+    // The record's single visit UNIONED with the six durable ones — not 1.
+    expect(result[0].visitCount).toBe(7);
+    expect(result[0].recentVisits).toHaveLength(7);
+  });
+
+  // Union-with-dedupe, not either-or: the service worker writes the SAME visit to
+  // both stores with the same epoch-ms, so the duplicate must collapse rather
+  // than double-count the visit.
+  it('dedupes a visit present in both the record and siteVisits', () => {
+    const shared = NOW - 2 * DAY;
+    const allUrls = ['url-https://a.com/page'];
+    const records = {
+      'url-https://a.com/page': { title: 'A', visits: [shared], url: 'https://a.com/page' },
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({
+      siteVisits: { 'a.com': [shared] },
+    }));
+    expect(result).toHaveLength(1);
+    // One visit, not two — the bit-identical timestamp collapsed.
+    expect(result[0].visitCount).toBe(1);
+  });
+
+  // A heavy content site: the homepage plus many article pages become ONE row,
+  // and the site's durable history — not any single page's — drives the count.
+  it('rolls a content site homepage and its articles into one row', () => {
+    const allUrls = [
+      'url-https://www.espn.com',
+      'url-https://www.espn.com/nfl/story/1',
+      'url-https://www.espn.com/nba/standings',
+    ];
+    const records = {
+      'url-https://www.espn.com': rec('ESPN', [0], { url: 'https://www.espn.com' }),
+      'url-https://www.espn.com/nfl/story/1': rec('A story', [0], {
+        url: 'https://www.espn.com/nfl/story/1',
+      }),
+      'url-https://www.espn.com/nba/standings': rec('Standings', [0], {
+        url: 'https://www.espn.com/nba/standings',
+      }),
+    };
+    const durable = [1, 2, 3, 4, 5].map((d) => NOW - d * DAY);
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({
+      siteVisits: { 'espn.com': durable },
+    }));
+    // One ESPN row, not a homepage row plus two orphan article rows.
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe('ESPN');
+  });
+
+  // An empty/absent siteVisits store is the pre-upgrade world: ranking must fall
+  // back cleanly to the per-record visits so a fresh profile never throws.
+  it('ranks from record visits alone when siteVisits is absent', () => {
+    const allUrls = ['url-https://a.com'];
+    const records = { 'url-https://a.com': rec('A', [0, 1, 2], { url: 'https://a.com' }) };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({}));
+    expect(result).toHaveLength(1);
+    expect(result[0].visitCount).toBe(3);
   });
 });

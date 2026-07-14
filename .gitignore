@@ -2,6 +2,7 @@
 # Managed by `codeyam-editor init` / `codeyam-editor start`.
 # Do not edit between these markers — your changes will be overwritten.
 .codeyam/secrets.json
+.codeyam/setup-connections.json
 test-results/
 playwright-report/
 blob-report/

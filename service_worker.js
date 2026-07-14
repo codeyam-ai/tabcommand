@@ -92,6 +92,13 @@ const AUTO_CLOSE_ALARM = 'auto-close-sweep';
 const VISIT_RETENTION_MS = 1000 * 60 * 60 * 24 * 56;
 const MAX_VISITS = 50;
 
+// How many url-* keys the recency list (`allUrls`) tracks. Keys past this cap are
+// evicted from the tail and their records deleted. This is a DISPLAY/storage cap
+// for History and Search — it deliberately no longer bounds visit stats, which
+// live in the site-keyed `siteVisits` store below and are pruned only by
+// VISIT_RETENTION_MS / MAX_VISITS.
+const MAX_TRACKED_URLS = 500;
+
 // A tab you switch back to earns a visit too, not just an open/navigation — so
 // Favorites rewards sites you keep open and return to. But debounce it: rapid
 // alt-tabbing between the same two tabs, or the open→immediately-activate
@@ -109,6 +116,24 @@ function pruneVisits(visits, now) {
     .filter((ts) => Number.isFinite(ts) && ts > cutoff)
     .sort((a, b) => a - b);
   return kept.length > MAX_VISITS ? kept.slice(-MAX_VISITS) : kept;
+}
+
+// The canonical site key (host, lowercased, leading `www.` stripped) a URL's
+// visits accumulate under. Mirror of siteKey() in src/lib/utils/siteKey.js —
+// THAT FILE IS THE SOURCE OF TRUTH; this duplicate exists only because the
+// service-worker runtime can't import the ES module, same as pruneVisits above
+// and the GAUGE / AUTO_CLOSE constants. Keep the two in step.
+function siteKey(url) {
+  if (typeof url !== 'string') return '';
+  const raw = url.trim();
+  if (raw.length === 0) return '';
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return '';
+  }
+  return parsed.host.toLowerCase().replace(/^www\./, '');
 }
 
 let groups = {};
@@ -490,27 +515,33 @@ async function newUrl(tabId, url) {
   return new Promise((resolve, reject) => {
     const updates = {};
     const urlKey = getUrlKey(url);
-    getLocalStorage(['allUrls', 'labels', urlKey], (result) => {
+    getLocalStorage(['allUrls', 'labels', 'siteVisits', urlKey], (result) => {
       const allUrls = result.allUrls || [];
-      if (allUrls.indexOf(urlKey) === -1) {
-        allUrls.unshift(urlKey);
+      // MOVE-TO-FRONT on every visit, not just the first. `allUrls` is the
+      // recency list every consumer already treats it as — and the list the
+      // eviction below trims from the TAIL. Inserting only when absent ordered it
+      // by first-seen instead, so a site visited daily still drifted toward the
+      // tail as new URLs arrived, got evicted, and had its whole url-* record
+      // (visits and all) deleted — resurfacing later as "1 visit".
+      const existingIndex = allUrls.indexOf(urlKey);
+      if (existingIndex > -1) allUrls.splice(existingIndex, 1);
+      allUrls.unshift(urlKey);
 
-        if (allUrls.length >= 250) {
-          let allLabelUrlKeys = [];
-          for (const label in result.labels) {
-            allLabelUrlKeys += result.labels[label].urlKeys;
-          }
-
-          const removeUrlKeys = allUrls.slice(250);
-          for (const removeUrlKey of removeUrlKeys) {
-            if (allLabelUrlKeys.indexOf(removeUrlKey) === -1) {
-              chrome.storage.local.remove(removeUrlKey);
-            }
-          }
+      if (allUrls.length >= MAX_TRACKED_URLS) {
+        let allLabelUrlKeys = [];
+        for (const label in result.labels) {
+          allLabelUrlKeys += result.labels[label].urlKeys;
         }
 
-        updates.allUrls = allUrls.slice(0, 250);
+        const removeUrlKeys = allUrls.slice(MAX_TRACKED_URLS);
+        for (const removeUrlKey of removeUrlKeys) {
+          if (allLabelUrlKeys.indexOf(removeUrlKey) === -1) {
+            chrome.storage.local.remove(removeUrlKey);
+          }
+        }
       }
+
+      updates.allUrls = allUrls.slice(0, MAX_TRACKED_URLS);
 
       // Track WHEN and how often each site is visited so Favorites can rank by a
       // time-decayed sum of visits. Append a fresh timestamp and prune the array
@@ -525,6 +556,21 @@ async function newUrl(tabId, url) {
         visitCount: (urlRecord.visitCount || 0) + 1,
         visits: pruneVisits([...(urlRecord.visits || []), now], now),
       };
+
+      // The DURABLE half of the same visit: accumulate it under the site's host
+      // in `siteVisits`, which the eviction branch above never touches. Evicting
+      // a url-* key can therefore no longer destroy a site's stats — the advertised
+      // 56-day window is bounded only by retention, not by how many other URLs the
+      // user happened to browse. Keying by host also means every article on a
+      // content site credits the SITE rather than minting its own orphan record.
+      // Written into the same `updates` object, so the visit lands atomically with
+      // the url-* record in one chrome.storage.local.set.
+      const host = siteKey(url);
+      if (host) {
+        const siteVisits = result.siteVisits || {};
+        siteVisits[host] = pruneVisits([...(siteVisits[host] || []), now], now);
+        updates.siteVisits = siteVisits;
+      }
 
       resolve(updates)
     });
@@ -563,6 +609,14 @@ function closeUrl(urlKey, callback) {
   getLocalStorage('allUrls', (result) => {
     const allUrls = result.allUrls || [];
     const oldIndex = allUrls.indexOf(urlKey);
+    // An untracked key has oldIndex -1, and `splice(-1, 1)` removes the LAST
+    // element — so the unguarded move-to-front below would silently promote the
+    // OLDEST key to the front, corrupting the recency order the eviction trim in
+    // `newUrl` depends on. Nothing to reorder for a key we never tracked.
+    if (oldIndex === -1) {
+      if (callback) return callback();
+      return;
+    }
     allUrls.splice(0, 0, allUrls.splice(oldIndex, 1)[0]);
     update({ allUrls: allUrls });
     if (callback) return callback();

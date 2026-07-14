@@ -207,8 +207,7 @@
         "reason": "Favorites are read synchronously from local storage in a mount effect; no pending/loading UI is rendered."
       },
       "edge": {
-        "status": "n-a",
-        "reason": "Edge typography (long title, monogram fallback) is covered by the FavoriteRow monogram-long-title component scenario; the page has no distinct edge branch."
+        "status": "added"
       },
       "error": {
         "status": "n-a",

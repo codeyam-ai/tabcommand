@@ -33,8 +33,8 @@ const ViewAllFavorites = () => {
       setNow(at);
       Chrome.get(
         'ViewAllFavorites2',
-        ['allUrls', 'activeTabs', 'favoritesHidden'],
-        ({ allUrls, activeTabs, favoritesHidden }) => {
+        ['allUrls', 'activeTabs', 'favoritesHidden', 'siteVisits'],
+        ({ allUrls, activeTabs, favoritesHidden, siteVisits }) => {
           const keys = allUrls || [];
           if (keys.length === 0) {
             setFavorites([]);
@@ -60,6 +60,7 @@ const ViewAllFavorites = () => {
                 openKeys,
                 hiddenKeys,
                 now: at,
+                siteVisits: siteVisits || {},
               })
             );
           });
@@ -76,6 +77,7 @@ const ViewAllFavorites = () => {
           key === 'allUrls' ||
           key === 'activeTabs' ||
           key === 'favoritesHidden' ||
+          key === 'siteVisits' ||
           key.startsWith('url-')
       );
       if (touched) load();
@@ -113,17 +115,25 @@ const ViewAllFavorites = () => {
   };
 
   // "Start over" on the favorites ranking: zero the visit signal (visits /
-  // visitCount) on every url-* record and clear favoritesHidden, so with no
-  // visits every site falls below rankFavorites' QUALIFY_MIN and the list goes
-  // empty. Each record is rewritten IN PLACE — title, favicon, url and every
-  // other field are preserved — because url-* records are shared with History &
-  // Search, which must stay intact. Zeroing visitCount as well as visits stops
-  // rankFavorites from lazily re-seeding visits from a legacy count.
+  // visitCount) on every url-* record, EMPTY the durable site-level `siteVisits`
+  // store, and clear favoritesHidden, so with no visits every site falls below
+  // rankFavorites' QUALIFY_MIN and the list goes empty. Clearing `siteVisits` is
+  // what makes the reset actually reset: it is now the authoritative history, so
+  // zeroing only the url-* records would leave every site's real visits behind and
+  // the list would come back unchanged. Each record is rewritten IN PLACE — title,
+  // favicon, url and every other field are preserved — because url-* records are
+  // shared with History & Search, which must stay intact. Zeroing visitCount as
+  // well as visits stops rankFavorites from lazily re-seeding visits from a legacy
+  // count.
   const resetFavorites = () => {
     Chrome.get('ViewAllFavoritesReset0', 'allUrls', ({ allUrls }) => {
       const keys = allUrls || [];
       const finish = (updates) => {
-        chrome.storage.local.set({ ...updates, favoritesHidden: [] });
+        chrome.storage.local.set({
+          ...updates,
+          favoritesHidden: [],
+          siteVisits: {},
+        });
       };
       if (keys.length === 0) return finish({});
       Chrome.get('ViewAllFavoritesReset1', keys, (records) => {

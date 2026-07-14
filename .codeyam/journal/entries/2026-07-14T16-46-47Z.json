@@ -1,0 +1,331 @@
+{
+  "timestamp": "2026-07-14T16:46:47Z",
+  "title": "Durable Site-Level Visit Stats",
+  "type": "feature",
+  "userRequest": "## Summary\n\nFavorites advertises a 56-day visit history (`VISIT_RETENTION_MS`, 8 weeks — sized\nfor the 7-week sparkline) but in practice loses it constantly: a site the user\nvisits every day can still render \"1 visit · 12h ago\". Two defects combine to\ncause this.\n\n**Defect 1 — visit history is hard-deleted by URL eviction.** `newUrl`\n(`service_worker.js:495-513`) unshifts a `urlKey` onto `allUrls` *only when it is\nabsent* (`if (allUrls.indexOf(urlKey) === -1)`). A revisit never refreshes the\nkey's position, so `allUrls` is ordered by **first-seen**, not last-visited —\neven though every consumer treats it as a recency list. Every newly-seen URL\npushes existing keys toward the tail; once `allUrls` reaches 250, everything past\nindex 249 is `chrome.storage.local.remove(...)`'d — the entire `url-*` record,\n`visits` array and all. The next visit recreates the record from scratch with\n`visitCount: 1, visits: [now]`. That is the reported \"1 visit · 12h ago\".\n\n**Defect 2 — per-page keys make a content site evict itself.** `getUrlKey` keys on\nthe full URL minus `#hash`, and `normalizeUrl` preserves path and query, so every\nESPN *article* is its own key consuming one of the 250 slots. A news site the user\nreads deeply actively accelerates the eviction of its own homepage record, and its\nper-article visits never credit the site.\n\nThe fix makes visit stats **durable and site-level**: visits accumulate in a new\n`siteVisits` store keyed by host, pruned only by the retention horizon\n(`VISIT_RETENTION_MS`) and `MAX_VISITS` — never by the `allUrls` display cap.\n`allUrls` additionally becomes a true LRU (move-to-front on every visit) and its\ncap rises to 500, so the *history* list stops evicting live sites too. Favorites\nthen groups and ranks by host, so ESPN's homepage and articles roll up into one\nrow whose count and sparkline reflect the site's real 8-week usage.\n\n## Key Decisions\n\n- **Decouple stats from the display list, rather than only fixing the ordering.**\n  A move-to-front LRU alone would rescue daily-visited sites, but a site visited\n  *weekly* could still be pushed past the cap by 250 distinct URLs and lose\n  everything. Storing visits in their own `siteVisits` map makes the advertised\n  56-day window actually true regardless of browsing volume — the number in the\n  UI stops being a lie.\n- **Also raise the `allUrls` cap 250 → 500** (per user request). This is\n  belt-and-braces, not the fix: with stats decoupled, eviction no longer destroys\n  history, but a larger list keeps more sites renderable in History and Favorites.\n  Lift the magic `250` into a named `MAX_TRACKED_URLS` constant while we're there.\n- **Roll favorites up to the host** (per user decision). `rankFavorites` groups by\n  host instead of host+path+query, so article visits credit the site. This is a\n  deliberate semantic change: a Favorites row now means \"ESPN\", not \"this exact\n  ESPN page\".\n- **Keep writing `visits` / `visitCount` on the `url-*` record.** History rows and\n  legacy records still read them, and keeping the write lets `rankFavorites`\n  migrate old users by unioning the legacy per-record timestamps with `siteVisits`.\n- **Migrate by union-with-dedupe, not by preferring one store.** On the first\n  post-upgrade visit, `siteVisits[host]` would hold exactly one timestamp while the\n  legacy record still holds twenty — preferring `siteVisits` would *itself* wipe\n  history. Instead merge both and dedupe by exact epoch-ms. Safe because both\n  stores are written from the same `newUrl` call with the same `now` value, so a\n  double-counted visit is bit-identical and collapses.\n- **Do not retune `QUALIFY_MIN`.** Site-level rollup raises every site's decayed\n  score (more visits per row), so slightly more sites will clear the 0.5 threshold.\n  That is the intended effect — genuinely-returned-to sites qualifying — and the\n  existing `rankFavorites` tests pin the threshold. Note it; don't pre-emptively\n  change it.\n\n## Implementation\n\n### 1. Add a shared site-key helper\n\n**New file**: `src/lib/utils/siteKey.js`\n\nPure helper `siteKey(url)` returning the canonical host for a URL: lowercase host,\nleading `www.` stripped, no scheme/path/query/hash. Returns `''` for a\nnon-parseable input (mirroring `normalizeUrl`'s defensive fallback). This is the\nkey for the `siteVisits` store and the grouping key for `rankFavorites`.\n\nReuse `normalizeUrl`'s host-derivation logic verbatim so the two agree; do not\nre-implement `www.`-stripping a second way.\n\n### 2. Persist visits in a site-keyed store the URL cap can't evict\n\n**File**: `service_worker.js`\n\n- Mirror `siteKey` into the service worker (it cannot import the ES module) next\n  to the existing `pruneVisits` mirror, following the established\n  GAUGE / AUTO_CLOSE / `VISIT_RETENTION_MS` mirroring convention. Add a comment\n  pointing at `src/lib/utils/siteKey.js` as the source of truth.\n- In `newUrl` (line ~480), also read the `siteVisits` map, append `now` to\n  `siteVisits[siteKey(url)]`, and prune it with the existing `pruneVisits`\n  (retention + `MAX_VISITS`). Write it back in the same `updates` object so the\n  visit and the URL record land in one `chrome.storage.local.set`.\n- Leave the existing `url-*` record write (`visitCount`, `visits`) exactly as-is\n  for backward compatibility and History.\n- Crucially: `siteVisits` is **never touched by the eviction branch**. Evicting a\n  `url-*` key must no longer be able to destroy a site's stats.\n\n### 3. Make `allUrls` a true LRU and raise the cap\n\n**File**: `service_worker.js`\n\n- In `newUrl`, replace the \"only insert when absent\" branch with move-to-front on\n  **every** visit: find the key's index, splice it out if present, then `unshift`.\n  `allUrls` finally means what every consumer already assumes it means.\n- Introduce `const MAX_TRACKED_URLS = 500;` and use it in place of the two literal\n  `250`s (the `length >= 250` guard, `slice(250)`, and `slice(0, 250)`).\n- **Also fix `closeUrl`** (line ~562): when `urlKey` is absent,\n  `allUrls.indexOf(urlKey)` is `-1` and `allUrls.splice(0, 0, allUrls.splice(-1, 1)[0])`\n  moves the *last* element to the front — silently scrambling recency order. Guard\n  on `oldIndex > -1` and return early otherwise. (Found while tracing the eviction\n  path; small, in the same function family, and it corrupts the very ordering this\n  plan is making load-bearing.)\n\n### 4. Rank Favorites by site, sourced from the durable store\n\n**File**: `src/lib/utils/rankFavorites.js`\n\n- Accept `options.siteVisits` (the persisted map; defaults to `{}`).\n- Group candidates by `siteKey(candidateUrl)` instead of `normalizeUrl(url)`. The\n  representative (the row's title, favicon, and click target) stays the\n  most-recent — i.e. lowest-index — member, which is the existing rule.\n- Resolve a group's timestamps as the **deduped union** of `siteVisits[host]` and\n  the group's merged per-record `visits` (the latter still flows through\n  `visitsFor`, preserving the legacy `seedVisitsFromCount` migration path), then\n  `pruneVisits` the result. Dedupe by exact epoch-ms.\n- Everything downstream is unchanged: `decayedVisitScore`, the `qualifyMin` gate,\n  the open-tab discount (drop the newest timestamp when any variant of the site is\n  open), the sort, and the returned row shape\n  (`visitCount` = merged length, `lastVisit`, `recentVisits`).\n\n### 5. Feed the store into the Favorites views\n\n**Files**: `src/lib/components/Favorites/Favorites.jsx`,\n`src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx`\n\nRead `siteVisits` from storage alongside `allUrls` / url records and pass it to\n`rankFavorites` as `options.siteVisits`. No JSX changes: `FavoriteRow` already\nrenders `visitCount`, `lastVisit`, and the day/week sparklines from\n`recentVisits`, and those now carry site-level, retention-bounded data.\n\nRows will now read e.g. \"23 visits\" for `espn.com` and the 7-week sparkline will\nfinally have data across the full window rather than resetting to a single bar.\n\n## Reused existing code\n\n- `pruneVisits` from `src/lib/utils/visitDecay.js` (glossary: `pruneVisits`) — and\n  its service-worker mirror (glossary: `pruneVisits` @ `service_worker.js`) —\n  applied unchanged to the new `siteVisits` arrays.\n- `VISIT_RETENTION_MS`, `MAX_VISITS`, `HALF_LIFE_MS`, `QUALIFY_MIN` from\n  `src/lib/utils/visitDecay.js` — the retention/cap/decay contract is already\n  correct; only the storage that honors it changes.\n- `decayedVisitScore` from `src/lib/utils/visitDecay.js` (glossary:\n  `decayedVisitScore`) — scoring is untouched.\n- `seedVisitsFromCount` / `visitsFor` from `src/lib/utils/rankFavorites.js`\n  (glossary: `seedVisitsFromCount`, `visitsFor`) — the legacy `visitCount`-only\n  migration path stays intact and now feeds the union.\n- `normalizeUrl` from `src/lib/utils/normalizeUrl.js` — its host derivation\n  (lowercase, strip `www.`) is the basis for the new `siteKey`.\n- `isTrackableUrl` from `src/lib/utils/isTrackableUrl.js` — the http(s)-only gate\n  in `newUrl` and `rankFavorites` is unchanged.\n- `bucketVisitsByDay` / `bucketVisitsByWeek` (glossary: both) and `UsageSparkline`\n  — consume `recentVisits` as-is; no signature change.\n- `samePageKey` from `src/lib/utils/samePageKey.js` — the open-tab cue keeps using\n  page identity.\n\n## Reproduction Test\n\nPins the ordering defect at the root of the history loss: `newUrl` does not move a\nrevisited key back to the front of `allUrls`, so a frequently-visited site drifts\nto the tail and is evicted (deleting its `visits`).\n\n**Target**: `service_worker.test.js` — in the existing `describe('newUrl')` block\n(alongside `prepends an unseen url key to allUrls`). Run with\n`codeyam-editor editor refresh-tests --test service_worker`.\n\n```js\n// A REVISIT moves the url key back to the front of allUrls. allUrls is the\n// recency list the 250/500-key eviction trims from the tail, so a key that\n// never moves on revisit drifts out and its stored `visits` are deleted —\n// resetting a daily-visited site to \"1 visit\".\nit('moves a revisited url key to the front of allUrls', async () => {\n  chrome.storage.local.get.mockImplementation((_q, cb) =>\n    cb({ allUrls: ['url-https://new.com', 'url-a', 'url-b'], labels: {} })\n  );\n  const updates = await fns.newUrl(1, 'https://b');\n  expect(updates.allUrls[0]).toBe('url-https://b');\n  expect(updates.allUrls).toHaveLength(3);\n});\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: `newUrl` takes the\n`indexOf(urlKey) === -1` branch only, so for an already-present key it never\ntouches `allUrls` and leaves `updates.allUrls` **undefined** — the\n`expect(updates.allUrls[0])` line throws `TypeError: Cannot read properties of\nundefined (reading '0')`. (Adjust the seeded key to match `getUrlKey`'s\n`url-<url>` form when materializing; the assertion — revisited key ends up at\nindex 0, list length unchanged — is the contract.)\n\nA second test worth adding in the same pass (not required to prove the bug):\n`siteVisits[host]` survives a `url-*` eviction, i.e. the durable-store guarantee.\n\n## Scenarios to Demonstrate\n\n- **The bug, before/after** — a favorite whose record was evicted and recreated:\n  \"1 visit · 12h ago\" with a single sparkline bar, versus the same site showing its\n  true 8-week history after the fix.\n- **Heavy content site (ESPN)** — homepage plus a dozen article URLs; one rolled-up\n  row with a high visit count and a full 7-week sparkline, rather than a homepage\n  row at 1 visit and a dozen orphan article rows.\n- **Eviction pressure** — more than 500 distinct URLs browsed since a site's last\n  visit; the `url-*` record is evicted, but the site's `siteVisits` history and its\n  Favorites rank survive intact.\n- **Legacy migration** — a pre-upgrade record with `visits` (or only `visitCount`)\n  and no `siteVisits` entry: rank and count are preserved on first load, and no\n  visit is double-counted after the next real visit.\n- **Empty state** — a fresh profile with no `siteVisits` key at all; Favorites\n  renders its empty state rather than throwing.\n- **Edge — open tab discount** — a site open in a non-pinned tab still has its\n  in-progress visit discounted, now at the site level.\n- **Edge — cosmetic variants** — `http://www.espn.com/` and `https://espn.com`\n  collapse into the single ESPN row (host-level grouping subsumes the old\n  `normalizeUrl` de-duplication).",
+  "description": "Favorites advertised a 56-day visit history but constantly lost it: a site visited every day could still render \"1 visit · 12h ago\". Two defects combined. `newUrl` only inserted a url key into `allUrls` when it was ABSENT, so the list was ordered by first-seen rather than last-visited even though every consumer (and the tail-eviction) treats it as a recency list — a frequently-visited site drifted to the tail, got evicted past the 250-key cap, and had its whole `url-*` record deleted, visits and all. And because keys are per-page, a content site the user read deeply actively accelerated the eviction of its own homepage while none of its article keys ever credited the site.\n\nVisit stats are now DURABLE and SITE-LEVEL. A new `siteVisits` store, keyed by host via the new pure `siteKey` helper, accumulates every visit and is pruned only by the retention horizon and MAX_VISITS — never by the display cap, and never touched by the eviction branch — so evicting a `url-*` record can no longer destroy a site's history. `allUrls` became a true LRU (move-to-front on every visit) with its cap lifted 250 → 500 behind a named MAX_TRACKED_URLS. `rankFavorites` now groups by host and scores the deduped UNION of the durable store and the per-record visits, so ESPN's homepage and its dozen articles roll into one row reflecting the site's real 8-week usage, while pre-upgrade legacy records (visitCount only) keep ranking through the existing lazy-seed migration.\n\nTwo consequences the plan did not anticipate had to be handled: the open-tab discount was applied per-candidate BEFORE grouping, so unioning the durable store afterwards would have handed the dropped in-progress visit straight back — it moved to the group level, after the union. And \"Reset favorites tracking\" zeroed only the `url-*` records, which with `siteVisits` now authoritative would have left every site's real history behind and made the reset a no-op — it now clears the durable store too. Also fixed `closeUrl`, where an untracked key hit `splice(-1, 1)` and silently promoted the OLDEST key to the front, corrupting the very recency order this change makes load-bearing.\n\n17 new tests (7 siteKey, 5 service_worker, 5 rankFavorites); the plan's reproduction test was proven red-first by stashing the fix. One existing rankFavorites test was rewritten because site-level rollup deliberately replaces its page-level contract. 533 tests passing.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/skills/codeyam-onboard/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-review-pr/review-procedure.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-app/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-see-recent-change/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/capture.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/durable-site-level-visit-stats.md\t.codeyam/plans/completed/durable-site-level-visit-stats.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-populated.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-query-distinct-rows-both-cued.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-drift-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-rows-both-cued--desktop.png",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-rows-both-cued--desktop.png.hash",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-same-origin-different-path-uncued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".gitignore",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/normalizeUrl.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-heavy-content-site-rolled-up.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-query-distinct-pages-rolled-up-and-cued.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-stats-survive-url-eviction.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-pages-rolled-up-and-cued--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-pages-rolled-up-and-cued--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/siteKey.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/siteKey.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Heavy Content Site Rolled Up",
+      "screenshotPath": "favorites-heavy-content-site-rolled-up--desktop.png"
+    },
+    {
+      "name": "Favorites - Sidebar With View All Link",
+      "screenshotPath": "favorites-sidebar-with-view-all-link--desktop.png"
+    },
+    {
+      "name": "Favorites - Stats Survive URL Eviction",
+      "screenshotPath": "favorites-stats-survive-url-eviction--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Empty",
+      "screenshotPath": "viewallfavorites-empty--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Open Cue By Page Identity",
+      "screenshotPath": "viewallfavorites-open-cue-by-page-identity--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Rich",
+      "screenshotPath": "viewallfavorites-rich--desktop.png"
+    },
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Google Doc Drift Open",
+      "screenshotPath": "favorites-google-doc-drift-open--desktop.png"
+    },
+    {
+      "name": "Favorites - Non-Website Entries Filtered",
+      "screenshotPath": "favorites-non-website-entries-filtered--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Query Distinct Pages Rolled Up And Cued",
+      "screenshotPath": "favorites-query-distinct-pages-rolled-up-and-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Same Origin Different Path Uncued",
+      "screenshotPath": "favorites-same-origin-different-path-uncued--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 533,
+    "passed": 533,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 533,
+        "passed": 533
+      }
+    ]
+  }
+}

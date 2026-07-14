@@ -881,6 +881,21 @@ async function runScenarioCheck(
           status: response.status(),
         }),
       );
+    } else if (!response && config.navigation === "topLevel") {
+      // A real top-level document load always yields a response. A null one
+      // means the status could never be checked — and an unverified status is
+      // not a passing status: a 500 whose error body renders text would
+      // otherwise satisfy `hasContent` and pass as `ok`. Fail loudly instead.
+      // The iframe path stays tolerant: there the app response is matched by
+      // exact URL and is legitimately allowed to miss.
+      pushIssue(
+        issues,
+        createIssue(
+          "navigation",
+          "Navigation response unavailable — could not verify the HTTP status of the top-level document",
+          { url },
+        ),
+      );
     }
 
     pushRedirectMismatchIssue(issues, url, frame, response, config);

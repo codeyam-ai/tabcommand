@@ -1,0 +1,37 @@
+{
+  "claimStartedAt": "2026-07-14T16:01:05Z",
+  "completedAt": "2026-07-14T16:46:47Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-1",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "durable-site-level-visit-stats",
+    "sessionId": "3af1144e-4fc5-4651-b05a-98861609832c",
+    "startedAt": "2026-07-14T16:01:05Z"
+  },
+  "createdAt": "2026-07-14T15:58:13Z",
+  "deliverables": [
+    ".claude/skills/codeyam-onboard/SKILL.md",
+    ".claude/skills/codeyam-review-pr/review-procedure.md",
+    ".claude/skills/codeyam-see-app/SKILL.md",
+    ".claude/skills/codeyam-see-recent-change/SKILL.md",
+    ".gitignore",
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/components/Favorites/Favorites.jsx",
+    "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+    "src/lib/utils/normalizeUrl.js",
+    "src/lib/utils/rankFavorites.js",
+    "src/lib/utils/rankFavorites.test.js",
+    "src/lib/utils/siteKey.js",
+    "src/lib/utils/siteKey.test.js"
+  ],
+  "journalTimestamp": "2026-07-14T16:46:47Z",
+  "mode": "ui",
+  "planFile": "completed/durable-site-level-visit-stats.md",
+  "slug": "durable-site-level-visit-stats",
+  "title": "Durable Site-Level Visit Stats"
+}

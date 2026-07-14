@@ -1,0 +1,24 @@
+{
+  "name": "Favorites - Stats Survive URL Eviction",
+  "id": "9415b7ba-a2ce-4531-994d-b9e0fd868f63",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "siteVisits": "{\"en.wikipedia.org\": [1779725000000, 1779984200000, 1780243400000, 1780502600000, 1780848200000, 1781107400000, 1781366600000, 1781539400000, 1781885000000, 1782057800000, 1782230600000, 1782403400000, 1782662600000, 1782835400000, 1783008200000, 1783181000000, 1783440200000, 1783526600000, 1783613000000, 1783699400000, 1783785800000, 1783872200000, 1783958600000, 1784001800000]}",
+      "url-https://en.wikipedia.org/wiki/Main_Page": "{\"title\": \"Wikipedia, the Free Encyclopedia\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1784001800000]}",
+      "activeTabs": "[]",
+      "allUrls": "[\"url-https://en.wikipedia.org/wiki/Main_Page\", \"url-https://linear.app/team/issues\", \"url-https://mail.google.com/mail/u/0\"]",
+      "url-https://mail.google.com/mail/u/0": "{\"title\": \"Inbox \\u2014 Gmail\", \"favicon\": \"\", \"visitCount\": 18}",
+      "labels": "{}",
+      "uxSettings": "{\"page\": {\"name\": \"Favorites\"}}",
+      "favoritesHidden": "[]",
+      "url-https://linear.app/team/issues": "{\"title\": \"Issues \\u2014 Linear\", \"favicon\": \"\", \"visitCount\": 14}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx"
+}

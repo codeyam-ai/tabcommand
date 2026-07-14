@@ -1,5 +1,6 @@
 import { isTrackableUrl } from './isTrackableUrl';
 import { normalizeUrl } from './normalizeUrl';
+import { siteKey } from './siteKey';
 import samePageKey from './samePageKey';
 import {
   decayedVisitScore,
@@ -43,6 +44,12 @@ import {
 //                  tests pin behavior instead of relying on wall-clock.
 //     halfLifeMs — decay half-life (default HALF_LIFE_MS).
 //     qualifyMin — decayed-score qualification threshold (default QUALIFY_MIN).
+//     siteVisits — the DURABLE site-level visit store (`{ host: [epoch-ms] }`),
+//                  as the service worker persists it (default {}). This is the
+//                  authoritative visit history: unlike the per-record `visits`,
+//                  it is never destroyed when a `url-*` key is evicted from the
+//                  tracked-URL cap, so the retention window Favorites advertises
+//                  is actually honored.
 //
 // Each returned row carries the stats the sidebar and View All page need:
 //   { urlKey, url, title, favicon, isOpen, isHidden, score, visitCount,
@@ -55,11 +62,26 @@ import {
 // pointing at a non-http(s) URL (`about:blank`, `file://`, etc.) is skipped so
 // legacy junk recorded before the service worker was gated never surfaces.
 //
-// Cosmetic duplicates (http/https/www/trailing-slash variants) are collapsed by
-// normalized URL, their visit timestamps merged, so a site gets credit for all
-// of its variants. Sites whose merged decayed score is below `qualifyMin` are
-// dropped — so a site only earns a place by being genuinely (and recently)
-// visited, never by being merely recent in the list.
+// Candidates are rolled up BY SITE (`siteKey` — the host), not per page, so every
+// article on a content site credits the site itself: ESPN's homepage and a dozen
+// of its articles become one "espn.com" row whose count and sparkline reflect the
+// site's real usage, instead of a 1-visit homepage row beside a dozen orphans. A
+// row therefore means "ESPN", not "this exact ESPN page". The representative the
+// row renders and opens is the most-recent (lowest-index) member. This subsumes
+// the old cosmetic-variant collapsing — http/https/www/trailing-slash variants
+// share a host, so they were already destined for the same row.
+//
+// A group's timestamps are the deduped UNION of the durable `siteVisits[host]`
+// history and the per-record `visits` its members carry. Union, not either-or:
+// right after the upgrade `siteVisits[host]` holds a single timestamp while the
+// legacy records still hold the site's whole history, so preferring the new store
+// would itself wipe what this feature exists to protect. Both stores are written
+// from the same `newUrl` call with the same `now`, so a doubly-counted visit is
+// bit-identical and collapses on dedupe.
+//
+// Sites whose merged decayed score is below `qualifyMin` are dropped — so a site
+// only earns a place by being genuinely (and recently) visited, never by being
+// merely recent in the list.
 
 const usableTitle = (record) =>
   record && typeof record.title === 'string' && record.title.length > 0;
@@ -102,6 +124,7 @@ export function rankFavorites(
   const now = options.now != null ? options.now : Date.now();
   const halfLifeMs = options.halfLifeMs != null ? options.halfLifeMs : HALF_LIFE_MS;
   const qualifyMin = options.qualifyMin != null ? options.qualifyMin : QUALIFY_MIN;
+  const siteVisits = options.siteVisits || {};
 
   // Candidates are the recency-ordered keys that actually have a renderable
   // record. We keep each candidate's original index only as a deterministic
@@ -118,13 +141,13 @@ export function rankFavorites(
     const candidateUrl = record.url || urlKey.replace(/^url-/, '');
     if (!isTrackableUrl(candidateUrl)) continue;
 
-    let visits = visitsFor(record, now);
-    // Discount a currently-open (non-pinned) tab's in-progress visit by dropping
-    // its most-recent timestamp — a tab that's still open shouldn't have that
-    // visit padding the rank while it's open. Open status is page-identity based
-    // (candidateUrl's origin+path), so a query-drifted live tab still counts.
+    // The candidate's per-record visits. The open-tab discount is NOT applied
+    // here: it has to happen after the durable `siteVisits` history is unioned in
+    // below, or the union would just restore the timestamp we dropped.
+    const visits = visitsFor(record, now);
+    // Open status is page-identity based (candidateUrl's origin+path), so a
+    // query-drifted live tab still counts as the same open page.
     const isOpen = openPageKeys.has(samePageKey(candidateUrl));
-    if (isOpen && visits.length > 0) visits = visits.slice(0, -1);
 
     candidates.push({
       urlKey,
@@ -137,14 +160,16 @@ export function rankFavorites(
   }
   if (candidates.length === 0) return [];
 
-  // Group cosmetic duplicates (slash/www/protocol variants) onto one row: the
-  // most-recent (lowest-index) member is the representative the row opens and
-  // renders, and visit timestamps are merged so the site is scored across all of
-  // its variants.
+  // Roll every page of a site onto one row, keyed by host: the most-recent
+  // (lowest-index) member is the representative the row opens and renders, and
+  // visit timestamps are merged so the site is scored across all of its pages and
+  // cosmetic variants. An unparseable URL yields no site key — fall back to the
+  // normalized URL so such a candidate keeps its own row rather than every
+  // malformed entry bucketing together under ''.
   const groups = new Map();
   for (const candidate of candidates) {
     const url = candidate.record.url || candidate.urlKey.replace(/^url-/, '');
-    const groupKey = normalizeUrl(url);
+    const groupKey = siteKey(url) || normalizeUrl(url);
     const existing = groups.get(groupKey);
     if (existing) {
       existing.visits = existing.visits.concat(candidate.visits);
@@ -169,8 +194,17 @@ export function rankFavorites(
   // the qualification threshold, then sort by decayed score desc with recency
   // (latest visit, then list position) as the deterministic tiebreak.
   const qualifying = [];
-  for (const group of groups.values()) {
-    const visits = pruneVisits(group.visits, now);
+  for (const [groupKey, group] of groups) {
+    // The site's real history: the durable store unioned with whatever the
+    // members' own records carry, deduped by exact epoch-ms (the two stores
+    // record the same visit with the same timestamp, so duplicates collapse).
+    const merged = [...new Set(group.visits.concat(siteVisits[groupKey] || []))];
+    let visits = pruneVisits(merged, now);
+    // Discount a currently-open (non-pinned) tab's in-progress visit by dropping
+    // the site's most-recent timestamp — a tab that's still open shouldn't have
+    // that visit padding the rank while it's open. Applied here, on the unioned
+    // history, so the durable store can't hand the dropped visit straight back.
+    if (group.isOpen && visits.length > 0) visits = visits.slice(0, -1);
     const score = decayedVisitScore(visits, now, halfLifeMs);
     if (score < qualifyMin) continue;
     group.visits = visits;

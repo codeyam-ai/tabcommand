@@ -1,3 +1,5 @@
+import { siteKey } from './siteKey';
+
 // Produces a canonical grouping key for de-duplicating URLs that are "the same
 // site" but differ only in cosmetic ways. The Favorites section keys records as
 // `url-<url-without-#hash>`, so two URLs that differ only by a trailing slash,
@@ -31,10 +33,12 @@ export function normalizeUrl(url) {
     return raw;
   }
 
-  // Drop the scheme entirely so http/https collapse; lowercase + strip a leading
-  // `www.` from the host; drop a trailing slash from the path (so a bare root
-  // becomes ''); keep the (lowercase-host) query; drop the fragment.
-  const host = parsed.host.toLowerCase().replace(/^www\./, '');
+  // Drop the scheme entirely so http/https collapse; take the host from siteKey
+  // so host canonicalization (lowercase + leading-`www.` strip) has exactly one
+  // definition shared with the site-level `siteVisits` store; drop a trailing
+  // slash from the path (so a bare root becomes ''); keep the query; drop the
+  // fragment. `raw` parsed above, so siteKey re-parses it successfully too.
+  const host = siteKey(raw);
   const path = parsed.pathname.replace(/\/+$/, '');
   return `${host}${path}${parsed.search}`;
 }

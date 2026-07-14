@@ -1,0 +1,30 @@
+{
+  "name": "Favorites - Heavy Content Site Rolled Up",
+  "id": "0d6c36c6-c0b3-489a-bc8a-1fcd2255c126",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.espn.com": "{\"title\": \"ESPN \\u2014 Serving Sports Fans. Anytime. Anywhere.\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1784034200000]}",
+      "uxSettings": "{\"page\": {\"name\": \"Favorites\"}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 9}",
+      "url-https://www.espn.com/nfl/scoreboard": "{\"title\": \"NFL Scoreboard \\u2014 Week 14 \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1783872200000]}",
+      "url-https://www.espn.com/nba/story/_/id/44118872/lakers-trade-deadline": "{\"title\": \"Lakers weigh trade-deadline options \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1783872200000]}",
+      "url-https://www.espn.com/soccer/report/_/gameId/701244": "{\"title\": \"Match report: Arsenal 2-1 Chelsea \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1783872200000]}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 6}",
+      "url-https://www.espn.com/college-football/rankings": "{\"title\": \"College Football Rankings \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1783872200000]}",
+      "favoritesHidden": "[]",
+      "url-https://www.espn.com/mlb/standings": "{\"title\": \"MLB Standings \\u2014 2026 Season \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1783872200000]}",
+      "siteVisits": "{\"espn.com\": [1779379400000, 1779552200000, 1779811400000, 1780157000000, 1780329800000, 1780589000000, 1780761800000, 1781021000000, 1781193800000, 1781453000000, 1781625800000, 1781798600000, 1782144200000, 1782317000000, 1782489800000, 1782749000000, 1782921800000, 1783094600000, 1783353800000, 1783440200000, 1783526600000, 1783699400000, 1783785800000, 1783872200000, 1783958600000, 1784016200000, 1784034200000], \"github.com\": [1782317000000, 1783008200000, 1783613000000, 1783872200000, 1784023400000], \"news.ycombinator.com\": [1783267400000, 1783699400000, 1783958600000]}",
+      "activeTabs": "[]",
+      "url-https://www.espn.com/nfl/story/_/id/44120031/chiefs-comeback-week-14": "{\"title\": \"Chiefs stage late comeback in Week 14 thriller \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1783872200000]}",
+      "allUrls": "[\"url-https://www.espn.com\", \"url-https://www.espn.com/nfl/story/_/id/44120031/chiefs-comeback-week-14\", \"url-https://www.espn.com/nba/story/_/id/44118872/lakers-trade-deadline\", \"url-https://www.espn.com/soccer/report/_/gameId/701244\", \"url-https://www.espn.com/mlb/standings\", \"url-https://www.espn.com/nfl/scoreboard\", \"url-https://www.espn.com/college-football/rankings\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://news.ycombinator.com\"]",
+      "labels": "{}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx"
+}

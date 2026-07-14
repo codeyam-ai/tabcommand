@@ -3088,6 +3088,15 @@
       "runner": "tests"
     },
     {
+      "description": "rankFavorites dedupes a visit present in both the url record and siteVisits so it is not double-counted.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › dedupes a visit present in both the record and siteVisits",
+      "line": 324,
+      "registeredAt": "2026-07-14T16:25:03.372248762+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "Open-tab discount: an open non-pinned tab's most-recent (in-progress) visit is dropped from its history, lowering the score.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
@@ -3160,21 +3169,30 @@
       "runner": "tests"
     },
     {
-      "description": "normalizeUrl is untouched: two favorites that differ only by ?query remain TWO distinct rows — but page-identity open detection lights BOTH when a live tab is on that same origin+path under any query.",
-      "file": "src/lib/utils/rankFavorites.test.js",
-      "format": "vitest",
-      "key": "rankFavorites › keeps query-distinct favorites as separate rows while page identity drives the open cue",
-      "line": 273,
-      "registeredAt": "2026-07-03T20:21:00Z",
-      "runner": "tests"
-    },
-    {
       "description": "Time-decay ordering: two sites with the SAME raw visit count but different recency — the recently-visited one ranks above the stale one.",
       "file": "src/lib/utils/rankFavorites.test.js",
       "format": "vitest",
       "key": "rankFavorites › ranks a recent site above a stale one with the same visit count",
       "line": 50,
       "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "rankFavorites falls back to per-record visits when siteVisits is absent, preserving the pre-upgrade path.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › ranks from record visits alone when siteVisits is absent",
+      "line": 366,
+      "registeredAt": "2026-07-14T16:25:03.495584152+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "rankFavorites ranks from the durable siteVisits history when a url record was evicted and recreated.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › ranks from siteVisits when the url record was evicted and recreated",
+      "line": 303,
+      "registeredAt": "2026-07-14T16:25:03.311733031+00:00",
       "runner": "tests"
     },
     {
@@ -3193,6 +3211,24 @@
       "key": "rankFavorites › returns [] for empty or non-array allUrls",
       "line": 30,
       "registeredAt": "2026-06-28T10:02:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "rankFavorites rolls a content site homepage and its article pages into one row.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › rolls a content site homepage and its articles into one row",
+      "line": 340,
+      "registeredAt": "2026-07-14T16:25:03.434520017+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "rankFavorites rolls query-distinct pages of one site into a single row while page identity still drives the open cue.",
+      "file": "src/lib/utils/rankFavorites.test.js",
+      "format": "vitest",
+      "key": "rankFavorites › rolls query-distinct pages of one site into a single row and keeps the open cue",
+      "line": 275,
+      "registeredAt": "2026-07-14T16:25:03.254879131+00:00",
       "runner": "tests"
     },
     {
@@ -3632,7 +3668,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
-      "line": 574,
+      "line": 644,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3641,7 +3677,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag on a deliberate group change",
-      "line": 821,
+      "line": 891,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3650,7 +3686,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag when a flagged tab is removed",
-      "line": 837,
+      "line": 907,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3659,7 +3695,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › ejects an auto-grouped non-member and does not record its URL",
-      "line": 790,
+      "line": 860,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3668,7 +3704,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › keeps an auto-grouped tab whose URL is a deliberate member",
-      "line": 807,
+      "line": 877,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3677,7 +3713,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › autoCloseThresholdMinutes › falls back to the default and maps Off to 0",
-      "line": 1337,
+      "line": 1407,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3686,7 +3722,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes a grouped/labeled inactive tab",
-      "line": 1277,
+      "line": 1347,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3695,7 +3731,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes and records an inactive ungrouped tab",
-      "line": 1242,
+      "line": 1312,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3704,7 +3740,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes nothing when autoCloseMinutes is 0 meaning Off",
-      "line": 1327,
+      "line": 1397,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3713,7 +3749,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › continues the sweep when one tab removal throws",
-      "line": 1285,
+      "line": 1355,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3722,7 +3758,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › keeps a tab that was active within the window",
-      "line": 1268,
+      "line": 1338,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3731,7 +3767,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › never closes pinned, tabCommandPinned, or the active tab",
-      "line": 1251,
+      "line": 1321,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3740,7 +3776,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › prunes autoClosed entries older than MAX_AUTO_CLOSED_TIME",
-      "line": 1303,
+      "line": 1373,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3749,7 +3785,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › registers the auto-close alarm at load",
-      "line": 1236,
+      "line": 1306,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -3758,8 +3794,17 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › respects a custom settings.autoCloseMinutes",
-      "line": 1317,
+      "line": 1387,
       "registeredAt": "2026-06-27T20:20:41Z",
+      "runner": "tests"
+    },
+    {
+      "description": "closeUrl leaves allUrls untouched for an untracked key, instead of promoting the oldest key to the front.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › closeUrl › leaves allUrls untouched when the key is not tracked",
+      "line": 383,
+      "registeredAt": "2026-07-14T16:25:02.907497060+00:00",
       "runner": "tests"
     },
     {
@@ -3776,7 +3821,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › does not persist when the runtime flag is off",
-      "line": 872,
+      "line": 942,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3785,7 +3830,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › is a no-op that does not throw when disabled",
-      "line": 849,
+      "line": 919,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3794,7 +3839,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › persists a breadcrumb to groupingLog when the runtime flag is on",
-      "line": 857,
+      "line": 927,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -3803,7 +3848,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › keeps the tab and clears the flag when fresh storage shows membership",
-      "line": 755,
+      "line": 825,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3812,7 +3857,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › returns wait and does nothing while the URL is still unloaded",
-      "line": 741,
+      "line": 811,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3821,7 +3866,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › ungroups a confirmed non-member and tracks the in-flight ungroup",
-      "line": 771,
+      "line": 841,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -3875,7 +3920,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › captures a genuinely grouped tab",
-      "line": 664,
+      "line": 734,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3884,7 +3929,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › does not capture a tab whose ungroup is pending",
-      "line": 651,
+      "line": 721,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3893,7 +3938,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ignores pinned tabs",
-      "line": 644,
+      "line": 714,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3902,7 +3947,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
-      "line": 637,
+      "line": 707,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3911,7 +3956,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
-      "line": 602,
+      "line": 672,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -3920,7 +3965,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › seeds a missing label on the add path without throwing",
-      "line": 612,
+      "line": 682,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -3947,7 +3992,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › degrades to none when a system call throws",
-      "line": 1189,
+      "line": 1259,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3956,7 +4001,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › falls back to chrome.system and tags 'system' when processes is absent",
-      "line": 1154,
+      "line": 1224,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3965,7 +4010,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'none' and never throws when no load API is available",
-      "line": 1180,
+      "line": 1250,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -3974,7 +4019,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'processes' and keeps processing when chrome.processes is present",
-      "line": 1144,
+      "line": 1214,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -4015,11 +4060,20 @@
       "runner": "tests"
     },
     {
+      "description": "newUrl accumulates visits from different pages of one site under a single host key.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › accumulates visits from different pages of one site under one host",
+      "line": 436,
+      "registeredAt": "2026-07-14T16:25:03.121642779+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "A repeat visit appends a fresh timestamp and increments visitCount while preserving the prior visits and other url-* fields.",
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › appends a visit timestamp on a repeat visit",
-      "line": 426,
+      "line": 496,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -4028,8 +4082,26 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › does not record non-website URLs",
-      "line": 397,
+      "line": 467,
       "registeredAt": "2026-06-29T19:50:50Z",
+      "runner": "tests"
+    },
+    {
+      "description": "newUrl keeps a site's siteVisits history intact even when the tracked-URL cap evicts its url record.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › keeps siteVisits history for a site whose url record is evicted",
+      "line": 449,
+      "registeredAt": "2026-07-14T16:25:03.193100605+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "newUrl moves a revisited url key back to the front of allUrls so a frequently-visited site is never evicted from the tail.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › moves a revisited url key to the front of allUrls",
+      "line": 412,
+      "registeredAt": "2026-07-14T16:25:02.978096739+00:00",
       "runner": "tests"
     },
     {
@@ -4037,7 +4109,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prepends an unseen url key to allUrls",
-      "line": 388,
+      "line": 400,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4046,7 +4118,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prunes visits older than the retention horizon on write",
-      "line": 445,
+      "line": 515,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -4055,8 +4127,17 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › records a first visit timestamp and visitCount on a new url",
-      "line": 414,
+      "line": 484,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "newUrl records each visit under the site host in the durable siteVisits store.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › records the visit under the site host in siteVisits",
+      "line": 426,
+      "registeredAt": "2026-07-14T16:25:03.050019094+00:00",
       "runner": "tests"
     },
     {
@@ -4064,7 +4145,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › returns early without tabId/url",
-      "line": 382,
+      "line": 394,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4073,7 +4154,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated group removal › removes a hashed URL using the normalized key when a tab leaves a group",
-      "line": 894,
+      "line": 964,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -4082,7 +4163,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not heal the label on a real navigation",
-      "line": 1088,
+      "line": 1158,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -4091,7 +4172,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a fragment-only change",
-      "line": 975,
+      "line": 1045,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -4100,7 +4181,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a query-string-only change",
-      "line": 959,
+      "line": 1029,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -4109,7 +4190,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals a stale slot even when it is a third query variant",
-      "line": 1045,
+      "line": 1115,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -4118,7 +4199,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals the drifted label urlKey to the live key on a query-only change",
-      "line": 1022,
+      "line": 1092,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -4127,7 +4208,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals via the getTabGroup fallback when the groups map is cold",
-      "line": 1109,
+      "line": 1179,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -4136,7 +4217,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › removes the stale slot without duplicating an already-present live key",
-      "line": 1067,
+      "line": 1137,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -4145,7 +4226,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different origin",
-      "line": 1005,
+      "line": 1075,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -4154,7 +4235,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different path",
-      "line": 991,
+      "line": 1061,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -4181,7 +4262,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
-      "line": 564,
+      "line": 634,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4190,7 +4271,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › caps length to the newest 50 visits",
-      "line": 535,
+      "line": 605,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -4199,7 +4280,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › drops visits older than the retention horizon",
-      "line": 517,
+      "line": 587,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -4208,7 +4289,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › returns [] for non-array or empty input",
-      "line": 510,
+      "line": 580,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -4217,7 +4298,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › sorts ascending and filters non-finite entries",
-      "line": 526,
+      "line": 596,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -4226,7 +4307,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › ignores missing tabs and non-trackable URLs",
-      "line": 498,
+      "line": 568,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -4235,7 +4316,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › records a visit when the last visit is older than the throttle",
-      "line": 468,
+      "line": 538,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -4244,7 +4325,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › records nothing within the throttle window",
-      "line": 486,
+      "line": 556,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -4253,7 +4334,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › persists the updated labels to storage",
-      "line": 726,
+      "line": 796,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4262,7 +4343,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › pushes the urlKey into an existing label",
-      "line": 715,
+      "line": 785,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4271,7 +4352,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › seeds a missing label with the tab urlKey and mapped color",
-      "line": 703,
+      "line": 773,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4280,7 +4361,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
-      "line": 593,
+      "line": 663,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4289,7 +4370,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
-      "line": 588,
+      "line": 658,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4316,7 +4397,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
-      "line": 547,
+      "line": 617,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4343,7 +4424,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false for a label with no urlKeys",
-      "line": 689,
+      "line": 759,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4352,7 +4433,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the label is undefined or null",
-      "line": 695,
+      "line": 765,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4361,7 +4442,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the urlKey is absent",
-      "line": 683,
+      "line": 753,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4370,7 +4451,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is true when the urlKey is present in the label",
-      "line": 677,
+      "line": 747,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4444,6 +4525,69 @@
       "key": "service_worker.js › validTab › rejects incognito tabs",
       "line": 162,
       "registeredAt": "2026-06-28T11:38:08Z",
+      "runner": "tests"
+    },
+    {
+      "description": "siteKey canonicalizes scheme, host case and a leading www so cosmetic variants share one key.",
+      "file": "src/lib/utils/siteKey.test.js",
+      "format": "vitest",
+      "key": "siteKey › collapses scheme, host case, and a leading www",
+      "line": 26,
+      "registeredAt": "2026-07-14T16:24:40.244810925+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "siteKey keeps non-www subdomains distinct so docs.python.org does not over-merge into python.org.",
+      "file": "src/lib/utils/siteKey.test.js",
+      "format": "vitest",
+      "key": "siteKey › keeps non-www subdomains distinct",
+      "line": 35,
+      "registeredAt": "2026-07-14T16:24:40.301098046+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Every page of a content site collapses onto one site key so article visits credit the site.",
+      "file": "src/lib/utils/siteKey.test.js",
+      "format": "vitest",
+      "key": "siteKey › maps every page of a site to the same key",
+      "line": 15,
+      "registeredAt": "2026-07-14T16:24:40.181125661+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "siteKey preserves an explicit port as part of the host identity.",
+      "file": "src/lib/utils/siteKey.test.js",
+      "format": "vitest",
+      "key": "siteKey › preserves an explicit port",
+      "line": 42,
+      "registeredAt": "2026-07-14T16:24:40.357369789+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "siteKey reduces a URL to its bare host, dropping path, query and fragment.",
+      "file": "src/lib/utils/siteKey.test.js",
+      "format": "vitest",
+      "key": "siteKey › reduces a url to its bare host",
+      "line": 8,
+      "registeredAt": "2026-07-14T16:24:40.120466070+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "siteKey returns an empty string rather than throwing on unparseable or non-string input.",
+      "file": "src/lib/utils/siteKey.test.js",
+      "format": "vitest",
+      "key": "siteKey › returns an empty string for unparseable or non-string input",
+      "line": 49,
+      "registeredAt": "2026-07-14T16:24:40.415898567+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "siteKey trims surrounding whitespace before parsing, mirroring normalizeUrl.",
+      "file": "src/lib/utils/siteKey.test.js",
+      "format": "vitest",
+      "key": "siteKey › trims surrounding whitespace before parsing",
+      "line": 59,
+      "registeredAt": "2026-07-14T16:24:40.474699602+00:00",
       "runner": "tests"
     },
     {

@@ -26,8 +26,8 @@ const Favorites = () => {
     const load = () => {
       Chrome.get(
         'Favorites1',
-        ['allUrls', 'activeTabs', 'favoritesHidden'],
-        ({ allUrls, activeTabs, favoritesHidden }) => {
+        ['allUrls', 'activeTabs', 'favoritesHidden', 'siteVisits'],
+        ({ allUrls, activeTabs, favoritesHidden, siteVisits }) => {
           const keys = allUrls || [];
           if (keys.length === 0) {
             setFavorites([]);
@@ -54,6 +54,7 @@ const Favorites = () => {
             setFavorites(
               rankFavorites(keys, records, FAVORITES_LIMIT, excludedKeys, {
                 openKeys,
+                siteVisits: siteVisits || {},
               })
             );
           });
@@ -65,14 +66,15 @@ const Favorites = () => {
 
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
-      // Any change to the recency list or a url-* record can shift the ranking;
-      // pinning/unpinning a tab (activeTabs) or removing a favorite
-      // (favoritesHidden) changes the exclusion set, so reload on those too.
+      // Any change to the recency list, the durable visit store, or a url-* record
+      // can shift the ranking; pinning/unpinning a tab (activeTabs) or removing a
+      // favorite (favoritesHidden) changes the exclusion set, so reload on those too.
       const touched = Object.keys(changes).some(
         (key) =>
           key === 'allUrls' ||
           key === 'activeTabs' ||
           key === 'favoritesHidden' ||
+          key === 'siteVisits' ||
           key.startsWith('url-')
       );
       if (touched) load();
