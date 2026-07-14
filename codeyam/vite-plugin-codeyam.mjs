@@ -25,7 +25,22 @@ import { resolve } from 'node:path';
 // id carries no `.jsx` suffix, so it would be parsed as plain JS and choke on
 // the JSX. Instead `resolveId` returns the harness's real on-disk path, letting
 // Vite + @vitejs/plugin-react transform it as an ordinary `.jsx` source file.
+// In a PRODUCTION BUILD the harness is swapped for a stub that re-exports <App/>
+// directly (`PROD_ISOLATE`). The harness only renders something other than <App/>
+// when the URL carries `?isolate=`, which never happens in a packaged extension —
+// but it carries ISOLATION_PROPS, and it pulls in the `codeyam:components` /
+// `codeyam:component-scenarios` manifests. All of that is scenario mock data, and
+// bundling it shipped internal URLs (Notion/Linear/Figma) and placeholder favicon
+// links inside the published .zip. Dropping it keeps the store package free of
+// codeyam artifacts; dev/editor/scenario-capture (which run the dev server) are
+// untouched. Set CODEYAM_KEEP_HARNESS=1 to force the harness into a build.
+//
+// The stub is JSX-free on purpose: a `\0`-virtual id has no `.jsx` extension, so
+// esbuild would parse JSX as plain JS and choke. A bare re-export sidesteps that.
 const HARNESS_FILE = '.codeyam/harness/isolate.jsx';
+
+const PROD_ISOLATE_ID = 'codeyam:isolate-prod';
+const PROD_ISOLATE = "export { App as default } from '/src/lib/pages';\n";
 
 const VIRTUAL_MODULES = {
   'codeyam:components': {
@@ -40,6 +55,7 @@ const VIRTUAL_MODULES = {
 
 export function codeyamPlugin() {
   let root = process.cwd();
+  let stripHarness = false;
   const generatedDir = () => resolve(root, '.codeyam/generated');
 
   return {
@@ -47,8 +63,15 @@ export function codeyamPlugin() {
     enforce: 'pre',
     configResolved(config) {
       root = config.root;
+      stripHarness =
+        config.command === 'build' && !process.env.CODEYAM_KEEP_HARNESS;
     },
     resolveId(id) {
+      // Production build: swap the harness (and the scenario data it drags in)
+      // for a stub that is just <App/>. See the note by PROD_ISOLATE above.
+      if (id === 'codeyam:isolate' && stripHarness) {
+        return `\0${PROD_ISOLATE_ID}`;
+      }
       // `codeyam:isolate` resolves to the harness's real path so Vite transforms
       // it as a normal `.jsx` file (JSX + the harness's own `/src/lib/pages` and
       // `codeyam:*` imports resolve through the standard pipeline). Fail loud if
@@ -72,8 +95,13 @@ export function codeyamPlugin() {
     },
     load(id) {
       if (!id.startsWith('\0')) return null;
+      if (id === `\0${PROD_ISOLATE_ID}`) return PROD_ISOLATE;
       const spec = VIRTUAL_MODULES[id.slice(1)];
       if (!spec) return null;
+      // In a production build the harness is gone, so nothing imports these —
+      // but resolve them empty anyway, so a stray import can never pull scenario
+      // data into the shipped package.
+      if (stripHarness) return spec.empty;
       const abs = resolve(root, spec.file);
       return existsSync(abs) ? readFileSync(abs, 'utf8') : spec.empty;
     },
