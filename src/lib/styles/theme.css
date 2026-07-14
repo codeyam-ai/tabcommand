@@ -7,10 +7,12 @@
  * constant across themes. Values are the authoritative handoff tables — treat
  * them as exact.
  *
- * IBM Plex Sans (UI) + IBM Plex Mono (numerics/eyebrows) are pulled in at runtime
- * rather than via a build-time font framework, per the handoff.
+ * IBM Plex Sans (UI) + IBM Plex Mono (numerics/eyebrows) are self-hosted in
+ * fonts.css, imported ahead of this file. They are deliberately NOT fetched from
+ * fonts.googleapis.com: a CDN font request would reveal every user's IP to Google
+ * on each open, contradicting the privacy policy's promise that TabCommand sends
+ * nothing to any third party.
  */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap');
 
 :root,
 [data-theme='dark'] {
