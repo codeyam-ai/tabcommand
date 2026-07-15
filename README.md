@@ -12,6 +12,14 @@ TabCommand is a chrome extension designed to provide complete control over your 
   
 </p>
 
+
+## Install TabCommand
+
+TabCommand is available for free in the Chrome Extension store.
+
+[TabCommand Chrome Extensions](https://chromewebstore.google.com/detail/tabcommand/admgekbonebggnabmhcihnmddeeipnlg)
+
+
 <!-- codeyam:run-and-edit:start -->
 ## Develop this project with codeyam-editor
 
