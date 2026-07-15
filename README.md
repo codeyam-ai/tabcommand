@@ -23,17 +23,17 @@ TabCommand is available for free in the Chrome Extension store.
 <!-- codeyam:run-and-edit:start -->
 ## Develop this project with codeyam-editor
 
-This project is built with [codeyam-editor](https://codeyam.com) — code and runnable data scenarios are authored side by side against a live preview.
+This project is built with [codeyam-editor](https://codeyam.com) — code and runnable data scenarios are authored side by side against a live preview. Requires a subscription to Claude, Gemini, or Codex.
 
 ```bash
-# Launch the editor (split-screen terminal + live preview)
+# Clone the TabCommand repo
+git clone https://github.com/codeyam-ai/tabcommand && cd tabcommand
+
+# Install CodeYam Editor
+npm install -g @codeyam-editor/codeyam-editor@latest
+
+# Launch the editor from the TabCommand folder
 codeyam-editor editor
-
-# Run the app
-npm run dev
-
-# Run the tests
-npx vitest run
 ```
 <!-- codeyam:run-and-edit:end -->
 
@@ -51,8 +51,10 @@ npm run build
 ```
 
 Then open `chrome://extensions` → enable **Developer mode** → **Load unpacked** →
-select the `build/` folder. Unpacked extensions don't auto-update — re-run `npm run build`
-and reload the extension to pick up changes.
+select the `build/` folder. 
+
+
+After making changes to the code you must re-run `npm run build` and reload the extension from the chrome extensions manager to pick up changes.
 
 
 <!-- codeyam:scenario-gallery:start -->
