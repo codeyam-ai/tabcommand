@@ -107,6 +107,48 @@ After the registry/glossary pass, use the Explore agent or direct
 Glob/Grep/Read tools to investigate code the indexes pointed you at. Be
 thorough — the plan quality depends on understanding the codebase.
 
+**Existing-implementation survey (config field / gate dimension plans).** If
+the plan will add a config field, threshold, or gate dimension, grep the
+target crate for the proposed field/behavior *before* writing the plan, and
+record the result in the `## Reused existing code` section — even when the
+answer is "nothing equivalent exists" (write that explicitly). A proposed
+`perPathFloor` that duplicates an already-implemented `per_file` threshold
+must be caught here, not mid-build. The Confirm gate's
+`plan-staleness-check --format json` surfaces a non-null `existingImplAdvisory`
+when a field/dimension-adding plan records no survey, so a missing survey
+will be flagged at approval.
+
+**Mechanism-feasibility (per-scenario delivery plans).** If the plan
+introduces a new mechanism for carrying per-scenario state — an env var, a
+launch flag, a process-level config — confirm in the plan that the chosen seam
+is read on scenario activation, not only once at dev-server launch. The dev
+server starts once and stays up, so a launch-time value is fixed for the whole
+session and cannot vary per scenario; the per-scenario seam is the MockEngine
+path, not a launch env var.
+
+**First-time cross-target gate inventory.** If the plan adds a cross-target
+gate (a new entry in `crossTargetChecks`) for the first time, run a full
+no-`-D` inventory of that target and put the real file/item count in the plan.
+Scope discovered mid-build (one named file turning into 14 across 10 files)
+forces a stop-and-re-scope; the inventory belongs in the plan before approval.
+
+**Referenced-path resolution.** Every repo-relative file path the plan cites
+as an *existing* dependency — the root-cause file, the module to modify, the
+site to reference — must actually resolve in the tree. Verify each path exists
+before writing it into the plan (a wrong root-cause file sends the whole build
+against the wrong surface). Paths the plan will *create* are exempt; mark them
+`(new)` so they read as intended-new rather than stale. The Confirm gate's
+`plan-staleness-check --format json` surfaces a non-null `referencedPathAdvisory`
+when a cited, repo-rooted, non-created path does not exist.
+
+**Repro-fixture geometry.** For a bug plan, do not hardcode a reproduction
+geometry (a 40x40 grid, an N×M input) as settled fact when it is really an
+unverified guess — a fixture that does not actually trigger the failure leaves
+the red-first test green and wastes the loop. State in the plan that the
+geometry is to be confirmed empirically at execution (observe the fixture
+reproduce the bug before trusting it). The Confirm gate surfaces a non-null
+`reproFixtureAdvisory` when a repro-context plan names a hardcoded geometry.
+
 **Constrained-file pre-check.** Once investigation has produced the
 candidate file list, run it through the editor so the plan never invites an
 edit the guards will reject:
@@ -150,30 +192,31 @@ Good questions:
 
 ### Step 5: Write the plan file
 
-Create `.codeyam/plans/<slug>.md` using the Write tool.
+**Do not create the plan file with the Write tool, and never hand-author its
+YAML frontmatter.** Write the plan **body** to a scratch file, then hand it to
+`plan-create`, which derives the slug, writes the frontmatter, stamps
+`createdAt`, and validates the result:
 
-**Slug:** Derive from the title — lowercase, alphanumeric + hyphens only. Example: "Session Recovery UX" becomes `session-recovery-ux.md`.
+```bash
+codeyam-editor editor plan-create \
+  --title "Dark Mode Toggle" \
+  --prefix "PROJ-123" \
+  --mode ui \
+  --body-file .codeyam/tmp/plan-body.md
+```
 
-- **With a name prefix** (from Step 2): prepend the slugified prefix joined to
-  the base title with a **double hyphen** (`--`) —
-  `<slugify(prefix)>--<slugify(base title)>`. Slugify each half the same way
-  (lowercase, alphanumeric + hyphens) and join the two halves with `--`, so the
-  prefix boundary stays visible in the filename even when the prefix itself
-  contains a single hyphen. Example: prefix `PROJ-123` + title "Dark Mode
-  Toggle" → `proj-123--dark-mode-toggle.md`.
-- **Without a prefix**: derive from the title exactly as above. Example: title
-  "Dark Mode Toggle" → `dark-mode-toggle.md`.
+Omit `--prefix` when Step 2 produced no prefix. The command prints the path it
+wrote, and refuses rather than clobbering an existing slug.
 
-**Plan file format:**
+**Why a command and not the Write tool:** `createdAt` has to be a real
+timestamp, and you have no reliable clock — anything you type there is a guess
+that the Plan tab then renders as fact. `plan-create` stamps it from the system
+clock, so the field is not on your authoring surface at all. There is nothing to
+guess and nothing to get wrong.
+
+**Body format** (no frontmatter — `plan-create` writes it):
 
 ```markdown
----
-title: "Feature Name"
-mode: ui
-createdAt: "YYYY-MM-DDTHH:MM:SSZ"
-source: manual
----
-
 ## Summary
 
 One-paragraph description of what to build or fix and why.
@@ -233,44 +276,28 @@ returns `[[1, 3], [2, 5]]`, so the `toEqual([[1, 5]])` assertion fails.
 - Edge case 2
 ```
 
-**Frontmatter fields:**
-- `title` (required) — Feature name. Becomes the `--feature` value in the editor.
-  **With a name prefix** (from Step 2), write it as `"<prefix> -- <base title>"`:
-  the prefix verbatim (as the user typed it, with any double-quotes stripped), a
-  space, a double hyphen, a space, then the base title. The ` -- ` delimiter
-  makes the prefix visually distinct from the title (far harder to miss than a
-  bare colon). The prefix is kept readable here — only the filename slug
-  normalizes it. Example: prefix `PROJ-123` + "Dark Mode Toggle" →
-  `title: "PROJ-123 -- Dark Mode Toggle"`. **Without a prefix**, it's just the
-  feature name, e.g. `title: "Dark Mode Toggle"`.
-- `mode` (required) — `"ui"` or `"backend"`. Default to `"ui"` unless the change is purely backend.
-- `createdAt` (required) — ISO 8601 UTC timestamp of when the plan was created.
-- `source` (required) — Always `"manual"` for this skill.
-- `prefix` (optional) — The author/work-item prefix, written **verbatim** (any
-  double-quotes stripped) when Step 2 produced one. This is the canonical record
-  of the prefix — `editor plan-prefixes` (and `editor last-plan-prefix`) read it
-  back to seed the next plan's options. The title's ` -- ` separator is NOT
-  parsed to recover the prefix (a title could legitimately contain ` -- `),
-  which is why the prefix is stored explicitly here. **Omit the line entirely
-  when no prefix was chosen.**
-- `order` (optional) — Positive integer. Controls queue position in the Plan tab.
-  Missing/tied plans fall back to ascending `createdAt` (first-created first).
-  Usually set via the UI drag or `editor plan-reorder`, not written by hand.
-- `dependsOn` (optional) — Array of plan slugs this plan depends on, e.g.
-  `dependsOn: ["session-recovery-ux", "auth-rewrite"]`. The Plan tab gates Run
-  on this plan until each listed plan has been completed (i.e. archived under
-  `.codeyam/plans/completed/`). Use the bracket-array form; a bare scalar
-  (`dependsOn: foo`) is also accepted and parsed as a single-element list.
+**`plan-create` flags:**
+- `--title` (required) — Feature name, the **base title only**. Pass the prefix
+  separately via `--prefix`; do not fold it into the title yourself.
+- `--mode` (required) — `ui` or `backend`. Default to `ui` unless the change is
+  purely backend.
+- `--prefix` (optional) — The author/work-item prefix from Step 2, **verbatim**
+  as the user typed it. It is stored as the canonical record of the prefix —
+  `editor plan-prefixes` (and `editor last-plan-prefix`) read it back to seed the
+  next plan's options. **Omit the flag entirely when no prefix was chosen.**
+- `--body-file` (required in practice) — Path to the body markdown. Reads stdin
+  when omitted.
+- `--depends-on <slug>` (optional, repeatable) — A prerequisite plan. The Plan
+  tab gates Run on this plan until each listed plan has been archived under
+  `.codeyam/plans/completed/`.
 
-**Worked example (prefixed):** prefix `PROJ-123` + title "Dark Mode Toggle"
-produces these coupled lines / paths — note the ` -- ` in the title and the
-`--` join in the slug:
+Queue position (`order`) is set via the Plan tab's drag or `editor plan-reorder`,
+not at creation.
 
-```
-file:   .codeyam/plans/proj-123--dark-mode-toggle.md
-title:  "PROJ-123 -- Dark Mode Toggle"
-prefix: "PROJ-123"
-```
+**Worked example (prefixed):** `--title "Dark Mode Toggle" --prefix "PROJ-123"`
+writes `.codeyam/plans/proj-123--dark-mode-toggle.md` with
+`title: "PROJ-123 -- Dark Mode Toggle"` and `prefix: "PROJ-123"` — the ` -- ` in
+the title and the `--` join in the slug are both derived for you.
 
 **When to use `dependsOn`:** if the user's request is too big to deliver in
 one plan and you split it into multiple plans, declare dependencies on the
@@ -321,6 +348,25 @@ editor workflow a red-first reproduction it can materialize verbatim. Shape:
   guidance should live in instead, and call out any authorized agent-config
   edit explicitly so the editor workflow isn't surprised by the self-mod guard
 
+**Co-locating plan assets (screenshots, mockups, reference images):** when the
+user uploaded or provided an asset the plan should carry, write it into the
+plan's own asset directory and reference it from the body with a **relative**
+path:
+
+- Directory: `.codeyam/plans/assets/<slug>/<name>` — the same `<slug>` as the
+  `.md` file (no prefix normalization beyond the slug rules above).
+- Reference in the markdown body with standard image syntax and the path
+  **relative to the plan file**: `![description](assets/<slug>/<name>)`.
+
+Use the relative form deliberately. The editor's Rust lifecycle moves the asset
+directory into `.codeyam/plans/completed/assets/<slug>/` in parallel with the
+`.md` when the plan is selected, so the identical relative reference resolves
+in both the queued and completed locations — an absolute or
+`.codeyam/plans/…`-rooted path would break on that move. You only write the
+files and the relative reference; the engine guarantees the move and the
+eventual cleanup (prune / delete) even if this skill forgets. A plan with no
+assets simply has no `assets/<slug>/` directory — it is entirely optional.
+
 ### Step 6: Present and confirm
 
 Run `codeyam-editor editor plans` to verify the plan is parseable and shows up correctly.
@@ -334,7 +380,16 @@ Show the user a brief summary of the plan, then use AskUserQuestion with these o
 
 - **Looks good** — Commit the plan, then signal the UI.
 
-  **Commit hygiene:** the plan commit must contain only `.codeyam/plans/<slug>.md`. Use the pathspec form below — do not run a bare `git commit`, since other files may be staged from prior work. (This is the plan-creation commit specifically — it must contain only the plan file. The feature-commit step at the end of the editor workflow has a different rule: it auto-commits all non-gitignored leftovers.) After committing, verify with `git show --stat HEAD` that only the plan file is listed; if anything else appears, run `git reset --soft HEAD~1` and retry with the pathspec form.
+  **Commit hygiene:** the plan commit must contain only the plan file
+  `.codeyam/plans/<slug>.md` **plus, when the plan co-located assets, its
+  `.codeyam/plans/assets/<slug>/` directory**. Use the pathspec form below — do
+  not run a bare `git commit`, since other files may be staged from prior work.
+  (This is the plan-creation commit specifically — it must contain only the plan
+  file and its asset directory. The feature-commit step at the end of the editor
+  workflow has a different rule: it auto-commits all non-gitignored leftovers.)
+  After committing, verify with `git show --stat HEAD` that only the plan file
+  (and any asset files) are listed; if anything else appears, run `git reset
+  --soft HEAD~1` and retry with the pathspec form.
 
   **Always append `[skip ci]` to the commit message.** Plan files don't change source or tests, so CI must not be triggered. This is non-optional — apply it on the initial commit and on any amend.
 
@@ -346,9 +401,11 @@ Show the user a brief summary of the plan, then use AskUserQuestion with these o
   still scopes the commit to that one file).
 
   ```bash
+  # Add the asset dir pathspec too when the plan co-located assets:
+  #   git add .codeyam/plans/<slug>.md .codeyam/plans/assets/<slug>
   git add .codeyam/plans/<slug>.md
   git commit -m "plan: <short description of the feature/fix> [skip ci]" -- .codeyam/plans/<slug>.md
-  git show --stat --name-only HEAD   # verify only the plan file is in the commit
+  git show --stat --name-only HEAD   # verify only the plan file (and any assets) are in the commit
   codeyam-editor editor plan-complete
   ```
   After the commit succeeds, `plan-complete` triggers a confirmation modal

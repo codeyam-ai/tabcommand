@@ -23,16 +23,16 @@ TabCommand is available for free in the Chrome Extension store.
 <!-- codeyam:run-and-edit:start -->
 ## Develop this project with codeyam-editor
 
-This project is built with [codeyam-editor](https://codeyam.com) — code and runnable data scenarios are authored side by side against a live preview. Requires a subscription to Claude, Gemini, or Codex.
+This project is built with [codeyam-editor](https://codeyam.com) — code and runnable data scenarios are authored side by side against a live preview.
 
 ```bash
-# Clone the TabCommand repo
+# Clone the repo
 git clone https://github.com/codeyam-ai/tabcommand && cd tabcommand
 
-# Install CodeYam Editor
+# Install codeyam-editor
 npm install -g @codeyam-editor/codeyam-editor@latest
 
-# Launch the editor from the TabCommand folder
+# Launch the editor (split-screen terminal + live preview)
 codeyam-editor editor
 ```
 <!-- codeyam:run-and-edit:end -->
@@ -62,9 +62,17 @@ After making changes to the code you must re-run `npm run build` and reload the 
 
 States captured as runnable scenarios with codeyam-editor:
 
+### Favorites - Heavy Content Site Rolled Up
+
+<img src=".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png" alt="Favorites - Heavy Content Site Rolled Up" width="280">
+
 ### Favorites - Sidebar With View All Link
 
 <img src=".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png" alt="Favorites - Sidebar With View All Link" width="280">
+
+### Favorites - Stats Survive URL Eviction
+
+<img src=".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png" alt="Favorites - Stats Survive URL Eviction" width="280">
 
 ### History - Empty
 
@@ -85,14 +93,6 @@ States captured as runnable scenarios with codeyam-editor:
 ### Home - Dragging Tab onto Group
 
 <img src=".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png" alt="Home - Dragging Tab onto Group" width="280">
-
-### Home - Empty
-
-<img src=".codeyam/scenarios/screenshots/home-empty--desktop.png" alt="Home - Empty" width="280">
-
-### Home - Four Columns
-
-<img src=".codeyam/scenarios/screenshots/home-four-columns--desktop.png" alt="Home - Four Columns" width="280">
 <!-- codeyam:scenario-gallery:end -->
 
 ## License

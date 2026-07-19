@@ -47,7 +47,16 @@ End your turn here.
 
 ### Step 3: Apply the edits
 
-When the user replies, write the updated plan back with the Write tool. Preserve the frontmatter fields exactly: `title`, `mode`, `createdAt`, `source`, `order` if present, and `dependsOn` if present (a bracket array of prerequisite plan slugs, e.g. `dependsOn: ["session-recovery-ux"]`). Only the fields the user asks to change should change — `dependsOn` is preserved through edits unless the user explicitly asks to add or remove a dependency.
+When the user replies, write the updated plan back with the Write tool. **Copy the existing frontmatter block through byte-for-byte, except for the fields the user actually asked to change.** In particular, `createdAt` records when the plan was created and is stamped by the tooling — never re-type, regenerate, or "refresh" it. You have no reliable clock, so any value you type there is a guess, and the audit will flag it. `dependsOn` (a bracket array of prerequisite plan slugs, e.g. `dependsOn: ["session-recovery-ux"]`) likewise survives edits unless the user explicitly asks to add or remove a dependency.
+
+**Assets:** if the edit adds a new asset (a screenshot, mockup, reference
+image), write it into the plan's own asset directory
+`.codeyam/plans/assets/<slug>/<name>` and reference it from the body with the
+relative path `![description](assets/<slug>/<name>)` — the same convention the
+plan-authoring skill uses, so the reference survives the queue→completed move
+the editor performs. Conversely, when an edit **removes** an asset reference
+from the body, delete the now-unused file from `.codeyam/plans/assets/<slug>/`
+so the directory doesn't accumulate orphans.
 
 After writing, briefly confirm what was updated (one or two short bullets). Then loop back to Step 2 and ask again — the user may want to make several changes in the same session.
 

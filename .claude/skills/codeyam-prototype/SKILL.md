@@ -93,39 +93,53 @@ When the user clicks "Finish and Formalize in Build", the chat receives
 this exact instruction string:
 
 > The user has clicked "Finish and Formalize in Build". Stop prototyping.
-> Write a plan file at `.codeyam/plans/<slug>.md` describing what was
-> prototyped. Use frontmatter with `mode: ui` and `step: 11` (or
-> `mode: backend` and `step: 8` for backend mode) and `source: prototype`.
-> Pick a kebab-case slug that matches the feature you prototyped.
-> Once the Write succeeds, run `codeyam-editor editor launch-plan <slug>` to
-> switch the UI to the Build tab, then output "Done — opening Build to
+> Write the plan BODY describing what was prototyped to a scratch file, then
+> create the plan with `codeyam-editor editor plan-create --title "<feature
+> name>" --mode ui --step 11 --source prototype --body-file <path>` (backend
+> mode: `--mode backend --step 8`). Do NOT write the plan file yourself and do
+> NOT hand-author frontmatter — plan-create derives the slug and stamps
+> `createdAt`, which you have no clock to guess. It prints the path it wrote;
+> take the slug from there and run `codeyam-editor editor launch-plan <slug>`
+> to switch the UI to the Build tab, then output "Done — opening Build to
 > finalize." and stop.
 
 When you receive that message:
 
-1. Pick a kebab-case slug that describes the feature.
-2. Write `.codeyam/plans/<slug>.md` with frontmatter:
+1. Write the plan **body** to a scratch file (e.g. `.codeyam/tmp/plan-body.md`).
+   It summarizes what was prototyped: the files touched, scenarios registered,
+   decisions made, edge cases verified. The Deconstruct step uses this to drive
+   extraction + TDD over the working tree's already-built code.
 
+2. Create the plan with `plan-create` — do **not** write the file, and do not
+   hand-author frontmatter. It derives the slug and stamps `createdAt` (a
+   timestamp you have no clock to guess), then prints the path it wrote:
+
+   ```bash
+   codeyam-editor editor plan-create \
+     --title "<the feature name>" \
+     --mode ui \
+     --source prototype \
+     --step 11 \
+     --body-file .codeyam/tmp/plan-body.md
    ```
-   ---
-   title: "<the feature name>"
-   mode: ui            # or: backend
-   createdAt: "<ISO 8601 timestamp>"
-   source: prototype
-   step: 11            # or: 8 for backend mode
-   ---
-   ```
 
-3. The plan body summarizes what was prototyped: the files touched,
-   scenarios registered, decisions made, edge cases verified. The
-   Deconstruct step will use this to drive extraction + TDD over the
-   working tree's already-built code.
+   Backend mode: `--mode backend --step 8`.
 
-4. After the Write succeeds, run `codeyam-editor editor launch-plan <slug>`
-   (using the same slug you just wrote). This deterministically selects the
-   plan and switches the UI to the Build tab via `usePlanLauncher.launchPlan` —
-   it no longer depends on the UI plan-watcher catching the new plan. Then
-   output **exactly** `Done — opening Build to finalize.` and stop.
+   **Carrying an asset forward:** if the prototype produced an asset worth
+   keeping with the plan (a screenshot, mockup, reference image), copy it into
+   `.codeyam/plans/assets/<slug>/<name>` — taking `<slug>` from the path
+   `plan-create` just printed — and reference it from the body with the
+   **relative** path `![description](assets/<slug>/<name>)`. Prototype does not
+   commit — leftovers sweep into the eventual feature commit — so writing the
+   files into that directory is sufficient; the editor's Rust lifecycle handles
+   moving the asset dir into `completed/` alongside the `.md` and cleaning it up
+   later. Assets are optional; skip this when there are none.
+
+3. Then run `codeyam-editor editor launch-plan <slug>` with the slug from the
+   printed path. This deterministically selects the plan and switches the UI to
+   the Build tab via `usePlanLauncher.launchPlan` — it does not depend on the UI
+   plan-watcher catching the new plan. Then output **exactly**
+   `Done — opening Build to finalize.` and stop.
 
 5. Do **NOT** commit the plan. The editor's feature-commit step at the
    end of the workflow will sweep it in alongside the source changes.

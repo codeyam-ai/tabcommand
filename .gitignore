@@ -1,12 +1,17 @@
 # codeyam-editor:start
 # Managed by `codeyam-editor init` / `codeyam-editor start`.
 # Do not edit between these markers — your changes will be overwritten.
+# NOT ignored, deliberately: .codeyam/state/finalize-debt.json.
+# `verify-full-finalize` compares the COMMITTED marker against the working
+# tree, so ignoring it makes the gate impossible to ever pass. It is a
+# committed artifact — like a lockfile. Do not add it here.
 .codeyam/secrets.json
 .codeyam/setup-connections.json
 test-results/
 playwright-report/
 blob-report/
 .codeyam/logs/
+.codeyam/.locks/
 .codeyam/run/
 .codeyam/llm-calls/
 .codeyam/captures/

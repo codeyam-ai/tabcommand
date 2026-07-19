@@ -130,6 +130,15 @@ def detect_event():
 
 TOOL_LOADING_SELECT_QUERY = "select:AskUserQuestion,TaskCreate,TaskList,TaskUpdate,TaskGet"
 
+# SessionStart preloads one extra tool beyond the gate-step set: `Monitor`,
+# the supported way to watch a backgrounded long command (refresh-tests,
+# session-finalize, rebuild-self). Loading its schema once up front means the
+# first blocking op never hits the `Monitor`-before-its-schema-is-loaded
+# `InputValidationError` that historically triggered a fallback to polling
+# loops. It is NOT in the per-prompt gate-tool query because it is not a
+# gate-step tool — only the session-entry preload needs it.
+SESSION_START_SELECT_QUERY = TOOL_LOADING_SELECT_QUERY + ",Monitor"
+
 
 def main():
     # Only run in editor Build sessions
@@ -149,9 +158,12 @@ def main():
     if event_type == "session_start":
         print("<session-start-hook>")
         print(
-            f"Call `ToolSearch` with `{TOOL_LOADING_SELECT_QUERY}` before your first "
+            f"Call `ToolSearch` with `{SESSION_START_SELECT_QUERY}` before your first "
             "turn so the editor workflow's AskUserQuestion + Task* tools are available "
-            "when gate steps and step-task tracking need them."
+            "when gate steps and step-task tracking need them, and `Monitor`'s schema is "
+            "loaded before the first backgroundable long command (refresh-tests, "
+            "session-finalize) — so you can watch it via the harness completion "
+            "notification instead of falling back to a `sleep`/`until grep` polling loop."
         )
         print("</session-start-hook>")
         return
