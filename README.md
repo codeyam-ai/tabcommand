@@ -62,9 +62,21 @@ After making changes to the code you must re-run `npm run build` and reload the 
 
 States captured as runnable scenarios with codeyam-editor:
 
+### Favorites - Google Doc Survives Search Exclusion
+
+<img src=".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png" alt="Favorites - Google Doc Survives Search Exclusion" width="280">
+
 ### Favorites - Heavy Content Site Rolled Up
 
 <img src=".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png" alt="Favorites - Heavy Content Site Rolled Up" width="280">
+
+### Favorites - SERP Excluded Portal Kept
+
+<img src=".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png" alt="Favorites - SERP Excluded Portal Kept" width="280">
+
+### Favorites - Search Engines Excluded
+
+<img src=".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png" alt="Favorites - Search Engines Excluded" width="280">
 
 ### Favorites - Sidebar With View All Link
 
@@ -81,18 +93,6 @@ States captured as runnable scenarios with codeyam-editor:
 ### History - Populated
 
 <img src=".codeyam/scenarios/screenshots/history-populated--desktop.png" alt="History - Populated" width="280">
-
-### Home - Automatically Closed
-
-<img src=".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png" alt="Home - Automatically Closed" width="280">
-
-### Home - Dark Mode
-
-<img src=".codeyam/scenarios/screenshots/home-dark-mode--desktop.png" alt="Home - Dark Mode" width="280">
-
-### Home - Dragging Tab onto Group
-
-<img src=".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png" alt="Home - Dragging Tab onto Group" width="280">
 <!-- codeyam:scenario-gallery:end -->
 
 ## License
