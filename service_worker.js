@@ -2,6 +2,7 @@ import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
+import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
 
 let defaultWindowId;
 let listening = true;
@@ -227,23 +228,17 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         const label = labels[labelTitle];
         if (label) {
           const newUrlKey = getUrlKey(changeInfo.url);
-          const idx = label.urlKeys.findIndex(
-            k => samePageKey(k.replace(/^url-/, '')) === samePageKey(changeInfo.url)
+          const { mutated, previousKey } = healDriftedLabelSlot(
+            label,
+            newUrlKey,
+            changeInfo.url
           );
-          if (idx > -1 && label.urlKeys[idx] !== newUrlKey) {
-            const oldUrlKey = label.urlKeys[idx];
-            if (label.urlKeys.indexOf(newUrlKey) > -1) {
-              // Live key already recorded elsewhere in the label — drop the
-              // stale slot instead of duplicating it.
-              label.urlKeys.splice(idx, 1);
-            } else {
-              label.urlKeys[idx] = newUrlKey;
-            }
+          if (mutated) {
             labels[labelTitle] = label;
             updates = { ...updates, labels: labels };
             debugGroup('onUpdated: heal drifted label urlKey', {
               tabId: tab.id,
-              oldUrlKey,
+              oldUrlKey: previousKey,
               newUrlKey,
               label: labelTitle,
               groupId: tab.groupId
@@ -1082,7 +1077,18 @@ function recordInGroupTab(labels, group, activeTab) {
       color: mapColors(group.color)
     };
   } else {
-    label.urlKeys.push(activeTab.urlKey);
+    // Drift-aware record. When MV3 tears down the service worker, the next sync
+    // sees a Google Doc whose live `?tab=t.…` has drifted away from the recorded
+    // key as a non-member and would append its live urlKey to the end — dropping
+    // the doc to the bottom of the group. Heal a same-page slot in place first
+    // (shared with the onUpdated drift-heal) so the doc keeps its recorded
+    // position; only a genuinely-new URL falls through to an append.
+    const { found } = healDriftedLabelSlot(
+      label,
+      activeTab.urlKey,
+      activeTab.urlKey.replace(/^url-/, '')
+    );
+    if (!found) label.urlKeys.push(activeTab.urlKey);
   }
   update({ labels: labels });
 }

@@ -639,6 +639,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Heals a group label slot whose recorded urlKey has drifted from a tab live URL - as Google Docs rewrites its own ?tab= query. Locates the slot for the same page by samePageKey, then rewrites it in place to the live key or splices it out when the live key already exists elsewhere, never adding a new slot. Returns found/mutated/previousKey so callers decide whether to append and persist. Shared by the onUpdated navigation heal and the recordInGroupTab grouping-sync path so a drifted doc keeps its position instead of dropping to the bottom of the group.",
+    "filePath": "src/lib/utils/healDriftedLabelSlot.js",
+    "name": "healDriftedLabelSlot",
+    "testFile": "src/lib/utils/healDriftedLabelSlot.test.js"
+  },
+  {
     "description": "Formats a numeric value with locale-aware thousands separators for the Load page's raw per-process table (1284 -> '1,284'). A falsy value yields undefined so the caller renders nothing; locale defaults to the document language then 'en', overridable via the lang arg. Factored out of the Load page so the formatting is unit-testable.",
     "filePath": "src/lib/utils/humanReadableNumber.js",
     "name": "humanReadableNumber",

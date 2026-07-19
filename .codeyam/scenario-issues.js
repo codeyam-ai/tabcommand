@@ -1,3 +1,5 @@
+// codeyam-generated — DO NOT EDIT.
+// codeyam-editor: 0.1.7  source-sha256: f716c003edd7d61285497b3fa96d87deb70df246d14b515681b44ffef136050b
 function createIssue(kind, message, extra = {}) {
   const issue = {
     kind,

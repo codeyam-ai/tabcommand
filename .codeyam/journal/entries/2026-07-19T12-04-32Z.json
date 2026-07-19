@@ -1,0 +1,117 @@
+{
+  "timestamp": "2026-07-19T12:04:32Z",
+  "title": "Heal Drifted Doc URLs on the Grouping-Sync Path",
+  "type": "feature",
+  "userRequest": "## Summary\n\nA Google Doc keeps jumping from the **top** to the **bottom** of a label/group\n(e.g. \"Ambiguity Everywhere\"). Root cause: Google Docs rewrites its own URL's\n`?tab=t.…` query string in place as you click around a document. The group\nmembership check (`urlKeyIsMember`) compares **exact** urlKeys (`getUrlKey`\nkeeps the query string), so once the live `?tab=` value drifts away from the\nvalue recorded in the label, the doc is no longer seen as a member. There is\nalready a drift-heal that rewrites the recorded slot **in place** — but it only\nruns inside the `onUpdated` navigation handler. The grouping-**sync** path\n(`groupTabs` → `recordInGroupTab`) has no such heal: when MV3 tears down the\nservice worker and wipes in-memory state, the next sync sees the drifted doc as\na non-member and **appends** its live urlKey to the end of `label.urlKeys`,\ndropping the doc to the bottom of the group. A later `onUpdated` heal then\nsplices out the stale top slot, making the bottom position stick. The fix is to\nmake the record path drift-aware: before appending, heal a same-page slot in\nplace instead of pushing a duplicate to the end.\n\n## Key Decisions\n\n- **Heal in place on the sync path, mirroring the existing `onUpdated` heal.**\n  The `onUpdated` handler already has the correct logic (`service_worker.js`\n  lines 229–241): locate the label slot by page identity via `samePageKey`, and\n  rewrite that slot's key to the live urlKey (or drop it if the live key already\n  exists). We apply the same rule inside `recordInGroupTab` so a drifted-but-\n  same-page doc keeps its original position instead of being re-appended. Chosen\n  over widening `urlKeyIsMember` to use `samePageKey`, because the comment at\n  `service_worker.js:216–218` is explicit that membership/eject must stay an\n  **exact-key** test — `samePageKey` must never become the membership predicate.\n  Healing at the record step preserves that invariant.\n\n- **Keep the heal centralized in `recordInGroupTab`.** `groupTabs` already\n  funnels the \"non-auto-grouped tab in a group with an unrecorded URL\" case\n  through `recordInGroupTab` (`service_worker.js:1176`). Putting the heal there\n  covers the startup-sync path without touching the exact-key branch at line\n  1160, and automatically benefits any other caller of `recordInGroupTab`.\n\n- **Preserve position, not just identity.** The bug is specifically about\n  *order*, so the heal must rewrite the existing slot at its current index (via\n  the `samePageKey` match), never remove-and-re-add. This keeps the doc at the\n  top where the user put it.\n\n- **Do not change `getUrlKey` or `samePageKey`.** Both are intentional and\n  well-documented; `getUrlKey` keeping the query string is needed so distinct\n  non-doc query URLs stay distinct, and `samePageKey` deliberately drops the\n  query for the page-identity comparison. The fix is purely in the record path.\n\n## Implementation\n\n### 1. Make `recordInGroupTab` heal a drifted same-page slot instead of appending\n\n**File**: `service_worker.js` (function `recordInGroupTab`, lines 1068–1088)\n\nToday the `else` branch unconditionally does `label.urlKeys.push(activeTab.urlKey)`\n(line 1085). Change it so that before appending it checks whether the label\nalready holds a slot for the *same page* (same `samePageKey`) as the incoming\ntab's URL:\n\n- Recover the incoming live URL from `activeTab.urlKey` by stripping the\n  `url-` prefix (mirror `service_worker.js:192` / line 231).\n- Find `idx = label.urlKeys.findIndex(k => samePageKey(k.replace(/^url-/, '')) === samePageKey(liveUrl))`.\n- If `idx > -1` (a same-page slot exists — this is the drifted doc):\n  - If `label.urlKeys[idx] === activeTab.urlKey`, it already matches exactly —\n    do nothing (no duplicate, no move).\n  - Else if `activeTab.urlKey` already appears elsewhere in `urlKeys`, splice\n    out the stale slot at `idx` (mirror the drop at `service_worker.js:238`) so\n    we don't create a duplicate.\n  - Else rewrite the slot in place: `label.urlKeys[idx] = activeTab.urlKey`\n    (mirror `service_worker.js:240`). **This is the position-preserving heal.**\n- If `idx === -1` (genuinely new URL for this label): keep today's behavior —\n  `label.urlKeys.push(activeTab.urlKey)`.\n\nThen `update({ labels })` as today. The `!label` seed branch (lines 1078–1083)\nis unchanged.\n\n`samePageKey` is already imported at `service_worker.js:3`, so no new import is\nneeded.\n\n### 2. (Verify only — likely no change) confirm the `handleActiveTabsGroupChanges` add-path\n\n**File**: `service_worker.js` (function `handleActiveTabsGroupChanges`, line ~1010)\n\nThis path appends on a *real* `groupId` change (the user genuinely moved the tab\nbetween Chrome groups), which is correct — that is not the drift scenario and\nshould stay an append. Confirm during implementation that the reproduction is\nfully resolved by the `recordInGroupTab` change alone and this path does not\nneed to be touched. If a scenario shows drift also flowing through here, apply\nthe same same-page heal; otherwise leave it as-is and note why.\n\n## Reused existing code\n\n- `samePageKey` from `src/lib/utils/samePageKey.js` (glossary/import at\n  `service_worker.js:3`) — the page-identity comparison; the heal reuses it\n  exactly as the `onUpdated` handler does.\n- `getUrlKey` from `service_worker.js:845` — how live urlKeys are formed; the\n  heal writes keys in this same shape.\n- The existing `onUpdated` drift-heal at `service_worker.js:229–241` — the\n  reference implementation whose in-place-rewrite / drop-if-duplicate logic the\n  new code mirrors.\n- `urlKeyIsMember` from `service_worker.js:57` — left unchanged; stays the\n  exact-key membership test as documented.\n\n## Reproduction Test\n\nA Google Doc whose `?tab=` query string has drifted must stay at its recorded\nposition in the group instead of being appended to the bottom.\n\n**Target**: `service_worker.test.js` — add to the existing\n`describe('recordInGroupTab', ...)` block (around line 771). Run with\n`codeyam-editor editor refresh-tests --test recordInGroupTab`.\n\n```js\n// heals a drifted same-page doc urlKey in place instead of appending it to the bottom\nit('rewrites a drifted Google Doc slot in place rather than pushing to the end', () => {\n  const labels = {\n    'Ambiguity Everywhere': {\n      title: 'Ambiguity Everywhere',\n      urlKeys: [\n        'url-https://docs.google.com/document/d/ABC/edit?tab=t.0',\n        'url-https://other.com'\n      ],\n      color: '#1873E4'\n    }\n  };\n  fns.recordInGroupTab(\n    labels,\n    { title: 'Ambiguity Everywhere', color: 'blue' },\n    {\n      tabKey: 'tab-7',\n      urlKey: 'url-https://docs.google.com/document/d/ABC/edit?tab=t.5',\n      groupId: 5\n    }\n  );\n  // The doc stays at index 0 (top) with its live key; no duplicate appended.\n  expect(labels['Ambiguity Everywhere'].urlKeys).toEqual([\n    'url-https://docs.google.com/document/d/ABC/edit?tab=t.5',\n    'url-https://other.com'\n  ]);\n});\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure with today's\ncode: `recordInGroupTab` appends the drifted key, yielding\n`['url-...?tab=t.0', 'url-https://other.com', 'url-...?tab=t.5']` — the doc is\nduplicated and pushed to the bottom, so the `toEqual([...])` assertion fails.\n\n## Scenarios to Demonstrate\n\n- **Happy path — doc holds its top slot:** A label \"Ambiguity Everywhere\" with a\n  Google Doc at the top. The doc's tab rewrites `?tab=t.0` → `?tab=t.5`, then a\n  grouping sync runs (simulating an MV3 restart that wiped in-memory state). The\n  doc remains at the top of the group.\n- **Same-tab, already-exact:** The incoming urlKey exactly matches the recorded\n  slot — no change, no duplication, order preserved.\n- **Drop-if-duplicate:** The live drifted key already exists lower in the group\n  (e.g. from a prior append before this fix shipped) — the stale higher slot is\n  removed, leaving a single entry, no duplication.\n- **Genuinely new URL still appends:** A non-doc URL that is a different page\n  (`samePageKey` differs) is recorded at the end, exactly as before — the fix\n  does not change ordering for real new members.\n- **Non-drift group move preserved:** A tab whose Chrome `groupId` genuinely\n  changed still appends to its new label (via `handleActiveTabsGroupChanges`) —\n  confirming the fix is scoped to same-page drift only.",
+  "description": "Fixed a bug where a Google Doc kept jumping from the top to the bottom of its tab group. Google Docs rewrites its own ?tab= query as the user clicks around, so a tab's live urlKey drifts from the key recorded in the group's label. The onUpdated navigation handler already healed this drift in place, but the grouping-sync path (recordInGroupTab) did not: after MV3 tore down the service worker and wiped in-memory state, the next sync saw the drifted doc as a non-member and appended its live key to the end of the label, dropping the doc to the bottom. Made recordInGroupTab drift-aware and extracted the shared heal into src/lib/utils/healDriftedLabelSlot.js, which locates the same-page slot by samePageKey and rewrites it in place (or splices it out when the live key already exists), preserving position. The exact-key urlKeyIsMember membership test is untouched. Covered by 8 new tests (6 helper unit tests plus a red-first reproduction test and an append-still-works guard on recordInGroupTab); all 104 tests pass.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/hooks/editor-step-hook.py",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-audit/finalize-procedure.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-edit-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-plan/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-prototype/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".claude/skills/codeyam-slice/SKILL.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/capture.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/heal-drifted-doc-urls-on-grouping-sync.md\t.codeyam/plans/completed/heal-drifted-doc-urls-on-grouping-sync.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-handlers.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-interactivity.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-issues.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-metrics.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-mocks.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-playwright.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".gitignore",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/healDriftedLabelSlot.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/healDriftedLabelSlot.test.js",
+      "status": "added"
+    }
+  ],
+  "testResults": {
+    "total": 104,
+    "passed": 104,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 104,
+        "passed": 104
+      }
+    ]
+  }
+}

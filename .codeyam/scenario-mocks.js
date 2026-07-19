@@ -1,3 +1,5 @@
+// codeyam-generated — DO NOT EDIT.
+// codeyam-editor: 0.1.7  source-sha256: 6f8ab32b12ddf24a13cf3ec43288f53c95cf4126dfd969e63495270353a53de7
 // Route matcher shared, semantically, with the injected live-preview shim
 // (crates/proxy-http/src/fetch_patch.js::matchUrl / matchPath / matchQuerySpec).
 // This is a VERBATIM port of that shim's matcher — the two interception paths

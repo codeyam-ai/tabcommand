@@ -6,6 +6,7 @@ import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
+import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -72,6 +73,7 @@ function loadWorker(chrome) {
     'isTrackableUrl',
     'samePageKey',
     'appendGroupingLog',
+    'healDriftedLabelSlot',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
@@ -92,7 +94,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, appendGroupingLog);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, appendGroupingLog, healDriftedLabelSlot);
 }
 
 describe('service_worker.js', () => {
@@ -802,6 +804,52 @@ describe('service_worker.js', () => {
       );
       const written = chrome.storage.local.set.mock.calls.map((c) => c[0]).find((o) => o && o.labels);
       expect(written.labels.Work.urlKeys).toContain('url-https://b.com');
+    });
+
+    // Reproduction: a Google Doc whose live ?tab= query has drifted since it was
+    // recorded must be healed at its ORIGINAL slot on the grouping-sync path, not
+    // appended to the bottom of the group. Reverting the drift-heal (plain push)
+    // makes this red: the drifted key lands at the end and the doc drops to the
+    // bottom of the label.
+    it('rewrites a drifted Google Doc slot in place rather than pushing to the end', () => {
+      const labels = {
+        'Ambiguity Everywhere': {
+          title: 'Ambiguity Everywhere',
+          urlKeys: [
+            'url-https://docs.google.com/document/d/ABC/edit?tab=t.0',
+            'url-https://other.com',
+          ],
+          color: '#1873E4',
+        },
+      };
+      fns.recordInGroupTab(
+        labels,
+        { title: 'Ambiguity Everywhere', color: 'blue' },
+        {
+          tabKey: 'tab-7',
+          urlKey: 'url-https://docs.google.com/document/d/ABC/edit?tab=t.9',
+          groupId: 5,
+        }
+      );
+      // Healed in place at index 0 — the doc keeps its top position, no duplicate.
+      expect(labels['Ambiguity Everywhere'].urlKeys).toEqual([
+        'url-https://docs.google.com/document/d/ABC/edit?tab=t.9',
+        'url-https://other.com',
+      ]);
+    });
+
+    // A genuinely new URL (no same-page slot) still appends, so the drift-heal
+    // does not swallow real new members.
+    it('still appends a genuinely new URL that shares no page with any slot', () => {
+      const labels = {
+        Work: { title: 'Work', urlKeys: ['url-https://a.com'], color: '#1873E4' },
+      };
+      fns.recordInGroupTab(
+        labels,
+        { title: 'Work', color: 'blue' },
+        { tabKey: 'tab-7', urlKey: 'url-https://b.com', groupId: 5 }
+      );
+      expect(labels.Work.urlKeys).toEqual(['url-https://a.com', 'url-https://b.com']);
     });
   });
 
