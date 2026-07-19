@@ -685,6 +685,18 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Service-worker mirror of the src/lib/utils/isSearchEngineUrl predicate: returns true when a URL host (via the local siteKey mirror) is a known search engine - a curated exact-host set plus a google.<tld> ccTLD rule. Used by newUrl to skip the Favorites scoring writes (per-record visits + the durable siteVisits host bucket) for search engines, which rankFavorites discards anyway. Duplicated here because the service-worker runtime cannot import the ES module, matching the siteKey and pruneVisits mirroring convention; SEARCH_ENGINE_HOSTS is kept byte-identical to the canonical set.",
+    "filePath": "service_worker.js",
+    "name": "isSearchEngineUrl",
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Pure predicate returning true when a URL points at a known search engine. Reduces the URL to its canonical host via siteKey, then tests it against a curated exact-host set of engines and SERP subdomains plus a google.<tld> ccTLD rule. Whole-host matching so an already-inflated siteVisits row disappears immediately, while distinct Google hosts like docs.google.com stay favoritable. Shared by rankFavorites - which drops search hosts before grouping so they never qualify as Favorites - and a byte-identical mirror in service_worker.js. Returns false for non-string, empty, or unparseable input.",
+    "filePath": "src/lib/utils/isSearchEngineUrl.js",
+    "name": "isSearchEngineUrl",
+    "testFile": "src/lib/utils/isSearchEngineUrl.test.js"
+  },
+  {
     "description": "Pure predicate deciding whether a URL is a real website worth recording into history/Favorites. Returns true only when the value is a non-empty string that parses as a URL whose protocol is exactly http: or https:; returns false for non-strings, empty/whitespace, unparseable values, and every other scheme such as about: including about:blank, file:, data:, view-source:, chrome:, chrome-extension:, devtools:, blob:. One rule replaces an ever-growing blocklist. Imported by the service worker's newUrl to gate what enters allUrls, and by rankFavorites to defensively drop already-stored non-website entries. Complements validTab which is tab-shaped and worker-only; this predicate is URL-shaped and stack-agnostic, mirroring the defensive try/new URL/catch style of normalizeUrl.",
     "filePath": "src/lib/utils/isTrackableUrl.js",
     "name": "isTrackableUrl",

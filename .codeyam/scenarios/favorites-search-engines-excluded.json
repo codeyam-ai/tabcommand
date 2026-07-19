@@ -1,0 +1,25 @@
+{
+  "name": "Favorites - Search Engines Excluded",
+  "id": "532bbfb4-f6b9-4a44-935f-97de61fb809d",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.google.com/search?q=nearby+coffee": "{\"title\":\"nearby coffee - Google Search\",\"favicon\":\"\",\"visitCount\":15,\"visits\":[1783940600000]}",
+      "allUrls": "[\"url-https://www.google.com/search?q=weather\",\"url-https://www.google.com/search?q=react+useeffect\",\"url-https://www.google.com/search?q=nearby+coffee\",\"url-https://github.com/codeyam/tabcommand\"]",
+      "siteVisits": "{\"google.com\":[1784034200000,1784030600000,1784027000000,1784023400000,1784019800000,1784016200000,1784012600000,1784009000000,1784005400000,1784001800000,1783998200000,1783994600000,1783991000000,1783987400000,1783983800000,1783980200000,1783976600000,1783973000000,1783969400000,1783965800000,1783962200000,1783958600000,1783955000000,1783951400000,1783947800000,1783944200000,1783940600000,1783937000000,1783933400000,1783929800000,1783926200000,1783922600000,1783919000000,1783915400000,1783911800000,1783908200000,1783904600000,1783901000000,1783897400000,1783893800000,1783890200000,1783886600000,1783883000000,1783879400000,1783875800000,1783872200000,1783868600000,1783865000000,1783861400000,1783857800000],\"github.com\":[1782479000000,1782997400000,1783429400000,1783775000000,1783947800000,1784027000000]}",
+      "labels": "{}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"visitCount\":6}",
+      "favoritesHidden": "[]",
+      "uxSettings": "{\"page\":{\"name\":\"Favorites\"}}",
+      "activeTabs": "[]",
+      "url-https://www.google.com/search?q=weather": "{\"title\":\"weather - Google Search\",\"favicon\":\"\",\"visitCount\":20,\"visits\":[1784027000000]}",
+      "url-https://www.google.com/search?q=react+useeffect": "{\"title\":\"react useeffect - Google Search\",\"favicon\":\"\",\"visitCount\":15,\"visits\":[1784016200000]}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx"
+}

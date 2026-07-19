@@ -1,0 +1,40 @@
+{
+  "claimStartedAt": "2026-07-19T12:53:08Z",
+  "completedAt": "2026-07-19T13:48:35Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-3",
+    "originId": "75d10240-ac5b-442a-8597-2fc6a3ee1b25",
+    "pid": 579970,
+    "priority": 0,
+    "selectedPlan": "keep-search-engines-out-of-favorites",
+    "sessionId": "a1495402-d964-4590-bc8c-4e4618d3dd6d",
+    "startedAt": "2026-07-19T12:53:08Z"
+  },
+  "createdAt": "2026-07-19T12:49:09Z",
+  "deliverables": [
+    ".claude/hooks/editor-step-hook.py",
+    ".claude/skills/codeyam-audit/finalize-procedure.md",
+    ".claude/skills/codeyam-edit-plan/SKILL.md",
+    ".claude/skills/codeyam-plan/SKILL.md",
+    ".claude/skills/codeyam-prototype/SKILL.md",
+    ".claude/skills/codeyam-slice/SKILL.md",
+    ".gitignore",
+    "README.md",
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/utils/healDriftedLabelSlot.js",
+    "src/lib/utils/healDriftedLabelSlot.test.js",
+    "src/lib/utils/isSearchEngineUrl.js",
+    "src/lib/utils/isSearchEngineUrl.test.js",
+    "src/lib/utils/rankFavorites.js",
+    "src/lib/utils/rankFavorites.test.js"
+  ],
+  "journalTimestamp": "2026-07-19T13:48:35Z",
+  "mode": "ui",
+  "planFile": "completed/keep-search-engines-out-of-favorites.md",
+  "slug": "keep-search-engines-out-of-favorites",
+  "title": "Keep Search Engines Out of Favorites"
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Favorites - SERP Excluded Portal Kept",
+  "id": "2ee11794-d035-46dd-aa6e-51fcbd9df094",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "uxSettings": "{\"page\":{\"name\":\"Favorites\"}}",
+      "allUrls": "[\"url-https://search.yahoo.com/search?q=news\",\"url-https://www.yahoo.com\"]",
+      "activeTabs": "[]",
+      "url-https://search.yahoo.com/search?q=news": "{\"title\":\"news - Yahoo Search\",\"favicon\":\"\",\"visitCount\":25,\"visits\":[],\"url\":\"https://search.yahoo.com/search?q=news\"}",
+      "url-https://www.yahoo.com": "{\"title\":\"Yahoo\",\"favicon\":\"\",\"visitCount\":7,\"url\":\"https://www.yahoo.com\"}",
+      "siteVisits": "{\"search.yahoo.com\":[1784034200000,1784030600000,1784027000000,1784023400000,1784019800000,1784016200000,1784012600000,1784009000000,1784005400000,1784001800000,1783998200000,1783994600000,1783991000000,1783987400000,1783983800000,1783980200000,1783976600000,1783973000000,1783969400000,1783965800000,1783962200000,1783958600000,1783955000000,1783951400000,1783947800000,1783944200000,1783940600000,1783937000000,1783933400000,1783929800000,1783926200000,1783922600000,1783919000000,1783915400000,1783911800000,1783908200000,1783904600000,1783901000000,1783897400000,1783893800000,1783890200000,1783886600000,1783883000000,1783879400000,1783875800000,1783872200000,1783868600000,1783865000000,1783861400000,1783857800000],\"yahoo.com\":[1784034200000,1783812028571,1783589857143,1783367685714,1783145514286,1782923342857,1782701171429]}",
+      "favoritesHidden": "[]",
+      "labels": "{}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx"
+}

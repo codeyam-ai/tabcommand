@@ -463,6 +463,35 @@ describe('service_worker.js', () => {
       expect(updates.siteVisits['wikipedia.org'].slice(0, 2)).toEqual(history);
     });
 
+    // Search engines stay in history (allUrls + visitCount) but stop
+    // accumulating the Favorites scoring signal: no siteVisits[host] write and no
+    // per-record `visits` append, since rankFavorites discards search hosts anyway.
+    // Red if the isSearchEngine gate is removed: siteVisits['google.com'] appears.
+    it('records a search engine in history but not in the Favorites scoring stores', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
+      const url = 'https://www.google.com/search?q=weather';
+      const updates = await fns.newUrl(1, url);
+      const urlKey = fns.getUrlKey(url);
+      // Still in history: allUrls + visitCount.
+      expect(updates.allUrls).toContain(urlKey);
+      expect(updates[urlKey].visitCount).toBe(1);
+      // But NOT in the Favorites scoring stores.
+      expect(updates.siteVisits).toBeUndefined();
+      expect(updates[urlKey].visits).toEqual([]);
+    });
+
+    // A search engine with an existing siteVisits bucket does not grow it — the
+    // durable store stops accumulating search hosts going forward.
+    it('does not append to an existing siteVisits bucket for a search engine', async () => {
+      const earlier = Date.now() - 1000 * 60 * 60;
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ allUrls: [], labels: {}, siteVisits: { 'google.com': [earlier] } })
+      );
+      const updates = await fns.newUrl(1, 'https://www.google.com/search?q=x');
+      // siteVisits is left untouched (no write into updates for this host).
+      expect(updates.siteVisits).toBeUndefined();
+    });
+
     // Non-website navigations (about:blank, file://, chrome://, data:) are
     // never recorded: newUrl returns before touching storage so they can't
     // enter allUrls or bump visitCount.

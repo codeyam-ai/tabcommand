@@ -370,4 +370,70 @@ describe('rankFavorites', () => {
     expect(result).toHaveLength(1);
     expect(result[0].visitCount).toBe(3);
   });
+
+  // Reproduction: a search-engine host with a heavy, at-the-cap siteVisits history
+  // (the "google.com, 50 visits at the top" bug) must never qualify as a Favorite.
+  // Red if the isSearchEngineUrl guard is removed from rankFavorites: google.com
+  // rolls up 50 recent visits, clears QUALIFY_MIN, and returns a length-1 array.
+  it('excludes search-engine hosts from Favorites despite heavy visit history', () => {
+    const allUrls = ['url-google-search'];
+    const records = {
+      'url-google-search': {
+        title: 'weather - Google Search',
+        favicon: '',
+        url: 'https://www.google.com/search?q=weather',
+        visitCount: 50,
+        visits: [],
+      },
+    };
+    // Durable site store at the cap, all recent — what pins it at #1 before the fix.
+    const siteVisits = {
+      'google.com': Array.from({ length: 50 }, (_, i) => Math.round(NOW - i * 60 * 60 * 1000)),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({ siteVisits }));
+    expect(result).toEqual([]);
+  });
+
+  // Real favorites survive alongside searches: a heavily-searched google.com is
+  // dropped while a genuinely-revisited github.com still qualifies and ranks.
+  it('keeps a genuinely revisited site while dropping a search engine', () => {
+    const allUrls = ['url-https://www.google.com/search?q=x', 'url-https://github.com'];
+    const records = {
+      'url-https://www.google.com/search?q=x': {
+        title: 'x - Google Search',
+        favicon: '',
+        url: 'https://www.google.com/search?q=x',
+        visitCount: 40,
+        visits: [],
+      },
+      'url-https://github.com': rec('GitHub', [0, 1, 2, 3, 4], { url: 'https://github.com' }),
+    };
+    const siteVisits = {
+      'google.com': Array.from({ length: 40 }, (_, i) => Math.round(NOW - i * 60 * 60 * 1000)),
+      'github.com': [0, 1, 2, 3, 4].map((d) => NOW - d * DAY),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({ siteVisits }));
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe('GitHub');
+  });
+
+  // A Google ccTLD search (google.co.uk) and a non-Google engine (bing.com) are
+  // both excluded — the exclusion isn't limited to the exact google.com host.
+  it('excludes google ccTLD and other engine hosts too', () => {
+    const allUrls = ['url-https://www.google.co.uk/search?q=x', 'url-https://bing.com/search?q=y'];
+    const records = {
+      'url-https://www.google.co.uk/search?q=x': {
+        title: 'x - Google', favicon: '', url: 'https://www.google.co.uk/search?q=x', visits: [],
+      },
+      'url-https://bing.com/search?q=y': {
+        title: 'y - Bing', favicon: '', url: 'https://bing.com/search?q=y', visits: [],
+      },
+    };
+    const siteVisits = {
+      'google.co.uk': Array.from({ length: 30 }, (_, i) => Math.round(NOW - i * 60 * 60 * 1000)),
+      'bing.com': Array.from({ length: 30 }, (_, i) => Math.round(NOW - i * 60 * 60 * 1000)),
+    };
+    const result = rankFavorites(allUrls, records, 5, undefined, opts({ siteVisits }));
+    expect(result).toEqual([]);
+  });
 });

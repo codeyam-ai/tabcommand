@@ -1,0 +1,291 @@
+{
+  "timestamp": "2026-07-19T13:48:35Z",
+  "title": "Keep Search Engines Out of Favorites",
+  "type": "feature",
+  "userRequest": "## Summary\n\nGoogle searches are hijacking the top of Favorites. Because `rankFavorites`\nrolls every page up **by host** (`siteKey`), every distinct Google search URL\n(`https://www.google.com/search?q=...`) collapses onto a single `google.com`\nrow, and the service worker credits `siteVisits['google.com']` on **every**\nsearch. That store climbs to the `MAX_VISITS = 50` cap, giving `google.com` a\nhuge time-decayed score and pinning it at #1 with a \"50 visits\" badge — even\nright after a single search. Search engines are launchers, not destinations you\nreturn to for their content, so they should never qualify as Favorites. This\nfix introduces a curated search-engine-host predicate and filters those hosts\nout of Favorites at rank time (which also clears the already-inflated stored\ndata instantly, no migration), and stops the service worker from accumulating\nvisit stats for them going forward.\n\n## Key Decisions\n\n- **Whole-host exclusion, not just `/search` URLs.** `siteVisits` is keyed only\n  by host (`google.com`), so a stored timestamp can't be traced back to a\n  search vs. a homepage visit. Excluding the entire search-engine host is the\n  only approach that makes the inflated `google.com` row disappear immediately\n  instead of waiting ~2 weeks for 50 recent timestamps to decay below\n  `QUALIFY_MIN`. Google's host is effectively only search + homepage, and Google\n  properties that are real destinations live on *different* hosts\n  (`docs.google.com`, `maps.google.com`, `mail.google.com`), which `siteKey`\n  already keeps distinct — so nothing worth favoriting is lost.\n- **Curated host list, not a `?q=`/`/search` heuristic.** A `q=` query param and\n  a `/search` path appear on plenty of ordinary sites (site-internal search,\n  analytics), so a heuristic would produce false exclusions. A curated set of\n  known engines is precise. Google's many ccTLDs (`google.co.uk`, `google.de`,\n  …) are covered by a small `google.<tld>` rule rather than enumerating every\n  TLD.\n- **Fix authoritatively at rank time (`rankFavorites`), harden at the source\n  (`newUrl`).** The rank-time filter is what actually fixes the bug and the\n  already-polluted store, so it is required and fully sufficient on its own. The\n  service-worker gate is secondary hygiene: it stops `siteVisits` from growing\n  wasteful (but now-invisible) entries for search hosts going forward.\n- **Exclude SERP subdomains for portal engines.** `search.yahoo.com` is the\n  search host, but `yahoo.com` is a content portal — the list targets the SERP\n  host (`search.yahoo.com`, `search.brave.com`) rather than the portal root, so\n  a genuine portal visit isn't collateral.\n\n## Implementation\n\n### 1. New predicate: `isSearchEngineUrl`\n\n**New file**: `src/lib/utils/isSearchEngineUrl.js`\n\nA pure, storage/DOM-free predicate mirroring the shape and defensive style of\n`isTrackableUrl.js` — takes a URL string, returns `true` when it points at a\nknown search engine. Reuse `siteKey` to reduce the URL to its canonical host\n(lowercased, `www.`-stripped), then test that host against:\n\n- An exact-host `Set` of known engines and SERP subdomains:\n  `bing.com`, `duckduckgo.com`, `ecosia.org`, `search.brave.com`,\n  `startpage.com`, `baidu.com`, `yandex.com`, `yandex.ru`, `qwant.com`,\n  `kagi.com`, `search.yahoo.com`, `ask.com`. (List is easy to extend; keep it\n  alphabetized.)\n- A Google rule covering ccTLDs: host `=== 'google.com'` or matching\n  `^google\\.[a-z.]+$` so `google.co.uk`, `google.de`, `google.fr`, etc. all\n  count. (Because `siteKey` strips `www.`, `www.google.com` normalizes to\n  `google.com` before the check.)\n\nReturn `false` for a non-string / unparseable / empty input (defer to\n`siteKey` returning `''`, which is not in the set and fails the Google rule).\n\n### 2. Filter search engines out of Favorites at rank time\n\n**File**: `src/lib/utils/rankFavorites.js`\n\nImport `isSearchEngineUrl`. In the candidate loop, immediately after the\nexisting trackable-URL guard:\n\n```js\nconst candidateUrl = record.url || urlKey.replace(/^url-/, '');\nif (!isTrackableUrl(candidateUrl)) continue;\nif (isSearchEngineUrl(candidateUrl)) continue;   // <-- add\n```\n\nDropping the candidate before grouping means no `google.com` group is ever\nformed, so the polluted `siteVisits['google.com']` is never unioned in and\n`google.com` cannot qualify — fixing both the live symptom and the stored data\nin one pass. Extend the header comment block (the \"Candidates are gated to real\nwebsites (`isTrackableUrl`)…\" paragraph) to note that search-engine hosts are\nalso skipped, and why (they're launchers, not returned-to destinations).\n\n### 3. Stop crediting search-engine hosts in the service worker (hygiene)\n\n**File**: `service_worker.js`\n\n`newUrl` still records search pages into `allUrls` / `visitCount` (they remain\npart of browsing history for the extension's own features), but should no\nlonger accumulate Favorites scoring signal for them. Gate the per-record\n`visits` append and the `siteVisits[host]` write behind a search-engine check\nso those stores stop growing entries that `rankFavorites` now discards anyway.\n\nThe service worker cannot import ES modules, so — exactly as it already mirrors\n`siteKey` (line ~123) and `pruneVisits` (line ~112) — add a small mirrored\n`isSearchEngineUrl(url)` helper (or inline the host-set + Google-ccTLD check)\nnear those mirrors, and use it in `newUrl` (around lines 547–568) to skip the\n`visits`/`siteVisits` writes when the URL is a search engine. Keep the mirrored\nhost set byte-identical to the canonical one and cross-reference it in a comment\nso the two don't drift, matching the existing mirror convention. This step is\nsecondary; if it complicates review it can ship separately, since step 2 alone\nresolves the reported bug.\n\n## Reused existing code\n\n- `siteKey` from `src/lib/utils/siteKey.js` (glossary entry: `siteKey`) —\n  canonical host normalization (`www.`-strip, lowercase) reused by the new\n  predicate so its host matching lines up exactly with the grouping key and the\n  `siteVisits` store key.\n- `isTrackableUrl` from `src/lib/utils/isTrackableUrl.js` (glossary entry:\n  `isTrackableUrl`) — the pattern this new predicate mirrors (pure, defensive,\n  URL-shaped, shared by worker + renderer) and the guard it sits beside in\n  `rankFavorites`.\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — the candidate loop and its `isTrackableUrl` guard are the\n  exact insertion point.\n- `pruneVisits` / `MAX_VISITS` / `siteVisits` in `service_worker.js` (glossary\n  entry: `pruneVisits`) — the existing mirror-in-the-worker convention the new\n  mirrored predicate follows.\n- **Existing-implementation survey:** grepped `src/lib/utils/` and\n  `service_worker.js` and ran `glossary-find searchEngine --substring` — no\n  existing search-engine / SERP predicate exists (the `segmentSearchResults`,\n  `buildSearchDocuments`, `groupSearchUrlsByLabel`, `searchNotesSnippet` utils\n  are about the extension's *own* note/history search, not web search engines).\n  This predicate is genuinely new.\n\n## Reproduction Test\n\nPins that a search-engine host (`google.com`) with a heavy visit history is\nkept out of Favorites entirely.\n\n**Target**: `src/lib/utils/rankFavorites.test.js` — run with\n`codeyam-editor editor refresh-tests --test rankFavorites`.\n\n```js\n// A search-engine host never qualifies as a Favorite, even when its durable\n// siteVisits history is at the cap (the \"google.com, 50 visits at the top\" bug).\nit('excludes search-engine hosts from Favorites despite heavy visit history', () => {\n  const allUrls = ['url-google-search'];\n  const records = {\n    'url-google-search': {\n      title: 'weather - Google Search',\n      favicon: '',\n      url: 'https://www.google.com/search?q=weather',\n      visitCount: 50,\n      visits: [],\n    },\n  };\n  // Durable site store at the MAX_VISITS cap, all recent — what pins it at #1.\n  const siteVisits = {\n    'google.com': Array.from({ length: 50 }, (_, i) =>\n      Math.round(NOW - i * 60 * 60 * 1000)\n    ),\n  };\n  const result = rankFavorites(allUrls, records, 5, undefined, opts({ siteVisits }));\n  expect(result).toEqual([]);\n});\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure before the fix:\n`google.com` rolls up 50 recent visits, clears `QUALIFY_MIN`, and is returned as\none row, so `toEqual([])` fails with a length-1 array (a `google.com` row whose\n`visitCount` is `50`). After the fix the candidate is filtered, no group forms,\nand the result is `[]`.\n\n## Scenarios to Demonstrate\n\n- **The bug, reproduced:** a fresh profile that has only done Google searches —\n  before the fix `google.com` sits at the top of Favorites with a \"50 visits\"\n  badge; after the fix Favorites is empty.\n- **Real favorites survive alongside searches:** history mixing many Google\n  searches with a genuinely revisited site (e.g. `github.com`) — only\n  `github.com` appears; `google.com` is gone.\n- **Google properties on other hosts are unaffected:** frequent\n  `docs.google.com` / `mail.google.com` visits still qualify (distinct hosts,\n  not the search engine).\n- **Multiple engines:** history across `bing.com`, `duckduckgo.com`, and a\n  `google.co.uk` ccTLD search — none appear in Favorites.\n- **Edge — portal vs. SERP:** `search.yahoo.com` is excluded while a\n  `yahoo.com` portal visit is not, confirming the SERP-subdomain targeting.\n- **View All page:** the \"View All Favorites\" page shows the same exclusion, and\n  its reset control still behaves correctly with search hosts absent.",
+  "description": "Search engines no longer hijack the top of Favorites. Because rankFavorites rolls every page up by host, every distinct Google search collapsed onto one google.com row whose visit count climbed to the cap and pinned it at #1. A new pure predicate isSearchEngineUrl (a curated host set of known engines and SERP subdomains plus a google.<tld> ccTLD rule, reusing siteKey for host normalization) is now applied at rank time in rankFavorites, dropping search-engine candidates before grouping so they never qualify and the already-inflated siteVisits store is discarded instantly with no migration. A byte-identical mirror in service_worker.js gates newUrl so the visits and siteVisits scoring stores stop accumulating search hosts going forward, while allUrls and visitCount still record them for history. Non-search Google hosts (docs/mail/calendar.google.com) and content portals (yahoo.com) are correctly kept; only SERP subdomains (search.yahoo.com) are excluded. Covered by 12 new tests including a red-first reproduction test, plus demonstration scenarios showing a search engine dropped while a genuinely-revisited site survives.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/keep-search-engines-out-of-favorites.md\t.codeyam/plans/completed/keep-search-engines-out-of-favorites.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-drift-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-pages-rolled-up-and-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-same-origin-different-path-uncued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/pending-build-launch",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-google-doc-survives-search-exclusion.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-search-engines-excluded.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-serp-excluded-portal-kept.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/isSearchEngineUrl.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/isSearchEngineUrl.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Google Doc Survives Search Exclusion",
+      "screenshotPath": "favorites-google-doc-survives-search-exclusion--desktop.png"
+    },
+    {
+      "name": "Favorites - Heavy Content Site Rolled Up",
+      "screenshotPath": "favorites-heavy-content-site-rolled-up--desktop.png"
+    },
+    {
+      "name": "Favorites - SERP Excluded Portal Kept",
+      "screenshotPath": "favorites-serp-excluded-portal-kept--desktop.png"
+    },
+    {
+      "name": "Favorites - Search Engines Excluded",
+      "screenshotPath": "favorites-search-engines-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Sidebar With View All Link",
+      "screenshotPath": "favorites-sidebar-with-view-all-link--desktop.png"
+    },
+    {
+      "name": "Favorites - Stats Survive URL Eviction",
+      "screenshotPath": "favorites-stats-survive-url-eviction--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Empty",
+      "screenshotPath": "viewallfavorites-empty--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Open Cue By Page Identity",
+      "screenshotPath": "viewallfavorites-open-cue-by-page-identity--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Rich",
+      "screenshotPath": "viewallfavorites-rich--desktop.png"
+    },
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Google Doc Drift Open",
+      "screenshotPath": "favorites-google-doc-drift-open--desktop.png"
+    },
+    {
+      "name": "Favorites - Non-Website Entries Filtered",
+      "screenshotPath": "favorites-non-website-entries-filtered--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Query Distinct Pages Rolled Up And Cued",
+      "screenshotPath": "favorites-query-distinct-pages-rolled-up-and-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Same Origin Different Path Uncued",
+      "screenshotPath": "favorites-same-origin-different-path-uncued--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 194,
+    "passed": 194,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 194,
+        "passed": 194
+      }
+    ]
+  }
+}

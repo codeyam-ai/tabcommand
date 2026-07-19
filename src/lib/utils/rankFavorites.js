@@ -1,4 +1,5 @@
 import { isTrackableUrl } from './isTrackableUrl';
+import { isSearchEngineUrl } from './isSearchEngineUrl';
 import { normalizeUrl } from './normalizeUrl';
 import { siteKey } from './siteKey';
 import samePageKey from './samePageKey';
@@ -61,6 +62,10 @@ import {
 // Candidates are gated to real websites (`isTrackableUrl`): any stored key
 // pointing at a non-http(s) URL (`about:blank`, `file://`, etc.) is skipped so
 // legacy junk recorded before the service worker was gated never surfaces.
+// Search-engine hosts (`isSearchEngineUrl` — `google.com`, `bing.com`, etc.) are
+// skipped too: they're launchers, not destinations you return to for their
+// content, so they must never qualify as Favorites — and skipping them here also
+// discards the already-inflated `siteVisits['google.com']` store instantly.
 //
 // Candidates are rolled up BY SITE (`siteKey` — the host), not per page, so every
 // article on a content site credits the site itself: ESPN's homepage and a dozen
@@ -140,6 +145,12 @@ export function rankFavorites(
     // never qualify or render.
     const candidateUrl = record.url || urlKey.replace(/^url-/, '');
     if (!isTrackableUrl(candidateUrl)) continue;
+    // Search engines are launchers, not destinations you return to for their
+    // content, so they never qualify as Favorites. Dropping the candidate BEFORE
+    // grouping means no `google.com` group is ever formed, so the already-inflated
+    // `siteVisits['google.com']` is never unioned in and cannot qualify — fixing
+    // both the live symptom and the polluted store in one pass, no migration.
+    if (isSearchEngineUrl(candidateUrl)) continue;
 
     // The candidate's per-record visits. The open-tab discount is NOT applied
     // here: it has to happen after the durable `siteVisits` history is unioned in

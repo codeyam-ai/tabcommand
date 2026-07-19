@@ -137,6 +137,34 @@ function siteKey(url) {
   return parsed.host.toLowerCase().replace(/^www\./, '');
 }
 
+// Mirror of isSearchEngineUrl() in src/lib/utils/isSearchEngineUrl.js — THAT FILE
+// IS THE SOURCE OF TRUTH; this duplicate exists only because the service-worker
+// runtime can't import the ES module, same as siteKey / pruneVisits above. Keep
+// SEARCH_ENGINE_HOSTS byte-identical (alphabetized) to the canonical set so the
+// two don't drift. Used by newUrl to stop accumulating Favorites scoring signal
+// (per-record `visits` + the durable `siteVisits[host]`) for search engines,
+// which rankFavorites discards anyway.
+const SEARCH_ENGINE_HOSTS = new Set([
+  'ask.com',
+  'baidu.com',
+  'bing.com',
+  'duckduckgo.com',
+  'ecosia.org',
+  'kagi.com',
+  'qwant.com',
+  'search.brave.com',
+  'search.yahoo.com',
+  'startpage.com',
+  'yandex.com',
+  'yandex.ru',
+]);
+const GOOGLE_SEARCH_HOST = /^google\.[a-z.]+$/;
+function isSearchEngineUrl(url) {
+  const host = siteKey(url);
+  if (!host) return false;
+  return SEARCH_ENGINE_HOSTS.has(host) || GOOGLE_SEARCH_HOST.test(host);
+}
+
 let groups = {};
 function trackGroup(group) {
   groups[parseInt(group.id)] = group.title;
@@ -545,11 +573,19 @@ async function newUrl(tabId, url) {
       // incrementing for backward-compat/display, and records without a `visits`
       // array are seeded lazily downstream (see rankFavorites).
       const now = Date.now();
+      // Search engines stay in history (allUrls + visitCount) but stop
+      // accumulating the Favorites scoring signal — the per-record `visits` and
+      // the durable `siteVisits[host]` below — since rankFavorites now discards
+      // search-engine hosts anyway. Gating here keeps those stores from growing
+      // wasteful (but now-invisible) entries going forward.
+      const isSearchEngine = isSearchEngineUrl(url);
       const urlRecord = result[urlKey] || { url };
       updates[urlKey] = {
         ...urlRecord,
         visitCount: (urlRecord.visitCount || 0) + 1,
-        visits: pruneVisits([...(urlRecord.visits || []), now], now),
+        visits: isSearchEngine
+          ? urlRecord.visits || []
+          : pruneVisits([...(urlRecord.visits || []), now], now),
       };
 
       // The DURABLE half of the same visit: accumulate it under the site's host
@@ -561,7 +597,7 @@ async function newUrl(tabId, url) {
       // Written into the same `updates` object, so the visit lands atomically with
       // the url-* record in one chrome.storage.local.set.
       const host = siteKey(url);
-      if (host) {
+      if (host && !isSearchEngine) {
         const siteVisits = result.siteVisits || {};
         siteVisits[host] = pruneVisits([...(siteVisits[host] || []), now], now);
         updates.siteVisits = siteVisits;
