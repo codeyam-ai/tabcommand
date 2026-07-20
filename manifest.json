@@ -1,6 +1,6 @@
 {
   "name": "TabCommand",
-  "version": "0.18",
+  "version": "0.19",
   "description": "Command Central for your browsing experience.",
   "permissions": ["storage", "tabs", "tabGroups", "system.cpu", "system.memory", "alarms"],
   "background": {

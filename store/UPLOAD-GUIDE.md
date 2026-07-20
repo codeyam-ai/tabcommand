@@ -1,4 +1,4 @@
-# TabCommand — Chrome Web Store upload guide (Public listing, v0.18)
+# TabCommand — Chrome Web Store upload guide (Public listing, v0.19)
 
 Everything in this `store/` folder is **prepped and ready** for a **public**
 listing. The steps below are the parts only you can do — they need your Google
@@ -31,7 +31,7 @@ account and a credit card.
 
 | File | What it is | Where it goes in the dashboard |
 |---|---|---|
-| `tabcommand-0.18.zip` | The packaged extension (manifest at the zip root, version **0.18**) | Package → Upload new package |
+| `tabcommand-0.19.zip` | The packaged extension (manifest at the zip root, version **0.19**) | Package → Upload new package |
 | `icon/tabcommand-icon-128.png` | 128×128 store icon | Store listing → Store icon |
 | `screenshots/01…05-*.png` | Five 1280×800 screenshots, in upload order (5 is the max allowed) | Store listing → Screenshots |
 | `promo/small-tile-440x280.png` | 440×280 small promo tile — **required to publish** | Store listing → Small promo tile |
@@ -60,7 +60,7 @@ https://codeyam.com/tabcommand/privacy
 
 1. **Register / sign in** at https://chrome.google.com/webstore/devconsole and
    pay the one-time $5 fee if you haven't already.
-2. Click **"Add new item"** and upload **`tabcommand-0.18.zip`**.
+2. Click **"Add new item"** and upload **`tabcommand-0.19.zip`**.
 3. **Store listing** tab:
    - Item name, Summary, Detailed description → copy from `store-listing.md`.
    - Store icon → `icon/tabcommand-icon-128.png`.
