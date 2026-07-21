@@ -325,6 +325,18 @@ codeyam-editor editor session-finalize 2>&1 | tee /tmp/codeyam-audit-finalize.lo
 > `CODEYAM_CMD_COMPLETE` on **both** success and failure — wait on that token,
 > read its `status`, and don't regex English success strings.
 
+> GOTCHA — **the per-test-evidence union-clobber.** If the finalize's evidence
+> phase reports a large `per-test-evidence` "missing" / "out of sync" count
+> (thousands of rows) that appeared *right after* a `pre-commit-sync` pulled
+> sibling commits, suspect the union-clobber, not a real evidence gap: a
+> non-driver merge (a `git pull --rebase` autostash pop) dropped local rows.
+> `origin` retains the intact file, so recover in one line —
+> `git checkout origin/<branch> -- .codeyam/per-test-evidence.json` — instead of
+> paying a full flag-free `refresh-tests`. The normal `pre-commit-sync` now
+> integrates through the union-safe transient-commit rebase and re-asserts a
+> post-integration shrink guard, so a fresh clobber should no longer occur; this
+> recovery is for a file already damaged by an older sync.
+
 > GOTCHA — **infra crashes, not code bugs.** A finalize can die on a full disk
 > or an OOM. If it crashes non-deterministically, check `df -h` / free memory
 > before assuming the branch is broken.
