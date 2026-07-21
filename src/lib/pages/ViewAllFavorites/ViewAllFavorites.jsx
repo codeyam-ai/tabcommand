@@ -3,6 +3,7 @@ import './ViewAllFavorites.css';
 import React, { useEffect, useState } from 'react';
 
 import { Chrome } from '../../utils/Chrome';
+import { hiddenSiteKey, hiddenSiteKeys } from '../../utils/hiddenSiteKeys';
 import { rankFavorites } from '../../utils/rankFavorites';
 import { usageMax } from '../../utils/usageMax';
 import { Pages } from '../../../Constants';
@@ -53,12 +54,16 @@ const ViewAllFavorites = () => {
               .filter((tab) => !tab.pinned)
               .map((tab) => tab.urlKey)
           );
-          const hiddenKeys = new Set(favoritesHidden || []);
+          // Flag hidden sites at the SITE level, matching how the sidebar hides
+          // them: a removed multi-page site must render dimmed no matter which of
+          // its pages is currently the representative, otherwise the row silently
+          // reappears undimmed and "Bring back" is unreachable.
+          const hiddenSites = hiddenSiteKeys(favoritesHidden);
           Chrome.get('ViewAllFavorites3', keys, (records) => {
             setFavorites(
               rankFavorites(keys, records, Infinity, excludedKeys, {
                 openKeys,
-                hiddenKeys,
+                hiddenSites,
                 now: at,
                 siteVisits: siteVisits || {},
               })
@@ -101,16 +106,26 @@ const ViewAllFavorites = () => {
     });
   };
 
-  // The inverse of Favorites' removeFavorite: drop the urlKey from
-  // favoritesHidden so the site returns to the sidebar Favorites section.
+  // The exact inverse of Favorites' removeFavorite: drop the SITE from
+  // favoritesHidden so it returns to the sidebar Favorites section.
+  //
+  // Every entry that normalizes to this site's key is removed, not just the one
+  // matching the representative — including legacy `url-*` page entries written
+  // before removal became site-level. Removing only one would leave the site's
+  // other entries behind, so it would stay hidden despite the click: half-restored
+  // and, with no dimmed row left to click, permanently stuck that way.
   const bringBack = (e, favorite) => {
     e.stopPropagation();
     Chrome.get('ViewAllFavorites5', 'favoritesHidden', ({ favoritesHidden }) => {
       const hidden = favoritesHidden || [];
-      if (!hidden.includes(favorite.urlKey)) return;
-      chrome.storage.local.set({
-        favoritesHidden: hidden.filter((key) => key !== favorite.urlKey),
-      });
+      // Normalized the same way the stored entries are, so this is exactly the
+      // group key rankFavorites rolled this row up under.
+      const target = hiddenSiteKey(favorite.url);
+      const remaining = hidden.filter(
+        (entry) => hiddenSiteKey(entry) !== target
+      );
+      if (remaining.length === hidden.length) return;
+      chrome.storage.local.set({ favoritesHidden: remaining });
     });
   };
 

@@ -1,0 +1,23 @@
+{
+  "name": "Favorites - Multi Page Site Removed",
+  "id": "b876c8dd-283e-40fd-8c90-98b0faaf32ec",
+  "url": "/?isolate=Favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.espn.com/nfl/scoreboard": "{\"title\": \"NFL Scoreboard \\u2014 Week 14 \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 5}",
+      "url-https://www.espn.com": "{\"title\": \"ESPN \\u2014 Serving Sports Fans. Anytime. Anywhere.\", \"favicon\": \"\", \"visitCount\": 6}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 6}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 9}",
+      "allUrls": "[\"url-https://www.espn.com\", \"url-https://www.espn.com/nfl/scoreboard\", \"url-https://www.espn.com/nba/story/_/id/44118872/lakers-trade-deadline\", \"url-https://www.espn.com/mlb/standings\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://news.ycombinator.com\"]",
+      "url-https://www.espn.com/mlb/standings": "{\"title\": \"MLB Standings \\u2014 2026 Season \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 4}",
+      "favoritesHidden": "[\"espn.com\"]",
+      "url-https://www.espn.com/nba/story/_/id/44118872/lakers-trade-deadline": "{\"title\": \"Lakers weigh trade-deadline options \\u2014 ESPN\", \"favicon\": \"\", \"visitCount\": 4}"
+    }
+  },
+  "componentName": "Favorites",
+  "scenarioType": "component"
+}

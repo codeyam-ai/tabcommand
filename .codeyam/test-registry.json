@@ -131,7 +131,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › excludes a site present in favoritesHidden",
-      "line": 169,
+      "line": 172,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -145,11 +145,20 @@
       "runner": "tests"
     },
     {
+      "description": "A site with several stored pages is one row, so one × click must remove it — the row must not re-form from the site's next-most-recent page.",
+      "file": "src/lib/components/Favorites/Favorites.test.jsx",
+      "format": "vitest",
+      "key": "Favorites › hides a multi-page site in a single click",
+      "line": 194,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
       "description": "A favorite open in a non-pinned tab (and still clearing the threshold after the open-tab discount) renders with the Favorites-item--open cue class; a closed favorite does not.",
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › marks an open favorite with the Favorites-item--open class",
-      "line": 220,
+      "line": 267,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -167,7 +176,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › removes a favorite via the × and still opens a tab on a plain row click",
-      "line": 184,
+      "line": 231,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -176,7 +185,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › renders nothing when there are no favorites",
-      "line": 258,
+      "line": 305,
       "registeredAt": "2026-06-28T10:02:28Z",
       "runner": "tests"
     },
@@ -194,7 +203,7 @@
       "file": "src/lib/components/Favorites/Favorites.test.jsx",
       "format": "vitest",
       "key": "Favorites › renders up to ten favorites when that many qualify",
-      "line": 242,
+      "line": 289,
       "registeredAt": "2026-06-28T16:59:53Z",
       "runner": "tests"
     },
@@ -1427,7 +1436,7 @@
       "file": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
       "format": "vitest",
       "key": "ViewAllFavorites › navigates back to Home when the back button is clicked",
-      "line": 51,
+      "line": 99,
       "registeredAt": "2026-07-03T00:10:10.975459793+00:00",
       "runner": "tests"
     },
@@ -1445,7 +1454,7 @@
       "file": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
       "format": "vitest",
       "key": "ViewAllFavorites › reset favorites tracking › clears the visit signal and hidden list on confirm, preserving other fields",
-      "line": 110,
+      "line": 158,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -1454,7 +1463,7 @@
       "file": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
       "format": "vitest",
       "key": "ViewAllFavorites › reset favorites tracking › dismisses the confirm on Cancel without writing",
-      "line": 141,
+      "line": 189,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -1463,8 +1472,17 @@
       "file": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
       "format": "vitest",
       "key": "ViewAllFavorites › reset favorites tracking › reveals the confirm buttons without writing storage",
-      "line": 86,
+      "line": 134,
       "registeredAt": "2026-07-03T12:55:24Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The mirror of the sidebar's one-click removal. A removed multi-page site must render dimmed here whichever of its pages is currently representative, and one \"Bring back\" must restore the WHOLE site — including any legacy `url-` entries — or the site stays half-hidden with no dimmed row left to click.",
+      "file": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+      "format": "vitest",
+      "key": "ViewAllFavorites › restores a removed multi-page site in a single Bring back click",
+      "line": 54,
+      "registeredAt": "2026-07-21T20:00:42Z",
       "runner": "tests"
     },
     {
@@ -2851,6 +2869,105 @@
       "key": "healDriftedLabelSlot › treats a fragment-only change on the same page as an exact match",
       "line": 87,
       "registeredAt": "2026-07-19T11:55:52Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Both callers derive \"which site is this row\" through this one function, so a legacy page entry and a fresh bare site key must land on the same key.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKey › normalizes both storage forms to the same key",
+      "line": 85,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Callers treat '' as \"no site\" and skip it, so junk must reduce to '' rather than to a key that could collide with a real row.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKey › returns an empty key for junk it cannot normalize",
+      "line": 110,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The write/read round trip the sidebar's × and View All's \"Bring back\" both depend on: whatever removal stores must normalize back to the same key on read, or the site is hidden with no way to restore it. Pinned for the awkward case — an unparseable URL, where the key is a normalizeUrl fallback rather than a host.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKey › round-trips what removal writes, including an unparseable url",
+      "line": 97,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Every cosmetic variant of a host is one row, so every variant must collapse to one hidden key — including across the two storage forms.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKeys › collapses scheme, www. and path variants onto one key",
+      "line": 27,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Subdomains other than www. are genuinely different sites (siteKey's rule), so hiding one must not hide the other.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKeys › does not collapse a non-www subdomain onto its parent",
+      "line": 48,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Junk tolerance: an unparseable entry keeps its own key rather than bucketing every malformed entry together under '' (which would hide unrelated rows).",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKeys › falls back to the raw entry for an unparseable url",
+      "line": 56,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The flip side of collapsing: hiding one site must never take another with it, which is what would happen if unrelated entries bucketed onto a shared key.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKeys › keeps distinct sites distinct",
+      "line": 40,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The legacy form: an install that removed a favorite before this change holds a page key. It must keep hiding its whole site, with no migration.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKeys › normalizes a legacy url- page entry to its site key",
+      "line": 12,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The form written from now on. A bare hostname is not a parseable URL, so this only works because of the normalizeUrl fallback — the case a lone siteKey call would silently drop.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKeys › passes a bare site key through unchanged",
+      "line": 21,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A corrupt entry must be dropped rather than added as an empty key — an '' in the set would match nothing useful and risks matching a junk group key.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKeys › skips non-string and empty entries",
+      "line": 73,
+      "registeredAt": "2026-07-21T20:00:42Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Callers pass storage straight through, which may be missing or corrupt.",
+      "file": "src/lib/utils/hiddenSiteKeys.test.js",
+      "format": "vitest",
+      "key": "hiddenSiteKeys › tolerates a missing or non-array input",
+      "line": 64,
+      "registeredAt": "2026-07-21T20:00:42Z",
       "runner": "tests"
     },
     {

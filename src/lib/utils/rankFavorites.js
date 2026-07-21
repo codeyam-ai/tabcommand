@@ -41,6 +41,19 @@ import {
 //                  the "View All" page can render them dimmed with a "Bring
 //                  back" action. (The sidebar passes hidden keys via
 //                  excludedKeys instead, so they stay hidden there.)
+//     excludedSites / hiddenSites — the SITE-level counterparts of the two
+//                  options above: Sets of group keys (hosts), matched against a
+//                  group's `groupKey` rather than a member's `urlKey`.
+//                  `excludedSites` drops the whole site; `hiddenSites` flags it
+//                  `isHidden: true`. Removal is site-level because ROWS are
+//                  site-level: suppressing one page key of a multi-page site
+//                  only demotes the representative, and the row instantly
+//                  re-forms from the site's next-most-recent page. Matching the
+//                  group key removes the site in one click, whichever of its
+//                  pages happens to be representative.
+//                  The page-level `excludedKeys`/`hiddenKeys` remain for the
+//                  genuinely page-level concern they serve (pinned-tab
+//                  exclusion), and are applied independently of these.
 //     now        — epoch-ms "now" for decay (default Date.now()). Injectable so
 //                  tests pin behavior instead of relying on wall-clock.
 //     halfLifeMs — decay half-life (default HALF_LIFE_MS).
@@ -126,6 +139,8 @@ export function rankFavorites(
     [...openKeys].map((k) => samePageKey(k.replace(/^url-/, '')))
   );
   const hiddenKeys = options.hiddenKeys || new Set();
+  const excludedSites = options.excludedSites || new Set();
+  const hiddenSites = options.hiddenSites || new Set();
   const now = options.now != null ? options.now : Date.now();
   const halfLifeMs = options.halfLifeMs != null ? options.halfLifeMs : HALF_LIFE_MS;
   const qualifyMin = options.qualifyMin != null ? options.qualifyMin : QUALIFY_MIN;
@@ -206,6 +221,11 @@ export function rankFavorites(
   // (latest visit, then list position) as the deterministic tiebreak.
   const qualifying = [];
   for (const [groupKey, group] of groups) {
+    // Site-level removal, applied here rather than per-candidate because the row
+    // the user clicked × on IS this group. Dropping a member instead would just
+    // hand the row to the site's next page.
+    if (excludedSites.has(groupKey)) continue;
+    if (hiddenSites.has(groupKey)) group.isHidden = true;
     // The site's real history: the durable store unioned with whatever the
     // members' own records carry, deduped by exact epoch-ms (the two stores
     // record the same visit with the same timestamp, so duplicates collapse).

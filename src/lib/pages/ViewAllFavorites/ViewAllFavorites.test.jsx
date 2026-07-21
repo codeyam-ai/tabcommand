@@ -47,6 +47,54 @@ describe('ViewAllFavorites', () => {
     expect(await screen.findByText('Quick Start — React')).toBeInTheDocument();
   });
 
+  // The mirror of the sidebar's one-click removal. A removed multi-page site must
+  // render dimmed here whichever of its pages is currently representative, and one
+  // "Bring back" must restore the WHOLE site — including any legacy `url-` entries
+  // — or the site stays half-hidden with no dimmed row left to click.
+  it('restores a removed multi-page site in a single Bring back click', async () => {
+    const now = Date.now();
+    const day = 1000 * 60 * 60 * 24;
+    const visits = [now - 2 * day, now - 1 * day, now - 60_000];
+    seed('allUrls', [
+      'url-https://espn.com/nfl/story',
+      'url-https://espn.com/',
+      'url-https://b.com',
+    ]);
+    seed('url-https://espn.com/nfl/story', {
+      title: 'ESPN Story',
+      favicon: '',
+      visits,
+    });
+    seed('url-https://espn.com/', { title: 'ESPN', favicon: '', visits });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visits });
+    // The site's two storage forms at once: the bare site key a fresh removal
+    // writes, plus a legacy page entry left over from an older install.
+    seed('favoritesHidden', ['espn.com', 'url-https://espn.com/']);
+    installChromeShim();
+
+    render(<ViewAllFavorites />);
+
+    // The site is flagged hidden even though its representative page key is not
+    // itself the stored entry — that only holds because flagging is site-level.
+    const row = (await screen.findByText('ESPN Story')).closest('.FavoriteRow');
+    expect(row).toHaveClass('FavoriteRow--hidden');
+    await userEvent.click(row.querySelector('.FavoriteRow-bringback'));
+
+    // One click clears every entry for the site, so nothing keeps it hidden.
+    await waitFor(() => {
+      expect(
+        JSON.parse(window.localStorage.getItem('favoritesHidden'))
+      ).toEqual([]);
+    });
+    // ...so the row is no longer dimmed and has no Bring back left to click.
+    await waitFor(() =>
+      expect(
+        document.querySelector('.FavoriteRow-bringback')
+      ).not.toBeInTheDocument()
+    );
+    expect(screen.getByText('ESPN Story')).toBeInTheDocument();
+  });
+
   // the back button returns to the Home page via uxSettings
   it('navigates back to Home when the back button is clicked', async () => {
     seed('uxSettings', { page: { name: Pages.FAVORITES } });

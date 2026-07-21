@@ -28,6 +28,37 @@
         "status": "added"
       }
     },
+    "Favorites": {
+      "empty": {
+        "status": "n-a",
+        "reason": "Covered by the favorites-all-sites-removed component scenario, where every site is in favoritesHidden so the section renders nothing. Recorded n-a only because the seed-based state-matrix cannot classify a browserState/localStorage-seeded scenario on this stack — the same limitation noted on ViewAllFavorites and History."
+      },
+      "single": {
+        "status": "n-a",
+        "reason": "Covered by the favorites-single-favorite component scenario. Recorded n-a only because the state-matrix cannot classify browserState/localStorage-seeded scenarios on this stack."
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "n-a",
+        "reason": "Covered by favorites-ten-justified, which fills the FAVORITES_LIMIT of 10 rows. Recorded n-a only because the state-matrix cannot classify browserState/localStorage-seeded scenarios on this stack."
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "Favorites reads chrome.storage.local synchronously in a mount effect and renders nothing until it resolves; there is no pending or skeleton UI to capture."
+      },
+      "edge": {
+        "status": "covered"
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "The sidebar section has no failure UI: a storage read that yields nothing falls through to the same render-nothing path as an empty install, so there is no distinct error state."
+      },
+      "key-interaction": {
+        "status": "added"
+      }
+    },
     "History": {
       "empty": {
         "status": "n-a",

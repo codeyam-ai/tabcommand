@@ -3,6 +3,7 @@ import './Favorites.css';
 import React, { useEffect, useState } from 'react';
 
 import { Chrome } from '../../utils/Chrome';
+import { hiddenSiteKey, hiddenSiteKeys } from '../../utils/hiddenSiteKeys';
 import { rankFavorites } from '../../utils/rankFavorites';
 import { Pages } from '../../../Constants';
 import { Favicon } from '../Favicon';
@@ -33,15 +34,19 @@ const Favorites = () => {
             setFavorites([]);
             return;
           }
-          // Exclude any site currently open in a Chrome-pinned tab (already
-          // always-available, so it shouldn't take a Favorites slot) and any
-          // site the user explicitly removed from Favorites.
-          const excludedKeys = new Set([
-            ...(activeTabs || [])
+          // Exclude any site currently open in a Chrome-pinned tab — already
+          // always-available, so it shouldn't take a Favorites slot. This one is
+          // genuinely page-level (a specific tab's key), so it stays in the
+          // page-level exclusion set.
+          const excludedKeys = new Set(
+            (activeTabs || [])
               .filter((tab) => tab.pinned)
-              .map((tab) => tab.urlKey),
-            ...(favoritesHidden || []),
-          ]);
+              .map((tab) => tab.urlKey)
+          );
+          // Sites the user explicitly removed are excluded at the SITE level:
+          // the row they clicked × on represents the whole host, so suppressing
+          // one of its page keys would let the row re-form from the next page.
+          const excludedSites = hiddenSiteKeys(favoritesHidden);
           // Sites open in a NON-pinned tab are discounted (not excluded): their
           // in-progress visit shouldn't pad the ranking while the tab is open, so
           // Favorites doesn't just mirror the currently-open tabs.
@@ -54,6 +59,7 @@ const Favorites = () => {
             setFavorites(
               rankFavorites(keys, records, FAVORITES_LIMIT, excludedKeys, {
                 openKeys,
+                excludedSites,
                 siteVisits: siteVisits || {},
               })
             );
@@ -103,13 +109,20 @@ const Favorites = () => {
   const removeFavorite = (e, favorite) => {
     // Don't let the row's open-on-click fire when the × is clicked.
     e.stopPropagation();
-    // Hide (not delete): record the urlKey in favoritesHidden so it's suppressed
+    // Hide (not delete): record the site in favoritesHidden so it's suppressed
     // from Favorites while staying available in Search and History.
+    //
+    // The SITE key is what gets stored, because the row is a site: writing the
+    // representative page's key would hide only that page and the row would come
+    // straight back built from the site's next-most-recent page. Derived with the
+    // same `hiddenSiteKey` the read side and View All's "Bring back" use, so all
+    // three spell "which site is this row" identically instead of by coincidence.
     Chrome.get('Favorites4', 'favoritesHidden', ({ favoritesHidden }) => {
       const hidden = favoritesHidden || [];
-      if (hidden.includes(favorite.urlKey)) return;
+      const key = hiddenSiteKey(favorite.url);
+      if (hidden.includes(key)) return;
       chrome.storage.local.set({
-        favoritesHidden: [...hidden, favorite.urlKey],
+        favoritesHidden: [...hidden, key],
       });
     });
   };

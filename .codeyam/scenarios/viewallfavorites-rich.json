@@ -1,6 +1,6 @@
 {
   "name": "ViewAllFavorites - Rich",
-  "id": "9498ac5f-3234-4ec7-9dae-c31ace71b11e",
+  "id": "fb094c30-6342-46c2-bb45-fb1dbc3e015c",
   "url": "/",
   "dimensions": [
     "Desktop"
@@ -8,21 +8,21 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 30, \"visits\": [1780875231021, 1781480031021, 1782171231021, 1782603231021, 1782776031021, 1782905631021, 1782948831021, 1782983391021, 1783017951021]}",
-      "url-https://rare.example.com/page": "{\"title\": \"Rarely Visited Page\", \"favicon\": \"\", \"visitCount\": 2, \"visits\": [1781480031021, 1781739231021]}",
-      "labels": "{}",
-      "uxSettings": "{\"page\": {\"name\": \"Favorites\"}}",
+      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"visitCount\": 4, \"visits\": [1783555315872, 1783641715872, 1783728115872, 1783814515872]}",
       "activeTabs": "[]",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"visitCount\": 30, \"visits\": [1782518515872, 1783123315872, 1783814515872, 1784246515872, 1784419315872, 1784548915872, 1784592115872, 1784626675872, 1784661235872]}",
+      "url-https://rare.example.com/page": "{\"title\": \"Rarely Visited Page\", \"favicon\": \"\", \"visitCount\": 2, \"visits\": [1783123315872, 1783382515872]}",
+      "labels": "{}",
       "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"visitCount\": 7}",
-      "favoritesHidden": "[\"url-https://www.etsy.com/favorites\"]",
-      "url-https://oldblog.example.com/post": "{\"title\": \"An Old Blog Post\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1782344031021]}",
-      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"visitCount\": 9, \"visits\": [1779233631021, 1779838431021, 1780443231021, 1781048031021, 1781652831021, 1782257631021, 1782862431021]}",
-      "url-https://www.etsy.com/favorites": "{\"title\": \"Favorites \\u2014 Etsy\", \"favicon\": \"\", \"visitCount\": 8, \"visits\": [1782084831021, 1782689631021, 1782862431021, 1782948831021]}",
-      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 52, \"visits\": [1778974431021, 1779579231021, 1780184031021, 1780875231021, 1781134431021, 1781739231021, 1781998431021, 1782257631021, 1782516831021, 1782689631021, 1782862431021, 1782862431021, 1782862431021, 1782948831021, 1782992031021, 1783017951021]}",
-      "url-https://www.amazon.com/wishlist": "{\"title\": \"Your Wish List \\u2014 Amazon\", \"favicon\": \"\", \"visitCount\": 3, \"visits\": [1782776031021, 1782862431021, 1782948831021]}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"visitCount\": 52, \"visits\": [1780617715872, 1781222515872, 1781827315872, 1782518515872, 1782777715872, 1783382515872, 1783641715872, 1783900915872, 1784160115872, 1784332915872, 1784505715872, 1784505715872, 1784505715872, 1784592115872, 1784635315872, 1784661235872]}",
+      "uxSettings": "{\"page\": {\"name\": \"Favorites\"}}",
+      "url-https://www.amazon.com/wishlist": "{\"title\": \"Your Wish List \\u2014 Amazon\", \"favicon\": \"\", \"visitCount\": 3, \"visits\": [1784419315872, 1784505715872, 1784592115872]}",
+      "url-https://www.etsy.com/favorites": "{\"title\": \"Favorites \\u2014 Etsy\", \"favicon\": \"\", \"visitCount\": 8, \"visits\": [1783728115872, 1784332915872, 1784505715872, 1784592115872]}",
       "allUrls": "[\"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"url-https://github.com/codeyam/tabcommand\", \"url-https://news.ycombinator.com\", \"url-https://react.dev/learn\", \"url-https://www.amazon.com/wishlist\", \"url-https://www.etsy.com/favorites\", \"url-https://www.notion.so/Roadmap\", \"url-https://oldblog.example.com/post\", \"url-https://www.figma.com/file/tabcommand-ui\", \"url-https://rare.example.com/page\"]",
-      "url-https://www.figma.com/file/tabcommand-ui": "{\"title\": \"TabCommand UI \\u2014 Figma\", \"favicon\": \"\", \"visitCount\": 4, \"visits\": [1781912031021, 1781998431021, 1782084831021, 1782171231021]}",
-      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"visitCount\": 14, \"visits\": [1781048031021, 1781652831021, 1782257631021, 1782516831021, 1782776031021, 1782776031021, 1782948831021]}"
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2014 React\", \"favicon\": \"\", \"visitCount\": 14, \"visits\": [1782691315872, 1783296115872, 1783900915872, 1784160115872, 1784419315872, 1784419315872, 1784592115872]}",
+      "favoritesHidden": "[\"url-https://www.etsy.com/favorites\"]",
+      "url-https://www.notion.so/Roadmap": "{\"title\": \"Roadmap \\u2014 Notion\", \"favicon\": \"\", \"visitCount\": 9, \"visits\": [1780876915872, 1781481715872, 1782086515872, 1782691315872, 1783296115872, 1783900915872, 1784505715872]}",
+      "url-https://oldblog.example.com/post": "{\"title\": \"An Old Blog Post\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [1783987315872]}"
     }
   },
   "scenarioType": "application",

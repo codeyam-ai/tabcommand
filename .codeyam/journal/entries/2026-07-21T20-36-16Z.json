@@ -1,0 +1,367 @@
+{
+  "timestamp": "2026-07-21T20:36:16Z",
+  "title": "One-Click Favorite Removal",
+  "type": "feature",
+  "userRequest": "## Summary\n\nRemoving a favorite takes several clicks: `rankFavorites` rolls every stored page\nof a host onto ONE site row (`siteKey` grouping), but the sidebar's × writes only\nthe representative page's `urlKey` into `favoritesHidden`. The group instantly\nre-forms from the next-most-recent page of the same host, so the row reappears\nand the user has to click × once per stored `url-*` key of that site. \"Bring back\"\non the View All page has the mirror-image bug: it un-hides one key while the\nsite's other keys stay hidden, so a site can end up permanently half-hidden.\nFix: make removal site-level, matching the site-level grouping the rows already\nuse — hide by site key, honor legacy page-key entries, and remove/restore the\nwhole site in one click.\n\n## Key Decisions\n\n- **Store site keys in `favoritesHidden`, not page keys.** A row means \"espn.com\",\n  so the removal record must mean the same thing. Anything else (e.g. hiding every\n  current member key at click time) leaves the row free to come back the next time\n  the user visits any new page on that host.\n- **Backward compatible on read, no migration.** Existing installs have\n  `url-https://a.com` entries in `favoritesHidden`. Normalize each stored entry\n  through `siteKey(entry.replace(/^url-/, ''))` when building the set, so legacy\n  page entries keep hiding their site. Writes use the bare site key from then on;\n  no storage rewrite or version bump is needed. (This mirrors how `rankFavorites`\n  already strips the `url-` prefix off keys to recover raw URLs.)\n- **Apply the hidden set at the GROUP level in `rankFavorites`, not the candidate\n  level.** The current candidate-level `excluded.has(urlKey)` check is exactly why\n  a hidden representative just yields the next member. New `excludedSites` /\n  `hiddenSites` options are matched against each group's `groupKey`, which is\n  already the host.\n- **Keep the existing `excludedKeys` / `hiddenKeys` options.** Pinned-tab exclusion\n  still passes page keys and is a separate (page-level) concern; leaving it alone\n  keeps the change scoped. Note in passing: pinned-tab exclusion has the same\n  re-forming behavior, but it is out of scope here.\n\n## Implementation\n\n### 1. Normalize a stored `favoritesHidden` list into a set of site keys\n\n**New file**: `src/lib/utils/hiddenSiteKeys.js`\n\n`hiddenSiteKeys(favoritesHidden)` → `Set` of site keys. For each entry, strip a\nleading `url-`, run it through `siteKey`, and fall back to the raw entry when\n`siteKey` returns `''` (unparseable — matching the `siteKey(url) || normalizeUrl(url)`\nfallback `rankFavorites` uses for its group keys). Tolerates a non-array / missing\ninput by returning an empty set. Document that this is the read-side bridge between\nlegacy page-key entries and the site-key form written from now on.\n\n### 2. Apply hidden/excluded sites at group level\n\n**File**: `src/lib/utils/rankFavorites.js`\n\nAdd two options alongside the existing ones:\n\n- `excludedSites` — a `Set` of site keys dropped entirely (the sidebar's use).\n- `hiddenSites` — a `Set` of site keys scored and returned with `isHidden: true`\n  (the View All page's use).\n\nApply both in the qualifying loop where `groupKey` is in hand: `continue` when\n`excludedSites.has(groupKey)`; set `group.isHidden = true` when\n`hiddenSites.has(groupKey)`. Keep the existing per-candidate `excluded` /\n`hiddenKeys` behavior unchanged so pinned-tab exclusion is untouched. Update the\nheader comment block to describe the two new options and to say plainly that\nhiding is site-level because rows are site-level.\n\n### 3. Sidebar: hide the site, not the page\n\n**File**: `src/lib/components/Favorites/Favorites.jsx`\n\n- Build `excludedSites` from `favoritesHidden` via `hiddenSiteKeys(...)` and pass it\n  in the options object; drop `favoritesHidden` from the `excludedKeys` set (pinned\n  tabs stay there).\n- `removeFavorite` writes the site key: `const key = siteKey(favorite.url) || favorite.urlKey;`\n  guard on `hidden.includes(key)` and append `key`.\n\n### 4. View All: flag and restore by site\n\n**File**: `src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx`\n\n- Pass `hiddenSites: hiddenSiteKeys(favoritesHidden)` instead of the page-key\n  `hiddenKeys` set, so a hidden site's row renders dimmed regardless of which of\n  its pages is currently representative.\n- `bringBack` removes EVERY entry that normalizes to the site's key — including\n  legacy `url-*` entries — so one click fully restores the site:\n  filter `hidden` by `siteKey(entry.replace(/^url-/, '')) !== target`.\n\n### 5. Tests\n\n**File**: `src/lib/components/Favorites/Favorites.test.jsx`\n\nAdd the reproduction test below. Also extend the existing\n`excludes a site present in favoritesHidden` test with a bare-site-key entry\n(`'a.com'`) so both storage forms are covered.\n\n**File**: `src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx`\n\nA multi-page site whose representative was removed renders dimmed with \"Bring\nback\", and one click on it restores the whole site (nothing site-related left in\n`favoritesHidden`).\n\n**New file**: `src/lib/utils/hiddenSiteKeys.test.js`\n\nLegacy `url-` entries, bare site keys, `www.`/scheme variants collapsing, and\njunk-tolerant fallback.\n\n## Reused existing code\n\n- `siteKey` from `src/lib/utils/siteKey.js` (glossary entry: `siteKey`) — the\n  canonical host key; the same function `rankFavorites` groups by, so hiding and\n  grouping agree by construction.\n- `rankFavorites` from `src/lib/utils/rankFavorites.js` (glossary entry:\n  `rankFavorites`) — extended, not replaced; the group loop already has `groupKey`.\n- `normalizeUrl` from `src/lib/utils/normalizeUrl.js` — the fallback shape for an\n  unparseable URL, matching `rankFavorites`' own `siteKey(url) || normalizeUrl(url)`.\n- `Chrome` from `src/lib/utils/Chrome.js` — existing storage read/write wrapper used\n  by both callers.\n- `installChromeShim` from `src/lib/utils/chromeShim.js` — the storage shim the\n  existing Favorites/ViewAllFavorites tests seed against.\n\n**Existing-implementation survey:** grepped for site-level hiding before writing\nthis plan — `favoritesHidden` appears only in `Favorites.jsx`,\n`ViewAllFavorites.jsx`, `FavoritesResetControl.jsx` (clears it), and the two test\nfiles. There is no existing site-key-aware hidden set and no\n`hiddenSites`/`excludedSites` option on `rankFavorites` — nothing equivalent\nexists, so this adds the dimension rather than duplicating one.\n\n## Reproduction Test\n\nPins that removing a site with more than one stored page hides it in ONE click,\ninstead of the row re-forming from the site's next page.\n\n**Target**: `src/lib/components/Favorites/Favorites.test.jsx` — run with\n`codeyam-editor editor refresh-tests --test \"hides a multi-page site in a single click\"`.\n\n```jsx\n// A site with several stored pages is one row, so one × click must remove it —\n// the row must not re-form from the site's next-most-recent page.\nit('hides a multi-page site in a single click', async () => {\n  seed('allUrls', [\n    'url-https://espn.com/nfl/story',\n    'url-https://espn.com/',\n    'url-https://b.com',\n  ]);\n  seed('url-https://espn.com/nfl/story', { title: 'ESPN Story', favicon: '', visitCount: 3 });\n  seed('url-https://espn.com/', { title: 'ESPN', favicon: '', visitCount: 3 });\n  seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 3 });\n  installChromeShim();\n\n  render(<Favorites />);\n\n  const espnRow = await screen.findByText('ESPN Story');\n  const remove = espnRow\n    .closest('.Favorites-item')\n    .querySelector('.Favorites-item-remove');\n  fireEvent.click(remove);\n\n  await waitFor(() =>\n    expect(screen.queryByText('ESPN Story')).not.toBeInTheDocument()\n  );\n  // The site is gone entirely — no second espn.com row took its place.\n  expect(screen.queryByText('ESPN')).not.toBeInTheDocument();\n  expect(screen.getByText('Bravo')).toBeInTheDocument();\n});\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: after the click\nonly `url-https://espn.com/nfl/story` lands in `favoritesHidden`, so the group\nre-forms with `url-https://espn.com/` as representative and the\n`queryByText('ESPN')` assertion finds a rendered row (`expected element not to be\nin the document`). The two-page fixture is the minimum that reproduces it; confirm\nempirically at execution that the row really does re-form before trusting the red.\n\n## Scenarios to Demonstrate\n\n- Sidebar Favorites with a multi-page site (espn.com across several articles) — one\n  × click removes the whole site.\n- Sidebar Favorites where `favoritesHidden` holds a LEGACY `url-https://espn.com/`\n  entry — the site is still hidden after the change (no regression for existing users).\n- View All Favorites showing a removed multi-page site dimmed with \"Bring back\".\n- View All Favorites after one \"Bring back\" click — the site is fully restored and\n  reappears in the sidebar.\n- A single-page site removed and restored (the pre-existing behavior still works).\n- Empty state: every favorite removed → sidebar section renders nothing.",
+  "description": "Favorite removal is now SITE-level, matching the site-level grouping the rows already use. rankFavorites rolls every stored page of a host onto one row, but the sidebar's x wrote only the representative page's urlKey into favoritesHidden — so the group instantly re-formed from that site's next-most-recent page and the user had to click x once per stored url-* key. New excludedSites / hiddenSites options are matched against a group's key in the qualifying loop (not per candidate, which is exactly why hiding a representative just yielded the next member), the sidebar writes the site key, and View All flags hidden sites the same way so a removed multi-page site renders dimmed whichever page is currently representative. Bring back now clears EVERY favoritesHidden entry that normalizes to the row's site, so one click fully restores it instead of leaving the site half-hidden with no dimmed row left to click. Backward compatible with no migration and no version bump: the new hiddenSiteKeys module normalizes both storage forms on read — legacy url- page entries and the bare site keys written from now on — using the same siteKey(url) || normalizeUrl(url) expression rankFavorites derives its group keys with, so the hidden set and the group keys it is matched against agree by construction. That fallback is load-bearing, not defensive: a bare hostname is not a parseable URL, so siteKey alone returns '' for precisely the form removal now writes. Deviation from the plan: its bringBack filter used siteKey(entry.replace(/^url-/, '')), which silently fails for that bare-site-key form and would have left a site permanently un-restorable; both the write and read sides now route through one shared hiddenSiteKey helper. The reproduction test was verified non-vacuous by reverting only the source (keeping the tests) and confirming all four go red with the predicted failures. 566 tests pass across 65 files.",
+  "modifiedFiles": [
+    {
+      "path": ".claude/skills/codeyam-audit/finalize-procedure.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/pending-build-launch",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/plans/one-click-favorite-removal.md\t.codeyam/plans/completed/one-click-favorite-removal.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-playwright.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-drift-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-pages-rolled-up-and-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-same-origin-different-path-uncued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/viewallfavorites-rich.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Favorites/Favorites.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/rankFavorites.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-all-sites-removed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/favorites-multi-page-site-removed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-all-sites-removed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-all-sites-removed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-multi-page-site-removed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-multi-page-site-removed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-removed-site-dimmed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-removed-site-dimmed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-site-restored-by-bring-back--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-site-restored-by-bring-back--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/viewallfavorites-removed-site-dimmed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/viewallfavorites-site-restored-by-bring-back.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/hiddenSiteKeys.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/hiddenSiteKeys.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Google Doc Survives Search Exclusion",
+      "screenshotPath": "favorites-google-doc-survives-search-exclusion--desktop.png"
+    },
+    {
+      "name": "Favorites - Heavy Content Site Rolled Up",
+      "screenshotPath": "favorites-heavy-content-site-rolled-up--desktop.png"
+    },
+    {
+      "name": "Favorites - SERP Excluded Portal Kept",
+      "screenshotPath": "favorites-serp-excluded-portal-kept--desktop.png"
+    },
+    {
+      "name": "Favorites - Search Engines Excluded",
+      "screenshotPath": "favorites-search-engines-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Sidebar With View All Link",
+      "screenshotPath": "favorites-sidebar-with-view-all-link--desktop.png"
+    },
+    {
+      "name": "Favorites - Stats Survive URL Eviction",
+      "screenshotPath": "favorites-stats-survive-url-eviction--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Empty",
+      "screenshotPath": "viewallfavorites-empty--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Open Cue By Page Identity",
+      "screenshotPath": "viewallfavorites-open-cue-by-page-identity--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Removed Site Dimmed",
+      "screenshotPath": "viewallfavorites-removed-site-dimmed--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Rich",
+      "screenshotPath": "viewallfavorites-rich--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Site Restored By Bring Back",
+      "screenshotPath": "viewallfavorites-site-restored-by-bring-back--desktop.png"
+    },
+    {
+      "name": "Favorites - All Sites Removed",
+      "screenshotPath": "favorites-all-sites-removed--desktop.png"
+    },
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Google Doc Drift Open",
+      "screenshotPath": "favorites-google-doc-drift-open--desktop.png"
+    },
+    {
+      "name": "Favorites - Multi Page Site Removed",
+      "screenshotPath": "favorites-multi-page-site-removed--desktop.png"
+    },
+    {
+      "name": "Favorites - Non-Website Entries Filtered",
+      "screenshotPath": "favorites-non-website-entries-filtered--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Query Distinct Pages Rolled Up And Cued",
+      "screenshotPath": "favorites-query-distinct-pages-rolled-up-and-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Same Origin Different Path Uncued",
+      "screenshotPath": "favorites-same-origin-different-path-uncued--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 566,
+    "passed": 566,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 566,
+        "passed": 566
+      }
+    ]
+  }
+}

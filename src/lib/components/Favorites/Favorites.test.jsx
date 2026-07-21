@@ -166,20 +166,67 @@ describe('Favorites', () => {
   });
 
   // A urlKey listed in favoritesHidden (user-removed) is excluded from Favorites.
+  // Both storage forms hide their site: the LEGACY `url-` page key that installs
+  // predating site-level removal still hold, and the bare site key written now.
+  // Covering both here is what makes the change safe without a storage migration.
   it('excludes a site present in favoritesHidden', async () => {
-    seed('allUrls', ['url-https://a.com', 'url-https://b.com']);
+    seed('allUrls', [
+      'url-https://a.com',
+      'url-https://b.com',
+      'url-https://c.com',
+    ]);
     seed('url-https://a.com', { title: 'Alpha', favicon: '', visitCount: 3 });
     seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 3 });
-    seed('favoritesHidden', ['url-https://a.com']);
+    seed('url-https://c.com', { title: 'Charlie', favicon: '', visitCount: 3 });
+    // 'a.com' is the new bare-site-key form; the 'url-' entry is the legacy one.
+    seed('favoritesHidden', ['a.com', 'url-https://c.com']);
     installChromeShim();
 
     render(<Favorites />);
 
     expect(await screen.findByText('Bravo')).toBeInTheDocument();
     expect(screen.queryByText('Alpha')).not.toBeInTheDocument();
+    expect(screen.queryByText('Charlie')).not.toBeInTheDocument();
   });
 
-  // Clicking the hover × writes the urlKey into favoritesHidden and the row
+  // A site with several stored pages is one row, so one × click must remove it —
+  // the row must not re-form from the site's next-most-recent page.
+  it('hides a multi-page site in a single click', async () => {
+    seed('allUrls', [
+      'url-https://espn.com/nfl/story',
+      'url-https://espn.com/',
+      'url-https://b.com',
+    ]);
+    seed('url-https://espn.com/nfl/story', {
+      title: 'ESPN Story',
+      favicon: '',
+      visitCount: 3,
+    });
+    seed('url-https://espn.com/', { title: 'ESPN', favicon: '', visitCount: 3 });
+    seed('url-https://b.com', { title: 'Bravo', favicon: '', visitCount: 3 });
+    installChromeShim();
+
+    render(<Favorites />);
+
+    const espnRow = await screen.findByText('ESPN Story');
+    const remove = espnRow
+      .closest('.Favorites-item')
+      .querySelector('.Favorites-item-remove');
+    fireEvent.click(remove);
+
+    await waitFor(() =>
+      expect(screen.queryByText('ESPN Story')).not.toBeInTheDocument()
+    );
+    // The site is gone entirely — no second espn.com row took its place.
+    expect(screen.queryByText('ESPN')).not.toBeInTheDocument();
+    expect(screen.getByText('Bravo')).toBeInTheDocument();
+    // And what was written is the SITE key, which is why the row cannot re-form.
+    expect(JSON.parse(window.localStorage.getItem('favoritesHidden'))).toEqual([
+      'espn.com',
+    ]);
+  });
+
+  // Clicking the hover × writes the SITE key into favoritesHidden and the row
   // disappears, while a plain row click still opens/focuses the tab.
   it('removes a favorite via the × and still opens a tab on a plain row click', async () => {
     seed('allUrls', ['url-https://a.com', 'url-https://b.com']);
@@ -209,7 +256,7 @@ describe('Favorites', () => {
     );
     expect(
       JSON.parse(window.localStorage.getItem('favoritesHidden'))
-    ).toContain('url-https://b.com');
+    ).toContain('b.com');
     // Alpha remains.
     expect(screen.getByText('Alpha')).toBeInTheDocument();
   });
