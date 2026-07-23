@@ -741,6 +741,55 @@ describe('service_worker.js', () => {
       // The seeded label carries the group's color, mapped to hex via mapColors.
       expect(written.labels.NewGroup.color).toBe('#1873E4');
     });
+
+    // A genuine re-home (tab moves directly from group A into group B) is
+    // unambiguous re-parent intent: it adds the member to B AND removes it from
+    // A, so a URL never accumulates membership in every group it passed through.
+    it('re-home A→B adds the member to B and removes it from A', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) =>
+        cb(id === 5 ? { id: 5, title: 'GroupB', color: 'blue' }
+                    : { id: 2, title: 'GroupA', color: 'red' })
+      );
+      const labels = {
+        GroupA: { title: 'GroupA', urlKeys: ['url-z'] },
+        GroupB: { title: 'GroupB', urlKeys: [] },
+      };
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ labels }));
+
+      await fns.handleActiveTabsGroupChanges({
+        oldValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: 2, pinned: false }],
+        newValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: 5, pinned: false }],
+      });
+
+      const written = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.labels);
+      expect(written.labels.GroupB.urlKeys).toContain('url-z');
+      expect(written.labels.GroupA.urlKeys).not.toContain('url-z');
+    });
+
+    // Ungroup-to-nothing (newTab.groupId → -1, so there is no destination group)
+    // is NOT a re-home: membership is sticky, so the old group keeps the member.
+    it('ungroup-to-nothing keeps the member in the old group', async () => {
+      // getTabGroup(-1) resolves null, so the guard skips the whole diff body —
+      // no label is ever written.
+      chrome.tabGroups.get.mockImplementation((id, cb) =>
+        cb(id === 2 ? { id: 2, title: 'GroupA', color: 'red' } : null)
+      );
+      const labels = { GroupA: { title: 'GroupA', urlKeys: ['url-z'] } };
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ labels }));
+
+      await fns.handleActiveTabsGroupChanges({
+        oldValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: 2, pinned: false }],
+        newValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: -1, pinned: false }],
+      });
+
+      expect(labels.GroupA.urlKeys).toContain('url-z');
+      const wroteLabels = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.labels);
+      expect(wroteLabels).toBeUndefined();
+    });
   });
 
   describe('groupTabs', () => {
@@ -1036,7 +1085,7 @@ describe('service_worker.js', () => {
     });
   });
 
-  describe('onUpdated group removal', () => {
+  describe('onUpdated group leave keeps member sticky', () => {
     // Sets the module-level `labels` by driving the storage.onChanged listener,
     // which mirrors how the worker keeps `labels` in sync at runtime.
     const setLabels = (chrome, labelsObj) => {
@@ -1044,11 +1093,13 @@ describe('service_worker.js', () => {
       onChanged({ labels: { newValue: labelsObj, oldValue: {} } }, 'local');
     };
 
-    // The cleanup path keys removal off getUrlKey(tab.url), which strips the
-    // #fragment. A label storing the normalized key must be cleaned even when the
-    // tab's live URL still carries a fragment (the inline `url-${tab.url}` form
-    // missed these).
-    it('removes a hashed URL using the normalized key when a tab leaves a group', async () => {
+    // Membership is sticky: a tab leaving all groups (groupId → -1) — Chrome's
+    // native ungroup, a nav-eject, or MV3 restart flicker — ungroups the tab
+    // visually but must NOT delete the recorded member. Only explicit user
+    // actions or a genuine re-home remove a urlKey. Reopening the URL later
+    // auto-regroups it via groupTabs. (A fragment on the live URL is included to
+    // show even a normalized-key member survives, where the old cleanup removed it.)
+    it('keeps the member when a tab leaves a group', async () => {
       chrome.storage.local.get.mockImplementation((query, cb) => {
         const keys = typeof query === 'string' ? [query] : Array.isArray(query) ? query : Object.keys(query);
         const res = {};
@@ -1070,8 +1121,43 @@ describe('service_worker.js', () => {
       const onUpdated = chrome.tabs.onUpdated.addListener.mock.calls[0][0];
       await onUpdated(3, { groupId: -1 }, { id: 3, url: 'https://docs.com/page#section' });
 
-      // labelsObj is the same reference held module-level, so the splice is visible here.
-      expect(labelsObj.Work.urlKeys).not.toContain('url-https://docs.com/page');
+      // labelsObj is the same module-level reference — the member survives.
+      expect(labelsObj.Work.urlKeys).toContain('url-https://docs.com/page');
+    });
+
+    // The tab is still marked ungrouped in activeTabs (bookkeeping preserved),
+    // even though its membership is left intact.
+    it('marks the tab ungrouped in activeTabs without touching labels', async () => {
+      chrome.storage.local.get.mockImplementation((query, cb) => {
+        const keys = typeof query === 'string' ? [query] : Array.isArray(query) ? query : Object.keys(query);
+        const res = {};
+        for (const k of keys) {
+          if (k === 'activeTabs') {
+            res.activeTabs = [{ tabKey: 'tab-3', urlKey: 'url-https://docs.com/page', groupId: 5 }];
+          } else if (k === 'allUrls') res.allUrls = [];
+          else if (k === 'autoClosed') res.autoClosed = {};
+          else if (k === 'labels') res.labels = {};
+        }
+        cb(res);
+      });
+      chrome.tabs.query.mockImplementation((_q, cb) => cb && cb([]));
+
+      const labelsObj = { Work: { title: 'Work', urlKeys: ['url-https://docs.com/page'] } };
+      setLabels(chrome, labelsObj);
+      fns.trackGroup({ id: 5, title: 'Work' });
+
+      const onUpdated = chrome.tabs.onUpdated.addListener.mock.calls[0][0];
+      await onUpdated(3, { groupId: -1 }, { id: 3, url: 'https://docs.com/page#section' });
+
+      const wroteActiveTabs = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.activeTabs);
+      expect(wroteActiveTabs.activeTabs.find((t) => t.tabKey === 'tab-3').groupId).toBe(-1);
+      // labels must never be written on this path.
+      const wroteLabels = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.labels);
+      expect(wroteLabels).toBeUndefined();
     });
   });
 
@@ -1170,6 +1256,28 @@ describe('service_worker.js', () => {
       );
 
       expect(chrome.tabs.ungroup).toHaveBeenCalledWith(3, expect.any(Function));
+    });
+
+    // Sticky membership: a navigation-eject ungroups the tab visually, but the
+    // recorded member must survive — it is not an explicit removal or a re-home.
+    it('keeps the member when a navigation ejects a grouped tab', async () => {
+      const key = 'url-https://example.com/a';
+      const labelsObj = { Work: { title: 'Work', urlKeys: [key] } };
+      storageWithGroupedTab(chrome, key, labelsObj);
+      setLabels(chrome, labelsObj);
+      fns.trackGroup({ id: 5, title: 'Work' });
+      const onUpdated = getHandler(chrome);
+
+      await onUpdated(
+        3,
+        { url: 'https://example.com/b' },
+        { id: 3, url: 'https://example.com/b', groupId: 5, incognito: false }
+      );
+
+      // The tab leaves the group visually...
+      expect(chrome.tabs.ungroup).toHaveBeenCalledWith(3, expect.any(Function));
+      // ...but its membership stays intact (sticky).
+      expect(labelsObj.Work.urlKeys).toContain(key);
     });
 
     // The reported bug, fixed at the root: a Google Docs tab recorded under one

@@ -328,33 +328,22 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (activeTab) {
       const oldGroupId = activeTab.groupId
       if (oldGroupId && oldGroupId > -1) {
-        const labelTitle = groups[oldGroupId];
-        const label = labels[labelTitle];
-        if (label) {
-          if (checkRemoving()) return true;
-          const urlKeyIndex = label.urlKeys.indexOf(getUrlKey(tab.url));
-          if (urlKeyIndex > -1) {
-            label.urlKeys.splice(urlKeyIndex, 1)
+        // A tab leaving all groups — Chrome's native ungroup gesture, a
+        // navigation-eject (chrome.tabs.ungroup on a mismatched navigation), or
+        // MV3 restart flicker — ungroups the *tab* visually but must NOT delete
+        // the recorded member. Membership is sticky: a urlKey leaves a label
+        // only through an explicit user action (the remove-URL button, chip
+        // drag-out, delete-group) or a genuine re-home (see
+        // handleActiveTabsGroupChanges). This is consistent with groupTabs,
+        // which already treats members as sticky by auto-regrouping a matching
+        // tab back into its label. So we mark the tab ungrouped in activeTabs
+        // and leave `labels` untouched; reopening the URL auto-regroups it.
+        activeTabs[activeTabIndex].groupId = -1;
 
-            // Top-suspect automatic drop: a tab ungrouped in Chrome ejects its
-            // URL from the label. Previously wrote nothing to any trail.
-            recordRemoval(RemovalSource.WORKER_TAB_UNGROUPED, {
-              labelTitle,
-              urlKeys: [getUrlKey(tab.url)],
-              tabId,
-              remaining: label.urlKeys.length
-            });
-
-            labels[labelTitle] = label
-            activeTabs[activeTabIndex].groupId = -1;
-
-            updates = {
-              ...updates,
-              labels: labels,
-              activeTabs: activeTabs
-            };
-          }
-        }
+        updates = {
+          ...updates,
+          activeTabs: activeTabs
+        };
       }
     }
   }
@@ -1086,6 +1075,11 @@ async function handleActiveTabsGroupChanges(changes) {
       }
 
       if (oldGroup && labels[oldGroup.title]) {
+        // Genuine re-home only: this block is reached only when `newGroup` is
+        // present (guarded above), i.e. a tab moved directly from group A into
+        // group B. That is unambiguous intent to re-parent, so we remove the
+        // member from the old group here. An ungroup-to-nothing (newGroup falsy)
+        // never reaches this point — its membership stays sticky.
         const index = labels[oldGroup.title].urlKeys.indexOf(newTab.urlKey);
         if (index > -1) {
           labels[oldGroup.title].urlKeys.splice(index, 1);

@@ -1,0 +1,67 @@
+{
+  "summary": "Group membership is now sticky against automatic tab-lifecycle removal: Chrome's native ungroup, a navigation-eject, and MV3 restart flicker ungroup the tab visually but no longer delete a recorded member URL. A member leaves a group only through an explicit user action or a genuine re-home (A→B).",
+  "changes": [
+    {
+      "title": "Sticky membership when a tab leaves all groups",
+      "description": "The onUpdated handler's groupId → -1 branch no longer deletes the member urlKey (and no longer records a WORKER_TAB_UNGROUPED removal). A tab leaving all groups — Chrome's native ungroup gesture, a navigation-eject, or MV3 restart flicker — is still marked ungrouped in activeTabs, but its label membership survives. This resolves the contradiction with groupTabs, which already treats members as sticky by auto-regrouping a matching tab back into its label. Reopening the URL auto-regroups it.",
+      "files": [
+        "service_worker.js",
+        "service_worker.test.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read the worker tests in service_worker.test.js — describe blocks 'onUpdated group leave keeps member sticky' and the navigation-eject case in 'onUpdated in-page URL change keeps tab grouped'."
+        }
+      ],
+      "tests": [
+        {
+          "name": "onUpdated group leave keeps member sticky › keeps the member when a tab leaves a group",
+          "file": "service_worker.test.js",
+          "description": "When a grouped tab is ungrouped (groupId → -1), its urlKey remains a member of the label instead of being spliced out. Red if the old ungroup splice were restored.",
+          "status": "passing"
+        },
+        {
+          "name": "onUpdated group leave keeps member sticky › marks the tab ungrouped in activeTabs without touching labels",
+          "file": "service_worker.test.js",
+          "description": "The ungroup path still writes activeTabs with the tab's groupId set to -1 (bookkeeping preserved) but never writes labels, proving membership is left intact.",
+          "status": "passing"
+        },
+        {
+          "name": "onUpdated in-page URL change keeps tab grouped › keeps the member when a navigation ejects a grouped tab",
+          "file": "service_worker.test.js",
+          "description": "A real navigation still calls chrome.tabs.ungroup to eject the tab visually, but the recorded member survives — the eject is not an explicit removal.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "Re-home (A→B) still removes from the old group",
+      "description": "A tab moved directly from group A into group B is unambiguous re-parent intent, so handleActiveTabsGroupChanges still adds the member to B and removes it from A. This removal is reached only when a real destination group is present (the pre-existing !newGroup guard already skips ungroup-to-nothing), now documented explicitly so the sticky contract is legible at the splice site. This keeps a URL from accumulating membership in every group it ever passed through.",
+      "files": [
+        "service_worker.js",
+        "service_worker.test.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read the 'handleActiveTabsGroupChanges' describe block in service_worker.test.js — the re-home and ungroup-to-nothing cases."
+        }
+      ],
+      "tests": [
+        {
+          "name": "handleActiveTabsGroupChanges › re-home A→B adds the member to B and removes it from A",
+          "file": "service_worker.test.js",
+          "description": "Moving a tab from group A directly into group B records the member in B and splices it out of A — the sanctioned re-parent path.",
+          "status": "passing"
+        },
+        {
+          "name": "handleActiveTabsGroupChanges › ungroup-to-nothing keeps the member in the old group",
+          "file": "service_worker.test.js",
+          "description": "When newGroup is absent (getTabGroup(-1) resolves null), the diff body is skipped and the old group keeps its member — membership stays sticky, distinguishing an ungroup from a re-home.",
+          "status": "passing"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "claimStartedAt": "2026-07-23T13:53:47Z",
+  "completedAt": "2026-07-23T14:19:37Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "backend-step15",
+    "machine": "codeyam-editor-codeyam-editor-1",
+    "originId": "77426d98-4697-4dd3-a66f-ae6a7f594bc6",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "make-group-members-sticky-against-automatic-removal",
+    "sessionId": "79473e7c-099b-4a5e-9e00-ec79bb93a1c5",
+    "startedAt": "2026-07-23T13:53:47Z"
+  },
+  "createdAt": "2026-07-23T12:04:45Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/components/LabelCollection/LabelCollection.jsx",
+    "src/lib/pages/App/App.jsx",
+    "src/lib/utils/describeDragRemoval.js",
+    "src/lib/utils/describeDragRemoval.test.js",
+    "src/lib/utils/groupRemovalLog.js",
+    "src/lib/utils/groupRemovalLog.test.js",
+    "src/lib/utils/healDriftedLabelSlot.js",
+    "src/lib/utils/healDriftedLabelSlot.test.js"
+  ],
+  "journalTimestamp": "2026-07-23T14:19:37Z",
+  "mode": "ui",
+  "planFile": "completed/make-group-members-sticky-against-automatic-removal.md",
+  "slug": "make-group-members-sticky-against-automatic-removal",
+  "title": "Make Group Members Sticky Against Automatic Removal"
+}
