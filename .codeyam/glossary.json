@@ -377,6 +377,12 @@
     "testFile": "src/lib/utils/bucketVisitsByWeek.test.js"
   },
   {
+    "description": "Pure builder for one always-on group-membership removal audit entry. Given a removal source tag and details, returns a uniform record carrying the caller-supplied timestamp t, source, label title, a urlKeys array coerced from a bare key or array, a tabId normalized to null when absent while preserving a real 0, and the label's remaining member count after the removal. Clock-free and IO-free so both runtimes build identical breadcrumbs and it is unit-testable without stubbing chrome or Date.",
+    "filePath": "src/lib/utils/groupRemovalLog.js",
+    "name": "buildGroupRemovalEntry",
+    "testFile": "src/lib/utils/groupRemovalLog.test.js"
+  },
+  {
     "description": "Parses the pasted export JSON and builds the storage updates map: one per-URL object per url-<url> key plus the rebuilt labels map. Throws on malformed JSON so the page swallows it with a console.log, faithful to the reference saveImport.",
     "filePath": "src/lib/utils/importExport.js",
     "name": "buildImportUpdates",
@@ -493,6 +499,12 @@
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "deriveUrlLabels",
     "testFile": "src/lib/utils/urlDetails.test.js"
+  },
+  {
+    "description": "Pure descriptor of the source-group member removal caused by a URL drag, or null when nothing should be recorded: non-URL label reorders, sidebar-origin drags with no source group, drags with no destination, and same-group reorders. Parses the @hello-pangea/dnd result to name the source label and moved urlKey, and reads the post-applyDrag labels map for the source group's new length. Its return shape feeds directly into buildGroupRemovalEntry as the details object.",
+    "filePath": "src/lib/utils/describeDragRemoval.js",
+    "name": "describeDragRemoval",
+    "testFile": "src/lib/utils/describeDragRemoval.test.js"
   },
   {
     "description": "Resolves the group droppableId under a viewport point via elementFromPoint, so a dragged tab targets whichever group the cursor is over instead of @hello-pangea/dnd's center-based collision. Returns null when the point is over no group card.",
@@ -639,7 +651,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Heals a group label slot whose recorded urlKey has drifted from a tab live URL - as Google Docs rewrites its own ?tab= query. Locates the slot for the same page by samePageKey, then rewrites it in place to the live key or splices it out when the live key already exists elsewhere, never adding a new slot. Returns found/mutated/previousKey so callers decide whether to append and persist. Shared by the onUpdated navigation heal and the recordInGroupTab grouping-sync path so a drifted doc keeps its position instead of dropping to the bottom of the group.",
+    "description": "Heals a group label slot whose recorded urlKey has drifted from a tab live URL - as Google Docs rewrites its own ?tab= query. Locates the slot for the same page by samePageKey, then rewrites it in place to the live key or splices it out when the live key already exists elsewhere, never adding a new slot. Returns found/mutated/previousKey plus a removed flag that is true only on the dedup splice branch, so callers can audit a genuine member drop while ignoring a harmless in-place rewrite. Shared by the onUpdated navigation heal and the recordInGroupTab grouping-sync path so a drifted doc keeps its position instead of dropping to the bottom of the group.",
     "filePath": "src/lib/utils/healDriftedLabelSlot.js",
     "name": "healDriftedLabelSlot",
     "testFile": "src/lib/utils/healDriftedLabelSlot.test.js"
@@ -859,6 +871,12 @@
     "description": "Records an in-group tab's URL into its group's label, seeding the label with the group's mapped color when it does not exist yet, then persists via update. Runs only for non-auto-grouped tabs such as startup sync of pre-existing Chrome groups.",
     "filePath": "service_worker.js",
     "name": "recordInGroupTab",
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Always-on writer for the group-membership removal audit trail in the service worker. Unlike debugGroup it is never gated by DEBUG_GROUPING or debugGrouping: it reads the current groupRemovalLog, appends a buildGroupRemovalEntry breadcrumb via the appendGroupingLog ring buffer capped at GROUP_REMOVAL_LOG_CAP, and persists it under the dedicated groupRemovalLog key. Fire-and-forget storage round-trip that only records removals and never changes removal behavior, so the next unexplained drop is captured with no flag to pre-enable.",
+    "filePath": "service_worker.js",
+    "name": "recordRemoval",
     "testFile": "service_worker.test.js"
   },
   {

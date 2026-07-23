@@ -18,23 +18,30 @@ import samePageKey from './samePageKey.js';
 //                 caller should persist / log
 //   previousKey — the slot's key before a rewrite/splice (for debug logging);
 //                 null when nothing was mutated
+//   removed     — true only on the dedup SPLICE branch (a member slot was
+//                 dropped because the live key already lived elsewhere), false
+//                 on the position-preserving rewrite and on the no-op returns.
+//                 Lets callers distinguish a genuine member drop (audit it) from
+//                 a harmless in-place rewrite.
 export default function healDriftedLabelSlot(label, newUrlKey, liveUrl) {
   const idx = label.urlKeys.findIndex(
     (k) => samePageKey(k.replace(/^url-/, '')) === samePageKey(liveUrl)
   );
-  if (idx === -1) return { found: false, mutated: false, previousKey: null };
+  if (idx === -1) return { found: false, mutated: false, previousKey: null, removed: false };
   if (label.urlKeys[idx] === newUrlKey) {
     // Already an exact match — no duplicate, no move.
-    return { found: true, mutated: false, previousKey: null };
+    return { found: true, mutated: false, previousKey: null, removed: false };
   }
   const previousKey = label.urlKeys[idx];
+  let removed = false;
   if (label.urlKeys.indexOf(newUrlKey) > -1) {
     // Live key already recorded elsewhere in the label — drop the stale slot
     // instead of duplicating it.
     label.urlKeys.splice(idx, 1);
+    removed = true;
   } else {
     // Position-preserving heal: follow the live URL in place.
     label.urlKeys[idx] = newUrlKey;
   }
-  return { found: true, mutated: true, previousKey };
+  return { found: true, mutated: true, previousKey, removed };
 }

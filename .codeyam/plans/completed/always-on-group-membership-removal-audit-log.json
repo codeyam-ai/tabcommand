@@ -1,0 +1,32 @@
+{
+  "claimStartedAt": "2026-07-23T12:52:05Z",
+  "completedAt": "2026-07-23T13:40:41Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-1",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "always-on-group-membership-removal-audit-log",
+    "sessionId": "79473e7c-099b-4a5e-9e00-ec79bb93a1c5",
+    "startedAt": "2026-07-23T12:52:05Z"
+  },
+  "createdAt": "2026-07-23T12:03:51Z",
+  "deliverables": [
+    "service_worker.js",
+    "src/lib/components/LabelCollection/LabelCollection.jsx",
+    "src/lib/pages/App/App.jsx",
+    "src/lib/utils/describeDragRemoval.js",
+    "src/lib/utils/describeDragRemoval.test.js",
+    "src/lib/utils/groupRemovalLog.js",
+    "src/lib/utils/groupRemovalLog.test.js",
+    "src/lib/utils/healDriftedLabelSlot.js",
+    "src/lib/utils/healDriftedLabelSlot.test.js"
+  ],
+  "journalTimestamp": "2026-07-23T13:40:41Z",
+  "mode": "ui",
+  "planFile": "completed/always-on-group-membership-removal-audit-log.md",
+  "slug": "always-on-group-membership-removal-audit-log",
+  "title": "Always-On Group-Membership Removal Audit Log"
+}

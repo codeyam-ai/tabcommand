@@ -8,6 +8,13 @@ import { Icon } from '../Icon';
 
 import { ItemTypes } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import appendGroupingLog from '../../utils/groupingLog';
+import {
+  buildGroupRemovalEntry,
+  GROUP_REMOVAL_LOG_KEY,
+  GROUP_REMOVAL_LOG_CAP,
+  RemovalSource
+} from '../../utils/groupRemovalLog';
 import { getDragHover, subscribeDragHover } from '../../utils/dragHoverStore';
 
 const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, expanded }) => {
@@ -126,9 +133,22 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
   const deleteLabel = async (event) => {
     event.stopPropagation();
     if (confirm(`Are you sure you want to permanently delete the label, "${currentTitle}"?`)) {
-      Chrome.get('LabelCollection2', 'labels', ({ labels }) => {
+      Chrome.get('LabelCollection2', ['labels', GROUP_REMOVAL_LOG_KEY], ({ labels, [GROUP_REMOVAL_LOG_KEY]: removalLog }) => {
+        const removedUrlKeys = (labels[currentTitle] && labels[currentTitle].urlKeys) || [];
         delete labels[currentTitle];
-        Chrome.set('LabelCollections1', { labels: labels });
+        Chrome.set('LabelCollections1', {
+          labels: labels,
+          [GROUP_REMOVAL_LOG_KEY]: appendGroupingLog(
+            removalLog,
+            buildGroupRemovalEntry(RemovalSource.UI_DELETE_LABEL, {
+              labelTitle: currentTitle,
+              urlKeys: removedUrlKeys,
+              remaining: 0,
+              t: Date.now()
+            }),
+            GROUP_REMOVAL_LOG_CAP
+          )
+        });
       });
     }
   };
@@ -138,12 +158,23 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
     Chrome.get('LabelCollection3', urlKey, (urlResult) => {
       const url = urlResult[urlKey];
       if (confirm(`Are you sure you want to remove the url, ${url.title}, from the group ${currentTitle}?`)) {
-        Chrome.get('LabelCollections4', ['labels', 'activeTabs'], ({ labels, activeTabs }) => {
+        Chrome.get('LabelCollections4', ['labels', 'activeTabs', GROUP_REMOVAL_LOG_KEY], ({ labels, activeTabs, [GROUP_REMOVAL_LOG_KEY]: removalLog }) => {
           const updates = {};
           const updatedUrlKeys = [...currentUrlKeys];
           updatedUrlKeys.splice(updatedUrlKeys.indexOf(urlKey), 1);
           labels[currentTitle].urlKeys = updatedUrlKeys;
           updates.labels = labels;
+
+          updates[GROUP_REMOVAL_LOG_KEY] = appendGroupingLog(
+            removalLog,
+            buildGroupRemovalEntry(RemovalSource.UI_REMOVE_URL, {
+              labelTitle: currentTitle,
+              urlKeys: [urlKey],
+              remaining: updatedUrlKeys.length,
+              t: Date.now()
+            }),
+            GROUP_REMOVAL_LOG_CAP
+          );
 
           const tab = activeTabs.filter((tabInfo) => tabInfo.urlKey === urlKey)[0];
           if (tab && tab.groupId && tab.groupId > -1) {

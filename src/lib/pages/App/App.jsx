@@ -13,6 +13,14 @@ import { DragDropContext } from '@hello-pangea/dnd';
 
 import { Chrome } from '../../utils/Chrome';
 import { applyDrag } from '../../utils/dragReducer';
+import appendGroupingLog from '../../utils/groupingLog';
+import { describeDragRemoval } from '../../utils/describeDragRemoval';
+import {
+  buildGroupRemovalEntry,
+  GROUP_REMOVAL_LOG_KEY,
+  GROUP_REMOVAL_LOG_CAP,
+  RemovalSource
+} from '../../utils/groupRemovalLog';
 import { dropTargetIdAtPoint } from '../../utils/dropTargeting';
 import { setDragHover, getDragHover } from '../../utils/dragHoverStore';
 import { useTheme } from '../../hooks/useTheme';
@@ -88,7 +96,7 @@ const App = () => {
 
     if (!result.destination || !result.destination.droppableId) return;
 
-    Chrome.get('App3', ['labels', 'activeTabs'], ({ labels, activeTabs }) => {
+    Chrome.get('App3', ['labels', 'activeTabs', GROUP_REMOVAL_LOG_KEY], ({ labels, activeTabs, [GROUP_REMOVAL_LOG_KEY]: removalLog }) => {
       const dropResult = applyDrag(result, { labels, activeTabs });
       if (!dropResult) return;
 
@@ -96,7 +104,21 @@ const App = () => {
         if (chrome.tabs.ungroup) chrome.tabs.ungroup(tabId);
       });
 
-      Chrome.set('App2', { labels: dropResult.labels });
+      const updates = { labels: dropResult.labels };
+
+      // A drag out of a source group removes that member (it's re-inserted into
+      // the destination — a move, not a loss — but recording it lets us rule
+      // drags in or out when diagnosing a future disappearance).
+      const removal = describeDragRemoval(result, dropResult.labels);
+      if (removal) {
+        updates[GROUP_REMOVAL_LOG_KEY] = appendGroupingLog(
+          removalLog,
+          buildGroupRemovalEntry(RemovalSource.UI_DRAG, { ...removal, t: Date.now() }),
+          GROUP_REMOVAL_LOG_CAP
+        );
+      }
+
+      Chrome.set('App2', updates);
     });
   };
 

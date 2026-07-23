@@ -7,6 +7,12 @@ import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
 import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
+import {
+  buildGroupRemovalEntry,
+  GROUP_REMOVAL_LOG_KEY,
+  GROUP_REMOVAL_LOG_CAP,
+  RemovalSource,
+} from './src/lib/utils/groupRemovalLog.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -74,6 +80,10 @@ function loadWorker(chrome) {
     'samePageKey',
     'appendGroupingLog',
     'healDriftedLabelSlot',
+    'buildGroupRemovalEntry',
+    'GROUP_REMOVAL_LOG_KEY',
+    'GROUP_REMOVAL_LOG_CAP',
+    'RemovalSource',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
@@ -94,7 +104,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, appendGroupingLog, healDriftedLabelSlot);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, appendGroupingLog, healDriftedLabelSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource);
 }
 
 describe('service_worker.js', () => {

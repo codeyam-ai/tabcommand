@@ -20,7 +20,10 @@ describe('healDriftedLabelSlot', () => {
       found: true,
       mutated: true,
       previousKey: 'url-https://docs.google.com/document/d/ABC/edit?tab=t.0',
+      removed: false,
     });
+    // A position-preserving rewrite is NOT a member drop.
+    expect(result.removed).toBe(false);
     expect(label.urlKeys).toEqual([
       'url-https://docs.google.com/document/d/ABC/edit?tab=t.9',
       'url-https://other.com',
@@ -43,6 +46,11 @@ describe('healDriftedLabelSlot', () => {
     );
     expect(result.found).toBe(true);
     expect(result.mutated).toBe(true);
+    // A dedup splice IS a member drop — the audit trail relies on this flag.
+    expect(result.removed).toBe(true);
+    expect(result.previousKey).toBe(
+      'url-https://docs.google.com/document/d/ABC/edit?tab=t.0'
+    );
     expect(label.urlKeys).toEqual([
       'url-https://docs.google.com/document/d/ABC/edit?tab=t.9',
     ]);
@@ -57,7 +65,7 @@ describe('healDriftedLabelSlot', () => {
       'url-https://a.com/p?tab=t.0',
       'https://a.com/p?tab=t.0'
     );
-    expect(result).toEqual({ found: true, mutated: false, previousKey: null });
+    expect(result).toEqual({ found: true, mutated: false, previousKey: null, removed: false });
     expect(label.urlKeys).toEqual(['url-https://a.com/p?tab=t.0', 'url-https://b.com']);
   });
 
@@ -70,7 +78,7 @@ describe('healDriftedLabelSlot', () => {
       'url-https://c.com',
       'https://c.com'
     );
-    expect(result).toEqual({ found: false, mutated: false, previousKey: null });
+    expect(result).toEqual({ found: false, mutated: false, previousKey: null, removed: false });
     expect(label.urlKeys).toEqual(['url-https://a.com', 'url-https://b.com']);
   });
 
@@ -78,7 +86,7 @@ describe('healDriftedLabelSlot', () => {
   it('is a not-found no-op on an empty label', () => {
     const label = { urlKeys: [] };
     const result = healDriftedLabelSlot(label, 'url-https://a.com', 'https://a.com');
-    expect(result).toEqual({ found: false, mutated: false, previousKey: null });
+    expect(result).toEqual({ found: false, mutated: false, previousKey: null, removed: false });
     expect(label.urlKeys).toEqual([]);
   });
 
@@ -93,7 +101,7 @@ describe('healDriftedLabelSlot', () => {
       'url-https://a.com/p',
       'https://a.com/p#section'
     );
-    expect(result).toEqual({ found: true, mutated: false, previousKey: null });
+    expect(result).toEqual({ found: true, mutated: false, previousKey: null, removed: false });
     expect(label.urlKeys).toEqual(['url-https://a.com/p']);
   });
 });

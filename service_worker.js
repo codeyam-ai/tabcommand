@@ -3,6 +3,7 @@ import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
 import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
+import { buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource } from './src/lib/utils/groupRemovalLog.js';
 
 let defaultWindowId;
 let listening = true;
@@ -49,6 +50,28 @@ function debugGroup(event, details) {
       GROUPING_LOG_CAP
     );
     update({ groupingLog });
+  });
+}
+
+// Records a group-membership removal to an always-on audit trail. Unlike
+// `debugGroup`, this is NOT gated by `DEBUG_GROUPING`/`debugGrouping` — member
+// removals are rare and low-volume, and the whole reason the CodeYam Fleet drop
+// was undiagnosable is that the only trail was behind a default-off flag. The
+// trail persists to a dedicated `groupRemovalLog` key (never buried by, or
+// trimmed with, the noisy auto-group breadcrumbs in `groupingLog`) and is
+// inspectable after the fact with no flag and no reload:
+//   chrome.storage.local.get('groupRemovalLog', console.log)
+// Fire-and-forget: the async storage round-trip never blocks the caller, and it
+// only records removals — it never changes removal behavior.
+function recordRemoval(source, details) {
+  getLocalStorage([GROUP_REMOVAL_LOG_KEY], (result) => {
+    update({
+      [GROUP_REMOVAL_LOG_KEY]: appendGroupingLog(
+        result[GROUP_REMOVAL_LOG_KEY],
+        buildGroupRemovalEntry(source, { ...details, t: Date.now() }),
+        GROUP_REMOVAL_LOG_CAP
+      )
+    });
   });
 }
 
@@ -256,7 +279,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         const label = labels[labelTitle];
         if (label) {
           const newUrlKey = getUrlKey(changeInfo.url);
-          const { mutated, previousKey } = healDriftedLabelSlot(
+          const { mutated, previousKey, removed } = healDriftedLabelSlot(
             label,
             newUrlKey,
             changeInfo.url
@@ -271,6 +294,16 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
               label: labelTitle,
               groupId: tab.groupId
             });
+            // A drift-heal dedup is a splice (a duplicate slot collapsed), not a
+            // loss — but it removes a member slot, so it belongs in the trail.
+            if (removed) {
+              recordRemoval(RemovalSource.WORKER_DRIFT_HEAL_DEDUP, {
+                labelTitle,
+                urlKeys: [previousKey],
+                tabId: tab.id,
+                remaining: label.urlKeys.length
+              });
+            }
           }
         }
       }
@@ -302,6 +335,15 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
           const urlKeyIndex = label.urlKeys.indexOf(getUrlKey(tab.url));
           if (urlKeyIndex > -1) {
             label.urlKeys.splice(urlKeyIndex, 1)
+
+            // Top-suspect automatic drop: a tab ungrouped in Chrome ejects its
+            // URL from the label. Previously wrote nothing to any trail.
+            recordRemoval(RemovalSource.WORKER_TAB_UNGROUPED, {
+              labelTitle,
+              urlKeys: [getUrlKey(tab.url)],
+              tabId,
+              remaining: label.urlKeys.length
+            });
 
             labels[labelTitle] = label
             activeTabs[activeTabIndex].groupId = -1;
@@ -1048,6 +1090,13 @@ async function handleActiveTabsGroupChanges(changes) {
         if (index > -1) {
           labels[oldGroup.title].urlKeys.splice(index, 1);
           changed = true;
+          // A tab's groupId changed, dropping its URL from the old group's label.
+          recordRemoval(RemovalSource.WORKER_GROUP_CHANGED, {
+            labelTitle: oldGroup.title,
+            urlKeys: [newTab.urlKey],
+            tabId: parseTabId(newTab),
+            remaining: labels[oldGroup.title].urlKeys.length
+          });
         }
       }
 
@@ -1119,12 +1168,22 @@ function recordInGroupTab(labels, group, activeTab) {
     // the doc to the bottom of the group. Heal a same-page slot in place first
     // (shared with the onUpdated drift-heal) so the doc keeps its recorded
     // position; only a genuinely-new URL falls through to an append.
-    const { found } = healDriftedLabelSlot(
+    const { found, removed, previousKey } = healDriftedLabelSlot(
       label,
       activeTab.urlKey,
       activeTab.urlKey.replace(/^url-/, '')
     );
     if (!found) label.urlKeys.push(activeTab.urlKey);
+    // A dedup splice here collapses a drifted duplicate — record it so the trail
+    // is complete (same source tag as the onUpdated drift-heal).
+    if (removed) {
+      recordRemoval(RemovalSource.WORKER_DRIFT_HEAL_DEDUP, {
+        labelTitle: group.title,
+        urlKeys: [previousKey],
+        tabId: parseTabId(activeTab),
+        remaining: label.urlKeys.length
+      });
+    }
   }
   update({ labels: labels });
 }
