@@ -1,0 +1,27 @@
+{
+  "name": "History - Search Engine Dated",
+  "id": "aa33cf9b-6257-4d86-8c6f-2102ff254eb2",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "allUrls": "[\"url-https://www.google.com/search?q=laugh+factory+tickets\", \"url-https://laughfactory.com\", \"url-https://duckduckgo.com/?q=react+server+components\", \"url-https://react.dev/learn\"]",
+      "url-https://www.google.com/search?q=laugh+factory+tickets": "{\"title\": \"laugh factory tickets - Google Search\", \"favicon\": \"\", \"visitCount\": 3, \"visits\": [], \"lastVisit\": 1785164400000}",
+      "url-https://duckduckgo.com/?q=react+server+components": "{\"title\": \"react server components at DuckDuckGo\", \"favicon\": \"\", \"visitCount\": 1, \"visits\": [], \"lastVisit\": 1785144000000}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2013 React\", \"favicon\": \"\", \"visitCount\": 5, \"visits\": [1785063600000]}",
+      "url-https://laughfactory.com": "{\"title\": \"Laugh Factory \\u2014 Comedy Club & Tickets\", \"favicon\": \"\", \"visitCount\": 2, \"visits\": [1785162900000]}",
+      "uxSettings": "{\"page\": {\"name\": \"History\"}}",
+      "labels": "{\"Reading\": {\"title\": \"Reading\", \"backgroundColor\": \"#1F8E43\", \"position\": 0, \"urlKeys\": [\"url-https://react.dev/learn\"]}}",
+      "autoClosed": "{}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/History/History.jsx",
+  "description": "Searches sit in History alongside ordinary pages and are dated correctly even though search engines deliberately keep an empty visits array — the recency signal comes from lastVisit instead. Nothing here was auto-closed, so every row depends on the url record for its timestamp.",
+  "demonstratesState": {
+    "data": "edge"
+  }
+}

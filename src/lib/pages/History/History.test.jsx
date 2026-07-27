@@ -54,6 +54,26 @@ describe('History', () => {
     expect(screen.getByText('Today')).toBeInTheDocument();
   });
 
+  // Reproduction: a page visited TODAY but never auto-closed has no `autoClosed`
+  // entry, so its timestamp must come from the url record's `visits` array.
+  // Before the fix ts read as null and the row landed under "Earlier this week".
+  it('groups a tab visited today with no autoClosed entry under Today', async () => {
+    seed('allUrls', ['url-https://laughfactory.com']);
+    seed('url-https://laughfactory.com', {
+      title: 'Laugh Factory',
+      favicon: '',
+      visitCount: 1,
+      visits: [Date.now()],
+    });
+    seed('autoClosed', {});
+    installChromeShim();
+    render(<History />);
+
+    expect(await screen.findByText('Laugh Factory')).toBeInTheDocument();
+    expect(screen.getByText('Today')).toBeInTheDocument();
+    expect(screen.queryByText('Earlier this week')).not.toBeInTheDocument();
+  });
+
   // Live update: a tab closed while the page is open appears without a
   // remount, driven by the chrome.storage.onChanged listener.
   it('shows a newly closed tab live via storage.onChanged', async () => {

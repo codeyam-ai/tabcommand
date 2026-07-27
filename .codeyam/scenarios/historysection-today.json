@@ -1,0 +1,11 @@
+{
+  "name": "HistorySection - Today",
+  "id": "29e239a5-5ef1-467b-8464-354d4845f46b",
+  "url": "/?isolate=HistorySection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistorySection",
+  "scenarioType": "component"
+}

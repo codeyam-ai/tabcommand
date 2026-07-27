@@ -1,0 +1,5 @@
+.EmptyState {
+  color: var(--c-t4);
+  font-size: 13px;
+  padding: 30px 0;
+}

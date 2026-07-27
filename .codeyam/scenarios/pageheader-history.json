@@ -1,0 +1,11 @@
+{
+  "name": "PageHeader - History",
+  "id": "03f7bbf0-83d0-458a-81a3-b405b1c4090d",
+  "url": "/?isolate=PageHeader",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageHeader",
+  "scenarioType": "component"
+}

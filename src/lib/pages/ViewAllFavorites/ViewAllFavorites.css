@@ -1,6 +1,6 @@
-/* View All Favorites page shell. Reuses the shared .Page-back / .Page-h1 /
-   .Page-intro chrome (defined in History.css, always loaded). Each favorite row
-   is the FavoriteRow component (its own CSS); the sparkline is UsageSparkline. */
+/* View All Favorites page shell. The header chrome is the PageHeader component
+   (PageHeader.css). Each favorite row is the FavoriteRow component (its own
+   CSS); the sparkline is UsageSparkline. */
 .ViewAllFavorites {
   height: 100vh;
   overflow-y: auto;
@@ -9,8 +9,4 @@
   width: 100%;
 }
 
-.ViewAllFavorites-empty {
-  color: var(--c-t4);
-  font-size: 13px;
-  padding: 30px 0;
-}
+/* The empty line lives in EmptyState.css. */

@@ -1,0 +1,11 @@
+{
+  "name": "EmptyState - No History",
+  "id": "a2b39435-fba1-40f2-98e3-cdfe55dd5074",
+  "url": "/?isolate=EmptyState",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "EmptyState",
+  "scenarioType": "component"
+}

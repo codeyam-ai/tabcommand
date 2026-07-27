@@ -1,0 +1,11 @@
+{
+  "name": "HistorySection - Undated Rows",
+  "id": "863cdcb8-451a-44b1-b61b-aa1d16fea4ea",
+  "url": "/?isolate=HistorySection&variant=undated",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistorySection",
+  "scenarioType": "component"
+}

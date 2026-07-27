@@ -7,7 +7,7 @@ import { hiddenSiteKey, hiddenSiteKeys } from '../../utils/hiddenSiteKeys';
 import { rankFavorites } from '../../utils/rankFavorites';
 import { usageMax } from '../../utils/usageMax';
 import { Pages } from '../../../Constants';
-import { Icon, FavoriteRow, FavoritesResetControl } from '../../components';
+import { FavoriteRow, FavoritesResetControl, PageHeader, EmptyState } from '../../components';
 
 const back = () => {
   Chrome.get('ViewAllFavorites0', 'uxSettings', ({ uxSettings }) => {
@@ -169,14 +169,11 @@ const ViewAllFavorites = () => {
 
   return (
     <div className="ViewAllFavorites">
-      <button className="Page-back" onClick={back}>
-        <Icon name="arrowLeft" size={15} /> Home
-      </button>
-      <h1 className="Page-h1">Favorites</h1>
-      <p className="Page-intro">
-        Ranked by how often and how recently you visit — recent visits count
-        more.
-      </p>
+      <PageHeader
+        title="Favorites"
+        intro="Ranked by how often and how recently you visit — recent visits count more."
+        onBack={back}
+      />
 
       <FavoritesResetControl onReset={resetFavorites} />
 
@@ -192,10 +189,7 @@ const ViewAllFavorites = () => {
       ))}
 
       {favorites.length === 0 && (
-        <div className="ViewAllFavorites-empty">
-          No favorites yet — the sites you return to will show up here as you
-          browse.
-        </div>
+        <EmptyState message="No favorites yet — the sites you return to will show up here as you browse." />
       )}
     </div>
   );

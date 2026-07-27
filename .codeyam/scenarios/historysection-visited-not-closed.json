@@ -1,0 +1,11 @@
+{
+  "name": "HistorySection - Visited Not Closed",
+  "id": "d5a6485c-0ad9-42a1-a4e9-286476b3d8e0",
+  "url": "/?isolate=HistorySection&variant=visited-not-closed",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistorySection",
+  "scenarioType": "component"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "PageHeader - No Intro",
+  "id": "8b37aeb3-4c6e-4ff2-b6d4-041be1102bc8",
+  "url": "/?isolate=PageHeader&variant=no-intro",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageHeader",
+  "scenarioType": "component"
+}

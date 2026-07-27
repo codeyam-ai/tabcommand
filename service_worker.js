@@ -614,6 +614,13 @@ async function newUrl(tabId, url) {
       updates[urlKey] = {
         ...urlRecord,
         visitCount: (urlRecord.visitCount || 0) + 1,
+        // Display-recency only, and deliberately OUTSIDE the isSearchEngine
+        // gate below: the History page needs a date for every visited URL,
+        // including search engines, whose `visits` array stays empty by design.
+        // Nothing in rankFavorites reads `lastVisit` and nothing should start —
+        // scoring runs off `visits`/`siteVisits`, which is what keeps search
+        // engines out of Favorites.
+        lastVisit: now,
         visits: isSearchEngine
           ? urlRecord.visits || []
           : pruneVisits([...(urlRecord.visits || []), now], now),

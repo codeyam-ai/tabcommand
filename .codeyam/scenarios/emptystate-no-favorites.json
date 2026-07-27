@@ -1,0 +1,11 @@
+{
+  "name": "EmptyState - No Favorites",
+  "id": "1474de19-509e-4e61-9694-09b3ec9bcc78",
+  "url": "/?isolate=EmptyState&variant=favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "EmptyState",
+  "scenarioType": "component"
+}

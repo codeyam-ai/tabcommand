@@ -532,6 +532,33 @@ describe('service_worker.js', () => {
       expect(record.visits[0]).toBeGreaterThanOrEqual(before);
     });
 
+    // Every visit stamps `lastVisit` on the url-* record. This is the recency
+    // signal the History page dates rows by; `autoClosed` alone only covers
+    // tabs the inactivity sweep closed, so a manually-closed or still-open page
+    // had no timestamp and fell into "Earlier this week".
+    it('stamps lastVisit on the url record for every visit', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
+      const before = Date.now();
+      const updates = await fns.newUrl(1, 'https://new.com');
+      const record = updates['url-https://new.com'];
+      expect(record.lastVisit).toBeGreaterThanOrEqual(before);
+      expect(record.lastVisit).toBeLessThanOrEqual(Date.now());
+    });
+
+    // The case that motivated putting `lastVisit` OUTSIDE the isSearchEngine
+    // gate: a search engine keeps an empty `visits` array (so it stays out of
+    // Favorites scoring) but must still be datable on the History page.
+    // Red if `lastVisit` is moved inside the gate.
+    it('stamps lastVisit on a search engine while leaving visits empty', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
+      const before = Date.now();
+      const url = 'https://www.google.com/search?q=weather';
+      const updates = await fns.newUrl(1, url);
+      const record = updates[fns.getUrlKey(url)];
+      expect(record.visits).toEqual([]);
+      expect(record.lastVisit).toBeGreaterThanOrEqual(before);
+    });
+
     // A repeat visit appends a fresh timestamp and increments visitCount while
     // preserving the prior visits and other url-* fields.
     it('appends a visit timestamp on a repeat visit', async () => {

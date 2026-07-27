@@ -1,0 +1,14 @@
+.History-section {
+  margin-bottom: 22px;
+}
+
+.History-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--c-t4);
+  margin-bottom: 8px;
+}
+
+/* Individual rows live in the HistoryRow component (HistoryRow.css). */

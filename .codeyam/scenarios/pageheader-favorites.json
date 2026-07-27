@@ -1,0 +1,11 @@
+{
+  "name": "PageHeader - Favorites",
+  "id": "1ad8e05c-2137-4902-a6d4-25e8c7b55686",
+  "url": "/?isolate=PageHeader&variant=favorites",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageHeader",
+  "scenarioType": "component"
+}

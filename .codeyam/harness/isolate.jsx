@@ -639,6 +639,114 @@ const ISOLATION_PROPS = {
       },
     },
   },
+  // A day group on the History page: the bucket eyebrow plus its rows. Rows
+  // arrive pre-sorted newest-first from useHistoryRows, so the default set
+  // demonstrates that order. The `visited-not-closed` variant is the bug this
+  // feature fixed — pages visited today that the sweep never auto-closed, which
+  // used to have no timestamp at all and fell into "Earlier this week".
+  HistorySection: {
+    default: {
+      bucket: 'Today',
+      rows: [
+        {
+          urlKey: 'url-https://github.com/codeyam/tabcommand',
+          title: 'codeyam/tabcommand — GitHub',
+          favicon: 'https://www.google.com/s2/favicons?domain=github.com&sz=64',
+          color: '#1873E4',
+          ts: FAV_NOW,
+        },
+        {
+          urlKey: 'url-https://www.notion.so/codeyam/Roadmap',
+          title: 'Roadmap – Notion',
+          favicon: '',
+          color: '#1873E4',
+          ts: FAV_NOW - 3600000,
+        },
+        {
+          urlKey: 'url-https://overreacted.io',
+          title: 'overreacted — A blog by Dan Abramov',
+          favicon: '',
+          color: '#1F8E43',
+          ts: FAV_NOW - 4 * 3600000,
+        },
+      ],
+      onReopen: noop,
+    },
+    variants: {
+      // The reported bug, fixed: every row here was visited today but never
+      // auto-closed, so each is dated from its url record instead of reading
+      // as undated and sinking into "Earlier this week".
+      'visited-not-closed': {
+        bucket: 'Today',
+        rows: [
+          {
+            urlKey: 'url-https://laughfactory.com',
+            title: 'Laugh Factory',
+            favicon: '',
+            color: '#D01882',
+            ts: FAV_NOW - 1800000,
+          },
+          {
+            urlKey: 'url-https://www.etsy.com/favorites',
+            title: 'Favorites – Etsy',
+            favicon: '',
+            color: '#E47415',
+            ts: FAV_NOW - 5 * 3600000,
+          },
+        ],
+        onReopen: noop,
+      },
+      // An older bucket whose rows carry no timestamp at all — legacy records
+      // with no visits, no lastVisit and no autoClosed entry. The honest
+      // fallback: they still appear, just undated.
+      undated: {
+        bucket: 'Earlier this week',
+        rows: [
+          {
+            urlKey: 'url-https://news.ycombinator.com',
+            title: 'Hacker News',
+            favicon: '',
+            color: '#7c3aed',
+            ts: null,
+          },
+        ],
+        onReopen: noop,
+      },
+    },
+  },
+  // The shared page chrome — back link, title, intro — hoisted out of History
+  // and ViewAllFavorites, which each rendered this trio inline.
+  PageHeader: {
+    default: {
+      title: 'History',
+      intro: 'Nothing is ever lost — every tab you have closed or visited lives here.',
+      onBack: noop,
+    },
+    variants: {
+      favorites: {
+        title: 'Favorites',
+        intro: 'Ranked by how often and how recently you visit — recent visits count more.',
+        onBack: noop,
+      },
+      // Some pages want the heading with no supporting line.
+      'no-intro': {
+        title: 'History',
+        onBack: noop,
+      },
+    },
+  },
+  // The muted "nothing here yet" line a page shows in place of its list.
+  EmptyState: {
+    default: {
+      message: 'No history yet.',
+    },
+    variants: {
+      favorites: {
+        message:
+          'No favorites yet — the sites you return to will show up here as you browse.',
+      },
+    },
+  },
   // The sidebar load-triage card. The load STATE (comfortable / running-hot)
   // comes from each scenario's seeded `processTotals` + `settings`; these props
   // drive only the shared review-mode toggle.

@@ -34,6 +34,15 @@
     "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
+    "description": "The muted line a page shows in place of its list when there is nothing to show. History and ViewAllFavorites each carried their own copy of this markup off identically-styled classes before it was hoisted here. Takes a message.",
+    "filePath": "src/lib/components/EmptyState/EmptyState.jsx",
+    "name": "EmptyState",
+    "scenarios": [
+      "emptystate-no-history",
+      "emptystate-no-favorites"
+    ]
+  },
+  {
     "description": "Renders a url row's favicon with a graceful fallback: the site's image when available, otherwise a deterministic colored monogram tile (via faviconMonogram). Falls back on image load error too.",
     "filePath": "src/lib/components/Favicon/Favicon.jsx",
     "name": "Favicon",
@@ -75,9 +84,14 @@
     ]
   },
   {
-    "description": "History page component: lists every closed/visited tab grouped by Today / Yesterday / Earlier this week, each row colored by its group label and offering a Reopen action.",
+    "description": "History page component: composes PageHeader, a HistorySection per day bucket, and EmptyState. All data work — reading the stores, dating each row via historyTimestamp, bucketing, sorting newest-first, and staying live — belongs to the useHistoryRows hook, so this file holds no logic of its own.",
     "filePath": "src/lib/pages/History/History.jsx",
     "name": "History",
+    "scenarios": [
+      "history-populated",
+      "history-empty",
+      "history-search-engine-dated"
+    ],
     "testFile": "src/lib/pages/History/History.test.jsx"
   },
   {
@@ -90,6 +104,16 @@
       "historyrow-no-timestamp"
     ],
     "testFile": "src/lib/components/HistoryRow/HistoryRow.test.jsx"
+  },
+  {
+    "description": "One day group on the History page: the bucket name as a mono eyebrow followed by its HistoryRow list. Renders nothing for an empty bucket so a day with no history leaves no orphan heading. Rows arrive already sorted newest-first from useHistoryRows; this component does not reorder them.",
+    "filePath": "src/lib/components/HistorySection/HistorySection.jsx",
+    "name": "HistorySection",
+    "scenarios": [
+      "historysection-today",
+      "historysection-visited-not-closed",
+      "historysection-undated-rows"
+    ]
   },
   {
     "description": "Local Lucide-style inline-SVG icon set (1.9px stroke, currentColor, round joins) that replaces @ant-design/icons. A name->path lookup returning static SVG; color and size are driven by the caller.",
@@ -194,6 +218,16 @@
     "filePath": "src/lib/components/LoadUrl/LoadUrl.jsx",
     "name": "LoadUrl",
     "testFile": "src/lib/components/LoadUrl/LoadUrl.test.jsx"
+  },
+  {
+    "description": "The shared chrome at the top of a full-page view: a back link, the page title, and an optional one-line intro. History and ViewAllFavorites each rendered this trio inline off the same Page- classes before it was hoisted here. Takes title, intro, onBack and an optional backLabel.",
+    "filePath": "src/lib/components/PageHeader/PageHeader.jsx",
+    "name": "PageHeader",
+    "scenarios": [
+      "pageheader-history",
+      "pageheader-favorites",
+      "pageheader-no-intro"
+    ]
   },
   {
     "description": "Sidebar search box: builds a minisearch index over labels and the WHOLE allUrls archive — labeled and unlabeled URLs — with fields labelTitle/urlTitle/url/notes and boosts. Rebuilds on chrome.storage onChanged for a labels change, an allUrls grow or shrink, or a notes edit on any indexed url, re-reading labels and allUrls each time. Typing runs a prefix search; results are deduped and segmented via segmentSearchResults into the SearchResults overlay as labels, grouped urls, and archived urls, each capped at 10. Cmd/Ctrl+F focuses, Escape closes. A build-token guards overlapping async rebuilds. Document shaping is factored into buildSearchDocuments and buildUrlDocuments.",
@@ -345,6 +379,12 @@
     "filePath": "service_worker.js",
     "name": "autoCloseThresholdMinutes",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Reads the close time out of an autoClosed entry in either stored shape — the bare numeric epoch the service worker writes today, or the legacy object form carrying time and backgroundColor. Returns null for anything else. Covered by historyTimestamp's object-form test.",
+    "filePath": "src/lib/utils/historyTimestamp.js",
+    "name": "autoClosedTime",
+    "testFile": "src/lib/utils/historyTimestamp.test.js"
   },
   {
     "description": "Navigates from the History page back to the Home page by updating uxSettings.page via Chrome storage.",
@@ -546,6 +586,12 @@
     "testFile": "src/lib/utils/faviconMonogram.test.js"
   },
   {
+    "description": "Coerces one timestamp candidate to a finite epoch-ms number, or null. Mirrors the Number.isFinite guarding pruneVisits uses so strings, NaN and undefined fall out rather than poisoning the Math.max that historyTimestamp takes over its candidates. Covered by historyTimestamp's junk-input tests.",
+    "filePath": "src/lib/utils/historyTimestamp.js",
+    "name": "finite",
+    "testFile": "src/lib/utils/historyTimestamp.test.js"
+  },
+  {
     "description": "Formats the auto-close inactivity threshold in minutes for the Settings control, rendering Off for non-positive values, whole minutes under an hour, or hours with a single decimal only when not whole.",
     "filePath": "src/lib/utils/formatAutoClose.js",
     "name": "formatAutoClose",
@@ -669,6 +715,12 @@
     "testFile": "src/lib/utils/hiddenSiteKeys.test.js"
   },
   {
+    "description": "Derives the timestamp a History row displays and buckets by: the most recent thing that happened to a URL, taken as the max of the url record's lastVisit, the newest entry in its visits array, and its autoClosed time in either the bare-number or legacy object form. Returns null only when nothing is known, leaving bucketByDay's Earlier this week fallback as the honest answer. Pure and Number.isFinite-guarded, so junk in any input is skipped rather than poisoning the max. Replaces reading autoClosed alone, which left every manually-closed or still-open page undated.",
+    "filePath": "src/lib/utils/historyTimestamp.js",
+    "name": "historyTimestamp",
+    "testFile": "src/lib/utils/historyTimestamp.test.js"
+  },
+  {
     "description": "Formats a numeric value with locale-aware thousands separators for the Load page's raw per-process table (1284 -> '1,284'). A falsy value yields undefined so the caller renders nothing; locale defaults to the document language then 'en', overridable via the lang arg. Factored out of the Load page so the formatting is unit-testable.",
     "filePath": "src/lib/utils/humanReadableNumber.js",
     "name": "humanReadableNumber",
@@ -737,6 +789,12 @@
       "helper"
     ],
     "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
+  },
+  {
+    "description": "Returns the newest finite timestamp in a url record's visits array, or null for an absent, empty or all-garbage array. The signal that dates a page visited today but never auto-closed. Covered by historyTimestamp's latest-visit and junk-input tests.",
+    "filePath": "src/lib/utils/historyTimestamp.js",
+    "name": "latestVisit",
+    "testFile": "src/lib/utils/historyTimestamp.test.js"
   },
   {
     "description": "Subscribes processProcesses to chrome.processes.onUpdatedWithMemory, guarded by try/catch so a missing processes API (non-Chrome / no permission) degrades quietly.",
@@ -1068,6 +1126,12 @@
     "filePath": "src/lib/utils/usageMax.js",
     "name": "usageMax",
     "testFile": "src/lib/utils/usageMax.test.js"
+  },
+  {
+    "description": "Owns the History page's data. Reads allUrls, autoClosed and labels plus each url record, dates every row via historyTimestamp, buckets it with bucketByDay against a now recomputed per load, colors it from label membership, and returns the rows sorted newest-first with undated rows last. Subscribes to chrome.storage.onChanged so the page stays live without a remount, and exposes reopen to open a row's url in a new tab. Returns rows and reopen.",
+    "filePath": "src/lib/hooks/useHistoryRows.js",
+    "name": "useHistoryRows",
+    "testFile": "src/lib/hooks/useHistoryRows.test.jsx"
   },
   {
     "description": "React hook owning the resolved light/dark theme. Resolves from three inputs: the saved themePreference storage key ['system' | 'light' | 'dark', default system], the live OS prefers-color-scheme tracked via matchMedia [dark fallback], and an in-memory temporary override set by the sun/moon toggle. Only the resolved value mirrors to the document element's data-theme attribute, which the CSS token layer keys off so the whole UI re-themes from one place. In system mode an OS day/night transition clears the override; a legacy theme:'light' migrates to a Day preference. Returns [theme, toggleTheme].",

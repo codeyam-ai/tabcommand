@@ -26,3 +26,6 @@ export { SearchHint } from "./SearchHint";
 export { UsageSparkline } from "./UsageSparkline";
 export { FavoriteRow } from "./FavoriteRow";
 export { FavoritesResetControl } from "./FavoritesResetControl";
+export { PageHeader } from "./PageHeader";
+export { HistorySection } from "./HistorySection";
+export { EmptyState } from "./EmptyState";

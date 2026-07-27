@@ -80,8 +80,7 @@
         "reason": "History reads synchronous localStorage via the chrome shim; there is no async loading state."
       },
       "edge": {
-        "status": "n-a",
-        "reason": "Edge typography renders the same clickable row; HistoryRow component scenarios cover row variants (no-timestamp, monogram fallback)."
+        "status": "added"
       },
       "error": {
         "status": "n-a",

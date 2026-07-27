@@ -1,0 +1,38 @@
+/* The `Page-*` classes are shared page chrome, previously duplicated in
+   History.css. They live with the component that owns them now. */
+
+/* A plain block so the back link, title and intro stack regardless of the
+   host's layout — including when the component is mounted alone in isolation. */
+.PageHeader {
+  display: block;
+}
+
+.Page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  color: var(--c-t3);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--t-fast);
+}
+.Page-back:hover {
+  color: var(--c-t1);
+}
+
+.Page-h1 {
+  font-size: 27px;
+  font-weight: 700;
+  margin: 14px 0 4px;
+  color: var(--c-t1);
+}
+
+.Page-intro {
+  margin: 0 0 22px;
+  color: var(--c-t3);
+  font-size: 13px;
+}
