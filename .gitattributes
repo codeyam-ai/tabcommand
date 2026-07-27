@@ -4,10 +4,11 @@
 .codeyam/test-cache.json merge=codeyam-test-cache
 .codeyam/dependency-graph.json merge=codeyam-dependency-graph
 .codeyam/test-registry.json merge=codeyam-test-registry
-.codeyam/per-test-evidence.json merge=codeyam-per-test-evidence
 .codeyam/state/finalize-debt.json merge=codeyam-finalize-debt
 .codeyam/state/provider-auth-verdict.json merge=ours
-.codeyam/mocks/catalog.json merge=ours
 .codeyam/state/session-results-snapshot.json merge=ours
 .codeyam/scenarios/screenshots/*.png.hash merge=ours
 .codeyam/cache/step-metadata.json merge=ours
+.codeyam/scenarios/screenshots/.capture-pipeline.json merge=ours
+.codeyam/mocks/catalog.json merge=ours linguist-generated
+.codeyam/per-test-evidence.json merge=codeyam-per-test-evidence linguist-generated
