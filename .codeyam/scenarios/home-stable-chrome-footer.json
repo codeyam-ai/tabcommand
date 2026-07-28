@@ -1,0 +1,28 @@
+{
+  "name": "Home - Stable Chrome Footer",
+  "id": "7bad0a9c-8d97-4dc6-8913-507c5cb43745",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "settings": "{\"warnAt\": 70, \"heavyThreshold\": 60}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://news.ycombinator.com\"]",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "loadDataSource": "\"system\"",
+      "processTotals": "{\"cpu\": 61, \"privateMemory\": 2100000000, \"jsMemoryUsed\": 780000000}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\"]}}",
+      "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-501\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://www.figma.com/file/tabcommand\", \"tabKey\": \"tab-502\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://react.dev/learn\", \"tabKey\": \"tab-503\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"tabKey\": \"tab-504\", \"pinned\": false, \"tabCommandPinned\": false}, {\"urlKey\": \"url-https://news.ycombinator.com\", \"tabKey\": \"tab-505\", \"pinned\": false, \"tabCommandPinned\": false}]",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "autoClosed": "{}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx",
+  "description": "Stable Chrome reports loadDataSource 'system', so there is no per-tab load data and the Browser Load gauge cannot be shown. The sidebar footer must therefore render NO gauge wrapper at all - only the footer's own top hairline separates the tab/group counts and the Import/Export link. An empty wrapper would contribute a second border-bottom hairline and a dead click target sending the user to the Load page."
+}

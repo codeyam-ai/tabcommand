@@ -71,4 +71,23 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Load' })).toBeInTheDocument();
     expect(screen.queryByText('Active Tabs')).not.toBeInTheDocument();
   });
+
+  // with no loadDataSource marker the gauge self-hides, so its wrapper (and its divider hairline) must not render either
+  it('does not render the gauge wrapper when per-tab load data is unavailable', async () => {
+    installChromeShim();
+    const { container } = render(<App />);
+
+    expect(await screen.findByText('Import/Export')).toBeInTheDocument();
+    expect(container.querySelector('.App-gauge')).toBeNull();
+  });
+
+  // the counterpart: on the 'processes' source the wrapper IS rendered, so the gate is pinned in both directions
+  it('renders the gauge wrapper when per-tab load data is available', async () => {
+    window.localStorage.setItem('loadDataSource', JSON.stringify('processes'));
+    installChromeShim();
+    const { container } = render(<App />);
+
+    expect(await screen.findByText('Import/Export')).toBeInTheDocument();
+    await waitFor(() => expect(container.querySelector('.App-gauge')).not.toBeNull());
+  });
 });

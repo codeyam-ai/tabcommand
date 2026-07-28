@@ -41,8 +41,9 @@ body {
 }
 
 /* Clickable Browser Load gauge → Load page. Now lives at the bottom of the
-   sidebar footer, above the counts + Import/Export link. Self-hides (renders
-   nothing) when per-tab load data is unavailable. */
+   sidebar footer, above the counts + Import/Export link. App renders this
+   wrapper only when `loadDataSource === 'processes'` — the same gate the meter
+   inside it uses — so on stable Chrome nothing here is emitted at all. */
 .App-gauge {
   cursor: pointer;
   display: flex;
@@ -104,7 +105,10 @@ body {
   padding: 10px 0;
 }
 
-/* Separate the relocated gauge from the counts/link beneath it. */
+/* Separate the relocated gauge from the counts/link beneath it. Only ever
+   applies when the gauge is actually shown (per-tab data available); without it
+   the wrapper is not rendered, so this hairline never doubles up with the
+   footer's own border-top. */
 .App-sidebar-footer .App-gauge {
   width: 100%;
   padding-bottom: 12px;

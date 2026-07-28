@@ -7,6 +7,7 @@ import { Icon } from '../Icon';
 import SettingsSegment from './SettingsSegment';
 import { WarnAtDefault, HeavyThresholdDefault, AutoCloseMinutes, ColumnsDefault, ThemePreferenceDefault } from '../../../Constants';
 import formatAutoClose from '../../utils/formatAutoClose';
+import { hasPerTabLoadData } from '../../utils/hasPerTabLoadData';
 
 // A compact sidebar settings affordance: a gear button that expands sliders
 // persisted to the `settings` storage key. `warnAt` drives the gauge/triage red
@@ -133,7 +134,7 @@ const Settings = () => {
               ]}
             />
           </div>
-          {source === 'processes' && (
+          {hasPerTabLoadData(source) && (
             <>
               <label className="Settings-row">
                 <span className="Settings-label">Warn at</span>

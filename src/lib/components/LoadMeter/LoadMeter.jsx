@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Chrome } from '../../utils/Chrome';
 import deriveGaugeTotals from '../../utils/deriveGaugeTotals';
 import { loadLevel } from '../../utils/loadLevel';
+import { hasPerTabLoadData } from '../../utils/hasPerTabLoadData';
 import { LoadMeterCaption } from '../LoadMeterCaption';
 import { WarnAtDefault } from '../../../Constants';
 
@@ -78,7 +79,7 @@ const LoadMeter = () => {
   }, []);
 
   // Hide the gauge entirely without per-tab data (stable Chrome / unknown source).
-  if (source !== 'processes') return null;
+  if (!hasPerTabLoadData(source)) return null;
 
   // 0..1 ring values, on the same ceilings the old gauge used.
   const cpuValue = clamp01(cpu / MAX.cpu);

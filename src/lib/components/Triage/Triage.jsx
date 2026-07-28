@@ -5,6 +5,7 @@ import { Chrome } from '../../utils/Chrome';
 import deriveGaugeTotals from '../../utils/deriveGaugeTotals';
 import { summarizeProcessLoad } from '../../utils/processLoad';
 import { loadLevel } from '../../utils/loadLevel';
+import { hasPerTabLoadData } from '../../utils/hasPerTabLoadData';
 import { WarnAtDefault, HeavyThresholdDefault } from '../../../Constants';
 
 // Gauge ceilings — shared with LoadMeter so the triage's "% of capacity" reads
@@ -83,7 +84,7 @@ const Triage = ({ reviewMode, onToggleReview }) => {
 
   // Hide the whole card without per-tab data (stable Chrome / unknown source),
   // and suppress the red high state when no tab is the culprit.
-  if (source !== 'processes') return null;
+  if (!hasPerTabLoadData(source)) return null;
   if (level === 'high' && heavyCount === 0) return null;
 
   const title =

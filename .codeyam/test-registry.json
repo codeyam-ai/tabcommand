@@ -10,12 +10,30 @@
       "runner": "tests"
     },
     {
+      "description": "with no loadDataSource marker the gauge self-hides, so its wrapper (and its divider hairline) must not render either",
+      "file": "src/lib/pages/App/App.test.jsx",
+      "format": "vitest",
+      "key": "App › does not render the gauge wrapper when per-tab load data is unavailable",
+      "line": 76,
+      "registeredAt": "2026-07-28T16:22:18Z",
+      "runner": "tests"
+    },
+    {
       "description": "An external uxSettings.page change in storage navigates the rendered page via the onChanged listener.",
       "file": "src/lib/pages/App/App.test.jsx",
       "format": "vitest",
       "key": "App › navigates when uxSettings changes in storage",
       "line": 60,
       "registeredAt": "2026-06-09T17:34:02Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the counterpart: on the 'processes' source the wrapper IS rendered, so the gate is pinned in both directions",
+      "file": "src/lib/pages/App/App.test.jsx",
+      "format": "vitest",
+      "key": "App › renders the gauge wrapper when per-tab load data is available",
+      "line": 85,
+      "registeredAt": "2026-07-28T16:22:18Z",
       "runner": "tests"
     },
     {
@@ -3139,6 +3157,51 @@
       "key": "groupSearchUrlsByLabel › returns an empty array for empty or invalid input",
       "line": 57,
       "registeredAt": "2026-07-12T16:21:49Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the match is exact — a near-miss value must not open the per-tab surfaces",
+      "file": "src/lib/utils/hasPerTabLoadData.test.js",
+      "format": "vitest",
+      "key": "hasPerTabLoadData › is false for a near-miss value",
+      "line": 28,
+      "registeredAt": "2026-07-28T16:22:18Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an explicit no-data source is not per-tab data either",
+      "file": "src/lib/utils/hasPerTabLoadData.test.js",
+      "format": "vitest",
+      "key": "hasPerTabLoadData › is false for the none source",
+      "line": 16,
+      "registeredAt": "2026-07-28T16:22:18Z",
+      "runner": "tests"
+    },
+    {
+      "description": "stable Chrome reports a whole-machine source — no per-tab attribution",
+      "file": "src/lib/utils/hasPerTabLoadData.test.js",
+      "format": "vitest",
+      "key": "hasPerTabLoadData › is false for the system source",
+      "line": 11,
+      "registeredAt": "2026-07-28T16:22:18Z",
+      "runner": "tests"
+    },
+    {
+      "description": "before the service worker writes the marker the source is absent entirely",
+      "file": "src/lib/utils/hasPerTabLoadData.test.js",
+      "format": "vitest",
+      "key": "hasPerTabLoadData › is false when the marker is unset",
+      "line": 21,
+      "registeredAt": "2026-07-28T16:22:18Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the processes source is the only one that attributes load to individual tabs",
+      "file": "src/lib/utils/hasPerTabLoadData.test.js",
+      "format": "vitest",
+      "key": "hasPerTabLoadData › is true for the processes source",
+      "line": 6,
+      "registeredAt": "2026-07-28T16:22:18Z",
       "runner": "tests"
     },
     {

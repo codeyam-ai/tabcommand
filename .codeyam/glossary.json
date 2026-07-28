@@ -1,6 +1,6 @@
 [
   {
-    "description": "Root React component and entry-point page of the TabCommand UI, mounted at / via React 18 createRoot. Reads uxSettings / labels / activeTabs / allUrls through the Chrome abstraction and reacts to chrome.storage.onChanged. Renders the sidebar — AppBrand, Settings + ThemeToggle tools, Search, the SearchHint line, the Favorites section, the load-aware Triage card (Home only), and a footer holding the relocated Browser Load gauge plus the tab/group counts and the Import/Export link — alongside a content area that routes between the Home grid (Labels + Tabs under a DragDropContext, persisted via the applyDrag reducer), Load, History, ImportExport, and UrlDetails pages.",
+    "description": "Root React component and entry-point page of the TabCommand UI, mounted at / via React 18 createRoot. Reads uxSettings / labels / activeTabs / allUrls / loadDataSource through the Chrome abstraction and reacts to chrome.storage.onChanged. Renders the sidebar — AppBrand, Settings + ThemeToggle tools, Search, the SearchHint line, the Favorites section, the load-aware Triage card (Home only), and a footer holding the tab/group counts and the Import/Export link, plus the relocated Browser Load gauge whose wrapper is rendered only when hasPerTabLoadData(loadDataSource) holds, so no empty divider hairline is left behind on stable Chrome — alongside a content area that routes between the Home grid (Labels + Tabs under a DragDropContext, persisted via the applyDrag reducer), Load, History, ImportExport, and UrlDetails pages.",
     "filePath": "src/lib/pages/App/App.jsx",
     "name": "App",
     "scenarios": [
@@ -735,6 +735,12 @@
       "labels"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Predicate over the loadDataSource storage marker: true only for the 'processes' source, which is the sole source that attributes CPU and memory to individual tabs. Stable Chrome reports 'system'/'none', and the marker is absent before the service worker writes it. Shared by LoadMeter, Triage, Settings, LoadPerTabNote and App's sidebar-footer gauge wrapper so all five per-tab surfaces hide and show on exactly the same condition. Distinct from loadLevel, which bands an already-known load percentage rather than deciding whether per-tab load is knowable at all.",
+    "filePath": "src/lib/utils/hasPerTabLoadData.js",
+    "name": "hasPerTabLoadData",
+    "testFile": "src/lib/utils/hasPerTabLoadData.test.js"
   },
   {
     "description": "Heals a group label slot whose recorded urlKey has drifted from a tab live URL - as Google Docs rewrites its own ?tab= query. Locates the slot for the same page by samePageKey, then rewrites it in place to the live key or splices it out when the live key already exists elsewhere, never adding a new slot. Returns found/mutated/previousKey plus a removed flag that is true only on the dedup splice branch, so callers can audit a genuine member drop while ignoring a harmless in-place rewrite. Shared by the onUpdated navigation heal and the recordInGroupTab grouping-sync path so a drifted doc keeps its position instead of dropping to the bottom of the group.",

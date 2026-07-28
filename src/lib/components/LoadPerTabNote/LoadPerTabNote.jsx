@@ -3,6 +3,7 @@ import './LoadPerTabNote.css';
 import React, { useEffect, useState } from 'react';
 import { Chrome } from '../../utils/Chrome';
 import { Icon } from '../Icon';
+import { hasPerTabLoadData } from '../../utils/hasPerTabLoadData';
 
 // The honest note shown on the Load page when per-tab CPU/memory data is
 // unavailable. Per-tab/per-process data only exists on Chrome's Dev channel
@@ -31,7 +32,7 @@ const LoadPerTabNote = () => {
     return () => chrome.storage.onChanged.removeListener(handleChange);
   }, []);
 
-  if (!source || source === 'processes') return null;
+  if (!source || hasPerTabLoadData(source)) return null;
 
   return (
     <div className='LoadPerTabNote'>

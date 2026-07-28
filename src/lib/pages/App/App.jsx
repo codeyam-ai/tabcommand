@@ -22,6 +22,7 @@ import {
   RemovalSource
 } from '../../utils/groupRemovalLog';
 import { dropTargetIdAtPoint } from '../../utils/dropTargeting';
+import { hasPerTabLoadData } from '../../utils/hasPerTabLoadData';
 import { setDragHover, getDragHover, setDragActive } from '../../utils/dragHoverStore';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -36,6 +37,11 @@ const App = () => {
   const [theme, toggleTheme] = useTheme();
   const [reviewMode, setReviewMode] = useState(false);
   const [counts, setCounts] = useState({ tabs: 0, groups: 0 });
+
+  // Mirrors the gate LoadMeter itself uses. The meter self-hides without per-tab
+  // data, so without this the footer would still render an empty .App-gauge —
+  // and its border-bottom would stack a second hairline under the footer's own.
+  const [loadSource, setLoadSource] = useState(null);
 
   // Holds the teardown for the in-flight drag's pointer tracking (see
   // handleDragStart). The hovered group itself lives in the dragHoverStore, not
@@ -63,6 +69,10 @@ const App = () => {
     };
     refreshCounts();
 
+    Chrome.get('AppLoadSource', 'loadDataSource', ({ loadDataSource }) => {
+      setLoadSource(loadDataSource || null);
+    });
+
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
       if (changes.uxSettings) {
@@ -72,6 +82,7 @@ const App = () => {
         }
       }
       if (changes.labels || changes.activeTabs) refreshCounts();
+      if (changes.loadDataSource) setLoadSource(changes.loadDataSource.newValue || null);
     };
 
     chrome.storage.onChanged.addListener(handleChange);
@@ -244,9 +255,14 @@ const App = () => {
               onToggleReview={() => setReviewMode((r) => !r)}
             />
           )}
-          <div className="App-gauge" onClick={() => changePage(Pages.LOAD)}>
-            <LoadMeter />
-          </div>
+          {/* The wrapper is gated too, not just the meter: an empty .App-gauge
+              would still draw its divider hairline (and hold a click target)
+              above the counts on stable Chrome. */}
+          {hasPerTabLoadData(loadSource) && (
+            <div className="App-gauge" onClick={() => changePage(Pages.LOAD)}>
+              <LoadMeter />
+            </div>
+          )}
           {isHome && (
             <div className="App-sidebar-counts">
               {counts.tabs} {counts.tabs === 1 ? 'tab' : 'tabs'} · {counts.groups}{' '}
