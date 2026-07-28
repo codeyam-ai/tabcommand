@@ -1,0 +1,255 @@
+{
+  "timestamp": "2026-07-28T19:11:49Z",
+  "title": "Obvious Custom Color Button and Shorter Save Label",
+  "type": "feature",
+  "userRequest": "## Summary\n\nTwo polish fixes in the group popup (`LabelForm`, used both for \"New group\" from the Add Group tile and \"Edit group\" from a group card's ⋮ menu). First, the custom-color affordance is a bare rainbow circle tucked at the end of the preset swatch row — it reads as \"just another color\" rather than \"open a color picker\", so nobody discovers it. Replace it with an explicit, labeled button on its own row beneath the swatches: a preview dot plus the text \"Custom color…\", still wrapping the native `<input type=\"color\">` so the OS picker opens on click. Second, in edit mode the submit button reads \"Save Changes\", which wraps to two lines in the narrow popup; shorten it to \"Save\".\n\n## Key Decisions\n\n- **Keep the native `<input type=\"color\">`, change only its presentation.** The current implementation (`LabelForm.jsx:88-103`) wraps a fully-transparent `<input type=\"color\">` inside a styled `<label>`, which is the only reliable way to open the OS color picker. That mechanism is correct and stays; what changes is the wrapper's shape, position, and the fact that it now carries visible text. No new dependency, no custom picker UI.\n- **Move it out of `.LabelForm-colors` onto its own row.** As long as the control sits inside the swatch flex row it will be read as a tenth swatch. A full-width bordered button below the row makes it structurally distinct, which is the actual complaint.\n- **Preview dot instead of the conic rainbow gradient.** The rainbow was carrying the \"this is a picker\" signal on its own; with a text label doing that job, the swatch is better spent showing the *currently chosen* color (`previewColor`, already computed at `LabelForm.jsx:17`). The rainbow gradient CSS is deleted rather than kept unused.\n- **\"Save\", not \"Save Changes\".** Only the edit-mode string changes. \"Create group\" stays as-is — it is on the create path, already fits, and is pinned by the first existing test.\n- **Selected state stays keyed on `isCustom`.** The existing `isCustom` derivation (`!!color && !Colors.includes(color)`, `LabelForm.jsx:18`) already tells us when a non-preset color is active; the new button reuses it for its `selected` styling, so no new state is introduced.\n\n## Implementation\n\n### 1. Restructure the custom-color control\n\n**File**: `src/lib/components/LabelForm/LabelForm.jsx`\n\nRemove the `<label className='LabelForm-custom'>` block currently nested inside `.LabelForm-colors` (lines 88-103), so that div contains only the nine preset swatch buttons. Render the custom control as a sibling immediately after the closing `</div>` of `.LabelForm-colors`:\n\n```jsx\n<label\n  className={`LabelForm-custom ${isCustom ? 'selected' : ''}`}\n  onClick={(event) => event.stopPropagation()}\n>\n  <span\n    className='LabelForm-customSwatch'\n    style={{ backgroundColor: previewColor }}\n    aria-hidden='true'\n  ></span>\n  <span className='LabelForm-customText'>Custom color…</span>\n  <input\n    type='color'\n    className='LabelForm-customInput'\n    aria-label='Custom color'\n    value={isCustom ? color : previewColor}\n    onChange={(event) => {\n      event.stopPropagation();\n      setColor(event.target.value);\n    }}\n  />\n</label>\n```\n\nNotes:\n- The `<label>` wrapping the input is what makes clicking anywhere in the button open the picker — do not swap it for a `<button>`, which cannot host the input this way.\n- Keep `aria-label='Custom color'` on the input so the existing accessible name is preserved; drop the now-redundant `title='Custom color'` from the label since the text is visible.\n- `onClick` still calls `stopPropagation()` — the popup is rendered inside a click-catching overlay context (`LabelFormContainer` / `LabelCollectionMenu`), and removing it would close the popup on picker open.\n\n### 2. Restyle the custom control as a button row\n\n**File**: `src/lib/components/LabelForm/LabelForm.css`\n\n- Rewrite `.LabelForm-custom` (currently a 22px circle with a conic rainbow + radial white gradient) as a full-width row button: `display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; background-color: var(--card-bg); border: 1px solid var(--border); border-radius: var(--r-row); cursor: pointer;` plus a hover that matches the Cancel button's treatment (`background-color: var(--search-bg)`). Delete the `background: radial-gradient(...) , conic-gradient(...)` block and the `transform: scale(1.08)` hover — a full-width row should not scale.\n- Replace `.LabelForm-custom.selected` (currently `box-shadow: 0 0 0 2px var(--brand-command)` on a circle) with a border-driven selected state: `border-color: var(--brand-command)`, matching how `.LabelForm-nameField:focus-within` signals focus on the sibling row above it.\n- Add `.LabelForm-customSwatch` — a 12px circle (`flex: 0 0 auto; width/height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px var(--border);`), deliberately sized to match `.LabelForm-dot` so the two rows align visually.\n- Add `.LabelForm-customText` — `font-family: var(--font-sans); font-size: 13px; color: var(--text-primary);`.\n- `.LabelForm-customInput` keeps its `position: absolute; inset: 0; opacity: 0` overlay rules unchanged; it now covers the whole row instead of a 22px circle, which is the intended larger hit target.\n- Update the file's leading comment (lines 1-2) and the `/* Custom-color picker: rainbow swatch ... */` section comment so they describe the labeled row, not the rainbow swatch.\n\n### 3. Shorten the edit-mode submit label\n\n**File**: `src/lib/components/LabelForm/LabelForm.jsx`\n\nLine 108: `{label ? 'Save Changes' : 'Create group'}` → `{label ? 'Save' : 'Create group'}`.\n\n### 4. Update the edit-path test\n\n**File**: `src/lib/components/LabelForm/LabelForm.test.jsx`\n\nLine 52 queries `screen.getByText('Save Changes')`; flip it to `'Save'` — see the Reproduction Test section. The first test (create path, line 23) is untouched.\n\n### 5. Refresh the glossary description\n\n**File**: `.codeyam/glossary.json` (via `codeyam-editor` glossary tooling — do not hand-edit)\n\nThe `LabelForm` entry currently reads \"submit button 'Save Changes'\". Update to \"'Save'\" so the registry matches the shipped string.\n\n### 6. Update stale scenario descriptions\n\n**Files**: `.codeyam/scenarios/labelform-edit-empty-title.json`, `.codeyam/scenarios/home-group-menu-open.json`\n\nBoth descriptions quote \"Save Changes\" verbatim. Reword to \"Save\". `labelform-edit-empty-title`'s point — that the label is driven by mode, not by whether the title input holds text — still stands and should be preserved.\n\n## Reused existing code\n\n- `LabelForm` from `src/lib/components/LabelForm/LabelForm.jsx` (glossary entry: `LabelForm`, tested by `src/lib/components/LabelForm/LabelForm.test.jsx`) — the component being changed; `previewColor` (line 17) and `isCustom` (line 18) are both reused as-is by the new button.\n- `.LabelForm-dot`, `.LabelForm-nameField`, `.LabelForm-cancel` from `src/lib/components/LabelForm/LabelForm.css` — the new row's padding, border, radius, hover, and 12px dot are all copied from these existing rules so the control reads as native to the form.\n- Design tokens `--card-bg`, `--border`, `--r-row`, `--search-bg`, `--brand-command`, `--font-sans`, `--text-primary`, `--t-fast` — already in use throughout this stylesheet; no new tokens.\n- `LabelFormContainer` (glossary entry: `LabelFormContainer`) and `LabelCollectionMenu` — the two call sites; neither passes anything that affects this change, so no call-site edits are needed.\n- **Existing-implementation survey**: grepped `src/` for any other custom-color / color-picker affordance and for any existing labeled-row button pattern. There is no other `input[type=color]` in the codebase and no shared \"picker row\" component — nothing equivalent exists to reuse, so the row is built from the local CSS conventions above rather than a shared primitive. No component other than `LabelForm.test.jsx` references the string \"Save Changes\" in `src/`.\n\n## Reproduction Test\n\nPins that the edit-mode submit button reads \"Save\" rather than the two-line-wrapping \"Save Changes\".\n\n**Target**: `src/lib/components/LabelForm/LabelForm.test.jsx` — run with\n`codeyam-editor editor refresh-tests --test LabelForm`.\n\n**Change to an existing test**: `renames an existing label, deleting the old key` (line 42). Flip the button query on the edit path:\n\n```diff\n     const input = screen.getByPlaceholderText('Group Title');\n     await userEvent.clear(input);\n     await userEvent.type(input, 'Office');\n-    await userEvent.click(screen.getByText('Save Changes'));\n+    await userEvent.click(screen.getByText('Save'));\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: before the fix the button still renders \"Save Changes\", and `getByText('Save')` matches by full normalized text content, so it throws `TestingLibraryElementError: Unable to find an element with the text: Save` and the test fails before reaching the storage assertions.\n\nThe custom-color restructure has no unit-level repro — it is a presentation change (an unlabeled circle becoming a labeled row) with identical `setColor` behavior, so there is no assertion that is red before and green after. Demonstrate it via the scenarios below. Optionally add a non-red-first assertion alongside the fix that `screen.getByText('Custom color…')` is present, to pin that the affordance is now labeled at all.\n\n## Scenarios to Demonstrate\n\n- **Edit mode, preset color** — an existing group (\"Work\") with a `Colors` value selected: header \"Edit group\", checked preset swatch, the new \"Custom color…\" row below showing that same color in its dot, submit button reading \"Save\" on one line.\n- **Edit mode, custom color** — an existing group whose `backgroundColor` is not in `Colors`: no preset swatch checked, the \"Custom color…\" row in its selected state with the custom hue in its dot.\n- **Create mode, nothing typed** — the Add Group tile expanded: header \"New group\", empty title, no swatch selected, the \"Custom color…\" dot showing the length-derived fallback hue, submit button \"Create group\".\n- **Create mode, title typed** — a title entered but no color picked: the name dot and the custom-row dot both show the same auto-derived color, confirming they stay in sync.\n- **Edge: empty title in edit mode** — an existing group with the title input cleared; the button still reads \"Save\" because the label is driven by mode, not input content.\n- **Narrow popup width** — the edit popup as rendered from a group card's ⋮ menu, confirming \"Save\" fits on one line and the full-width custom row does not overflow the popup.",
+  "description": "The group popup's custom-color affordance was an unlabeled rainbow circle sitting as a tenth item in the preset swatch row, so it read as just another color and nobody found it. It is now a labeled pill (a colored preview dot plus the text 'Custom') extracted into LabelFormCustomColor and rendered as the last item of the swatch grid, so in the narrow popup the swatches wrap to two rows and the pill sits fitted at the end of the second. The edit-mode submit button also went from 'Save Changes', which wrapped to two lines in that popup, to 'Save'; 'Create group' on the create path is unchanged.\n\nThree things diverged from the plan and are worth remembering. First, the plan kept the native input type=color stretched across the control via inset:0, but a native color input paints its own swatch and the capture renderer ignores opacity on it, so the overlay covered the dot and the label text — it is now a 1px hidden control, with the wrapping <label> providing the full hit target (the same artifact is visible in the pre-change committed screenshot, so it was not introduced here). Second, the visible label is 'Custom' rather than the planned 'Custom color…' because the longer string could not share a row with the remaining swatches in the ~180px popup and wrapped to a third row; the aria-label stays 'Custom color'. Third, registering the 'title typed' scenario surfaced a latent bug: create-mode title initialized to undefined, so the input was uncontrolled until the first keystroke (React warning, which failed the capture) and onSubmit's title.length could throw on an untyped submit — fixed by defaulting to ''.\n\nCoverage: the red-first repro was confirmed RED (getByText('Save') unable to find the element) with the label reverted, then green with the fix. Five scenarios were added — three LabelFormCustomColor states (custom-selected, preset-unselected, derived-unselected) and two LabelForm states the plan asked for that had never existed, since every prior fixture used a hand-picked hex rather than one of the nine presets, so the checked-preset state was uncaptured. A dependency-graph gap is worth noting for next time: the graph stops at LabelForm/index.js and does not traverse the barrel to its importers, so recapture-stale reported 'clean' while five scenarios rendering LabelForm through that barrel (labelformcontainer-expanded, three labelcollectionmenu-*, labelcollection-menu-open) still showed the old UI; they needed --force --target. 62 tests pass, eslint clean.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/pending-build-launch",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/plans/obvious-custom-color-button-and-shorter-save-label.md\t.codeyam/plans/completed/obvious-custom-color-button-and-shorter-save-label.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-group-menu-open.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labelform-edit-empty-title.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-bottom-row-flipped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-long-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-empty-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-empty-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labelform-edit-preset-color.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelform-new-group-title-typed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelformcustomcolor-custom-selected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelformcustomcolor-derived-color.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelformcustomcolor-preset-selected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-preset-color--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-preset-color--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-group-title-typed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-group-title-typed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-custom-selected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-custom-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-derived-color--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-derived-color--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-preset-selected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-preset-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelFormCustomColor.jsx",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "LabelForm - Edit Empty Title",
+      "screenshotPath": "labelform-edit-empty-title--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Preset Color",
+      "screenshotPath": "labelform-edit-preset-color--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Work",
+      "screenshotPath": "labelform-edit-work--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group",
+      "screenshotPath": "labelform-new-blank--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group Title Typed",
+      "screenshotPath": "labelform-new-group-title-typed--desktop.png"
+    },
+    {
+      "name": "LabelForm - Reading",
+      "screenshotPath": "labelform-reading--desktop.png"
+    },
+    {
+      "name": "LabelForm - Shopping",
+      "screenshotPath": "labelform-shopping--desktop.png"
+    },
+    {
+      "name": "LabelForm - Social",
+      "screenshotPath": "labelform-social--desktop.png"
+    },
+    {
+      "name": "LabelFormCustomColor - Custom Selected",
+      "screenshotPath": "labelformcustomcolor-custom-selected--desktop.png"
+    },
+    {
+      "name": "LabelFormCustomColor - Derived Color",
+      "screenshotPath": "labelformcustomcolor-derived-color--desktop.png"
+    },
+    {
+      "name": "LabelFormCustomColor - Preset Selected",
+      "screenshotPath": "labelformcustomcolor-preset-selected--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 62,
+    "passed": 62,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 62,
+        "passed": 62
+      }
+    ]
+  }
+}

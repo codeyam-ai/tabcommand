@@ -1,0 +1,12 @@
+{
+  "name": "LabelFormCustomColor - Custom Selected",
+  "id": "042674b3-aa7d-4ce6-a24e-d707b09e9119",
+  "url": "/?isolate=LabelFormCustomColor",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelFormCustomColor",
+  "scenarioType": "component",
+  "description": "A non-preset color is active, so the pill is the current selection: brand-colored border and a dot showing the custom hue. This is the state that tells the user their custom color is what the group will use."
+}

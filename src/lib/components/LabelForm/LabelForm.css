@@ -1,5 +1,5 @@
-/* Inline "Add group" card: header, named color dot + input, swatch row with a
-   custom-color picker, then Create / Cancel actions. */
+/* Inline "Add group" card: header, named color dot + input, swatch row, a labeled
+   custom-color row, then Create / Cancel actions. */
 .LabelForm {
   display: flex;
   flex-direction: column;
@@ -104,47 +104,65 @@
   color: #fff;
 }
 
-/* Custom-color picker: rainbow swatch wrapping a native <input type=color> */
+/* Custom-color picker: a labeled pill that flows as the last item of the swatch
+   grid, wrapping a native <input type=color>. Sized to its content so it fills
+   the gap at the end of the last swatch row rather than claiming a row of its
+   own. The visible text carries the "opens a picker" signal, so the swatch shows
+   the currently chosen color instead of a rainbow.
+   Height math: the swatches are 22px + 2px border = 26px outer (content-box), so
+   24px + 1px border here lines the pill up with them exactly. */
 .LabelForm-custom {
   position: relative;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  cursor: pointer;
+  flex: 0 0 auto;
   display: inline-flex;
-  border: 2px solid transparent;
-  box-shadow: 0 0 0 1px var(--border);
-  /* A proper HSV color wheel: full-hue conic gradient with a white center that
-     fades out toward the saturated rim (radial overlay). */
-  background:
-    radial-gradient(circle at center, #ffffff 0%, rgba(255, 255, 255, 0) 68%),
-    conic-gradient(
-      from 90deg,
-      hsl(0, 100%, 50%),
-      hsl(60, 100%, 50%),
-      hsl(120, 100%, 50%),
-      hsl(180, 100%, 50%),
-      hsl(240, 100%, 50%),
-      hsl(300, 100%, 50%),
-      hsl(360, 100%, 50%)
-    );
-  transition: transform var(--t-fast);
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 9px 0 6px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: border-color var(--t-fast), background-color var(--t-fast);
 }
 
 .LabelForm-custom:hover {
-  transform: scale(1.08);
+  background-color: var(--search-bg);
 }
 
 .LabelForm-custom.selected {
-  border-color: var(--card-bg);
-  box-shadow: 0 0 0 2px var(--brand-command);
+  border-color: var(--brand-command);
 }
 
+/* Same 12px as .LabelForm-dot in the name field, so the two colour previews in
+   the form read as the same kind of thing. */
+.LabelForm-customSwatch {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.LabelForm-customText {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+/* Visually hidden, but a real focusable control: the wrapping <label> is what
+   forwards a click anywhere in the pill to it, so this does NOT need to stretch
+   to give a full-pill hit target. Deliberately 1px rather than a stretched
+   overlay — a native color input paints its own swatch, and some renderers
+   ignore `opacity` on it, which would cover the dot and label text. */
 .LabelForm-customInput {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 7px;
+  top: 50%;
+  width: 1px;
+  height: 1px;
   margin: 0;
   padding: 0;
   border: none;

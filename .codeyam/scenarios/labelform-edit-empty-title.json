@@ -8,5 +8,5 @@
   "mocks": {},
   "componentName": "LabelForm",
   "scenarioType": "component",
-  "description": "Edit mode with the group title cleared. The submit button still reads 'Save Changes' because the label is driven by the mode — an existing group is being edited — not by whether the title input currently holds text."
+  "description": "Edit mode with the group title cleared. The submit button still reads 'Save' because the label is driven by the mode — an existing group is being edited — not by whether the title input currently holds text."
 }

@@ -1,0 +1,12 @@
+{
+  "name": "LabelFormCustomColor - Derived Color",
+  "id": "f8f40799-64d0-4aba-9f6d-04960482d216",
+  "url": "/?isolate=LabelFormCustomColor&variant=derived",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelFormCustomColor",
+  "scenarioType": "component",
+  "description": "Create mode before any color is picked: no color prop, so the dot shows the title-length-derived fallback hue that submit would persist. Unselected, because an auto-derived color is not a custom pick."
+}

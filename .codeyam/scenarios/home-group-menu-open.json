@@ -27,7 +27,7 @@
   },
   "scenarioType": "application",
   "pageFilePath": "src/lib/pages/App/App.jsx",
-  "description": "The group menu opened from a bottom-row card. The menu escapes the card it belongs to and renders in full — the rename field, the color swatches, the Save Changes button, and the Delete Group action are all reachable, where the card previously cut it off at its bottom edge.",
+  "description": "The group menu opened from a bottom-row card. The menu escapes the card it belongs to and renders in full — the rename field, both rows of color swatches, the fitted 'Custom' pill at the end of the second row, the Save button, and the Delete Group action are all reachable, where the card previously cut it off at its bottom edge.",
   "interactions": [
     {
       "action": "click",

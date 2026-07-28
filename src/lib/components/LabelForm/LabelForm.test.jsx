@@ -46,10 +46,13 @@ describe('LabelForm', () => {
     installChromeShim();
     render(<LabelForm label={{ title: 'Work', backgroundColor: '#1873E4' }} />);
 
+    // the custom-color affordance is a labeled pill, not a bare swatch
+    expect(screen.getByText('Custom')).toBeDefined();
+
     const input = screen.getByPlaceholderText('Group Title');
     await userEvent.clear(input);
     await userEvent.type(input, 'Office');
-    await userEvent.click(screen.getByText('Save Changes'));
+    await userEvent.click(screen.getByText('Save'));
 
     await waitFor(async () => {
       const { labels } = await get('labels');

@@ -601,11 +601,46 @@ const ISOLATION_PROPS = {
         onCancel: noop,
       },
       // A `label` with a blank title: still edit mode, so the submit button
-      // reads "Save Changes". Pins that the button label is driven by the
-      // mode, not by whether the input currently has text.
+      // reads "Save". Pins that the button label is driven by the mode, not
+      // by whether the input currently has text.
       'edit-empty-title': {
         label: { title: '', backgroundColor: '#1873E4' },
         onCancel: noop,
+      },
+      // The only fixture whose color IS in `Colors` — every other one uses a
+      // hand-picked hex. Pins the checked-preset half of the color UI: a check
+      // on the matching swatch and the custom row sitting unselected.
+      'edit-preset': {
+        label: { title: 'Design', backgroundColor: '#2f7de1' },
+        onCancel: noop,
+      },
+    },
+  },
+  // The labeled custom-color row from the group form. `isCustom` drives the
+  // selected styling, so the two states worth pinning are a non-preset color
+  // active (selected) versus a preset or auto-derived color (unselected).
+  LabelFormCustomColor: {
+    default: {
+      previewColor: '#1873E4',
+      color: '#1873E4',
+      isCustom: true,
+      onSelect: noop,
+    },
+    variants: {
+      // A preset color is active, so the custom row is not the selection —
+      // neutral border, dot mirroring the chosen preset.
+      preset: {
+        previewColor: '#2f7de1',
+        color: '#2f7de1',
+        isCustom: false,
+        onSelect: noop,
+      },
+      // Create mode before any pick: no `color` at all, so the dot shows the
+      // length-derived fallback hue the parent computes.
+      derived: {
+        previewColor: '#1e9e57',
+        isCustom: false,
+        onSelect: noop,
       },
     },
   },

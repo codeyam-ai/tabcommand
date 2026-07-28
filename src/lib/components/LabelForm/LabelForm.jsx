@@ -5,9 +5,13 @@ import PropTypes from 'prop-types';
 import { Colors } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
 import { Icon } from '../Icon';
+import LabelFormCustomColor from './LabelFormCustomColor';
 
 const LabelForm = ({ label, onCancel }) => {
-  const [title, setName] = useState((label || {}).title);
+  // Default to '' rather than undefined: an undefined `value` makes the input
+  // uncontrolled until the first keystroke (React warns on the switch), and
+  // onSubmit's `title.length` would throw on a create-mode submit with no typing.
+  const [title, setName] = useState((label || {}).title || '');
   const [color, setColor] = useState((label || {}).backgroundColor);
 
   const onNameChange = (event) => setName(event.target.value);
@@ -85,27 +89,17 @@ const LabelForm = ({ label, onCancel }) => {
           )
         )}
 
-        <label
-          className={`LabelForm-custom ${isCustom ? 'selected' : ''}`}
-          title='Custom color'
-          onClick={(event) => event.stopPropagation()}
-        >
-          <input
-            type='color'
-            className='LabelForm-customInput'
-            aria-label='Custom color'
-            value={isCustom ? color : previewColor}
-            onChange={(event) => {
-              event.stopPropagation();
-              setColor(event.target.value);
-            }}
-          />
-        </label>
+        <LabelFormCustomColor
+          previewColor={previewColor}
+          color={color}
+          isCustom={isCustom}
+          onSelect={setColor}
+        />
       </div>
 
       <div className='LabelForm-actions'>
         <button type='button' className='LabelForm-cancel' onClick={onCancel}>Cancel</button>
-        <button type='submit' className='LabelForm-create'>{label ? 'Save Changes' : 'Create group'}</button>
+        <button type='submit' className='LabelForm-create'>{label ? 'Save' : 'Create group'}</button>
       </div>
     </form>
   );

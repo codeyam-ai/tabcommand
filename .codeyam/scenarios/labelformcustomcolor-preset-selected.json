@@ -1,0 +1,12 @@
+{
+  "name": "LabelFormCustomColor - Preset Selected",
+  "id": "10f5bc9d-3359-4ad5-8636-2f7b3cf2c31e",
+  "url": "/?isolate=LabelFormCustomColor&variant=preset",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelFormCustomColor",
+  "scenarioType": "component",
+  "description": "A preset swatch is the active choice, so the Custom pill sits unselected with a neutral border. The dot still mirrors the chosen color, which keeps the pill readable as a live preview rather than a separate setting."
+}

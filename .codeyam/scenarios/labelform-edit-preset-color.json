@@ -1,0 +1,12 @@
+{
+  "name": "LabelForm - Edit Preset Color",
+  "id": "519b9abc-306b-4b6f-9001-7db3968be260",
+  "url": "/?isolate=LabelForm&variant=edit-preset",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelForm",
+  "scenarioType": "component",
+  "description": "Edit mode on a group whose color IS one of the nine presets: the matching swatch carries the check, and the fitted 'Custom' pill at the end of the swatch grid sits unselected with a neutral border while its dot mirrors the chosen preset. The counterpart to Edit Work, where a hand-picked hex selects the pill instead."
+}

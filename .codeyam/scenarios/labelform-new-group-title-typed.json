@@ -1,0 +1,19 @@
+{
+  "name": "LabelForm - New Group Title Typed",
+  "id": "4037e302-1d8d-4eb7-acc8-2e87746bb917",
+  "url": "/?isolate=LabelForm&variant=new-blank",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelForm",
+  "scenarioType": "component",
+  "description": "Create mode after typing a title but picking no color. The name dot and the Custom pill's dot both show the same title-length-derived hue, confirming the two previews stay in sync and that the pill previews the color submit would actually persist.",
+  "interactions": [
+    {
+      "action": "fill",
+      "selector": ".LabelForm-nameInput",
+      "value": "Research"
+    }
+  ]
+}

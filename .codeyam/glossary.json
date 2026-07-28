@@ -181,7 +181,7 @@
     ]
   },
   {
-    "description": "Create/edit form for a label (group): a title input and a swatch picker from Colors. The `label` prop is the mode discriminator — present means edit mode (header 'Edit group', submit button 'Save Changes'), absent means create mode (header 'New group', submit button 'Create group'). On submit writes the label into the labels map keyed by title — deriving backgroundColor (Colors[title.length % len]) and position when absent, and deleting the old key on a rename.",
+    "description": "Create/edit form for a label (group): a title input, a swatch picker from Colors, and a LabelFormCustomColor pill that flows as the last item of the swatch grid for picking a non-preset color. The `label` prop is the mode discriminator — present means edit mode (header 'Edit group', submit button 'Save'), absent means create mode (header 'New group', submit button 'Create group'). On submit writes the label into the labels map keyed by title — deriving backgroundColor (Colors[title.length % len]) and position when absent, and deleting the old key on a rename.",
     "filePath": "src/lib/components/LabelForm/LabelForm.jsx",
     "name": "LabelForm",
     "testFile": "src/lib/components/LabelForm/LabelForm.test.jsx"
@@ -191,6 +191,16 @@
     "filePath": "src/lib/components/LabelFormContainer/LabelFormContainer.jsx",
     "name": "LabelFormContainer",
     "testFile": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx"
+  },
+  {
+    "description": "The custom-color pill, rendered as the last item of the group form's swatch grid so it flows to the end of the final swatch row rather than claiming a row of its own: a preview dot, the text 'Custom', and a visually hidden native input type=color. Rendered as a label rather than a button because the label wrapping is what forwards a click anywhere in the pill to the input, so the input stays 1px instead of stretching — a stretched color input paints its own swatch over the dot and text. Sized 24px + 1px border to match the 22px + 2px border swatches. The isCustom prop drives the selected border; the dot always shows previewColor, so it doubles as a live preview of the pending color.",
+    "filePath": "src/lib/components/LabelForm/LabelFormCustomColor.jsx",
+    "name": "LabelFormCustomColor",
+    "scenarios": [
+      "labelformcustomcolor-custom-selected",
+      "labelformcustomcolor-preset-selected",
+      "labelformcustomcolor-derived-color"
+    ]
   },
   {
     "description": "A small uppercase section header used inside a group card to demarcate a subset of Url rows. Renders a lime live-status dot, the section label, and a compact count pushed to the right. Purely presentational; the parent decides when to render it.",
