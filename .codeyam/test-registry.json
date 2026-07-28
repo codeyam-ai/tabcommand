@@ -433,12 +433,39 @@
       "runner": "tests"
     },
     {
+      "description": "clicking the dismiss overlay closes the menu (the overlay was previously an unstyled, zero-height div, so outside clicks never reached it)",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › dismisses the open menu when the overlay is clicked",
+      "line": 156,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "jsdom does no layout, so visual clipping can't be observed directly — assert the structural fix instead: the open menu is portalled OUT of the card, whose `overflow: hidden` is what cut it off.",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › portals the open menu out of the clipping card",
+      "line": 139,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
       "description": "removing a url drops it from the group's urlKeys in storage",
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › removeUrl removes the url from the group urlKeys",
       "line": 91,
       "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the group menu control is a real button with a large enough hit target that a near-miss cannot fall through to the header's expand/collapse handler",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › renders the group menu control as a button with a large hit area",
+      "line": 122,
+      "registeredAt": "2026-07-28T00:47:00Z",
       "runner": "tests"
     },
     {
@@ -1501,6 +1528,78 @@
       "key": "ViewAllFavorites › shows the empty state when there are no favorites",
       "line": 28,
       "registeredAt": "2026-07-03T00:10:10.975459793+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a menu taller than the space above still starts on screen rather than above it",
+      "file": "src/lib/utils/anchoredMenuCoords.test.js",
+      "format": "vitest",
+      "key": "anchoredMenuCoords › clamps a flipped menu to the top of the viewport",
+      "line": 40,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an anchor near the left edge cannot pull the menu off the left side",
+      "file": "src/lib/utils/anchoredMenuCoords.test.js",
+      "format": "vitest",
+      "key": "anchoredMenuCoords › clamps to the left viewport edge",
+      "line": 34,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an anchor at the right edge would push the menu off-screen, so it clamps",
+      "file": "src/lib/utils/anchoredMenuCoords.test.js",
+      "format": "vitest",
+      "key": "anchoredMenuCoords › clamps to the right viewport edge",
+      "line": 28,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the bottom-row case: no room below, so the menu opens upward from the anchor",
+      "file": "src/lib/utils/anchoredMenuCoords.test.js",
+      "format": "vitest",
+      "key": "anchoredMenuCoords › flips above the anchor when the menu would run off the bottom",
+      "line": 21,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "one more pixel of menu than fits below tips it over into flipping up",
+      "file": "src/lib/utils/anchoredMenuCoords.test.js",
+      "format": "vitest",
+      "key": "anchoredMenuCoords › flips as soon as the menu overshoots the bottom margin by a pixel",
+      "line": 54,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "margin and gap are tunable rather than baked in",
+      "file": "src/lib/utils/anchoredMenuCoords.test.js",
+      "format": "vitest",
+      "key": "anchoredMenuCoords › honors custom margin and gap overrides",
+      "line": 60,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a menu that exactly fills the space below stays below rather than flipping",
+      "file": "src/lib/utils/anchoredMenuCoords.test.js",
+      "format": "vitest",
+      "key": "anchoredMenuCoords › keeps the menu below when it fits with no room to spare",
+      "line": 47,
+      "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a button with room below: the menu hangs under it with their right edges aligned",
+      "file": "src/lib/utils/anchoredMenuCoords.test.js",
+      "format": "vitest",
+      "key": "anchoredMenuCoords › right-aligns to the anchor and opens downward when there is room",
+      "line": 14,
+      "registeredAt": "2026-07-28T00:47:00Z",
       "runner": "tests"
     },
     {

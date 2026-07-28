@@ -1,0 +1,56 @@
+/* Fixed + portalled to document.body rather than absolute inside the group card:
+   .LabelCollection sets `overflow: hidden` (load-bearing — the UrlOver drag
+   highlight is an INSET shadow precisely so the card's clipping doesn't cut it,
+   and the rounded corners depend on it), which clipped this tall menu at the
+   card's bottom edge. `top`/`left` are viewport coordinates supplied inline by
+   the component; width must stay in sync with MENU_WIDTH in LabelCollection.jsx.
+   Same idiom as .Settings-panel. */
+.LabelCollection-menu {
+  position: fixed;
+  z-index: 51;
+  /* border-box so this width is the menu's REAL outer width — the parent
+     right-aligns the menu to its button using MENU_WIDTH, and a content-box
+     width would leave it overhanging by the padding. 205px = the previous
+     180px content box + its 12px padding + border, so the menu looks identical. */
+  box-sizing: border-box;
+  width: 205px;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border: 0.5px solid var(--border);
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  -webkit-box-shadow: -6px 7px 15px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: -6px 7px 15px 3px rgba(0, 0, 0, 0.25);
+}
+
+.LabelCollection-menu .LabelCollection-menu-section {
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.LabelCollection-menu .LabelForm {
+  margin: 0;
+}
+
+.LabelCollection-menu-actions {
+  text-align: left;
+}
+
+.LabelCollection-menu-actions button {
+  display: block;
+  border: none;
+  background-color: inherit;
+  margin-bottom: 6px;
+}
+
+.LabelCollection-menu-actions button:last-child {
+  margin-bottom: 0;
+}
+
+.LabelCollection-menu-actions button .anticon,
+.LabelCollection-menu-actions button .Icon {
+  margin-right: 3px;
+  font-size: 15px;
+  vertical-align: middle;
+}

@@ -580,6 +580,46 @@ const ISOLATION_PROPS = {
       collapsed: { expand: false },
     },
   },
+  // A group card's ⋮ menu. In the app it is portalled to document.body and
+  // positioned in viewport coordinates; in isolation we hand it a small inset so
+  // the fixed-position panel sits clear of the frame edge instead of hugging 0,0.
+  // The `bottom-row-flipped` variant is the case the portal fix exists for: a card
+  // low in the grid whose menu flips ABOVE its button rather than running off the
+  // bottom of the viewport.
+  LabelCollectionMenu: {
+    default: {
+      title: 'Work',
+      backgroundColor: '#1873E4',
+      coords: { top: 24, left: 24 },
+      onCancel: noop,
+      onDelete: noop,
+    },
+    variants: {
+      'bottom-row-flipped': {
+        title: 'Social',
+        backgroundColor: '#D01882',
+        coords: { top: 320, left: 380 },
+        onCancel: noop,
+        onDelete: noop,
+      },
+      // Edge data: a title far wider than the 205px menu, so the name field's
+      // overflow behaviour is visible rather than assumed.
+      'long-title': {
+        title: 'Quarterly Planning and Roadmap Review',
+        backgroundColor: '#1F8E43',
+        coords: { top: 24, left: 24 },
+        onCancel: noop,
+        onDelete: noop,
+      },
+    },
+  },
+  // The action list at the foot of the group menu. Share is disabled pending the
+  // feature; Delete is live.
+  LabelCollectionMenuActions: {
+    default: {
+      onDelete: noop,
+    },
+  },
   UrlLabel: {
     default: {
       title: 'Work',

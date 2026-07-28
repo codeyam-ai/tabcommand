@@ -1,0 +1,219 @@
+{
+  "timestamp": "2026-07-28T01:19:53Z",
+  "title": "Bigger group menu hit area and unclipped menu",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe `⋮` menu control on each group's title bar is a bare `<span>` roughly 9px wide, sitting inside a header whose entire surface toggles the group's expand/collapse (`pin`). Missing the glyph by a couple of pixels expands the whole group instead of opening the menu. Separately, the menu it opens is absolutely positioned inside `.LabelCollection`, which sets `overflow: hidden` — so the tall menu (a full `LabelForm` plus Share/Delete) is clipped at the bottom edge of the card. Fix both: give the control a real ~28px square button hit area, and move the menu out of the clipping container by rendering it through a portal with fixed viewport coordinates — the same pattern `Settings` already uses to escape the sidebar's scroll container. While the menu is portalled, also make the already-rendered-but-styleless `#BackgroundOverlay` a real full-viewport dismiss layer so clicking outside closes the menu.\n\n## Key Decisions\n\n- **Portal + `position: fixed`, not \"remove `overflow: hidden`\".** `.LabelCollection`'s `overflow: hidden` is load-bearing: the `UrlOver` drag-target highlight is an *inset* box-shadow specifically so the card's own clipping doesn't cut it, and the card's rounded corners depend on it (see the comment at `LabelCollection.css:37-47`). Removing it would regress the drop-target affordance and the card's corner masking. Portalling the menu to `document.body` sidesteps the containing block entirely.\n- **Reuse the `Settings` panel pattern verbatim.** `Settings.jsx` already solves the identical problem (a panel clipped by a scrolling ancestor) with `createPortal` + `getBoundingClientRect()` + clamped fixed coords. Copying that shape keeps one positioning idiom in the codebase instead of inventing a second.\n- **Anchor to the button, and flip up when there's no room below.** The group cards sit in a scrolling grid, so a card near the viewport bottom would open a ~260px menu off-screen. Clamp vertically (and flip above the button when the space below is insufficient) rather than always opening downward — `Settings` can open downward unconditionally only because its gear is pinned to the top of the sidebar.\n- **Make the control a real `<button>`.** It is currently a `<span>` with no `role`, no `aria-label`, and no keyboard focus. Switching to `<button type=\"button\" aria-label=\"Group menu\">` gets the accessible name and keyboard access for free, and lets the hit area be expressed as a normal sized flex box.\n- **Enlarge the hit area with a sized box, not negative margins.** A 28×28 `inline-flex` centered button inside the 8px-padded header keeps the header height unchanged (the count pill is already 20px) while roughly tripling the target area — and stays fully inside the header, so it never overlaps the title's ellipsis.\n\n## Implementation\n\n### 1. Give the menu button a real hit area and button semantics\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\nAt the header (~line 303), replace the `<span className='LabelCollection-menuButton' onClick={toggleMenu}>⋮</span>` with a `<button type=\"button\" className='LabelCollection-menuButton' aria-label=\"Group menu\" title=\"Group menu\" onClick={toggleMenu}>⋮</button>`, attaching a ref (see step 3) for positioning. Keep the existing `event.stopPropagation()` in `toggleMenu` (`LabelCollection.jsx:212-215`) — it already prevents the header's `pin` from firing on a hit; the bug is purely geometric.\n\nNote: the header also spreads `provided.dragHandleProps` (`LabelCollection.jsx:298`). Confirm at execution that a `<button>` inside the drag handle still drags and still clicks — if `@hello-pangea/dnd` swallows the click, add `onMouseDown={(e) => e.stopPropagation()}` to the button.\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.css`\n\nRewrite `.LabelCollection-menuButton` (lines 122-129) from a text span into a sized control: `display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-right: -6px;` (a small negative right margin pulls the enlarged box back so the visual glyph stays where it is today), plus `border: none; background: transparent; padding: 0;` to neutralize UA button styling, and a `border-radius: 6px` + hover/focus background (`rgba(255,255,255,0.22)`) so the now-larger target is discoverable. Keep `flex-shrink: 0`, the `--card-header-text` color, `font-size: 16px`, `opacity: 0.85`, `cursor: pointer`. Add a visible `:focus-visible` outline.\n\n### 2. Portal the menu out of the clipping card\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\n- Import `createPortal` from `react-dom`.\n- Change the mount point (lines 271-273) so both the overlay and `menu()` render via `createPortal(..., document.body)` instead of as children of `.LabelCollection`.\n- Pass the computed viewport coords as an inline `style={{ top, left }}` on `.LabelCollection-menu`, matching `Settings.jsx:117-121`.\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.css`\n\nChange `.LabelCollection-menu` (lines 139-153) from `position: absolute; top: 30px; right: 21px;` to `position: fixed;` with no static `top`/`right` (both now come from the inline style), and raise `z-index` to sit above app chrome (match or exceed `Settings-panel`'s `50`). Keep the width, padding, radius, border, background, and shadow. Add a comment explaining *why* it is fixed + portalled (the card's `overflow: hidden`), mirroring the comment in `Settings.jsx:68-77`.\n\n### 3. Compute anchored, viewport-clamped coordinates\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\nAdd a `menuButtonRef` and a `menuCoords` piece of state. In `toggleMenu`, when opening, read `menuButtonRef.current.getBoundingClientRect()` and compute:\n\n- `left`: right-align the 180px menu to the button (`rect.right - MENU_WIDTH`), then clamp into `[8, window.innerWidth - MENU_WIDTH - 8]`.\n- `top`: `rect.bottom + 6` normally; if `rect.bottom + 6 + MENU_HEIGHT_ESTIMATE > window.innerHeight - 8`, flip to `rect.top - MENU_HEIGHT_ESTIMATE - 6`, then clamp to `>= 8`.\n\nDeclare `MENU_WIDTH = 180` (matching the CSS) as a module constant, as `Settings.jsx:30` does with `PANEL_WIDTH`. For the height, prefer measuring the rendered menu with a ref in a layout effect and adjusting, falling back to a conservative constant estimate; decide at execution which is simpler given the menu's fixed content.\n\nNote this component uses a `setPartialState` reducer-ish helper rather than individual `useState` calls — follow the local convention when adding `menuCoords`.\n\n### 4. Make the dismiss overlay real\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx` and `src/lib/components/LabelCollection/LabelCollection.css`\n\n`<div id=\"BackgroundOverlay\">` is rendered at line 272 but has **no CSS rule anywhere in the repo** — it collapses to a zero-height block, so clicking outside the menu never dismisses it. Now that it is portalled to `document.body`, give it a rule: `position: fixed; inset: 0; z-index: <menu z-index - 1>; background: transparent;` (or a very faint scrim). Keep `onClick={toggleMenu}`.\n\nScope note: the same styleless `#BackgroundOverlay` element appears in `src/lib/components/Search/Search.jsx:163` and `src/lib/components/LabelFormContainer/LabelFormContainer.jsx:26`. Adding a global `#BackgroundOverlay` rule would change their behavior too — and `id` is not even unique across them. **Use a class scoped to this component** (e.g. `.LabelCollection-overlay`) rather than styling the shared `#BackgroundOverlay` id, so this plan does not silently alter Search or LabelFormContainer. Leave those two untouched.\n\n### 5. Tests\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.test.jsx`\n\nAdd the reproduction test below, plus a companion test asserting the opened menu is portalled outside the `.LabelCollection` element (i.e. `container.querySelector('.LabelCollection-menu')` is null while `document.querySelector('.LabelCollection-menu')` is non-null) — that is the assertion that actually pins the clipping fix, since jsdom does not compute layout and cannot observe visual clipping directly.\n\n## Reused existing code\n\n- `Settings` portal-anchored panel pattern — `src/lib/components/Settings/Settings.jsx:4` (`createPortal` import), `:30` (`PANEL_WIDTH` constant), `:78-89` (`getBoundingClientRect` + viewport clamp in the toggle), `:117-121` (portal render with inline `top`/`left`), and the explanatory comment at `:68-77`. `.Settings-panel { position: fixed; z-index: 50 }` at `src/lib/components/Settings/Settings.css:28-30` is the CSS half of the same pattern. This is the only existing portal usage in the repo — reuse it rather than inventing a second idiom.\n- `Icon` from `src/lib/components/Icon/Icon.jsx` — surveyed; its set is `search, sun, moon, history, info, pin, edit, copy, check, close, restore, globe, plus, settings`. **There is no `more`/`kebab`/`dots` icon**, which is why the raw `⋮` character is used today. This plan keeps the `⋮` glyph and does *not* add an icon — adding one is a separate concern.\n- Existing `toggleMenu` / `pin` handlers — `LabelCollection.jsx:197-215`. `toggleMenu` already calls `stopPropagation`, so no propagation change is needed.\n- Glossary entry `LabelCollection` :: `src/lib/components/LabelCollection/LabelCollection.jsx`, tested by `src/lib/components/LabelCollection/LabelCollection.test.jsx` (4 registered tests: renders title/urls, active/inactive split, ambiguous subtitles, removeUrl). The existing `renderCollection` helper (`LabelCollection.test.jsx:13-18`, wraps in `DragDropContext`) and `installChromeShim` / `seed` helpers are what the new tests should build on.\n- **Existing-implementation survey**: no existing hit-area/`min-width` rule, no existing portal or fixed-position menu, and no existing outside-click dismissal exist for this component today. `.LabelCollection-menuButton` (`LabelCollection.css:122-129`) is the only rule governing the target, and `#BackgroundOverlay` has no rule in any stylesheet in the repo. Nothing equivalent is already implemented.\n- **Constrained-file pre-check**: `classify-constrained-files` over all three touched files returns `{\"constrained\": []}` — no lean-contract or agent-config files involved.\n\n## Reproduction Test\n\nPins the geometric bug: the menu control's hit area is so small that a click landing a few pixels off it hits the header and toggles the group instead of opening the menu.\n\n**Target**: `src/lib/components/LabelCollection/LabelCollection.test.jsx` — run with\n`codeyam-editor editor refresh-tests --test LabelCollection`.\n\nBecause jsdom does not do layout, a pixel-miss cannot be simulated directly. The test instead asserts the *contract* that makes the miss impossible: the control is a real button with an accessible name and a declared minimum hit box.\n\n```jsx\n// the group menu control is a real button with a large enough hit target that a\n// near-miss cannot fall through to the header's expand/collapse handler\nit('renders the group menu control as a button with a large hit area', async () => {\n  installChromeShim();\n\n  const { container } = renderCollection({\n    title: 'Work',\n    backgroundColor: '#1873E4',\n    urlKeys: []\n  });\n\n  const menuButton = screen.getByRole('button', { name: 'Group menu' });\n  expect(menuButton).toBeInTheDocument();\n  expect(container.querySelector('.LabelCollection-menuButton')).toBe(menuButton);\n});\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: the control is\ncurrently a `<span>`, so `getByRole('button', { name: 'Group menu' })` throws\n`Unable to find an accessible element with the role \"button\" and name \"Group menu\"`.\n\nThe companion portal test (step 5) is the second half of the repro and should\nalso be confirmed red first — before the fix, `container.querySelector('.LabelCollection-menu')`\nis non-null (the menu is a child of the clipped card), so the\n`expect(...).toBeNull()` assertion fails.\n\n## Scenarios to Demonstrate\n\n- Group card with the menu closed — the enlarged `⋮` target visible with its hover background, header layout (title, count pill, dots) unchanged from today\n- Menu open on a group near the **top** of the grid — full menu (name field, color swatches, Share, Delete) visible, opening downward, nothing clipped\n- Menu open on a group in the **bottom row** of a scrolled grid — the previously-cut-off case; menu flips above the button and stays fully on screen\n- Menu open on the **rightmost** column — right-aligned menu clamped inside the viewport, not overflowing the right edge\n- Menu open on a **selected/expanded** (`.LabelCollections-selected`, full-width) group — anchoring still correct at the wider card's header\n- Group with a very long title — the title still ellipsizes and the enlarged button does not squeeze or overlap it\n- Click outside an open menu — menu dismisses (overlay fix), and the click does not toggle any group's expand state",
+  "description": "The ⋮ control on each group card was a bare ~9px span inside a header whose whole surface toggles the group's expand/collapse, so missing the glyph by a couple of pixels expanded the group instead of opening the menu. It is now a real 28x28 button with an accessible name, keyboard focus, and a hover background — sized with negative block margins so the header keeps its original height. Separately, the menu it opens was absolutely positioned inside the card, whose overflow: hidden is load-bearing (the drag-target highlight is an inset shadow precisely so the card's clipping doesn't cut it), so the tall menu was clipped at the card's bottom edge. The menu and its dismiss overlay now render through a portal to document.body at viewport coordinates computed by a new anchoredMenuCoords helper — right-aligned to the button, clamped horizontally, and flipped above when there is no room below — reusing the idiom Settings already uses to escape the sidebar's scroll container. The click-outside overlay, previously a styleless zero-height div that never received clicks, became a real full-viewport dismiss layer under a component-scoped class so Search and LabelFormContainer keep their own behavior.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/bigger-group-menu-hit-area-and-unclipped-menu.md\t.codeyam/plans/completed/bigger-group-menu-hit-area-and-unclipped-menu.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/pending-build-launch",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-group-menu-open.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollection-menu-open.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollectionmenu-bottom-row-flipped.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollectionmenu-long-title.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollectionmenu-work-group.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollectionmenuactions-share-and-delete.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-bottom-row-flipped--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-bottom-row-flipped--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-long-title--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-long-title--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-work-group--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-work-group--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenuactions-share-and-delete--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenuactions-share-and-delete--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/LabelCollectionMenu/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/anchoredMenuCoords.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/anchoredMenuCoords.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Group Menu Open",
+      "screenshotPath": "home-group-menu-open--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Menu Open",
+      "screenshotPath": "labelcollection-menu-open--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenu - Bottom Row Flipped",
+      "screenshotPath": "labelcollectionmenu-bottom-row-flipped--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenu - Long Title",
+      "screenshotPath": "labelcollectionmenu-long-title--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenu - Work Group",
+      "screenshotPath": "labelcollectionmenu-work-group--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenuActions - Share And Delete",
+      "screenshotPath": "labelcollectionmenuactions-share-and-delete--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 64,
+    "passed": 64,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 64,
+        "passed": 64
+      }
+    ]
+  }
+}

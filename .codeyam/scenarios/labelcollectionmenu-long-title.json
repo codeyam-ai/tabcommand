@@ -1,0 +1,11 @@
+{
+  "name": "LabelCollectionMenu - Long Title",
+  "id": "f599a5e9-5274-44e1-bc61-d38fa9c787b0",
+  "url": "/?isolate=LabelCollectionMenu&variant=long-title",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollectionMenu",
+  "scenarioType": "component"
+}

@@ -137,10 +137,28 @@
     "testFile": "src/lib/utils/KeyDown.test.js"
   },
   {
-    "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a menu (edit LabelForm + share + delete), and a full-card Droppable spanning the title bar and a vertical list of Url rows split into active above inactive. While a tab is dragged the whole card highlights in the group color when it is the cursor target; supports removeUrl and is itself draggable for reordering.",
+    "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a 28px menu button opening a LabelCollectionMenu, and a full-card Droppable spanning the title bar and a vertical list of Url rows split into active above inactive. The menu and its click-outside dismiss overlay are portalled to document.body and positioned via anchoredMenuCoords, because the card's own overflow: hidden (load-bearing for the UrlOver inset ring and rounded corners) would otherwise clip the menu at the card's bottom edge. While a tab is dragged the whole card highlights in the group color when it is the cursor target; supports removeUrl and is itself draggable for reordering.",
     "filePath": "src/lib/components/LabelCollection/LabelCollection.jsx",
     "name": "LabelCollection",
     "testFile": "src/lib/components/LabelCollection/LabelCollection.test.jsx"
+  },
+  {
+    "description": "A group card's ⋮ menu: a LabelForm for renaming/recoloring the group, then a LabelCollectionMenuActions list. Rendered by LabelCollection through a portal to document.body and placed at the viewport coordinates in its `coords` prop, because the group card's own overflow: hidden would otherwise clip it at the card's bottom edge. Takes `menuRef` as a plain prop rather than using forwardRef so the parent can measure the rendered height and correct the placement before paint.",
+    "filePath": "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx",
+    "name": "LabelCollectionMenu",
+    "scenarios": [
+      "labelcollectionmenu-work-group",
+      "labelcollectionmenu-bottom-row-flipped",
+      "labelcollectionmenu-long-title"
+    ]
+  },
+  {
+    "description": "The action list at the foot of a group's menu: Share Group and Delete Group. Share renders disabled with an explanatory title because group sharing has not shipped yet — the affordance is the announcement; Delete calls the supplied onDelete.",
+    "filePath": "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
+    "name": "LabelCollectionMenuActions",
+    "scenarios": [
+      "labelcollectionmenuactions-share-and-delete"
+    ]
   },
   {
     "description": "Create/edit form for a label (group): a title input and a swatch picker from Colors. On submit writes the label into the labels map keyed by title — deriving backgroundColor (Colors[title.length % len]) and position when absent, and deleting the old key on a rename.",
@@ -343,6 +361,12 @@
     "scenarios": [
       "viewallfavorites-rich"
     ]
+  },
+  {
+    "description": "Viewport coordinates for a menu or panel anchored to a button, for menus rendered through a portal with position: fixed to escape an ancestor's overflow: hidden. Right-aligns the menu to the anchor's right edge, clamps it horizontally inside the viewport, and flips it above the anchor when there is no room below — a control low in a scrolling grid would otherwise open its menu off the bottom of the screen. A menu taller than the space above still starts on screen. Margin and gap are tunable; rect is any object with top/bottom/right, so callers pass a real getBoundingClientRect and tests pass a literal.",
+    "filePath": "src/lib/utils/anchoredMenuCoords.js",
+    "name": "anchoredMenuCoords",
+    "testFile": "src/lib/utils/anchoredMenuCoords.test.js"
   },
   {
     "description": "Pure ring-buffer helper for the grouping diagnostics trail: appends one breadcrumb to the current stored array and returns a new array trimmed to the most-recent cap entries, treating a missing or non-array store as empty and never mutating its input. Kept free of chrome/IO so it is unit-testable in isolation.",

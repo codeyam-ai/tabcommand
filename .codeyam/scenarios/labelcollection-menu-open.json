@@ -1,0 +1,17 @@
+{
+  "name": "LabelCollection - Menu Open",
+  "id": "743be86e-f3b0-4efd-b522-05088cece6c2",
+  "url": "/?isolate=LabelCollection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".LabelCollection-menuButton"
+    }
+  ]
+}

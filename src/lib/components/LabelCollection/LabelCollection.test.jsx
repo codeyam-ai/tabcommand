@@ -116,4 +116,52 @@ describe('LabelCollection', () => {
       expect(labels.Work.urlKeys).toEqual(['url-b']);
     });
   });
+
+  // the group menu control is a real button with a large enough hit target that a
+  // near-miss cannot fall through to the header's expand/collapse handler
+  it('renders the group menu control as a button with a large hit area', async () => {
+    installChromeShim();
+
+    const { container } = renderCollection({
+      title: 'Work',
+      backgroundColor: '#1873E4',
+      urlKeys: []
+    });
+
+    const menuButton = await screen.findByRole('button', { name: 'Group menu' });
+    expect(menuButton).toBeInTheDocument();
+    expect(container.querySelector('.LabelCollection-menuButton')).toBe(menuButton);
+  });
+
+  // jsdom does no layout, so visual clipping can't be observed directly — assert
+  // the structural fix instead: the open menu is portalled OUT of the card, whose
+  // `overflow: hidden` is what cut it off.
+  it('portals the open menu out of the clipping card', async () => {
+    installChromeShim();
+
+    const { container } = renderCollection({
+      title: 'Work',
+      backgroundColor: '#1873E4',
+      urlKeys: []
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Group menu' }));
+
+    expect(container.querySelector('.LabelCollection-menu')).toBeNull();
+    expect(document.querySelector('.LabelCollection-menu')).not.toBeNull();
+  });
+
+  // clicking the dismiss overlay closes the menu (the overlay was previously an
+  // unstyled, zero-height div, so outside clicks never reached it)
+  it('dismisses the open menu when the overlay is clicked', async () => {
+    installChromeShim();
+
+    renderCollection({ title: 'Work', backgroundColor: '#1873E4', urlKeys: [] });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Group menu' }));
+    expect(document.querySelector('.LabelCollection-menu')).not.toBeNull();
+
+    await userEvent.click(document.querySelector('.LabelCollection-overlay'));
+    expect(document.querySelector('.LabelCollection-menu')).toBeNull();
+  });
 });

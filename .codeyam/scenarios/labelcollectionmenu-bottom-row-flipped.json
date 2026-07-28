@@ -1,0 +1,11 @@
+{
+  "name": "LabelCollectionMenu - Bottom Row Flipped",
+  "id": "c1160e2e-c9ef-4e8b-99e0-13074c1b3d06",
+  "url": "/?isolate=LabelCollectionMenu&variant=bottom-row-flipped",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollectionMenu",
+  "scenarioType": "component"
+}

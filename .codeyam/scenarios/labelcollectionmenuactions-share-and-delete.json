@@ -1,0 +1,11 @@
+{
+  "name": "LabelCollectionMenuActions - Share And Delete",
+  "id": "5901eb05-8192-4b28-b355-233c5ffa8819",
+  "url": "/?isolate=LabelCollectionMenuActions",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollectionMenuActions",
+  "scenarioType": "component"
+}

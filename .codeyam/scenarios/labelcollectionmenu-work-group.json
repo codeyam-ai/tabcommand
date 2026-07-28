@@ -1,0 +1,11 @@
+{
+  "name": "LabelCollectionMenu - Work Group",
+  "id": "fba742d3-1566-4564-b10d-93d5cfd10426",
+  "url": "/?isolate=LabelCollectionMenu",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollectionMenu",
+  "scenarioType": "component"
+}
