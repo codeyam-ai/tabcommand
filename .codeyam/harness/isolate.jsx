@@ -600,6 +600,13 @@ const ISOLATION_PROPS = {
         label: { title: 'Social', backgroundColor: '#D01882' },
         onCancel: noop,
       },
+      // A `label` with a blank title: still edit mode, so the submit button
+      // reads "Save Changes". Pins that the button label is driven by the
+      // mode, not by whether the input currently has text.
+      'edit-empty-title': {
+        label: { title: '', backgroundColor: '#1873E4' },
+        onCancel: noop,
+      },
     },
   },
   LabelFormContainer: {

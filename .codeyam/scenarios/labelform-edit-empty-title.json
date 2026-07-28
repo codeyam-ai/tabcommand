@@ -1,0 +1,12 @@
+{
+  "name": "LabelForm - Edit Empty Title",
+  "id": "319b4592-ce87-4b09-b1bb-d457f6509967",
+  "url": "/?isolate=LabelForm&variant=edit-empty-title",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelForm",
+  "scenarioType": "component",
+  "description": "Edit mode with the group title cleared. The submit button still reads 'Save Changes' because the label is driven by the mode — an existing group is being edited — not by whether the title input currently holds text."
+}

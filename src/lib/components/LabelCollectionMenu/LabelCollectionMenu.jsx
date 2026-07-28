@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { LabelForm } from '../LabelForm';
 import LabelCollectionMenuActions from './LabelCollectionMenuActions';
 
-// A group card's ⋮ menu: rename/recolor the group, then the Share/Delete actions.
+// A group card's ⋮ menu: rename/recolor the group, then the Delete action.
 //
 // Positioned in VIEWPORT coordinates (`coords`) and rendered by its parent
 // through a portal to document.body — the group card sets `overflow: hidden`,

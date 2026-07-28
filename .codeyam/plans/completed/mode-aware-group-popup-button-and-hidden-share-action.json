@@ -1,0 +1,27 @@
+{
+  "claimStartedAt": "2026-07-28T15:17:22Z",
+  "completedAt": "2026-07-28T15:57:57Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-8",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "mode-aware-group-popup-button-and-hidden-share-action",
+    "sessionId": "a0281630-e467-4983-880e-21d93c879530",
+    "startedAt": "2026-07-28T15:17:22Z"
+  },
+  "createdAt": "2026-07-28T14:55:02Z",
+  "deliverables": [
+    "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx",
+    "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
+    "src/lib/components/LabelForm/LabelForm.jsx",
+    "src/lib/components/LabelForm/LabelForm.test.jsx"
+  ],
+  "journalTimestamp": "2026-07-28T15:57:57Z",
+  "mode": "ui",
+  "planFile": "completed/mode-aware-group-popup-button-and-hidden-share-action.md",
+  "slug": "mode-aware-group-popup-button-and-hidden-share-action",
+  "title": "Mode-Aware Group Popup Button and Hidden Share Action"
+}

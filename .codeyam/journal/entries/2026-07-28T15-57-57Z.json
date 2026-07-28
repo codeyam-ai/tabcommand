@@ -1,0 +1,219 @@
+{
+  "timestamp": "2026-07-28T15:57:57Z",
+  "title": "Mode-Aware Group Popup Button and Hidden Share Action",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe group popup (`LabelForm`) is used for two different jobs — creating a new group from the \"Add Group\" tile, and editing an existing group from a group card's ⋮ menu — but its submit button always reads \"Create group\". Editing an existing group should read \"Save Changes\". Separately, the ⋮ menu's \"Share Group\" button is a disabled placeholder for an unshipped feature; hide it entirely for now so the menu only offers actions that actually do something.\n\n## Key Decisions\n\n- **Reuse the existing `label` prop as the mode discriminator.** `LabelForm` already branches on `label` for its header (`label ? 'Edit group' : 'New group'`, `LabelForm.jsx:47`), and the two call sites divide cleanly: `LabelFormContainer` renders `<LabelForm onCancel={...} />` with no `label` (create), `LabelCollectionMenu` renders it with `label={{ title, backgroundColor }}` (edit). No new prop is needed.\n- **Match the header's phrasing convention but use the user's wording for the button.** Header stays \"Edit group\" / \"New group\"; button becomes \"Save Changes\" / \"Create group\". Only the edit-side button label changes; the create-side label is untouched so the existing create test and any muscle memory stay valid.\n- **Delete the Share button rather than gating it behind a flag.** There is no feature flag infrastructure in this component and no `LabelCollection-share` CSS rule to clean up (the class is unstyled). Removing the button and its `globe` icon is the smallest reversible change; git history is the record for when sharing ships.\n\n## Implementation\n\n### 1. Make the submit button label mode-aware\n\n**File**: `src/lib/components/LabelForm/LabelForm.jsx`\n\nLine 108 hardcodes the label:\n\n```jsx\n<button type='submit' className='LabelForm-create'>Create group</button>\n```\n\nMake it depend on `label`, the same discriminator the header on line 47 already uses:\n\n```jsx\n<button type='submit' className='LabelForm-create'>{label ? 'Save Changes' : 'Create group'}</button>\n```\n\nLeave the `LabelForm-create` class name alone — it is a styling hook, and renaming it would require touching `LabelForm.css` for no user-visible benefit.\n\n### 2. Update the existing edit-path test to the new label\n\n**File**: `src/lib/components/LabelForm/LabelForm.test.jsx`\n\nThe \"renames an existing label, deleting the old key\" test (line 42) renders `<LabelForm label={...} />` and then clicks `screen.getByText('Create group')` at line 52. That query must become `screen.getByText('Save Changes')` — see the Reproduction Test section, which is exactly this flip. The first test (`writes a new label...`, line 23) renders with no `label` prop and keeps clicking `'Create group'` unchanged; together the two tests pin both branches.\n\n### 3. Hide the \"Share Group\" action\n\n**File**: `src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx`\n\nRemove the disabled Share button (lines 10-12) so the action list renders only Delete. Drop the now-unused `Icon` import only if Delete no longer needs it — it does still use `Icon name=\"close\"`, so the import stays. Rewrite the file's leading comment (lines 5-7), which currently explains the deliberate disabled-affordance choice (\"the affordance is the announcement\") — that rationale is now reversed, so the comment must say the opposite: sharing is unshipped and the entry is hidden until it works.\n\n### 4. Update the stale menu comment\n\n**File**: `src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx`\n\nLine 8 describes the menu as \"rename/recolor the group, then the Share/Delete actions.\" Drop the Share mention so the comment matches what renders.\n\n## Reused existing code\n\n- `LabelForm` from `src/lib/components/LabelForm/LabelForm.jsx` (glossary entry: `LabelForm`, tested by `src/lib/components/LabelForm/LabelForm.test.jsx`) — the `label ? … : …` ternary pattern on line 47 is the exact precedent for the button change.\n- `LabelFormContainer` from `src/lib/components/LabelFormContainer/LabelFormContainer.jsx` (glossary entry: `LabelFormContainer`) — the create-mode call site; confirms it passes no `label`, so `label` is a safe discriminator.\n- `Icon` from `src/lib/components/Icon` — retained for the Delete action's `close` icon.\n- **Existing-implementation survey**: grepped for any existing mode/variant prop, submit-label prop, or feature-flag mechanism on `LabelForm` and `LabelCollectionMenuActions`. Nothing equivalent exists — `LabelForm` takes only `label` and `onCancel`, `LabelCollectionMenuActions` takes only `onDelete`, and there is no feature-flag utility in `src/lib/utils/`. No CSS rule targets `.LabelCollection-share` anywhere in `src/`, so removing the button leaves no dead styles.\n\n## Reproduction Test\n\nPins that the popup's submit button reads \"Save Changes\" when editing an existing group, rather than the create-mode \"Create group\".\n\n**Target**: `src/lib/components/LabelForm/LabelForm.test.jsx` — run with\n`codeyam-editor editor refresh-tests --test LabelForm`.\n\n**Change to an existing test**: `renames an existing label, deleting the old key` (line 42). Flip the button query in the edit-mode path:\n\n```diff\n     const input = screen.getByPlaceholderText('Group Title');\n     await userEvent.clear(input);\n     await userEvent.type(input, 'Office');\n-    await userEvent.click(screen.getByText('Create group'));\n+    await userEvent.click(screen.getByText('Save Changes'));\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: before the fix, the edit-mode form still renders \"Create group\", so `screen.getByText('Save Changes')` throws `TestingLibraryElementError: Unable to find an element with the text: Save Changes`, and the test fails before it ever reaches the storage assertions.\n\n## Scenarios to Demonstrate\n\n- **Create mode** — the \"Add Group\" tile expanded: header \"New group\", empty title input, submit button reads \"Create group\".\n- **Edit mode** — a group card's ⋮ menu opened on an existing group with a title and color: header \"Edit group\", title prefilled, selected color swatch checked, submit button reads \"Save Changes\".\n- **Edit mode, menu actions** — the same ⋮ menu showing only \"Delete Group\" in the action list, with no \"Share Group\" row above it.\n- **Edit mode with a custom color** — an existing group whose `backgroundColor` is not in `Colors`, so the custom swatch is selected; button still reads \"Save Changes\".\n- **Edge: empty title in edit mode** — an existing group whose title has been cleared in the input; the button label is driven by mode, not by input content, so it still reads \"Save Changes\".",
+  "description": "The group popup does two different jobs — create a new group from the Add Group tile, and edit an existing one from a group card's ⋮ menu — but its submit button always read \"Create group\". It now reads \"Save Changes\" in edit mode and keeps \"Create group\" in create mode, reusing the existing `label` prop as the discriminator, the same way the header already chose between \"Edit group\" and \"New group\". Separately, the ⋮ menu's \"Share Group\" entry was a disabled placeholder for an unshipped feature; it is now removed entirely so the menu only offers actions that actually do something, leaving Delete Group as the sole action. The edit-path test was flipped first and confirmed red before the fix, then green after, so the button label is pinned in both modes.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/mode-aware-group-popup-button-and-hidden-share-action.md\t.codeyam/plans/completed/mode-aware-group-popup-button-and-hidden-share-action.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-group-menu-open.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollectionmenuactions-share-and-delete.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-bottom-row-flipped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-bottom-row-flipped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-long-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-long-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenuactions-share-and-delete--desktop.png",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenuactions-share-and-delete--desktop.png.hash",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-token",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollectionmenuactions-delete-only.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelform-edit-empty-title.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenuactions-delete-only--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenuactions-delete-only--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-empty-title--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-empty-title--desktop.png.hash",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "LabelCollectionMenu - Bottom Row Flipped",
+      "screenshotPath": "labelcollectionmenu-bottom-row-flipped--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenu - Long Title",
+      "screenshotPath": "labelcollectionmenu-long-title--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenu - Work Group",
+      "screenshotPath": "labelcollectionmenu-work-group--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenuActions - Delete Only",
+      "screenshotPath": "labelcollectionmenuactions-delete-only--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Empty Title",
+      "screenshotPath": "labelform-edit-empty-title--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Work",
+      "screenshotPath": "labelform-edit-work--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group",
+      "screenshotPath": "labelform-new-blank--desktop.png"
+    },
+    {
+      "name": "LabelForm - Reading",
+      "screenshotPath": "labelform-reading--desktop.png"
+    },
+    {
+      "name": "LabelForm - Shopping",
+      "screenshotPath": "labelform-shopping--desktop.png"
+    },
+    {
+      "name": "LabelForm - Social",
+      "screenshotPath": "labelform-social--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 627,
+    "passed": 5,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 627,
+        "passed": 5
+      }
+    ]
+  }
+}

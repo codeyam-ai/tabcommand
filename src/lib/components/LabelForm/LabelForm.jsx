@@ -105,7 +105,7 @@ const LabelForm = ({ label, onCancel }) => {
 
       <div className='LabelForm-actions'>
         <button type='button' className='LabelForm-cancel' onClick={onCancel}>Cancel</button>
-        <button type='submit' className='LabelForm-create'>Create group</button>
+        <button type='submit' className='LabelForm-create'>{label ? 'Save Changes' : 'Create group'}</button>
       </div>
     </form>
   );

@@ -49,7 +49,7 @@ describe('LabelForm', () => {
     const input = screen.getByPlaceholderText('Group Title');
     await userEvent.clear(input);
     await userEvent.type(input, 'Office');
-    await userEvent.click(screen.getByText('Create group'));
+    await userEvent.click(screen.getByText('Save Changes'));
 
     await waitFor(async () => {
       const { labels } = await get('labels');

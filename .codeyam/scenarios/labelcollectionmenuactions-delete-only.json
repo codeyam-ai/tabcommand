@@ -1,0 +1,12 @@
+{
+  "name": "LabelCollectionMenuActions - Delete Only",
+  "id": "40f316e7-8286-4813-b4b5-66f14e7a7576",
+  "url": "/?isolate=LabelCollectionMenuActions",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollectionMenuActions",
+  "scenarioType": "component",
+  "description": "The group menu's action list after group sharing was hidden: Delete Group is the only action offered. The previous disabled 'Share Group' placeholder is gone, so the menu advertises nothing that does not work."
+}

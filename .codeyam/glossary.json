@@ -163,7 +163,7 @@
     ]
   },
   {
-    "description": "The action list at the foot of a group's menu: Share Group and Delete Group. Share renders disabled with an explanatory title because group sharing has not shipped yet — the affordance is the announcement; Delete calls the supplied onDelete.",
+    "description": "The action list at the foot of a group's menu. Renders a single Delete Group action that calls the supplied onDelete. Group sharing has not shipped, so no Share entry is rendered — it is hidden rather than shown disabled, so the menu only offers actions that actually do something.",
     "filePath": "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
     "name": "LabelCollectionMenuActions",
     "scenarios": [
@@ -171,7 +171,7 @@
     ]
   },
   {
-    "description": "Create/edit form for a label (group): a title input and a swatch picker from Colors. On submit writes the label into the labels map keyed by title — deriving backgroundColor (Colors[title.length % len]) and position when absent, and deleting the old key on a rename.",
+    "description": "Create/edit form for a label (group): a title input and a swatch picker from Colors. The `label` prop is the mode discriminator — present means edit mode (header 'Edit group', submit button 'Save Changes'), absent means create mode (header 'New group', submit button 'Create group'). On submit writes the label into the labels map keyed by title — deriving backgroundColor (Colors[title.length % len]) and position when absent, and deleting the old key on a rename.",
     "filePath": "src/lib/components/LabelForm/LabelForm.jsx",
     "name": "LabelForm",
     "testFile": "src/lib/components/LabelForm/LabelForm.test.jsx"
