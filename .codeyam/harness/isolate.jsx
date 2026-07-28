@@ -714,6 +714,55 @@ const ISOLATION_PROPS = {
         },
         onReopen: noop,
       },
+      // Supplying onDelete opts the row into the delete affordance — the ✕
+      // beside Reopen that arms the inline confirm. Without it the row renders
+      // exactly as the default does, which is what keeps every pre-existing
+      // render site unchanged.
+      deletable: {
+        row: {
+          urlKey: 'url-https://github.com/codeyam/tabcommand',
+          title: 'codeyam/tabcommand — GitHub',
+          favicon: 'https://www.google.com/s2/favicons?domain=github.com&sz=64',
+          color: '#2f7de1',
+          ts: 1782486000000,
+        },
+        onReopen: noop,
+        onDelete: noop,
+      },
+    },
+  },
+  // The trailing action pair of a History row. Default is the resting state —
+  // Reopen plus the ✕ that arms a delete; the variants show the armed
+  // destructive confirm and the read-only row that was never given an onDelete.
+  HistoryRowActions: {
+    default: {
+      confirming: false,
+      onReopen: noop,
+      onStartConfirm: noop,
+      onConfirmDelete: noop,
+      onCancel: noop,
+      deleteLabel: 'Delete codeyam/tabcommand — GitHub from history',
+    },
+    variants: {
+      // The second click is pending: Reopen and ✕ give way to a red Delete and
+      // a Cancel, so the destructive step is deliberate and always escapable.
+      confirming: {
+        confirming: true,
+        onReopen: noop,
+        onStartConfirm: noop,
+        onConfirmDelete: noop,
+        onCancel: noop,
+        deleteLabel: 'Delete codeyam/tabcommand — GitHub from history',
+      },
+      // No onStartConfirm — the delete affordance disappears entirely rather
+      // than rendering a dead control.
+      'reopen-only': {
+        confirming: false,
+        onReopen: noop,
+        onStartConfirm: null,
+        onConfirmDelete: noop,
+        onCancel: noop,
+      },
     },
   },
   // A day group on the History page: the bucket eyebrow plus its rows. Rows

@@ -20,8 +20,13 @@ const back = () => {
 // row, bucketing, sorting, and staying live — belongs to useHistoryRows; this
 // file only composes the view.
 const History = () => {
-  const { rows, reopen } = useHistoryRows();
+  const { rows, reopen, deleteRow } = useHistoryRows();
 
+  // The confirm step lives in HistoryRow as an inline two-step control (the
+  // FavoritesResetControl pattern), so `deleteRow` is already the confirmed
+  // action by the time it reaches here. Deleting only forgets the page — it
+  // deliberately leaves group membership alone, so a deleted page can still
+  // appear on its group card.
   return (
     <div className="History">
       <PageHeader
@@ -36,6 +41,7 @@ const History = () => {
           bucket={bucket}
           rows={rows.filter((row) => row.bucket === bucket)}
           onReopen={reopen}
+          onDelete={deleteRow}
         />
       ))}
 

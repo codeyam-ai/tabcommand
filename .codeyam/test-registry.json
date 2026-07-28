@@ -289,6 +289,15 @@
       "runner": "tests"
     },
     {
+      "description": "confirming calls back with the row's urlKey — the actual delete",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › calls onDelete with the urlKey once the confirm is clicked",
+      "line": 104,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
       "description": "clicking anywhere on the row (e.g. the title) reopens the tab",
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
@@ -307,6 +316,33 @@
       "runner": "tests"
     },
     {
+      "description": "cancelling backs out entirely: nothing deleted, row back to its resting state",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › deletes nothing and restores Reopen when the confirm is cancelled",
+      "line": 115,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "deleting takes a deliberate SECOND click: the first only arms the confirm",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › does not delete on the first click, only arming the confirm",
+      "line": 93,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the whole row reopens on click, so the delete controls MUST stop propagation or arming/confirming a delete would also reopen the tab being deleted",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › does not reopen the tab while arming or confirming a delete",
+      "line": 129,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
       "description": "no favicon falls back to a colored monogram tile (no broken image)",
       "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
       "format": "vitest",
@@ -322,6 +358,24 @@
       "key": "HistoryRow › omits the timestamp when none is present",
       "line": 66,
       "registeredAt": "2026-06-27T14:09:20Z",
+      "runner": "tests"
+    },
+    {
+      "description": "supplying onDelete adds the delete control beside Reopen",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › renders a delete affordance when onDelete is supplied",
+      "line": 85,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the delete affordance is opt-in, so every existing render site is unchanged",
+      "file": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "format": "vitest",
+      "key": "HistoryRow › renders no delete affordance when onDelete is not supplied",
+      "line": 79,
+      "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
     {
@@ -2422,6 +2476,78 @@
       "runner": "tests"
     },
     {
+      "description": "a stale auto-close time must not survive to re-date the page if it returns",
+      "file": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "format": "vitest",
+      "key": "deleteUrlFromHistory › drops the key from autoClosed",
+      "line": 59,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "deleting the only row empties the list rather than leaving a stale entry",
+      "file": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "format": "vitest",
+      "key": "deleteUrlFromHistory › empties allUrls when the last row is deleted",
+      "line": 92,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "callers pass a continuation (Url closes the tab in it); it must still run when there was nothing to splice out",
+      "file": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "format": "vitest",
+      "key": "deleteUrlFromHistory › invokes the callback even for an untracked key",
+      "line": 103,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "REGRESSION: indexOf -1 with an unguarded splice removes the LAST element, so deleting an untracked key would silently evict an unrelated page's history",
+      "file": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "format": "vitest",
+      "key": "deleteUrlFromHistory › leaves allUrls untouched when the key is not tracked",
+      "line": 82,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "tombstones accumulate across deletes rather than each write clobbering the last",
+      "file": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "format": "vitest",
+      "key": "deleteUrlFromHistory › preserves tombstones from earlier deletes",
+      "line": 70,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the core of the delete: the key leaves the recency list History renders from",
+      "file": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "format": "vitest",
+      "key": "deleteUrlFromHistory › removes the url key from allUrls",
+      "line": 25,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the record itself goes too, so no orphan url-* is left behind in storage",
+      "file": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "format": "vitest",
+      "key": "deleteUrlFromHistory › removes the url record",
+      "line": 35,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the tombstone is what makes the service worker's closeUrl skip this key when the accompanying tab close fires onRemoved with a pre-delete snapshot",
+      "file": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "format": "vitest",
+      "key": "deleteUrlFromHistory › writes a deletedUrls tombstone for the key",
+      "line": 47,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
       "description": "cpu present without memory fields reads memory as zero",
       "file": "src/lib/utils/deriveGaugeTotals.test.js",
       "format": "vitest",
@@ -3745,6 +3871,69 @@
       "runner": "tests"
     },
     {
+      "description": "pure: the caller's stored map is never mutated in place",
+      "file": "src/lib/utils/pruneDeletedUrls.test.js",
+      "format": "vitest",
+      "key": "pruneDeletedUrls › does not mutate the input map",
+      "line": 50,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "past the ttl the tombstone has outlived the onRemoved race it existed for",
+      "file": "src/lib/utils/pruneDeletedUrls.test.js",
+      "format": "vitest",
+      "key": "pruneDeletedUrls › drops a tombstone older than the ttl",
+      "line": 15,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a corrupt/legacy entry must not pin a key out of history forever",
+      "file": "src/lib/utils/pruneDeletedUrls.test.js",
+      "format": "vitest",
+      "key": "pruneDeletedUrls › drops entries whose timestamp is missing or not a number",
+      "line": 44,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the boundary is inclusive: exactly-ttl-old is still honored, not dropped",
+      "file": "src/lib/utils/pruneDeletedUrls.test.js",
+      "format": "vitest",
+      "key": "pruneDeletedUrls › keeps a tombstone exactly at the ttl boundary",
+      "line": 20,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a tombstone written moments ago is still inside its window and survives",
+      "file": "src/lib/utils/pruneDeletedUrls.test.js",
+      "format": "vitest",
+      "key": "pruneDeletedUrls › keeps a tombstone newer than the ttl",
+      "line": 9,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "pruning is per-entry, so a mixed map keeps only the entries still in window",
+      "file": "src/lib/utils/pruneDeletedUrls.test.js",
+      "format": "vitest",
+      "key": "pruneDeletedUrls › prunes only the expired entries from a mixed map",
+      "line": 25,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the key has never been deleted from, so storage returns nothing for it",
+      "file": "src/lib/utils/pruneDeletedUrls.test.js",
+      "format": "vitest",
+      "key": "pruneDeletedUrls › returns an empty map for undefined or empty input",
+      "line": 38,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
       "description": "More than MAX_VISITS entries keep only the newest MAX_VISITS.",
       "file": "src/lib/utils/visitDecay.test.js",
       "format": "vitest",
@@ -4406,7 +4595,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
-      "line": 712,
+      "line": 775,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4415,7 +4604,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag on a deliberate group change",
-      "line": 1054,
+      "line": 1117,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4424,7 +4613,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag when a flagged tab is removed",
-      "line": 1070,
+      "line": 1133,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4433,7 +4622,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › ejects an auto-grouped non-member and does not record its URL",
-      "line": 1023,
+      "line": 1086,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4442,7 +4631,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › keeps an auto-grouped tab whose URL is a deliberate member",
-      "line": 1040,
+      "line": 1103,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4451,7 +4640,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › autoCloseThresholdMinutes › falls back to the default and maps Off to 0",
-      "line": 1629,
+      "line": 1692,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4460,7 +4649,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes a grouped/labeled inactive tab",
-      "line": 1569,
+      "line": 1632,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4469,7 +4658,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes and records an inactive ungrouped tab",
-      "line": 1534,
+      "line": 1597,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4478,7 +4667,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes nothing when autoCloseMinutes is 0 meaning Off",
-      "line": 1619,
+      "line": 1682,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4487,7 +4676,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › continues the sweep when one tab removal throws",
-      "line": 1577,
+      "line": 1640,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4496,7 +4685,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › keeps a tab that was active within the window",
-      "line": 1560,
+      "line": 1623,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4505,7 +4694,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › never closes pinned, tabCommandPinned, or the active tab",
-      "line": 1543,
+      "line": 1606,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4514,7 +4703,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › prunes autoClosed entries older than MAX_AUTO_CLOSED_TIME",
-      "line": 1595,
+      "line": 1658,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4523,7 +4712,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › registers the auto-close alarm at load",
-      "line": 1528,
+      "line": 1591,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4532,7 +4721,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › respects a custom settings.autoCloseMinutes",
-      "line": 1609,
+      "line": 1672,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -4541,8 +4730,17 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › leaves allUrls untouched when the key is not tracked",
-      "line": 395,
+      "line": 397,
       "registeredAt": "2026-07-14T16:25:02.907497060+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "REGRESSION: deleting a page from History splices it out of allUrls, but the tab close that accompanies the delete fires onRemoved -> closeUrl in the service worker process. closeUrl read allUrls before the delete landed, so its move-to-front wrote the key straight back at index 0 -- the row reappeared at the top of History, titleless because the url-* record was already gone. A deletedUrls tombstone makes closeUrl skip the key.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › closeUrl › leaves allUrls untouched when the key was just deleted",
+      "line": 411,
+      "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
     {
@@ -4550,8 +4748,17 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback",
-      "line": 383,
+      "line": 385,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "The tombstone is checked by PRESENCE of the specific key, not by \"is the map non-empty\" — an unrelated deletion must not freeze every other row's recency ordering.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › closeUrl › still reorders a tracked key when a different key is tombstoned",
+      "line": 424,
+      "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
     {
@@ -4559,7 +4766,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › does not persist when the runtime flag is off",
-      "line": 1105,
+      "line": 1168,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -4568,7 +4775,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › is a no-op that does not throw when disabled",
-      "line": 1082,
+      "line": 1145,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4577,7 +4784,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › persists a breadcrumb to groupingLog when the runtime flag is on",
-      "line": 1090,
+      "line": 1153,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -4586,7 +4793,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › keeps the tab and clears the flag when fresh storage shows membership",
-      "line": 988,
+      "line": 1051,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4595,7 +4802,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › returns wait and does nothing while the URL is still unloaded",
-      "line": 974,
+      "line": 1037,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4604,7 +4811,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › ungroups a confirmed non-member and tracks the in-flight ungroup",
-      "line": 1004,
+      "line": 1067,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -4613,7 +4820,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getLocalStorage › invokes the callback with the storage result",
-      "line": 328,
+      "line": 330,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4622,7 +4829,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getLocalStorage › resolves with the result when no callback is passed",
-      "line": 336,
+      "line": 338,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4631,7 +4838,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves null for id -1 or null",
-      "line": 344,
+      "line": 346,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4640,7 +4847,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves the group for a real id",
-      "line": 350,
+      "line": 352,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4649,7 +4856,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getUrlKey › prefixes with url- and strips the fragment",
-      "line": 132,
+      "line": 134,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4658,7 +4865,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › captures a genuinely grouped tab",
-      "line": 851,
+      "line": 914,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -4667,7 +4874,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › does not capture a tab whose ungroup is pending",
-      "line": 838,
+      "line": 901,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -4676,7 +4883,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ignores pinned tabs",
-      "line": 831,
+      "line": 894,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4685,7 +4892,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
-      "line": 824,
+      "line": 887,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4694,7 +4901,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
-      "line": 740,
+      "line": 803,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4703,7 +4910,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › re-home A→B adds the member to B and removes it from A",
-      "line": 775,
+      "line": 838,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -4712,7 +4919,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › seeds a missing label on the add path without throwing",
-      "line": 750,
+      "line": 813,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -4721,7 +4928,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › ungroup-to-nothing keeps the member in the old group",
-      "line": 800,
+      "line": 863,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -4730,7 +4937,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › does not throw when the processes API throws",
-      "line": 373,
+      "line": 375,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4739,7 +4946,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › registers the processes listener",
-      "line": 366,
+      "line": 368,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4748,7 +4955,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › degrades to none when a system call throws",
-      "line": 1481,
+      "line": 1544,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -4757,7 +4964,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › falls back to chrome.system and tags 'system' when processes is absent",
-      "line": 1446,
+      "line": 1509,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -4766,7 +4973,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'none' and never throws when no load API is available",
-      "line": 1472,
+      "line": 1535,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -4775,7 +4982,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'processes' and keeps processing when chrome.processes is present",
-      "line": 1436,
+      "line": 1499,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -4784,7 +4991,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › loads and registers chrome event listeners on import",
-      "line": 123,
+      "line": 125,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4793,7 +5000,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › maps a hex value back to a named color",
-      "line": 146,
+      "line": 148,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -4802,7 +5009,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › maps a named color to hex",
-      "line": 140,
+      "line": 142,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -4811,7 +5018,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › returns undefined for an unknown color",
-      "line": 152,
+      "line": 154,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -4820,7 +5027,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › accumulates visits from different pages of one site under one host",
-      "line": 448,
+      "line": 511,
       "registeredAt": "2026-07-14T16:25:03.121642779+00:00",
       "runner": "tests"
     },
@@ -4829,8 +5036,17 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › appends a visit timestamp on a repeat visit",
-      "line": 564,
+      "line": 627,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Deleting from History means \"forget this\", not \"block this\" — a deliberate return to the page is the user asking for it back, so a real visit clears the tombstone and the key is re-added to allUrls as normal.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › clears the deletedUrls tombstone when the page is revisited",
+      "line": 470,
+      "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
     {
@@ -4838,7 +5054,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › does not append to an existing siteVisits bucket for a search engine",
-      "line": 495,
+      "line": 558,
       "registeredAt": "2026-07-19T13:06:34Z",
       "runner": "tests"
     },
@@ -4847,7 +5063,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › does not record non-website URLs",
-      "line": 508,
+      "line": 571,
       "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
@@ -4856,7 +5072,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › keeps siteVisits history for a site whose url record is evicted",
-      "line": 461,
+      "line": 524,
       "registeredAt": "2026-07-14T16:25:03.193100605+00:00",
       "runner": "tests"
     },
@@ -4865,7 +5081,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › moves a revisited url key to the front of allUrls",
-      "line": 424,
+      "line": 455,
       "registeredAt": "2026-07-14T16:25:02.978096739+00:00",
       "runner": "tests"
     },
@@ -4874,8 +5090,17 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prepends an unseen url key to allUrls",
-      "line": 412,
+      "line": 443,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Tombstones are pruned on the same pass that already prunes allUrls, so the map is bounded by DELETED_URL_TTL_MS instead of growing one entry per page ever deleted. An unrelated FRESH tombstone must survive the prune.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › newUrl › prunes expired tombstones but keeps fresh ones",
+      "line": 482,
+      "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
     {
@@ -4883,7 +5108,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prunes visits older than the retention horizon on write",
-      "line": 583,
+      "line": 646,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -4892,7 +5117,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › records a first visit timestamp and visitCount on a new url",
-      "line": 525,
+      "line": 588,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -4901,7 +5126,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › records a search engine in history but not in the Favorites scoring stores",
-      "line": 480,
+      "line": 543,
       "registeredAt": "2026-07-19T13:06:34Z",
       "runner": "tests"
     },
@@ -4910,7 +5135,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › records the visit under the site host in siteVisits",
-      "line": 438,
+      "line": 501,
       "registeredAt": "2026-07-14T16:25:03.050019094+00:00",
       "runner": "tests"
     },
@@ -4919,7 +5144,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › returns early without tabId/url",
-      "line": 406,
+      "line": 437,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -4928,7 +5153,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › stamps lastVisit on a search engine while leaving visits empty",
-      "line": 552,
+      "line": 615,
       "registeredAt": "2026-07-27T19:49:29Z",
       "runner": "tests"
     },
@@ -4937,7 +5162,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › stamps lastVisit on the url record for every visit",
-      "line": 539,
+      "line": 602,
       "registeredAt": "2026-07-27T19:49:29Z",
       "runner": "tests"
     },
@@ -4946,7 +5171,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated group leave keeps member sticky › keeps the member when a tab leaves a group",
-      "line": 1129,
+      "line": 1192,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -4955,7 +5180,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated group leave keeps member sticky › marks the tab ungrouped in activeTabs without touching labels",
-      "line": 1157,
+      "line": 1220,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -4964,7 +5189,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not heal the label on a real navigation",
-      "line": 1380,
+      "line": 1443,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -4973,7 +5198,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a fragment-only change",
-      "line": 1245,
+      "line": 1308,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -4982,7 +5207,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a query-string-only change",
-      "line": 1229,
+      "line": 1292,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -4991,7 +5216,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals a stale slot even when it is a third query variant",
-      "line": 1337,
+      "line": 1400,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -5000,7 +5225,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals the drifted label urlKey to the live key on a query-only change",
-      "line": 1314,
+      "line": 1377,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -5009,7 +5234,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals via the getTabGroup fallback when the groups map is cold",
-      "line": 1401,
+      "line": 1464,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -5018,7 +5243,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › keeps the member when a navigation ejects a grouped tab",
-      "line": 1290,
+      "line": 1353,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -5027,7 +5252,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › removes the stale slot without duplicating an already-present live key",
-      "line": 1359,
+      "line": 1422,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -5036,7 +5261,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different origin",
-      "line": 1275,
+      "line": 1338,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -5045,7 +5270,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different path",
-      "line": 1261,
+      "line": 1324,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -5054,7 +5279,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated incognito guard › records a normal-tab navigation but not an incognito one",
-      "line": 217,
+      "line": 219,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -5063,7 +5288,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › parseTabId › parses the numeric id from a tabKey",
-      "line": 243,
+      "line": 245,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5072,7 +5297,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
-      "line": 702,
+      "line": 765,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5081,7 +5306,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › caps length to the newest 50 visits",
-      "line": 673,
+      "line": 736,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -5090,7 +5315,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › drops visits older than the retention horizon",
-      "line": 655,
+      "line": 718,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -5099,7 +5324,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › returns [] for non-array or empty input",
-      "line": 648,
+      "line": 711,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -5108,7 +5333,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › sorts ascending and filters non-finite entries",
-      "line": 664,
+      "line": 727,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -5117,7 +5342,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › ignores missing tabs and non-trackable URLs",
-      "line": 636,
+      "line": 699,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -5126,7 +5351,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › records a visit when the last visit is older than the throttle",
-      "line": 606,
+      "line": 669,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -5135,7 +5360,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › records nothing within the throttle window",
-      "line": 624,
+      "line": 687,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -5144,7 +5369,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › persists the updated labels to storage",
-      "line": 913,
+      "line": 976,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5153,7 +5378,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › pushes the urlKey into an existing label",
-      "line": 902,
+      "line": 965,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5162,7 +5387,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › rewrites a drifted Google Doc slot in place rather than pushing to the end",
-      "line": 929,
+      "line": 992,
       "registeredAt": "2026-07-19T11:55:52Z",
       "runner": "tests"
     },
@@ -5171,7 +5396,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › seeds a missing label with the tab urlKey and mapped color",
-      "line": 890,
+      "line": 953,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5180,7 +5405,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › still appends a genuinely new URL that shares no page with any slot",
-      "line": 958,
+      "line": 1021,
       "registeredAt": "2026-07-19T11:55:52Z",
       "runner": "tests"
     },
@@ -5189,7 +5414,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
-      "line": 731,
+      "line": 794,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5198,7 +5423,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
-      "line": 726,
+      "line": 789,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5207,7 +5432,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › trackGroup › stores the group title by id",
-      "line": 358,
+      "line": 360,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5216,7 +5441,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › update › persists updates to chrome.storage.local",
-      "line": 320,
+      "line": 322,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5225,7 +5450,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
-      "line": 685,
+      "line": 748,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5234,7 +5459,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateTotals › defaults missing metrics to 0",
-      "line": 260,
+      "line": 262,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5243,7 +5468,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateTotals › sums process metrics into processTotals",
-      "line": 250,
+      "line": 252,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5252,7 +5477,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false for a label with no urlKeys",
-      "line": 876,
+      "line": 939,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5261,7 +5486,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the label is undefined or null",
-      "line": 882,
+      "line": 945,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5270,7 +5495,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the urlKey is absent",
-      "line": 870,
+      "line": 933,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5279,7 +5504,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is true when the urlKey is present in the label",
-      "line": 864,
+      "line": 927,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5288,7 +5513,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › accumulates process stats when a process is supplied",
-      "line": 281,
+      "line": 283,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5297,7 +5522,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId",
-      "line": 269,
+      "line": 271,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5306,7 +5531,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › preserves an edited title and favicon",
-      "line": 298,
+      "line": 300,
       "registeredAt": "2026-07-11T01:17:42Z",
       "runner": "tests"
     },
@@ -5315,7 +5540,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › still copies the live title and favicon when not edited",
-      "line": 308,
+      "line": 310,
       "registeredAt": "2026-07-11T01:17:42Z",
       "runner": "tests"
     },
@@ -5324,7 +5549,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › uses the url as title when title is missing",
-      "line": 292,
+      "line": 294,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5333,7 +5558,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › accepts http and https tabs",
-      "line": 160,
+      "line": 162,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5342,7 +5567,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › rejects empty and internal-scheme tabs",
-      "line": 165,
+      "line": 167,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5351,7 +5576,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › rejects incognito tabs",
-      "line": 174,
+      "line": 176,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -5563,6 +5788,15 @@
       "runner": "tests"
     },
     {
+      "description": "no local state surgery: the hook's existing onChanged listener is what makes the deleted row disappear, so the page updates without a remount",
+      "file": "src/lib/hooks/useHistoryRows.test.jsx",
+      "format": "vitest",
+      "key": "useHistoryRows › drops the deleted row live via the storage listener",
+      "line": 151,
+      "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
       "description": "a url-* record with no stored title falls back to the bare url so the row is never blank",
       "file": "src/lib/hooks/useHistoryRows.test.jsx",
       "format": "vitest",
@@ -5594,8 +5828,17 @@
       "file": "src/lib/hooks/useHistoryRows.test.jsx",
       "format": "vitest",
       "key": "useHistoryRows › removes its storage listener on unmount",
-      "line": 137,
+      "line": 182,
       "registeredAt": "2026-07-27T19:57:07Z",
+      "runner": "tests"
+    },
+    {
+      "description": "deleteRow takes the page out of the recency list the hook renders from",
+      "file": "src/lib/hooks/useHistoryRows.test.jsx",
+      "format": "vitest",
+      "key": "useHistoryRows › removes the row from allUrls when deleteRow is called",
+      "line": 136,
+      "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
     {
@@ -5623,6 +5866,15 @@
       "key": "useHistoryRows › sorts rows newest first with undated rows last",
       "line": 61,
       "registeredAt": "2026-07-27T19:57:07Z",
+      "runner": "tests"
+    },
+    {
+      "description": "deleting writes the tombstone the service worker's closeUrl consults, which is what stops the row resurrecting when the accompanying tab close fires",
+      "file": "src/lib/hooks/useHistoryRows.test.jsx",
+      "format": "vitest",
+      "key": "useHistoryRows › writes a deletedUrls tombstone when a row is deleted",
+      "line": 164,
+      "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
     {

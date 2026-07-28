@@ -1,0 +1,12 @@
+{
+  "name": "HistoryRow - Deletable",
+  "id": "49d3eddd-fc26-41c2-9d7c-9a3aeee3b7eb",
+  "url": "/?isolate=HistoryRow&variant=deletable",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistoryRow",
+  "scenarioType": "component",
+  "description": "A full History row opted into the delete path via onDelete: the group-color dot, favicon, title and timestamp as always, now ending in Reopen plus the delete affordance that arms the inline confirm."
+}

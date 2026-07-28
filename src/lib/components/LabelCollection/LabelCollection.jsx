@@ -23,6 +23,7 @@ import {
   subscribeDragActive
 } from '../../utils/dragHoverStore';
 import anchoredMenuCoords from '../../utils/anchoredMenuCoords';
+import { deleteUrlFromHistory } from '../../utils/deleteUrlFromHistory';
 
 // Must match the border-box width in LabelCollectionMenu.css — the menu is
 // positioned in viewport coordinates, so its width has to be known before it is
@@ -254,6 +255,16 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
 
           Chrome.set('LabelCollections2', updates);
           setPartialState({ currentUrlKeys: updatedUrlKeys });
+
+          // The group ✕ keeps its original meaning — un-file the page, leave
+          // history alone — because silently repurposing it would destroy
+          // history for anyone who only meant to remove it from the group.
+          // Reaching a real history delete is an explicit, additive second
+          // choice, offered only AFTER the group removal and its audit log entry
+          // are already written, so a "no" here never rolls back the un-filing.
+          if (confirm(`Also delete "${url.title}" from your history entirely?`)) {
+            deleteUrlFromHistory(urlKey);
+          }
         });
       }
     });

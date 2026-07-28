@@ -1,0 +1,12 @@
+{
+  "name": "HistoryRowActions - Confirming",
+  "id": "9c108231-b98e-414d-9176-dc21e0455876",
+  "url": "/?isolate=HistoryRowActions&variant=confirming&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistoryRowActions",
+  "scenarioType": "component",
+  "description": "The armed state after the delete affordance is clicked: Reopen and the square delete give way to a red Delete beside a neutral Cancel. Deleting always takes a deliberate second click, and the confirming state is a real rendered state rather than a native dialog, so it can be shown and escaped."
+}

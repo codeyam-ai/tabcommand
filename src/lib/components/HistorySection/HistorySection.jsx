@@ -7,14 +7,14 @@ import { HistoryRow } from '../HistoryRow';
 // its rows. Renders nothing for an empty bucket so a day with no history leaves
 // no orphan heading behind. Rows arrive already sorted newest-first by
 // useHistoryRows; this component does not reorder them.
-const HistorySection = ({ bucket, rows, onReopen }) => {
+const HistorySection = ({ bucket, rows, onReopen, onDelete }) => {
   if (!rows.length) return null;
 
   return (
     <section className="History-section">
       <div className="History-eyebrow">{bucket}</div>
       {rows.map((row) => (
-        <HistoryRow key={row.urlKey} row={row} onReopen={onReopen} />
+        <HistoryRow key={row.urlKey} row={row} onReopen={onReopen} onDelete={onDelete} />
       ))}
     </section>
   );

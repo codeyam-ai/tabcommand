@@ -132,6 +132,51 @@ describe('useHistoryRows', () => {
     expect(chrome.tabs.create).toHaveBeenCalledWith({ url: 'https://react.dev' });
   });
 
+  // deleteRow takes the page out of the recency list the hook renders from
+  it('removes the row from allUrls when deleteRow is called', async () => {
+    seed('allUrls', ['url-https://react.dev', 'url-https://vite.dev']);
+    installChromeShim();
+
+    const { result } = renderHook(() => useHistoryRows());
+    await waitFor(() => expect(result.current.rows).toHaveLength(2));
+    result.current.deleteRow('url-https://react.dev');
+
+    await waitFor(() =>
+      expect(result.current.rows.map((row) => row.urlKey)).toEqual(['url-https://vite.dev'])
+    );
+  });
+
+  // no local state surgery: the hook's existing onChanged listener is what makes
+  // the deleted row disappear, so the page updates without a remount
+  it('drops the deleted row live via the storage listener', async () => {
+    seed('allUrls', ['url-https://only.dev']);
+    installChromeShim();
+
+    const { result } = renderHook(() => useHistoryRows());
+    await waitFor(() => expect(result.current.rows).toHaveLength(1));
+    result.current.deleteRow('url-https://only.dev');
+
+    await waitFor(() => expect(result.current.rows).toEqual([]));
+  });
+
+  // deleting writes the tombstone the service worker's closeUrl consults, which
+  // is what stops the row resurrecting when the accompanying tab close fires
+  it('writes a deletedUrls tombstone when a row is deleted', async () => {
+    seed('allUrls', ['url-https://react.dev']);
+    installChromeShim();
+
+    const { result } = renderHook(() => useHistoryRows());
+    await waitFor(() => expect(result.current.rows).toHaveLength(1));
+    result.current.deleteRow('url-https://react.dev');
+
+    await waitFor(async () => {
+      const deletedUrls = await new Promise((resolve) =>
+        chrome.storage.local.get('deletedUrls', (r) => resolve(r.deletedUrls))
+      );
+      expect(deletedUrls['url-https://react.dev']).toEqual(expect.any(Number));
+    });
+  });
+
   // the listener is removed on unmount so an unmounted page can't keep
   // re-loading rows in the background
   it('removes its storage listener on unmount', async () => {

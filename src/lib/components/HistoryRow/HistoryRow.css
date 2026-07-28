@@ -37,19 +37,9 @@
   flex: none;
 }
 
-.HistoryRow-reopen {
-  flex: none;
-  border: 0.5px solid var(--border);
-  background: var(--card-bg);
-  color: var(--text-secondary);
-  border-radius: var(--r-row);
-  font-size: 11.5px;
-  padding: 4px 9px;
-  cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast);
-}
-
-.HistoryRow-reopen:hover {
+/* Keep the confirming row raised so it stays visually "held" while the second
+   click is pending, even once the pointer leaves it. The action buttons
+   themselves live in HistoryRowActions and are styled there. */
+.HistoryRow-confirming {
   background: var(--c-raised);
-  color: var(--c-blue);
 }

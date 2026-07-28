@@ -1,6 +1,7 @@
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
+import pruneDeletedUrls from './src/lib/utils/pruneDeletedUrls.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
 import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
 import { buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource } from './src/lib/utils/groupRemovalLog.js';
@@ -122,6 +123,15 @@ const MAX_VISITS = 50;
 // live in the site-keyed `siteVisits` store below and are pruned only by
 // VISIT_RETENTION_MS / MAX_VISITS.
 const MAX_TRACKED_URLS = 500;
+
+// How long a `deletedUrls` tombstone is honored. A tombstone exists for exactly
+// one reason: to outlive an IN-FLIGHT `chrome.tabs.onRemoved` -> `closeUrl` that
+// already read a pre-delete `allUrls` snapshot and would otherwise write the
+// just-deleted key back at index 0. That window is milliseconds; an hour is
+// generous slack for a throttled/suspended service worker. It is NOT a blocklist
+// — `newUrl` clears the entry the moment the user deliberately visits the page
+// again, and prunes anything past this age so the map cannot grow without bound.
+const DELETED_URL_TTL_MS = 60 * 60 * 1000;
 
 // A tab you switch back to earns a visit too, not just an open/navigation — so
 // Favorites rewards sites you keep open and return to. But debounce it: rapid
@@ -569,8 +579,18 @@ async function newUrl(tabId, url) {
   return new Promise((resolve, reject) => {
     const updates = {};
     const urlKey = getUrlKey(url);
-    getLocalStorage(['allUrls', 'labels', 'siteVisits', urlKey], (result) => {
+    getLocalStorage(['allUrls', 'labels', 'siteVisits', 'deletedUrls', urlKey], (result) => {
       const allUrls = result.allUrls || [];
+
+      // A real visit UN-FORGETS the page. Deleting from History means "forget
+      // this", not "block this" — a deliberate return to the page is the user
+      // asking for it back, so the tombstone is cleared before the move-to-front
+      // below re-adds the key. Prune on the same pass (mirroring the allUrls
+      // eviction) so the map stays bounded by DELETED_URL_TTL_MS rather than
+      // accumulating one entry per page ever deleted.
+      const deletedUrls = pruneDeletedUrls(result.deletedUrls, Date.now(), DELETED_URL_TTL_MS);
+      delete deletedUrls[urlKey];
+      updates.deletedUrls = deletedUrls;
       // MOVE-TO-FRONT on every visit, not just the first. `allUrls` is the
       // recency list every consumer already treats it as — and the list the
       // eviction below trims from the TAIL. Inserting only when absent ordered it
@@ -675,8 +695,19 @@ async function recordAccess(tabId) {
 }
 
 function closeUrl(urlKey, callback) {
-  getLocalStorage('allUrls', (result) => {
+  getLocalStorage(['allUrls', 'deletedUrls'], (result) => {
     const allUrls = result.allUrls || [];
+    const deletedUrls = result.deletedUrls || {};
+    // The page was JUST deleted from History in the popup process, but this
+    // handler is running off `chrome.tabs.onRemoved` in the service worker with
+    // a pre-delete snapshot in hand. Without this check the move-to-front below
+    // writes the key straight back at index 0 — and since the delete already
+    // removed the `url-*` record, the resurrected row renders as a bare URL.
+    // Skipping costs nothing: closeUrl only ever REORDERS an existing key.
+    if (deletedUrls[urlKey]) {
+      if (callback) return callback();
+      return;
+    }
     const oldIndex = allUrls.indexOf(urlKey);
     // An untracked key has oldIndex -1, and `splice(-1, 1)` removes the LAST
     // element — so the unguarded move-to-front below would silently promote the

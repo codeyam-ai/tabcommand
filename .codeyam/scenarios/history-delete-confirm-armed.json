@@ -1,0 +1,38 @@
+{
+  "name": "History - Delete Confirm Armed",
+  "id": "a7cd8958-f5e6-4e6f-bb57-7e1470813dbc",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.amazon.com/wishlist": "{\"title\": \"Your Wish List \\u2013 Amazon\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1784725200000], \"lastVisit\": 1784725200000, \"visitCount\": 1}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\": \"Roadmap \\u2013 Notion\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1785142800000, 1785175200000], \"lastVisit\": 1785175200000, \"visitCount\": 2}",
+      "autoClosed": "{\"url-https://github.com/codeyam/tabcommand\": 1785175800000, \"url-https://www.figma.com/file/tabcommand\": 1785146400000, \"url-https://react.dev/learn\": 1785070800000, \"url-https://developer.mozilla.org/en-US/docs/Web/API\": 1785056400000, \"url-https://twitter.com/home\": 1784919600000, \"url-https://www.reddit.com/r/programming\": 1784836800000, \"url-https://www.amazon.com/wishlist\": 1784721600000}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\": \"TabCommand UI \\u2013 Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1785148200000], \"lastVisit\": 1785148200000, \"visitCount\": 1}",
+      "url-https://twitter.com/home": "{\"title\": \"Home / X\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 204800, \"cpu\": 31000, \"privateMemory\": 2100000000, \"jsMemoryAllocated\": 1680000000, \"jsMemoryUsed\": 1260000000}, \"visits\": [1784923200000], \"lastVisit\": 1784923200000, \"visitCount\": 1}",
+      "url-https://news.ycombinator.com": "{\"title\": \"Hacker News\", \"favicon\": \"\", \"processes\": {\"samples\": 10, \"network\": 153600, \"cpu\": 26000, \"privateMemory\": 1596000000, \"jsMemoryAllocated\": 1276800000, \"jsMemoryUsed\": 957600000}, \"visitCount\": 3}",
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.notion.so/codeyam/Roadmap\",\"tabKey\":\"tab-303\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-304\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"tabKey\":\"tab-305\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://twitter.com/home\",\"tabKey\":\"tab-306\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-307\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "uxSettings": "{\"page\": {\"name\": \"History\"}}",
+      "url-https://www.etsy.com/favorites": "{\"title\": \"Favorites \\u2013 Etsy\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1785156000000], \"lastVisit\": 1785156000000, \"visitCount\": 1}",
+      "url-https://www.reddit.com/r/programming": "{\"title\": \"r/programming\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1784840400000], \"lastVisit\": 1784840400000, \"visitCount\": 1}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\": \"Web APIs | MDN\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1785059100000], \"lastVisit\": 1785059100000, \"visitCount\": 1}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1785139200000, 1785171900000], \"lastVisit\": 1785171900000, \"visitCount\": 2}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\",\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\",\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\",\"url-https://news.ycombinator.com\"]",
+      "url-https://overreacted.io": "{\"title\": \"overreacted \\u2014 A blog by Dan Abramov\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1785169200000], \"lastVisit\": 1785169200000, \"visitCount\": 1}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\"]},\"Social\":{\"title\":\"Social\",\"backgroundColor\":\"#D01882\",\"position\":3,\"urlKeys\":[\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\"]}}",
+      "url-https://react.dev/learn": "{\"title\": \"Quick Start \\u2013 React\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1785074400000], \"lastVisit\": 1785074400000, \"visitCount\": 1}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/History/History.jsx",
+  "description": "The delete action armed on a real History row, in full page context. Deleting a page takes a deliberate second click: the row's Reopen and delete controls give way to a red Delete beside Cancel, and the row stays visually held while the choice is pending. This is the key interaction of the History view and, unlike a native confirm dialog, a state that can actually be shown and escaped.",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".HistoryRowActions-delete"
+    }
+  ]
+}

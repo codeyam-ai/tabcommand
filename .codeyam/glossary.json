@@ -94,7 +94,7 @@
     ]
   },
   {
-    "description": "History page component: composes PageHeader, a HistorySection per day bucket, and EmptyState. All data work — reading the stores, dating each row via historyTimestamp, bucketing, sorting newest-first, and staying live — belongs to the useHistoryRows hook, so this file holds no logic of its own.",
+    "description": "History page component: composes PageHeader, a HistorySection per day bucket, and EmptyState. All data work — reading the stores, dating each row via historyTimestamp, bucketing, sorting newest-first, staying live, and deleting a row — belongs to the useHistoryRows hook, so this file holds no logic of its own; it passes the hook's reopen and deleteRow straight down. Deleting deliberately leaves group membership untouched, so a deleted page can still appear on its group card and in Search.",
     "filePath": "src/lib/pages/History/History.jsx",
     "name": "History",
     "scenarios": [
@@ -105,7 +105,7 @@
     "testFile": "src/lib/pages/History/History.test.jsx"
   },
   {
-    "description": "One closed/visited tab row in the History list: a group-color dot, the tab favicon (monogram fallback via Favicon), the title with a full title+URL tooltip, a mono timestamp when known, and a Reopen action that calls back with the urlKey.",
+    "description": "One closed/visited tab row in the History list: a group-color dot, the tab favicon (monogram fallback via Favicon), the title with a full title+URL tooltip, a mono timestamp when known, and a HistoryRowActions action pair. The whole row is a click/keyboard target that reopens the tab. Owns only the `confirming` toggle for the two-step delete — it both drives HistoryRowActions and keeps the row visually raised while the second click is pending. The delete path is opt-in: without an onDelete prop the row renders exactly as before, so existing render sites are unaffected.",
     "filePath": "src/lib/components/HistoryRow/HistoryRow.jsx",
     "name": "HistoryRow",
     "scenarios": [
@@ -116,7 +116,17 @@
     "testFile": "src/lib/components/HistoryRow/HistoryRow.test.jsx"
   },
   {
-    "description": "One day group on the History page: the bucket name as a mono eyebrow followed by its HistoryRow list. Renders nothing for an empty bucket so a day with no history leaves no orphan heading. Rows arrive already sorted newest-first from useHistoryRows; this component does not reorder them.",
+    "description": "The trailing action area of a History row, in one of two states: at rest a Reopen button plus an optional square delete affordance, and while confirming a red destructive Delete beside a Cancel. Purely presentational — the confirming flag lives in HistoryRow, which also uses it to hold the row visually raised while the second click is pending. Returns a fragment rather than a wrapper so the buttons stay direct flex children of the row and inherit its gap. Every button stops propagation, without which arming or confirming a delete would also fire the row's own click-to-reopen. The delete affordance arms an INLINE confirm rather than a native confirm dialog, following FavoritesResetControl: the confirming state is a real rendered state, so it can be shown, captured and cancelled — a native dialog can be none of those, and is auto-dismissed by the capture browser besides.",
+    "filePath": "src/lib/components/HistoryRowActions/HistoryRowActions.jsx",
+    "name": "HistoryRowActions",
+    "scenarios": [
+      "historyrowactions-default",
+      "historyrowactions-confirming",
+      "historyrowactions-reopen-only"
+    ]
+  },
+  {
+    "description": "One day group on the History page: the bucket name as a mono eyebrow followed by its HistoryRow list. Renders nothing for an empty bucket so a day with no history leaves no orphan heading. Threads both onReopen and the optional onDelete down to every row. Rows arrive already sorted newest-first from useHistoryRows; this component does not reorder them.",
     "filePath": "src/lib/components/HistorySection/HistorySection.jsx",
     "name": "HistorySection",
     "scenarios": [
@@ -147,7 +157,7 @@
     "testFile": "src/lib/utils/KeyDown.test.js"
   },
   {
-    "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a 28px menu button opening a LabelCollectionMenu, and a full-card Droppable spanning the title bar and a vertical list of Url rows split into active above inactive. The menu and its click-outside dismiss overlay are portalled to document.body and positioned via anchoredMenuCoords, because the card's own overflow: hidden (load-bearing for the UrlOver inset ring and rounded corners) would otherwise clip the menu at the card's bottom edge. While a tab is dragged the whole card highlights in the group color when it is the cursor target; supports removeUrl and is itself draggable for reordering.",
+    "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a 28px menu button opening a LabelCollectionMenu, and a full-card Droppable spanning the title bar and a vertical list of Url rows split into active above inactive. The menu and its click-outside dismiss overlay are portalled to document.body and positioned via anchoredMenuCoords, because the card's own overflow: hidden (load-bearing for the UrlOver inset ring and rounded corners) would otherwise clip the menu at the card's bottom edge. While a tab is dragged the whole card highlights in the group color when it is the cursor target. removeUrl keeps its original meaning — un-file the page from the group and log it via buildGroupRemovalEntry — and then offers an explicit second choice to also delete the page from history, asked only after the group removal and its audit entry are already written so declining never rolls back the un-filing. The card is itself draggable for reordering.",
     "filePath": "src/lib/components/LabelCollection/LabelCollection.jsx",
     "name": "LabelCollection",
     "testFile": "src/lib/components/LabelCollection/LabelCollection.test.jsx"
@@ -331,7 +341,7 @@
     ]
   },
   {
-    "description": "A single tab/url row: shows favicon + title (derived from urlKey when untitled), a process-load indicator (level + bar width from averaged CPU/memory), and a hover action row (pin/keep-open, edit, delete, close) wired to chrome.tabs and Chrome storage.",
+    "description": "A single tab/url row: shows favicon + title (derived from urlKey when untitled), a process-load indicator (level + bar width from averaged CPU/memory), and a hover action row (pin/keep-open, edit, delete, close) wired to chrome.tabs and Chrome storage. Its remove action routes through the shared deleteUrlFromHistory and only THEN closes the tab — the previous order (close first, remove the url record ahead of the allUrls splice) is what let the service worker's onRemoved handler read a pre-delete snapshot and resurrect the row at the top of History.",
     "filePath": "src/lib/components/Url/Url.jsx",
     "name": "Url",
     "testFile": "src/lib/components/Url/Url.test.jsx"
@@ -487,7 +497,7 @@
     "testFile": "src/lib/components/LoadMeter/LoadMeter.test.jsx"
   },
   {
-    "description": "Moves a closed tab's url key to the front of `allUrls`, persists the reordered list, and invokes an optional callback. Returns early for a key that is not tracked: an absent key yields indexOf -1, and splicing at -1 removes the LAST element, which would silently promote the OLDEST key to the front and corrupt the recency order the tail-eviction in newUrl depends on.",
+    "description": "Moves a closed tab's url key to the front of `allUrls`, persists the reordered list, and invokes an optional callback. Returns early WITHOUT writing in two cases, both of which would otherwise corrupt history. First, a key that is not tracked: an absent key yields indexOf -1, and splicing at -1 removes the LAST element, which would silently promote the OLDEST key to the front and corrupt the recency order the tail-eviction in newUrl depends on. Second, a key carrying a `deletedUrls` tombstone: the page was just deleted from History in the popup process, but this handler runs off chrome.tabs.onRemoved in the service worker holding a pre-delete snapshot, so the move-to-front would write the deleted key straight back at index 0 — resurrecting the row, titleless, because its url record was already removed. Skipping costs nothing since closeUrl only ever REORDERS an existing key. Both early-return paths still invoke the callback, because onRemoved passes updateActiveTabs.",
     "filePath": "service_worker.js",
     "name": "closeUrl",
     "tags": [
@@ -555,6 +565,12 @@
       "helper"
     ],
     "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
+  },
+  {
+    "description": "The single place a page is deleted from History, shared by the History row's delete action, the group card's also-delete-from-history path, and Url's remove action. In one read-modify-write it splices the urlKey out of allUrls, drops its autoClosed entry, and writes a deletedUrls tombstone, all in a single Chrome.set — and only then removes the url record, because removing the record while the key was still listed is what made a resurrected row render as a bare titleless URL. The tombstone is what the service worker's closeUrl consults, closing the cross-process race where an in-flight tabs.onRemoved holding a pre-delete allUrls snapshot wrote the key back at index 0. Guards indexOf -1 so deleting an untracked key cannot splice away an unrelated page, and always invokes its optional callback.",
+    "filePath": "src/lib/utils/deleteUrlFromHistory.js",
+    "name": "deleteUrlFromHistory",
+    "testFile": "src/lib/utils/deleteUrlFromHistory.test.js"
   },
   {
     "description": "Maps a stored processTotals record onto the two values the LoadMeter gauge renders: cpu (inner arc) and memory (outer arc, the sum of privateMemory + jsMemoryUsed bytes). Every field is optional so a partial or empty record reads as zero, never NaN. Factored out of LoadMeter's storage handler so the data binding is unit-testable independent of the SVG.",
@@ -878,7 +894,7 @@
     "testFile": "src/lib/utils/deriveSystemTotals.test.js"
   },
   {
-    "description": "Registers a newly-visited URL and returns the storage updates. Maintains `allUrls` as a true LRU: the url key is MOVED TO THE FRONT on every visit, not merely inserted when absent, so the list genuinely means recency — the ordering the tail-eviction and every consumer already assume. Keys past MAX_TRACKED_URLS (500) are evicted from the tail and their non-labeled records deleted. Records the visit twice: on the url-* record (visitCount plus a pruned `visits` array, kept for History and backward compatibility) and, durably, under the site's host in the `siteVisits` map, which the eviction branch never touches — so evicting a url-* key can no longer destroy a site's visit history, and every page of a content site credits the site rather than minting an orphan record. Both writes land in one storage set. Gated to real websites via isTrackableUrl; no-ops without a tabId/url.",
+    "description": "Registers a newly-visited URL and returns the storage updates. Maintains `allUrls` as a true LRU: the url key is MOVED TO THE FRONT on every visit, not merely inserted when absent, so the list genuinely means recency — the ordering the tail-eviction and every consumer already assume. Keys past MAX_TRACKED_URLS (500) are evicted from the tail and their non-labeled records deleted. A real visit also UN-FORGETS a deleted page: it clears the url's `deletedUrls` tombstone and prunes expired tombstones via pruneDeletedUrls on the same pass, so deleting from History means forget-this rather than block-this and the tombstone map stays bounded by DELETED_URL_TTL_MS. Records the visit twice: on the url-* record (visitCount plus a pruned `visits` array, kept for History and backward compatibility) and, durably, under the site's host in the `siteVisits` map, which the eviction branch never touches — so evicting a url-* key can no longer destroy a site's visit history, and every page of a content site credits the site rather than minting an orphan record. All writes land in one storage set. Gated to real websites via isTrackableUrl; no-ops without a tabId/url.",
     "filePath": "service_worker.js",
     "name": "newUrl",
     "tags": [
@@ -940,6 +956,12 @@
     "filePath": "service_worker.js",
     "name": "pruneAutoClosed",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Drops deletedUrls tombstones older than a ttl, returning a new map without mutating the input. A tombstone only needs to outlive an in-flight tabs.onRemoved to closeUrl that holds a pre-delete allUrls snapshot, so nothing is remembered for long; without pruning the map would accumulate one entry per page ever deleted and grow without bound. The ttl boundary is inclusive, and an entry whose timestamp is missing or non-numeric is treated as expired so a corrupt write cannot pin a key out of history permanently. Called by newUrl on the same pass that prunes allUrls.",
+    "filePath": "src/lib/utils/pruneDeletedUrls.js",
+    "name": "pruneDeletedUrls",
+    "testFile": "src/lib/utils/pruneDeletedUrls.test.js"
   },
   {
     "description": "Service-worker mirror of the visitDecay pruneVisits helper: drops visit timestamps older than VISIT_RETENTION_MS (30 days), filters non-finite entries, sorts ascending, and caps to the newest MAX_VISITS (50). Applied on each newUrl write so per-site visit history recorded for Favorites time-decay ranking stays bounded. Duplicated here because the service-worker runtime cannot import the ES module, matching the GAUGE and AUTO_CLOSE constant-mirroring convention.",
@@ -1186,7 +1208,7 @@
     "testFile": "src/lib/utils/usageMax.test.js"
   },
   {
-    "description": "Owns the History page's data. Reads allUrls, autoClosed and labels plus each url record, dates every row via historyTimestamp, buckets it with bucketByDay against a now recomputed per load, colors it from label membership, and returns the rows sorted newest-first with undated rows last. Subscribes to chrome.storage.onChanged so the page stays live without a remount, and exposes reopen to open a row's url in a new tab. Returns rows and reopen.",
+    "description": "Owns the History page's data. Reads allUrls, autoClosed and labels plus each url record, dates every row via historyTimestamp, buckets it with bucketByDay against a now recomputed per load, colors it from label membership, and returns the rows sorted newest-first with undated rows last. Subscribes to chrome.storage.onChanged so the page stays live without a remount. Exposes reopen to open a row's url in a new tab, and deleteRow to delete it from history via deleteUrlFromHistory — deleteRow needs no local state surgery because the same onChanged listener re-loads on the resulting allUrls change, so the row disappears on its own. Returns rows, reopen and deleteRow.",
     "filePath": "src/lib/hooks/useHistoryRows.js",
     "name": "useHistoryRows",
     "testFile": "src/lib/hooks/useHistoryRows.test.jsx"

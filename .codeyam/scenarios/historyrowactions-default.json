@@ -1,0 +1,12 @@
+{
+  "name": "HistoryRowActions - Default",
+  "id": "0e4181c2-d69d-4765-986c-b2cdd454acf0",
+  "url": "/?isolate=HistoryRowActions&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistoryRowActions",
+  "scenarioType": "component",
+  "description": "The resting state of a History row's action pair: Reopen beside the muted square delete affordance. The delete control is only rendered because onStartConfirm was supplied — the pair is what every History row now ends with."
+}

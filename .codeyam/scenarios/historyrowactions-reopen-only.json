@@ -1,0 +1,12 @@
+{
+  "name": "HistoryRowActions - Reopen Only",
+  "id": "0884cf38-e6e0-4b1d-96a4-a4cd4f6db6ce",
+  "url": "/?isolate=HistoryRowActions&variant=reopen-only&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistoryRowActions",
+  "scenarioType": "component",
+  "description": "No onStartConfirm supplied, so the delete affordance is absent entirely rather than rendered dead. This is what keeps every pre-existing HistoryRow render site visually unchanged by the delete feature."
+}

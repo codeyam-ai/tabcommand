@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Chrome } from '../utils/Chrome';
 import { bucketByDay } from '../utils/historyBuckets';
+import { deleteUrlFromHistory } from '../utils/deleteUrlFromHistory';
 import { historyTimestamp } from '../utils/historyTimestamp';
 
 // Owns the History page's data: turns the `allUrls` / `autoClosed` / `labels`
@@ -14,7 +15,7 @@ import { historyTimestamp } from '../utils/historyTimestamp';
 //
 // Rows come back sorted newest-first. `now` is recomputed on every load so the
 // Today/Yesterday split stays correct across a midnight boundary while the page
-// is left open. Returns `{ rows, reopen }`.
+// is left open. Returns `{ rows, reopen, deleteRow }`.
 export const useHistoryRows = () => {
   const [rows, setRows] = useState([]);
 
@@ -89,7 +90,13 @@ export const useHistoryRows = () => {
     if (chrome.tabs && chrome.tabs.create) chrome.tabs.create({ url });
   };
 
-  return { rows, reopen };
+  // Delete lives beside `reopen` because this hook already owns every read of
+  // `allUrls` / `autoClosed` / `url-*`, and its `onChanged` listener above
+  // already re-loads on an `allUrls` change — so the row disappears on its own
+  // and no local state surgery is needed here.
+  const deleteRow = (urlKey) => deleteUrlFromHistory(urlKey);
+
+  return { rows, reopen, deleteRow };
 };
 
 export default useHistoryRows;

@@ -1,0 +1,73 @@
+.HistoryRowActions-reopen {
+  flex: none;
+  border: 0.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border-radius: var(--r-row);
+  font-size: 11.5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.HistoryRowActions-reopen:hover {
+  background: var(--c-raised);
+  color: var(--c-blue);
+}
+
+/* Matches the Reopen shell so the two read as one control pair, but square and
+   muted: deleting is destructive, so it sits quieter until hovered. */
+.HistoryRowActions-delete {
+  flex: none;
+  width: 24px;
+  border: 0.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  border-radius: var(--r-row);
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 5px 0;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.HistoryRowActions-delete:hover {
+  background: var(--c-raised);
+  color: var(--c-danger-fg);
+}
+
+/* The destructive confirm — red, matching FavoritesResetControl-yes, so the
+   second click looks intentional. Sized to the row's other actions. */
+.HistoryRowActions-confirmDelete {
+  flex: none;
+  border: 1px solid var(--c-danger-fg);
+  background-color: color-mix(in srgb, var(--c-danger-fg) 14%, transparent);
+  color: var(--c-danger-fg);
+  border-radius: var(--r-row);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: background-color var(--t-fast);
+}
+
+.HistoryRowActions-confirmDelete:hover {
+  background-color: color-mix(in srgb, var(--c-danger-fg) 24%, transparent);
+}
+
+.HistoryRowActions-cancel {
+  flex: none;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-primary);
+  border-radius: var(--r-row);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: background-color var(--t-fast);
+}
+
+.HistoryRowActions-cancel:hover {
+  background-color: var(--c-raised);
+}

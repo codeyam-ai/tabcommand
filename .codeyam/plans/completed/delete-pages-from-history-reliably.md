@@ -50,6 +50,18 @@ with label keys); that is accepted, not a defect of this plan.
 - **The group ✕ keeps its current meaning; delete is additive.** Silently changing
   what ✕ does inside a group would destroy history for users who only meant to
   un-file a page. Instead the group row's confirm gains an explicit second path.
+- **REVISED DURING BUILD — the History row confirms INLINE, not via `confirm()`.**
+  The plan originally specified a native `confirm()` on the History page for
+  consistency with `Url.handleRemove`. Building it showed that a native dialog is
+  auto-dismissed by the capture browser, so the delete never ran — which means
+  the two scenarios this plan promises ("delete a row, confirm it disappears" and
+  "cancel the delete confirm") could not be demonstrated at all, only unit-tested.
+  `HistoryRow` therefore owns an inline two-step confirm (✕ → `Delete` / `Cancel`),
+  following `FavoritesResetControl`, whose own comment already records this exact
+  choice: a deliberate second click "rather than a native confirm() dialog". The
+  confirming state is a real rendered state, so it is capturable and cancellable.
+  `Url.handleRemove` and `LabelCollection.removeUrl` keep their existing native
+  confirms — they are unchanged pre-existing convention outside this page.
 
 ## Implementation
 
@@ -97,11 +109,14 @@ the `allUrls` splice.
 Add an `onDelete` prop and a ✕ button beside the existing Reopen button, with
 `e.stopPropagation()` so it does not trip the row's reopen click/keydown target.
 Render it only when `onDelete` is supplied, so existing render sites are
-unaffected.
+unaffected. The ✕ opens an inline two-step confirm owned by this component
+(`confirming` state → `Delete` / `Cancel` replacing Reopen + ✕); see the revised
+key decision above for why the confirm lives here rather than in a native dialog.
 
 **File**: `src/lib/components/HistoryRow/HistoryRow.css`
 
-Style the delete control to match the existing `.HistoryRow-reopen`.
+Style the delete control to match the existing `.HistoryRow-reopen`, and the
+confirm pair to match `FavoritesResetControl`'s red `-yes` / neutral `-cancel`.
 
 **File**: `src/lib/components/HistorySection/HistorySection.jsx`
 
@@ -116,9 +131,9 @@ the row disappears on its own.
 
 **File**: `src/lib/pages/History/History.jsx`
 
-Pull `deleteRow` off the hook and pass it down. Confirm before deleting, matching
-the existing `confirm()` convention in `Url.handleRemove` and
-`LabelCollection.removeUrl`.
+Pull `deleteRow` off the hook and pass it straight down as `onDelete`. The
+confirm step lives in `HistoryRow` (see above), so `deleteRow` is already the
+confirmed action by the time the page hands it over.
 
 ### 4. Grouped rows can reach a real delete
 

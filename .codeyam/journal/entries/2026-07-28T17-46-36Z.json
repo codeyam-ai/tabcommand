@@ -1,0 +1,399 @@
+{
+  "timestamp": "2026-07-28T17:46:36Z",
+  "title": "Delete Pages From History Reliably",
+  "type": "feature",
+  "userRequest": "## Summary\n\nA page cannot be reliably deleted from History. Three independent causes stack up:\nthe History page exposes no delete affordance at all (`HistoryRow` renders only\nReopen); a URL that lives in a group gets `onRemove` wired to the group's\n`removeUrl`, so the ✕ strips group membership and never touches `allUrls`; and\nwhen `Url.handleRemove` *does* run, it closes the tab first, which makes the\nservice worker's `chrome.tabs.onRemoved` → `closeUrl` read a pre-delete `allUrls`\nsnapshot in a different process and write the key straight back at index 0 —\nwhile `Chrome.remove` has already deleted the `url-*` record, so the resurrected\nrow renders as a bare URL. This plan adds a real Delete action to the History\npage, makes the group ✕ able to reach a true history delete, and makes deletion\nsurvive the cross-process race via a short-lived `deletedUrls` tombstone the\nservice worker honors.\n\nPer the scoping decision, deleting from History does NOT purge the urlKey from\n`labels[*].urlKeys` — group membership is left untouched. A deleted page may\ntherefore still appear on its group card and in Search (which unions `allUrls`\nwith label keys); that is accepted, not a defect of this plan.\n\n## Key Decisions\n\n- **Tombstone, not write-ordering.** The resurrection is a read-modify-write race\n  between the popup process and the extension service worker. No amount of\n  sequencing inside `Url.jsx` can close it — `onRemoved` fires on the browser's\n  schedule. A `deletedUrls` map that `closeUrl` consults is the only fix that\n  holds regardless of which process writes last. Considered and rejected: routing\n  the delete through a `chrome.runtime.sendMessage` handler so the SW serializes\n  all `allUrls` writes — it narrows the window but does not close it, because the\n  delete message and the `onRemoved` event are still two independent SW events.\n- **`closeUrl` respects the tombstone; `newUrl` clears it.** `closeUrl` only ever\n  *reorders* an existing key, so skipping a tombstoned key loses nothing. `newUrl`\n  represents a genuine user visit — a deliberate return to the page — so it clears\n  the tombstone and re-adds the key. Deleting is \"forget this,\" not \"block this.\"\n- **Tombstones are pruned, not permanent.** They exist only to outlive an in-flight\n  `onRemoved`. `newUrl` prunes entries older than `DELETED_URL_TTL_MS` on the same\n  pass it already prunes `allUrls`, so the map cannot grow without bound.\n- **Delete lives in `useHistoryRows`, not in `HistoryRow`.** The hook already owns\n  every read of `allUrls` / `autoClosed` / `url-*` and already re-renders off\n  `chrome.storage.onChanged`. Putting `deleteRow` beside `reopen` keeps `HistoryRow`\n  a pure presentational component and gives `Url.jsx` one shared implementation to\n  call instead of a second copy of the logic.\n- **The group ✕ keeps its current meaning; delete is additive.** Silently changing\n  what ✕ does inside a group would destroy history for users who only meant to\n  un-file a page. Instead the group row's confirm gains an explicit second path.\n\n## Implementation\n\n### 1. A single, tombstone-aware delete helper\n\n**New file**: `src/lib/utils/deleteUrlFromHistory.js`\n\nExport `deleteUrlFromHistory(urlKey, callback)`. In ONE `Chrome.get` →\n`Chrome.set` cycle over `['allUrls', 'autoClosed', 'deletedUrls']`:\n\n- splice `urlKey` out of `allUrls` (guard `indexOf === -1`, mirroring the\n  `oldIndex === -1` guard `closeUrl` already carries at `service_worker.js:681`),\n- `delete autoClosed[urlKey]`,\n- set `deletedUrls[urlKey] = Date.now()`,\n- write all three keys in a single `Chrome.set`,\n- and only in that write's wake call `Chrome.remove(urlKey)` for the `url-*`\n  record, so the record is never dropped while the key is still listed.\n\nThis is the whole reason the bug produced a bare-URL row: today\n`Chrome.remove('Url1', urlKey)` fires unconditionally and immediately, ahead of\nthe `allUrls` splice.\n\n### 2. Service worker honors the tombstone\n\n**File**: `service_worker.js`\n\n- Add `DELETED_URL_TTL_MS` beside the existing `MAX_TRACKED_URLS` constant\n  (~line 119).\n- `closeUrl` (line 676): widen its `getLocalStorage` to\n  `['allUrls', 'deletedUrls']` and return early — without writing — when\n  `deletedUrls[urlKey]` is present. This is the line that resurrects the row.\n  Keep the existing `oldIndex === -1` early-return and its callback contract\n  intact; both early-return paths must still invoke `callback`, since\n  `onRemoved` passes `updateActiveTabs` (line 416) and skipping it would leave\n  `activeTabs` stale.\n- `newUrl` (line 559): widen its `getLocalStorage` to include `deletedUrls`;\n  `delete deletedUrls[urlKey]` on a real visit, prune entries older than\n  `DELETED_URL_TTL_MS`, and include `deletedUrls` in the `updates` object it\n  already builds (line 598) so a revisit un-forgets the page.\n\n### 3. Delete action on History rows\n\n**File**: `src/lib/components/HistoryRow/HistoryRow.jsx`\n\nAdd an `onDelete` prop and a ✕ button beside the existing Reopen button, with\n`e.stopPropagation()` so it does not trip the row's reopen click/keydown target.\nRender it only when `onDelete` is supplied, so existing render sites are\nunaffected.\n\n**File**: `src/lib/components/HistoryRow/HistoryRow.css`\n\nStyle the delete control to match the existing `.HistoryRow-reopen`.\n\n**File**: `src/lib/components/HistorySection/HistorySection.jsx`\n\nThread `onDelete` through to each `HistoryRow`.\n\n**File**: `src/lib/hooks/useHistoryRows.js`\n\nReturn `deleteRow` alongside `rows` and `reopen`, delegating to\n`deleteUrlFromHistory`. No local state surgery is needed — the existing\n`chrome.storage.onChanged` listener already re-loads on an `allUrls` change, so\nthe row disappears on its own.\n\n**File**: `src/lib/pages/History/History.jsx`\n\nPull `deleteRow` off the hook and pass it down. Confirm before deleting, matching\nthe existing `confirm()` convention in `Url.handleRemove` and\n`LabelCollection.removeUrl`.\n\n### 4. Grouped rows can reach a real delete\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\nIn `removeUrl` (line 221), keep the default behavior exactly as-is — remove from\n`labels[currentTitle].urlKeys`, log via `buildGroupRemovalEntry` with\n`RemovalSource.UI_REMOVE_URL`. Extend the confirm flow so the user can choose to\nalso delete the page from history, which calls `deleteUrlFromHistory`. The group\nremoval and its log entry are written first and independently, so a delete never\nsilently swallows the group-membership change.\n\n### 5. Fix `Url.handleRemove`\n\n**File**: `src/lib/components/Url/Url.jsx`\n\nReplace the body of `handleRemove` (lines 141-153) with a call to\n`deleteUrlFromHistory`, then close the tab. Delete the inline\n`Chrome.remove` + second `Chrome.get('Url3', 'allUrls', …)` pair entirely — that\nduplicated read-modify-write is what this plan centralizes. `handleClose` keeps\nits current behavior for the still-open-tab case and is no longer called from\n`handleRemove`.\n\n## Reused existing code\n\n- `useHistoryRows` from `src/lib/hooks/useHistoryRows.js` — already owns every\n  History read and the live `onChanged` listener; `deleteRow` joins `reopen`.\n- `HistoryRow` from `src/lib/components/HistoryRow/HistoryRow.jsx` (glossary\n  entry: `HistoryRow`) — gains `onDelete` beside the existing Reopen button.\n- `Chrome` from `src/lib/utils/Chrome/Chrome.js` — the `get`/`set`/`remove`\n  abstraction all storage work goes through, including its `allUrls` array\n  default-hydration.\n- `closeUrl` / `newUrl` from `service_worker.js` — the two existing `allUrls`\n  writers; both are extended rather than duplicated.\n- `bucketByDay` from `src/lib/utils/historyBuckets.js` (glossary entry:\n  `bucketByDay`) — unchanged; deletion works by removing the row upstream of\n  bucketing.\n- `buildGroupRemovalEntry` / `RemovalSource.UI_REMOVE_URL` from\n  `src/lib/utils/groupRemovalLog.js` — the group-removal audit path stays exactly\n  as-is.\n- `installChromeShim` from `src/lib/utils/chromeShim/chromeShim.js` — the test\n  harness both `Url.test.jsx` and `useHistoryRows.test.jsx` already build on.\n\n**Existing-implementation survey.** Grepped for a tombstone / suppression\nmechanism before proposing `deletedUrls`: `src/lib/utils/hiddenSiteKeys.js` and\nthe `favoritesHidden` store implement site-level hiding for **Favorites ranking\nonly** — `rankFavorites` consumes them via `hiddenKeys` / `excludedSites`, and\nnothing in `useHistoryRows` or `service_worker.js` reads them. `autoClosed` is a\ntimestamp map, not a suppression set. There is **no existing mechanism that\nsuppresses an `allUrls` write**, so `deletedUrls` is genuinely new rather than a\nduplicate of `favoritesHidden`.\n\n## Reproduction Test\n\nPins the resurrection: `closeUrl` re-adds a just-deleted urlKey to the front of\n`allUrls` because it reads a pre-delete snapshot in the service worker process.\n\n**Target**: `service_worker.test.js`, inside the existing `describe('closeUrl')`\nblock (line 381) — run with\n`codeyam-editor editor refresh-tests --test \"leaves allUrls untouched when the key was just deleted\"`.\n\n```js\n    // REGRESSION: deleting a page from History splices it out of allUrls, but the\n    // tab close that accompanies the delete fires onRemoved -> closeUrl in the\n    // service worker process. closeUrl read allUrls before the delete landed, so\n    // its move-to-front wrote the key straight back at index 0 -- the row\n    // reappeared at the top of History, titleless because the url-* record was\n    // already gone. A deletedUrls tombstone makes closeUrl skip the key.\n    it('leaves allUrls untouched when the key was just deleted', () => {\n      chrome.storage.local.get.mockImplementation((_q, cb) =>\n        cb({ allUrls: ['url-a', 'url-b', 'url-c'], deletedUrls: { 'url-c': 1 } })\n      );\n      const done = vi.fn();\n      fns.closeUrl('url-c', done);\n      expect(chrome.storage.local.set).not.toHaveBeenCalled();\n      expect(done).toHaveBeenCalled();\n    });\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: `closeUrl` today\nignores `deletedUrls` entirely, finds `url-c` at index 2, and calls\n`update({ allUrls: ['url-c', 'url-a', 'url-b'] })`, so\n`expect(chrome.storage.local.set).not.toHaveBeenCalled()` fails with the set\nhaving been called once. (`update` writes through `chrome.storage.local.set`, the\nsame assertion style the two sibling `closeUrl` tests already use.)\n\nThe tombstone timestamp `1` is a placeholder for \"any present entry\" — `closeUrl`\nchecks presence, not age, so no clock is involved. Pruning by\n`DELETED_URL_TTL_MS` belongs to `newUrl` and is covered separately.\n\nNote: causes 1 and 2 (no delete affordance on the History page; the group ✕\nnever reaching history) are missing-capability gaps, not broken behavior, so they\nget new coverage in `useHistoryRows.test.jsx` and `HistoryRow.test.jsx` rather\nthan a red-first repro.\n\n## Scenarios to Demonstrate\n\n- History with a rich multi-day list — delete a Today row, confirm it disappears\n  and does not return at the top of the list.\n- Delete a row for a tab that is still open, so the delete and the tab close race:\n  the tombstone path is what this exercises.\n- Revisit a page after deleting it — it correctly reappears in History, with its\n  title intact, because `newUrl` clears the tombstone.\n- Delete a row whose URL is a member of a group — confirm it leaves History while\n  its group card still lists it (the accepted consequence of leaving groups\n  untouched).\n- Group card ✕ on a member: the default path removes from the group only and the\n  page remains in History.\n- Cancel the delete confirm — nothing is removed.\n- History with a single row — deleting it lands on the \"No history yet.\"\n  `EmptyState`.",
+  "description": "A page can now be deleted from History and actually stays deleted. Three causes stacked up: the History page exposed no delete affordance at all, a URL living in a group had its ✕ wired to the group's removeUrl so it only un-filed the page, and when a delete did run it closed the tab first — which made the service worker's chrome.tabs.onRemoved → closeUrl read a pre-delete allUrls snapshot in a different process and write the key straight back at index 0, resurrecting the row at the top of the list without a title, because the url-* record had already been removed.\n\nThe fix centralizes all three deletion paths on one deleteUrlFromHistory helper that splices the key out of allUrls, drops its autoClosed entry, and writes a deletedUrls tombstone in a single storage write before removing the url record. closeUrl now returns early on a tombstoned key, which closes the cross-process race regardless of which process writes last; newUrl clears the tombstone on a genuine revisit and prunes expired ones via the new pruneDeletedUrls, so deleting means \"forget this\" rather than \"block this\". The History row gained a delete action with an inline two-step confirm (extracted as HistoryRowActions, following FavoritesResetControl rather than a native confirm dialog, which the capture browser auto-dismisses and which cannot be shown or escaped), and the group card's ✕ keeps its original un-file meaning while offering an explicit second choice to also delete from history.\n\nDeleting deliberately leaves group membership untouched, so a deleted page can still appear on its group card and in Search — an accepted, scoped consequence rather than a defect. The plan's reproduction test was confirmed red before the fix and green after; the full suite is 662 passing.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/pending-build-launch",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/delete-pages-from-history-reliably.md\t.codeyam/plans/completed/delete-pages-from-history-reliably.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-search-engine-dated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-search-engine-dated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-monogram-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-no-timestamp--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historysection-today--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historysection-undated-rows--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historysection-visited-not-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/HistorySection/HistorySection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Url/Url.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/hooks/useHistoryRows.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/hooks/useHistoryRows.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/History/History.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/history-delete-confirm-armed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/history-single-entry.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/historyrow-deletable.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/historyrow-delete-confirm-armed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/historyrowactions-confirming.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/historyrowactions-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/historyrowactions-reopen-only.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-single-entry--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-single-entry--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-deletable--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-deletable--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-delete-confirm-armed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-delete-confirm-armed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-confirming--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-confirming--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-reopen-only--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-reopen-only--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/HistoryRowActions/HistoryRowActions.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/HistoryRowActions/HistoryRowActions.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/HistoryRowActions/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/deleteUrlFromHistory.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/deleteUrlFromHistory.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/pruneDeletedUrls.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/pruneDeletedUrls.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "History - Delete Confirm Armed",
+      "screenshotPath": "history-delete-confirm-armed--desktop.png"
+    },
+    {
+      "name": "History - Empty",
+      "screenshotPath": "history-empty--desktop.png"
+    },
+    {
+      "name": "History - Populated",
+      "screenshotPath": "history-populated--desktop.png"
+    },
+    {
+      "name": "History - Search Engine Dated",
+      "screenshotPath": "history-search-engine-dated--desktop.png"
+    },
+    {
+      "name": "History - Single Entry",
+      "screenshotPath": "history-single-entry--desktop.png"
+    },
+    {
+      "name": "HistoryRow - Default",
+      "screenshotPath": "historyrow-default--desktop.png"
+    },
+    {
+      "name": "HistoryRow - Deletable",
+      "screenshotPath": "historyrow-deletable--desktop.png"
+    },
+    {
+      "name": "HistoryRow - Delete Confirm Armed",
+      "screenshotPath": "historyrow-delete-confirm-armed--desktop.png"
+    },
+    {
+      "name": "HistoryRow - Monogram Fallback",
+      "screenshotPath": "historyrow-monogram-fallback--desktop.png"
+    },
+    {
+      "name": "HistoryRow - No Timestamp",
+      "screenshotPath": "historyrow-no-timestamp--desktop.png"
+    },
+    {
+      "name": "HistoryRowActions - Confirming",
+      "screenshotPath": "historyrowactions-confirming--desktop.png"
+    },
+    {
+      "name": "HistoryRowActions - Default",
+      "screenshotPath": "historyrowactions-default--desktop.png"
+    },
+    {
+      "name": "HistoryRowActions - Reopen Only",
+      "screenshotPath": "historyrowactions-reopen-only--desktop.png"
+    },
+    {
+      "name": "HistorySection - Today",
+      "screenshotPath": "historysection-today--desktop.png"
+    },
+    {
+      "name": "HistorySection - Undated Rows",
+      "screenshotPath": "historysection-undated-rows--desktop.png"
+    },
+    {
+      "name": "HistorySection - Visited Not Closed",
+      "screenshotPath": "historysection-visited-not-closed--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Menu Open",
+      "screenshotPath": "labelcollection-menu-open--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Dragging",
+      "screenshotPath": "url-dragging--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 662,
+    "passed": 662,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 662,
+        "passed": 662
+      }
+    ]
+  }
+}

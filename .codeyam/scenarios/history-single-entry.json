@@ -1,0 +1,22 @@
+{
+  "name": "History - Single Entry",
+  "id": "131ccf0d-04e8-442f-b631-2491951ec30f",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}, \"visits\": [1785139200000, 1785171900000], \"lastVisit\": 1785171900000, \"visitCount\": 2}",
+      "activeTabs": "[]",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\"]",
+      "autoClosed": "{\"url-https://github.com/codeyam/tabcommand\": 1785175800000}",
+      "uxSettings": "{\"page\": {\"name\": \"History\"}}",
+      "labels": "{\"Work\": {\"title\": \"Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\"]}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/History/History.jsx",
+  "description": "History holding exactly one page — the boundary between the empty state and a full list. It is the state that makes deletion's end-to-end consequence visible: delete this row and the page falls through to the 'No history yet.' empty state, with only one day heading rather than the usual several."
+}

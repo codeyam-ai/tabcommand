@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
+import pruneDeletedUrls from './src/lib/utils/pruneDeletedUrls.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
 import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
 import {
@@ -78,6 +79,7 @@ function loadWorker(chrome) {
     'deriveSystemTotals',
     'isTrackableUrl',
     'samePageKey',
+    'pruneDeletedUrls',
     'appendGroupingLog',
     'healDriftedLabelSlot',
     'buildGroupRemovalEntry',
@@ -104,7 +106,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, appendGroupingLog, healDriftedLabelSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource);
 }
 
 describe('service_worker.js', () => {
@@ -399,6 +401,35 @@ describe('service_worker.js', () => {
       expect(chrome.storage.local.set).not.toHaveBeenCalled();
       expect(done).toHaveBeenCalled();
     });
+
+    // REGRESSION: deleting a page from History splices it out of allUrls, but the
+    // tab close that accompanies the delete fires onRemoved -> closeUrl in the
+    // service worker process. closeUrl read allUrls before the delete landed, so
+    // its move-to-front wrote the key straight back at index 0 -- the row
+    // reappeared at the top of History, titleless because the url-* record was
+    // already gone. A deletedUrls tombstone makes closeUrl skip the key.
+    it('leaves allUrls untouched when the key was just deleted', () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ allUrls: ['url-a', 'url-b', 'url-c'], deletedUrls: { 'url-c': 1 } })
+      );
+      const done = vi.fn();
+      fns.closeUrl('url-c', done);
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+      expect(done).toHaveBeenCalled();
+    });
+
+    // The tombstone is checked by PRESENCE of the specific key, not by "is the
+    // map non-empty" — an unrelated deletion must not freeze every other row's
+    // recency ordering.
+    it('still reorders a tracked key when a different key is tombstoned', () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ allUrls: ['url-a', 'url-b', 'url-c'], deletedUrls: { 'url-a': 1 } })
+      );
+      const done = vi.fn();
+      fns.closeUrl('url-c', done);
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({ allUrls: ['url-c', 'url-a', 'url-b'] });
+      expect(done).toHaveBeenCalled();
+    });
   });
 
   describe('newUrl', () => {
@@ -431,6 +462,38 @@ describe('service_worker.js', () => {
       const updates = await fns.newUrl(1, 'https://b.com');
       expect(updates.allUrls[0]).toBe('url-https://b.com');
       expect(updates.allUrls).toHaveLength(3);
+    });
+
+    // Deleting from History means "forget this", not "block this" — a deliberate
+    // return to the page is the user asking for it back, so a real visit clears
+    // the tombstone and the key is re-added to allUrls as normal.
+    it('clears the deletedUrls tombstone when the page is revisited', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({ allUrls: [], labels: {}, deletedUrls: { 'url-https://b.com': Date.now() } })
+      );
+      const updates = await fns.newUrl(1, 'https://b.com');
+      expect(updates.deletedUrls['url-https://b.com']).toBeUndefined();
+      expect(updates.allUrls[0]).toBe('url-https://b.com');
+    });
+
+    // Tombstones are pruned on the same pass that already prunes allUrls, so the
+    // map is bounded by DELETED_URL_TTL_MS instead of growing one entry per
+    // page ever deleted. An unrelated FRESH tombstone must survive the prune.
+    it('prunes expired tombstones but keeps fresh ones', async () => {
+      const now = Date.now();
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({
+          allUrls: [],
+          labels: {},
+          deletedUrls: {
+            'url-https://stale.com': now - 2 * 60 * 60 * 1000,
+            'url-https://fresh.com': now - 1000,
+          },
+        })
+      );
+      const updates = await fns.newUrl(1, 'https://b.com');
+      expect(updates.deletedUrls['url-https://stale.com']).toBeUndefined();
+      expect(updates.deletedUrls['url-https://fresh.com']).toBe(now - 1000);
     });
 
     // The durable half of a visit: it accumulates under the site's HOST in

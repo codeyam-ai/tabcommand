@@ -1,0 +1,18 @@
+{
+  "name": "HistoryRow - Delete Confirm Armed",
+  "id": "badae427-897d-44c1-85e5-40848f95dbac",
+  "url": "/?isolate=HistoryRow&variant=deletable",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "HistoryRow",
+  "scenarioType": "component",
+  "description": "The row after its delete affordance is clicked — the interaction-only state a resting render cannot show. Reopen and the square delete give way to a red Delete beside Cancel, and the row itself stays raised so it reads as visually held while the second click is pending, even once the pointer moves away.",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".HistoryRowActions-delete"
+    }
+  ]
+}

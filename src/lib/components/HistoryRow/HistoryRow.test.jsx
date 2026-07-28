@@ -74,4 +74,65 @@ describe('HistoryRow', () => {
     expect(container.querySelector('img')).toBeNull();
     expect(container.querySelector('.Url-favFallback')).toBeInTheDocument();
   });
+
+  // the delete affordance is opt-in, so every existing render site is unchanged
+  it('renders no delete affordance when onDelete is not supplied', () => {
+    const { container } = render(<HistoryRow row={baseRow} onReopen={() => {}} />);
+    expect(container.querySelector('.HistoryRowActions-delete')).toBeNull();
+  });
+
+  // supplying onDelete adds the delete control beside Reopen
+  it('renders a delete affordance when onDelete is supplied', () => {
+    const { container } = render(
+      <HistoryRow row={baseRow} onReopen={() => {}} onDelete={() => {}} />
+    );
+    expect(container.querySelector('.HistoryRowActions-delete')).toBeInTheDocument();
+  });
+
+  // deleting takes a deliberate SECOND click: the first only arms the confirm
+  it('does not delete on the first click, only arming the confirm', async () => {
+    const onDelete = vi.fn();
+    const { container } = render(
+      <HistoryRow row={baseRow} onReopen={() => {}} onDelete={onDelete} />
+    );
+    await userEvent.click(container.querySelector('.HistoryRowActions-delete'));
+    expect(onDelete).not.toHaveBeenCalled();
+    expect(container.querySelector('.HistoryRowActions-confirmDelete')).toBeInTheDocument();
+  });
+
+  // confirming calls back with the row's urlKey — the actual delete
+  it('calls onDelete with the urlKey once the confirm is clicked', async () => {
+    const onDelete = vi.fn();
+    const { container } = render(
+      <HistoryRow row={baseRow} onReopen={() => {}} onDelete={onDelete} />
+    );
+    await userEvent.click(container.querySelector('.HistoryRowActions-delete'));
+    await userEvent.click(container.querySelector('.HistoryRowActions-confirmDelete'));
+    expect(onDelete).toHaveBeenCalledWith('url-https://news.ycombinator.com');
+  });
+
+  // cancelling backs out entirely: nothing deleted, row back to its resting state
+  it('deletes nothing and restores Reopen when the confirm is cancelled', async () => {
+    const onDelete = vi.fn();
+    const { container } = render(
+      <HistoryRow row={baseRow} onReopen={() => {}} onDelete={onDelete} />
+    );
+    await userEvent.click(container.querySelector('.HistoryRowActions-delete'));
+    await userEvent.click(container.querySelector('.HistoryRowActions-cancel'));
+    expect(onDelete).not.toHaveBeenCalled();
+    expect(container.querySelector('.HistoryRowActions-reopen')).toBeInTheDocument();
+    expect(container.querySelector('.HistoryRowActions-confirmDelete')).toBeNull();
+  });
+
+  // the whole row reopens on click, so the delete controls MUST stop propagation
+  // or arming/confirming a delete would also reopen the tab being deleted
+  it('does not reopen the tab while arming or confirming a delete', async () => {
+    const onReopen = vi.fn();
+    const { container } = render(
+      <HistoryRow row={baseRow} onReopen={onReopen} onDelete={() => {}} />
+    );
+    await userEvent.click(container.querySelector('.HistoryRowActions-delete'));
+    await userEvent.click(container.querySelector('.HistoryRowActions-confirmDelete'));
+    expect(onReopen).not.toHaveBeenCalled();
+  });
 });

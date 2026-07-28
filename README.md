@@ -86,13 +86,13 @@ States captured as runnable scenarios with codeyam-editor:
 
 <img src=".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png" alt="Favorites - Stats Survive URL Eviction" width="280">
 
+### History - Delete Confirm Armed
+
+<img src=".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png" alt="History - Delete Confirm Armed" width="280">
+
 ### History - Empty
 
 <img src=".codeyam/scenarios/screenshots/history-empty--desktop.png" alt="History - Empty" width="280">
-
-### History - Populated
-
-<img src=".codeyam/scenarios/screenshots/history-populated--desktop.png" alt="History - Populated" width="280">
 <!-- codeyam:scenario-gallery:end -->
 
 ## License

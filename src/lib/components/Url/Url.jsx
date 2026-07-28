@@ -6,6 +6,7 @@ import { Icon } from '../Icon';
 import { Pages } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
 import { summarizeProcessLoad } from '../../utils/processLoad';
+import { deleteUrlFromHistory } from '../../utils/deleteUrlFromHistory';
 import Favicon from '../Favicon/Favicon';
 
 const Url = ({
@@ -139,15 +140,18 @@ const Url = ({
     }
   };
 
+  // Delete the page from history, THEN close its tab. The order is the fix: the
+  // old body closed the tab first (via handleClose) and removed the `url-*`
+  // record ahead of the `allUrls` splice, so the service worker's onRemoved ->
+  // closeUrl handler read a pre-delete snapshot and wrote the key back at index
+  // 0 — the row reappeared at the top of History with no title. Deleting first
+  // lands the tombstone that closeUrl now honors. handleClose keeps its own
+  // behavior for the still-open-tab case and is no longer called from here.
   const handleRemove = (event) => {
     if (confirm("Are you sure you want to completely remove this website?")) {
       event.stopPropagation();
-      handleClose(event);
-      Chrome.remove('Url1', urlKey);
-      Chrome.get('Url3', 'allUrls', (result) => {
-        const allUrls = result.allUrls || [];
-        allUrls.splice(allUrls.indexOf(urlKey), 1);
-        Chrome.set('Url2', { allUrls: allUrls });
+      deleteUrlFromHistory(urlKey, () => {
+        if (tabId) chrome.tabs.remove(tabId, () => { });
       });
     }
   };

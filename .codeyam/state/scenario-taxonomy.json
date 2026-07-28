@@ -65,8 +65,7 @@
         "reason": "Empty state ('No history yet.') IS demonstrated by the registered+captured history-empty app scenario; marked n-a only because the mechanical state-matrix parses the DB-table 'seed' field and cannot auto-confirm this localStorage stack's browserState.localStorage seeds (same reason it can't auto-confirm single/many here)."
       },
       "single": {
-        "status": "n-a",
-        "reason": "A single row exercises the identical clickable-row behavior as typical; no distinct visual or interaction state."
+        "status": "added"
       },
       "typical": {
         "status": "covered"
@@ -87,8 +86,7 @@
         "reason": "localStorage reads have no failure path; this view renders no error UI."
       },
       "key-interaction": {
-        "status": "n-a",
-        "reason": "The row-click reopen calls chrome.tabs.create with no in-view state change to capture; covered by HistoryRow unit tests and the driven demo click."
+        "status": "added"
       }
     },
     "Home": {
