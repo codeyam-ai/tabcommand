@@ -1,0 +1,19 @@
+{
+  "name": "DraggableTabUrls - Grouped Rows",
+  "id": "ed409f61-d2ef-4a57-a4fe-548d5d42acd5",
+  "url": "/?isolate=DraggableTabUrls&theme=dark",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-201\",\"pinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-202\",\"pinned\":false}]",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"page\":{\"name\":\"Home\"}}"
+    }
+  },
+  "componentName": "DraggableTabUrls",
+  "scenarioType": "component"
+}

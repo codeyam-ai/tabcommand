@@ -16,7 +16,12 @@ import {
   GROUP_REMOVAL_LOG_CAP,
   RemovalSource
 } from '../../utils/groupRemovalLog';
-import { getDragHover, subscribeDragHover } from '../../utils/dragHoverStore';
+import {
+  getDragHover,
+  subscribeDragHover,
+  getDragActive,
+  subscribeDragActive
+} from '../../utils/dragHoverStore';
 import anchoredMenuCoords from '../../utils/anchoredMenuCoords';
 
 // Must match the border-box width in LabelCollectionMenu.css — the menu is
@@ -74,6 +79,10 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
   const menuButtonRef = useRef();
   const menuRef = useRef();
 
+  // Storage updates that arrived while a drag was in flight, held until it ends.
+  const pendingUpdatesRef = useRef({});
+  const pendingTitlesRef = useRef({});
+
   const setPartialState = (updates) => {
     if (Object.keys(updates).length === 0) return;
     setState(prevState => {
@@ -90,41 +99,79 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
   const displayedTitle = (urlKey, record) =>
     (record && record.title) || urlKey.replace(/^url-/, '');
 
+  // Functional setState so the relevance filter reads the current url set rather
+  // than a stale closure — same reason the inline version did.
+  const mergeTitles = (changedTitles) => {
+    setState((prev) => {
+      const relevant = Object.keys(changedTitles).filter((key) => prev.currentUrlKeys.includes(key));
+      if (!relevant.length) return prev;
+      const newTitleMap = { ...prev.titleMap };
+      for (const key of relevant) newTitleMap[key] = changedTitles[key];
+      return { ...prev, titleMap: newTitleMap };
+    });
+  };
+
+  // Re-rendering this card mid-drag does two bad things: it remounts the
+  // Droppable/Draggable subtree (cancelling the drag outright), and it re-sorts
+  // `completeUrlKeys` — active tabs above inactive — which shifts Draggable
+  // `index` values under the library while it is mid-flight. So both the source
+  // and destination card hold their updates until the drag ends.
+  const applyOrBuffer = (updates, changedTitles) => {
+    const hasUpdates = updates && Object.keys(updates).length > 0;
+    const hasTitles = changedTitles && Object.keys(changedTitles).length > 0;
+
+    if (getDragActive()) {
+      if (hasUpdates) pendingUpdatesRef.current = { ...pendingUpdatesRef.current, ...updates };
+      if (hasTitles) pendingTitlesRef.current = { ...pendingTitlesRef.current, ...changedTitles };
+      return;
+    }
+
+    if (hasUpdates) setPartialState(updates);
+    if (hasTitles) mergeTitles(changedTitles);
+  };
+
+  // Drag over: apply the buffered state, then the buffered titles — in that
+  // order, so the title relevance filter sees the new url set.
+  useEffect(() => subscribeDragActive(() => {
+    if (getDragActive()) return;
+    const updates = pendingUpdatesRef.current;
+    const titles = pendingTitlesRef.current;
+    pendingUpdatesRef.current = {};
+    pendingTitlesRef.current = {};
+    if (Object.keys(updates).length) setPartialState(updates);
+    if (Object.keys(titles).length) mergeTitles(titles);
+  }), []);
+
   useEffect(() => {
     Chrome.get('LabelCollection1', 'activeTabs', (result) => {
-      setPartialState({ activeTabs: result.activeTabs || [] });
+      applyOrBuffer({ activeTabs: result.activeTabs || [] });
     });
 
     const handleChange = (changes, areaName) => {
       if (areaName !== 'local') return;
 
+      const updates = {};
+
       if (changes.labels) {
         const newLabels = changes.labels.newValue;
         if (!newLabels[currentTitle]) return;
         if (newLabels[currentTitle].urlKeys !== currentUrlKeys) {
-          setPartialState({ currentUrlKeys: newLabels[currentTitle].urlKeys });
+          updates.currentUrlKeys = newLabels[currentTitle].urlKeys;
         }
       }
 
       if (changes.activeTabs) {
-        setPartialState({ activeTabs: changes.activeTabs.newValue });
+        updates.activeTabs = changes.activeTabs.newValue;
       }
 
       // A tab's title can load/change after the card mounts; keep titleMap fresh
-      // so the ambiguity check (and its subtitles) react. Functional setState
-      // avoids a stale closure over currentUrlKeys.
-      const urlChanges = Object.keys(changes).filter((key) => key.startsWith('url-'));
-      if (urlChanges.length) {
-        setState((prev) => {
-          const relevant = urlChanges.filter((key) => prev.currentUrlKeys.includes(key));
-          if (!relevant.length) return prev;
-          const newTitleMap = { ...prev.titleMap };
-          for (const key of relevant) {
-            newTitleMap[key] = displayedTitle(key, changes[key].newValue);
-          }
-          return { ...prev, titleMap: newTitleMap };
-        });
+      // so the ambiguity check (and its subtitles) react.
+      const changedTitles = {};
+      for (const key of Object.keys(changes).filter((key) => key.startsWith('url-'))) {
+        changedTitles[key] = displayedTitle(key, changes[key].newValue);
       }
+
+      applyOrBuffer(updates, changedTitles);
     };
     chrome.storage.onChanged.addListener(handleChange);
 
@@ -135,7 +182,7 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
   // shared by 2+ tabs. Re-runs whenever the group's url set changes.
   useEffect(() => {
     if (!currentUrlKeys || !currentUrlKeys.length) {
-      setPartialState({ titleMap: {} });
+      applyOrBuffer({ titleMap: {} });
       return;
     }
     Chrome.get('LabelCollectionTitles', currentUrlKeys, (records) => {
@@ -143,7 +190,8 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
       for (const urlKey of currentUrlKeys) {
         newTitleMap[urlKey] = displayedTitle(urlKey, records[urlKey]);
       }
-      setPartialState({ titleMap: newTitleMap });
+      // Issued before the drag began, but it can resolve mid-drag — same gate.
+      applyOrBuffer({ titleMap: newTitleMap });
     });
   }, [currentUrlKeys]);
 

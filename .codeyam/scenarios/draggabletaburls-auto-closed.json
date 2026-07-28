@@ -1,0 +1,18 @@
+{
+  "name": "DraggableTabUrls - Auto Closed",
+  "id": "45594b61-3be3-4de9-95bf-09049d960dec",
+  "url": "/?isolate=DraggableTabUrls&variant=auto-closed&theme=dark",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "uxSettings": "{\"page\":{\"name\":\"Home\"}}",
+      "activeTabs": "[]",
+      "url-https://linear.app/codeyam/tabcommand": "{\"title\":\"TabCommand — Linear backlog\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "componentName": "DraggableTabUrls",
+  "scenarioType": "component"
+}

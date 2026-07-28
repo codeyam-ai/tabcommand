@@ -499,6 +499,36 @@ const ISOLATION_PROPS = {
       },
     },
   },
+  // The sidebar's Droppable/Draggable subtree. It lives at module scope (not
+  // inside Tabs' body) precisely so its type is stable across renders — a fresh
+  // type remounts this tree, and remounting it mid-drag cancels the drag. These
+  // scenarios pin what it renders so that regression is visible in isolation.
+  DraggableTabUrls: {
+    default: {
+      name: 'Work',
+      urls: [
+        { urlKey: 'url-https://github.com/codeyam/tabcommand', tabKey: 'tab-201' },
+        { urlKey: 'url-https://www.figma.com/file/tabcommand', tabKey: 'tab-202' },
+      ],
+    },
+    variants: {
+      // A `name` containing 'ungrouped' turns on the drag-hint affordance that
+      // nudges the user to drag the row into a group.
+      ungrouped: {
+        name: 'ungrouped',
+        urls: [
+          { urlKey: 'url-https://github.com/codeyam/tabcommand', tabKey: 'tab-201' },
+        ],
+      },
+      // Auto-closed rows carry no live tab: they show the close control instead
+      // of the load bar.
+      'auto-closed': {
+        name: 'autoclosed-Work',
+        autoClosed: true,
+        urls: [{ urlKey: 'url-https://linear.app/codeyam/tabcommand' }],
+      },
+    },
+  },
   LabelCollection: {
     default: {
       index: 0,

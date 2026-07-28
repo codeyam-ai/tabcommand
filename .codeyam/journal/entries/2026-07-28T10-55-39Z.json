@@ -1,0 +1,419 @@
+{
+  "timestamp": "2026-07-28T10:55:39Z",
+  "title": "Stabilize URL Drag-and-Drop Into Groups",
+  "type": "feature",
+  "userRequest": "## Summary\n\nDragging a tab into a group, back out, and in again can leave the dragged row\nfrozen mid-flight — stuck half inside the card, half outside, no longer following\nthe cursor and never dropping. The drag is not \"slow\"; it has been **cancelled**\nby React while `@hello-pangea/dnd` was still in charge of it, leaving an orphaned\nclone with its last inline transform. Three independent causes conspire, and all\nthree get worse the longer the drag lasts (which is exactly the in-out-in\ngesture the user described):\n\n1. **The sidebar's Draggables remount on every render.** `DraggableTabUrls` is\n   declared *inside* the `Tabs` component body (`src/lib/components/Tabs/Tabs.jsx:222`),\n   so every `Tabs` render produces a new component type and React unmounts and\n   remounts the whole `Droppable`/`Draggable` subtree — including the row being\n   dragged. `Tabs`' storage listener calls `readLoad()` on every `url-*` change,\n   and the service worker writes load samples every ~5s\n   (`SYSTEM_POLL_INTERVAL_MS = 5000`, plus per-process writes on the dev channel).\n   Any drag lasting more than a few seconds is very likely to be interrupted.\n2. **Group cards re-sort their members mid-drag.** `LabelCollection` re-renders on\n   every `activeTabs` change and recomputes `completeUrlKeys` (active tabs sorted\n   above inactive), which shifts `Draggable` `index` values under the library\n   while a drag is in flight.\n3. **The group grid shifts horizontally at drag start.** `handleDragStart` sets\n   `#Labels` `style.overflowY = 'hidden'` *after* the library has captured every\n   droppable's geometry, and `handleDrag` restores it to `'scroll'` — not the\n   stylesheet's `auto` (`src/lib/components/Labels/Labels.css:6`). So from the\n   second drag onward the scrollbar gutter is reserved at rest and removed at\n   drag start: the whole grid jumps by the scrollbar width mid-drag while the\n   library's cached boxes still describe the old layout. That is the \"halfway\n   into the group, halfway outside on the left\" offset.\n\nThe fix stabilizes the drag: freeze list content for the duration of a drag,\nstop remounting the sidebar's draggables, stop shifting the layout at drag\nstart, and add a safety net so a drag that dies anyway can never wedge the UI.\n\n## Key Decisions\n\n- **Extend `dragHoverStore` rather than add a new store.** It already holds\n  drag-scoped state outside React (`cursorActive`, `dropId`) precisely because\n  re-rendering during a drag cancels it. A `dragActive` flag belongs there,\n  set for *every* drag (keyboard included, unlike `cursorActive` which is FLUID-only).\n  Survey result: no other drag-lifecycle flag exists anywhere in the codebase —\n  `cursorActive` is the closest and is deliberately mouse-only, so it cannot be\n  reused as-is.\n- **Freeze lists until drop (user-confirmed).** `Tabs` and `LabelCollection`\n  buffer incoming `chrome.storage.onChanged` updates while a drag is active and\n  flush them once it ends. A tab closed in the browser lingers for the seconds\n  of a drag — an acceptable trade for a drag that never dies under the cursor.\n  Buffering is preferred over `React.memo`-style suppression because it keeps\n  the eventual state exactly consistent with storage.\n- **Hoist `DraggableTabUrls` to module scope** instead of memoizing it. A\n  module-level component has a stable type, so React reconciles rather than\n  remounts. It needs no closure over `Tabs` state — everything it uses is\n  already passed as props.\n- **Stop mutating `overflowY` at drag start.** Reserve the gutter permanently\n  with `scrollbar-gutter: stable` and toggle a CSS class instead of an inline\n  style, so enabling/disabling scroll never changes layout geometry. Restore to\n  the stylesheet value (remove the class) rather than hard-coding `'scroll'`.\n- **Safety net is a fallback, not the mechanism (user-confirmed).** The real fix\n  is preventing cancellation; the `pointerup`/`blur`/`Escape` recovery only\n  guarantees that if a drag still dies, the UI unwedges itself.\n\n## Implementation\n\n### 1. Add drag-active state to the drag store\n\n**File**: `src/lib/utils/dragHoverStore.js`\n\nExtend the external store's state with `dragActive` (default `false`) alongside\n`cursorActive`/`dropId`, and export `getDragActive()` / `subscribeDragActive()`\nplus a `setDragActive(next)` setter. Keep the existing no-op-on-unchanged guard\nso subscribers only fire on real transitions. `setDragHover` must not clobber\n`dragActive`, and clearing hover at drag end must not implicitly clear it —\n`dragActive` is owned by the drag lifecycle, `cursorActive` by pointer tracking.\n\nUpdate the module comment to say the store now carries the whole\n\"is a drag in flight\" signal, not just hover.\n\n### 2. Set drag-active for the whole drag lifecycle\n\n**File**: `src/lib/pages/App/App.jsx`\n\n- In `handleDragStart`, call `setDragActive(true)` **before** the\n  `info.mode !== 'FLUID'` early return, so keyboard drags also freeze the lists.\n  Remove the `info.type !== ItemTypes.URL` early return's effect on this flag —\n  group-reorder drags need the freeze too.\n- In `handleDrag`, call `setDragActive(false)` after `stopHoverTracking()` and\n  before the early returns, so every exit path clears it.\n- Replace the inline `labelsElement.style.overflowY` mutations with a class\n  toggle: add `Labels-dragging` on drag start, remove it on drag end (and in the\n  safety net below). No inline style is written, so the element always falls back\n  to its stylesheet value.\n\n### 3. Stop the layout shift at drag start\n\n**File**: `src/lib/components/Labels/Labels.css`\n\nAdd `scrollbar-gutter: stable;` to `.Labels` so the gutter is reserved whether or\nnot the scrollbar is showing, and add a `.Labels.Labels-dragging { overflow-y: hidden; }`\nrule. With the gutter stable, toggling `overflow-y` no longer reflows the grid,\nso `@hello-pangea/dnd`'s captured droppable boxes stay accurate for the whole\ndrag.\n\n### 4. Stop remounting the sidebar's draggable rows\n\n**File**: `src/lib/components/Tabs/Tabs.jsx`\n\nMove `DraggableTabUrls` out of the `Tabs` function body to module scope (above\n`const Tabs = ...`). It already receives everything it needs (`name`, `urls`,\n`autoClosed`) as props. This alone stops the sidebar's `Droppable`/`Draggable`\ntree from being torn down and rebuilt on every `Tabs` render.\n\n### 5. Buffer storage updates in the sidebar while dragging\n\n**File**: `src/lib/components/Tabs/Tabs.jsx`\n\nIn the storage `handleChange` effect, when `getDragActive()` is true, merge the\ncomputed `updates` into a pending-updates ref instead of calling\n`setPartialState`, and skip the `readLoad()` refresh. Subscribe to the store\n(`subscribeDragActive`) so that when `dragActive` flips back to false the\nbuffered updates are flushed in one `setPartialState` and `readLoad()` runs once.\nNote `readLoad`'s own async callbacks must respect the same gate — a `Chrome.get`\nissued before the drag started can resolve mid-drag and re-render.\n\n### 6. Buffer storage updates in group cards while dragging\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\nApply the same gate to this component's `handleChange` (the `labels`,\n`activeTabs`, and `url-*` branches) and to the `currentUrlKeys` title-loading\neffect's callback. This is what keeps `completeUrlKeys` — and therefore the\n`Draggable` `index` values in both the source and destination card — stable for\nthe whole drag. Flush on drag end via the same subscription.\n\nLeave the existing `isCursorTarget` / `isDropTarget` hover subscription exactly\nas it is: that boolean-selector subscription is intentional and is the one\nre-render that must keep happening mid-drag.\n\n### 7. Drag-abort safety net\n\n**File**: `src/lib/pages/App/App.jsx`\n\nAdd a module-scoped helper (e.g. `endDragCleanup`) invoked from both\n`handleDrag` and a set of window-level fallback listeners registered in\n`handleDragStart` alongside the existing pointer tracking: `pointerup`,\n`pointercancel`, `blur`, and `keydown` (Escape). Each fires the cleanup once\n(idempotent, guarded by the `hoverCleanupRef`), which:\n\n- removes the `Labels-dragging` class,\n- tears down pointer tracking,\n- clears `dragHover` and `dragActive` (flushing the buffered list updates).\n\nRegistered listeners are removed by the same cleanup, and the existing\n`useEffect(() => stopHoverTracking, [])` unmount guard is extended to call it.\nThe result: even if the library loses a drag, the grid scrolls again, the group\nhighlight clears, and buffered updates land — no wedged UI.\n\n## Reused existing code\n\n- `getDragHover` / `setDragHover` / `subscribeDragHover` from\n  `src/lib/utils/dragHoverStore.js` (glossary entries: `getDragHover`,\n  `setDragHover`, `subscribeDragHover`) — extended, not replaced.\n- `dropTargetIdAtPoint` from `src/lib/utils/dropTargeting.js` (glossary entry:\n  `dropTargetIdAtPoint`) — cursor-based targeting is unchanged; this plan only\n  makes the geometry it competes with stop shifting.\n- `applyDrag` from `src/lib/utils/dragReducer.js` (glossary entry: `applyDrag`)\n  — untouched; the drop transform is correct, it is the drag lifecycle that fails.\n- `describeDragRemoval` from `src/lib/utils/describeDragRemoval.js` (glossary\n  entry: `describeDragRemoval`) — untouched.\n- `installChromeShim` from `src/lib/utils/chromeShim/chromeShim.js` and the\n  `seed()` + `DragDropContext`-wrapper patterns already used in\n  `src/lib/components/Tabs/Tabs.test.jsx` and\n  `src/lib/components/LabelCollection/LabelCollection.test.jsx`.\n\n**Existing-implementation survey**: grepped for any pre-existing drag-lifecycle\nflag, mid-drag update suppression, or `scrollbar-gutter` usage. None exists —\n`cursorActive` in `dragHoverStore` is the only drag-scoped state, and it is\nFLUID-mouse-only by design, so `dragActive` is a genuinely new dimension rather\nthan a duplicate of it.\n\n## Reproduction Test\n\nPins the remount that cancels an in-flight drag: a background load-stat write\ntears down and rebuilds the sidebar's draggable rows.\n\n**Target**: `src/lib/components/Tabs/Tabs.test.jsx` — run with\n`codeyam-editor editor refresh-tests --test Tabs`.\n\n```jsx\n// a background url-* storage write must not remount the sidebar's draggable\n// rows — a remount mid-drag cancels the drag and strands the dragged row\nit('keeps the sidebar row mounted across a background load-stat update', async () => {\n  seed('activeTabs', [{ urlKey: 'url-https://react.dev', tabKey: 'tab-1', pinned: false }]);\n  seed('allUrls', ['url-https://react.dev']);\n  seed('url-https://react.dev', { title: 'React', favicon: '' });\n  installChromeShim();\n  renderTabs();\n\n  const rowBefore = (await screen.findByText('React')).closest('.Url');\n\n  await new Promise((resolve) =>\n    chrome.storage.local.set(\n      { 'url-https://react.dev': { title: 'React', favicon: '', processes: { samples: [1] } } },\n      resolve\n    )\n  );\n\n  await waitFor(() => {\n    expect(screen.getByText('React').closest('.Url')).toBe(rowBefore);\n  });\n});\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: because\n`DraggableTabUrls` is redeclared on each `Tabs` render, the `url-*` change\ntriggers `readLoad()` → `setPartialState` → a new component type → React\nunmounts and remounts the row, so the node returned after the update is a\ndifferent element and `toBe(rowBefore)` fails.\n\nA second test for the freeze-while-dragging behaviour (§5/§6) should be added at\nexecution: with `setDragActive(true)`, an `activeTabs` write must not change the\nrendered row order until `setDragActive(false)` flushes it. The layout-shift fix\n(§3) and the safety net (§7) are verified in the running extension and via the\nscenarios below rather than in jsdom, where scrollbars and real pointer input do\nnot exist.\n\n## Scenarios to Demonstrate\n\n- **Long drag across groups** — pick up a tab from the sidebar, hover it over\n  group A, out into empty space, back into group A, and drop. It lands in A;\n  nothing freezes, even when a load sample lands mid-drag.\n- **Drag during a background update** — a tab closes in the browser while a drag\n  is in flight. The dragged row keeps following the cursor; the sidebar updates\n  the moment the drop completes.\n- **Second and third consecutive drags** — the group grid does not jump\n  horizontally when each drag begins (the regression that produced the offset\n  ghost).\n- **Drag between two groups** — move a member out of group A into group B; A's\n  count drops, B's rises, and the Chrome tab is ungrouped as before.\n- **Escape mid-drag** — press Escape while dragging; the drag cancels cleanly,\n  the grid scrolls again, no group stays highlighted.\n- **Keyboard drag** — space to lift, arrows to move, space to drop still works\n  and uses the library's own center-based targeting and highlight.\n- **Group reorder drag** — dragging a whole group card to a new position still\n  reorders the grid and persists `position`.",
+  "description": "Dragging a tab into a group, back out, and in again could leave the row frozen mid-flight — half inside the card, no longer following the cursor. The drag was not slow; React was cancelling it while @hello-pangea/dnd still held it. Three causes, all of which got worse the longer the drag lasted: DraggableTabUrls was declared inside the Tabs body, so every render produced a new component type and React remounted the whole Droppable/Draggable subtree including the dragged row (the service worker writes a load sample every ~5s, so any drag past a few seconds was likely to be hit); LabelCollection re-sorted its members on every activeTabs change, shifting Draggable index values under the library mid-drag; and handleDragStart flipped #Labels overflow-y after the library had captured droppable geometry, so from the second drag onward the scrollbar gutter appeared and disappeared and the whole grid jumped sideways. The fix moves DraggableTabUrls into its own module (a stable type React can reconcile rather than remount), adds a dragActive flag to dragHoverStore that Tabs and LabelCollection use to buffer incoming storage updates until the drag ends, and reserves the scrollbar gutter permanently with scrollbar-gutter: stable so toggling scroll no longer reflows the grid. A deferred pointerup/pointercancel/blur/Escape net unwedges the UI if a drag is ever lost anyway — armed on a delay and disarmed by onDragEnd, since a healthy drop fires pointerup first.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/pending-build-launch",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/plans/stabilize-url-drag-and-drop-into-groups.md\t.codeyam/plans/completed/stabilize-url-drag-and-drop-into-groups.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/dragHoverStore.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/dragHoverStore.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/draggabletaburls-auto-closed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/draggabletaburls-grouped-rows.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/draggabletaburls-ungrouped-drag-hint.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-auto-closed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-grouped-rows--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-ungrouped-drag-hint--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/DraggableTabUrls/DraggableTabUrls.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/DraggableTabUrls/index.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Group Menu Open",
+      "screenshotPath": "home-group-menu-open--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "DraggableTabUrls - Auto Closed",
+      "screenshotPath": "draggabletaburls-auto-closed--desktop.png"
+    },
+    {
+      "name": "DraggableTabUrls - Grouped Rows",
+      "screenshotPath": "draggabletaburls-grouped-rows--desktop.png"
+    },
+    {
+      "name": "DraggableTabUrls - Ungrouped Drag Hint",
+      "screenshotPath": "draggabletaburls-ungrouped-drag-hint--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Menu Open",
+      "screenshotPath": "labelcollection-menu-open--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 71,
+    "passed": 71,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 71,
+        "passed": 71
+      }
+    ]
+  }
+}

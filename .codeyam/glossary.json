@@ -34,6 +34,16 @@
     "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
+    "description": "One draggable section of the sidebar's tab rail: a Droppable wrapping one Draggable Url row per url. It lives at module scope rather than inside Tabs' body because a component declared inside a render is a new type each time, which remounts the Droppable/Draggable subtree and makes @hello-pangea/dnd cancel an in-flight drag.",
+    "filePath": "src/lib/components/DraggableTabUrls/DraggableTabUrls.jsx",
+    "name": "DraggableTabUrls",
+    "scenarios": [
+      "draggabletaburls-grouped-rows",
+      "draggabletaburls-ungrouped-drag-hint",
+      "draggabletaburls-auto-closed"
+    ]
+  },
+  {
     "description": "The muted line a page shows in place of its list when there is nothing to show. History and ViewAllFavorites each carried their own copy of this markup off identically-styled classes before it was hoisted here. Takes a message.",
     "filePath": "src/lib/components/EmptyState/EmptyState.jsx",
     "name": "EmptyState",
@@ -628,6 +638,12 @@
     "testFile": "src/lib/utils/gaugeFillPercent.test.js"
   },
   {
+    "description": "Reads whether a drag is currently in flight. Lists call it to decide whether to apply an incoming storage update or buffer it until the drag ends, since re-rendering mid-drag cancels the drag.",
+    "filePath": "src/lib/utils/dragHoverStore.js",
+    "name": "getDragActive",
+    "testFile": "src/lib/utils/dragHoverStore.test.js"
+  },
+  {
     "description": "Reads the current cursor drop-hover state from the external drag-hover store.",
     "filePath": "src/lib/utils/dragHoverStore.js",
     "name": "getDragHover",
@@ -1004,6 +1020,12 @@
     "testFile": "src/lib/utils/segmentSearchResults.test.js"
   },
   {
+    "description": "Sets the drag-in-flight flag for the whole drag lifecycle, including keyboard drags and group reorders. No-ops when the value is unchanged, and never clobbers the cursor-hover state, which is owned by pointer tracking instead.",
+    "filePath": "src/lib/utils/dragHoverStore.js",
+    "name": "setDragActive",
+    "testFile": "src/lib/utils/dragHoverStore.test.js"
+  },
+  {
     "description": "Updates the cursor drop-hover state and notifies subscribers, deduping identical updates so group cards only repaint when the hovered target changes. Kept outside React state so updating it mid-drag does not re-render the dragged tab's subtree and cancel the drag.",
     "filePath": "src/lib/utils/dragHoverStore.js",
     "name": "setDragHover",
@@ -1047,6 +1069,12 @@
     "filePath": "service_worker.js",
     "name": "stopSystemLoadPolling",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Subscribes to drag-start/drag-end transitions so a list can flush the storage updates it buffered mid-drag. Uses a listener set separate from the hover subscription so flipping one signal never wakes the other's subscribers.",
+    "filePath": "src/lib/utils/dragHoverStore.js",
+    "name": "subscribeDragActive",
+    "testFile": "src/lib/utils/dragHoverStore.test.js"
   },
   {
     "description": "Subscribes a listener to cursor drop-hover changes and returns an unsubscribe function, letting each group card repaint independently as the cursor moves between groups.",

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DragDropContext } from '@hello-pangea/dnd';
 import { installChromeShim } from '../../utils/chromeShim';
+import { setDragActive } from '../../utils/dragHoverStore';
 import Tabs from './Tabs';
 
 const seed = (key, value) => window.localStorage.setItem(key, JSON.stringify(value));
@@ -20,6 +21,9 @@ describe('Tabs', () => {
   beforeEach(() => {
     window.localStorage.clear();
     delete globalThis.chrome;
+    // The drag store is a module-level singleton; a test that leaves a drag
+    // "in flight" would make the next test's updates silently buffer.
+    setDragActive(false);
   });
 
   afterEach(() => {
@@ -112,6 +116,82 @@ describe('Tabs', () => {
 
     expect(headings).toEqual(['Work', 'Ungrouped']);
     expect(headings.indexOf('Work')).toBeLessThan(headings.indexOf('Ungrouped'));
+  });
+
+  // a background storage write must not remount the sidebar's draggable rows —
+  // a remount mid-drag is what cancels the drag and strands the dragged row.
+  // The newly-rendered second row is the settle signal: once it exists the
+  // re-render has definitively happened, so the identity check below is not
+  // racing it.
+  it('keeps the sidebar row mounted across a background storage update', async () => {
+    seed('activeTabs', [{ urlKey: 'url-https://react.dev', tabKey: 'tab-1', pinned: false }]);
+    seed('allUrls', ['url-https://react.dev']);
+    seed('url-https://react.dev', { title: 'React', favicon: '' });
+    seed('url-https://vitest.dev', { title: 'Vitest', favicon: '' });
+    installChromeShim();
+    renderTabs();
+
+    const rowBefore = (await screen.findByText('React')).closest('.Url');
+
+    await new Promise((resolve) =>
+      chrome.storage.local.set(
+        {
+          activeTabs: [
+            { urlKey: 'url-https://react.dev', tabKey: 'tab-1', pinned: false },
+            { urlKey: 'url-https://vitest.dev', tabKey: 'tab-2', pinned: false },
+          ],
+        },
+        resolve
+      )
+    );
+
+    // The re-render has landed...
+    await screen.findByText('Vitest');
+
+    // ...and it reconciled rather than tearing the existing row down. Declared
+    // inside Tabs' body, this component was a new type per render, so React
+    // replaced this node instead of keeping it.
+    expect(screen.getByText('React').closest('.Url')).toBe(rowBefore);
+  });
+
+  // while a drag is in flight the rail must not re-order under the library:
+  // an activeTabs write is buffered, then applied once the drag ends
+  it('buffers an activeTabs update until the drag ends', async () => {
+    seed('activeTabs', [{ urlKey: 'url-https://react.dev', tabKey: 'tab-1', pinned: false }]);
+    seed('allUrls', ['url-https://react.dev']);
+    seed('url-https://react.dev', { title: 'React', favicon: '' });
+    seed('url-https://vitest.dev', { title: 'Vitest', favicon: '' });
+    installChromeShim();
+    renderTabs();
+
+    await screen.findByText('React');
+
+    setDragActive(true);
+    await new Promise((resolve) =>
+      chrome.storage.local.set(
+        {
+          activeTabs: [
+            { urlKey: 'url-https://react.dev', tabKey: 'tab-1', pinned: false },
+            { urlKey: 'url-https://vitest.dev', tabKey: 'tab-2', pinned: false },
+          ],
+        },
+        resolve
+      )
+    );
+
+    // Give the write every chance to render: the shim's callbacks are
+    // microtasks and Tabs re-reads storage, so a macrotask turn is well past
+    // when an unbuffered update would have painted. Without the freeze the row
+    // is on screen by now.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Still frozen: the rail has not re-ordered under the in-flight drag.
+    expect(screen.queryByText('Vitest')).not.toBeInTheDocument();
+
+    setDragActive(false);
+
+    // Drag over — the buffered update lands.
+    expect(await screen.findByText('Vitest')).toBeInTheDocument();
   });
 
   // the footer History button navigates to the History page via uxSettings

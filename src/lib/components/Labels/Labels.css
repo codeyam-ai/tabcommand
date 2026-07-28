@@ -4,7 +4,21 @@
   padding: var(--content-pad);
   height: 100%;
   overflow-y: auto;
+  /* Reserve the scrollbar gutter whether or not the bar is showing. Suppressing
+     scroll at drag start used to remove the gutter, shifting the whole grid
+     sideways by the scrollbar width while @hello-pangea/dnd still held the
+     droppable geometry it captured before the shift — which is what left the
+     dragged row hanging half outside the card it was over. */
+  scrollbar-gutter: stable;
   box-sizing: border-box;
+}
+
+/* Scroll is suppressed for the duration of a drag via this class, never an
+   inline style, so removing it always restores the rule above rather than
+   hard-coding a value the stylesheet never used. With the gutter stable,
+   toggling overflow-y no longer reflows the grid. */
+.Labels.Labels-dragging {
+  overflow-y: hidden;
 }
 
 .Labels-header {

@@ -22,8 +22,14 @@ import {
   RemovalSource
 } from '../../utils/groupRemovalLog';
 import { dropTargetIdAtPoint } from '../../utils/dropTargeting';
-import { setDragHover, getDragHover } from '../../utils/dragHoverStore';
+import { setDragHover, getDragHover, setDragActive } from '../../utils/dragHoverStore';
 import { useTheme } from '../../hooks/useTheme';
+
+// A normal drop fires `pointerup` well before @hello-pangea/dnd reports
+// `onDragEnd` (which waits out the drop animation), so the abort net below is
+// armed on a delay and disarmed by `onDragEnd`. It only ever fires for a drag
+// the library has genuinely lost.
+const DRAG_ABORT_GRACE_MS = 1000;
 
 const App = () => {
   const [page, setPage] = useState({ name: Pages.HOME });
@@ -36,6 +42,9 @@ const App = () => {
   // React state, so tracking the cursor never re-renders this component (which
   // would cancel the drag).
   const hoverCleanupRef = useRef(null);
+
+  // Pending timer for the drag-abort safety net (see handleDragStart).
+  const dragAbortTimerRef = useRef(null);
 
   useEffect(() => {
     Chrome.get('App1', 'uxSettings', ({ uxSettings }) => {
@@ -73,20 +82,37 @@ const App = () => {
     if (hoverCleanupRef.current) hoverCleanupRef.current();
   };
 
+  const cancelDragAbortTimer = () => {
+    if (!dragAbortTimerRef.current) return;
+    clearTimeout(dragAbortTimerRef.current);
+    dragAbortTimerRef.current = null;
+  };
+
+  // Everything a drag must undo, however it ends. Idempotent — guarded by
+  // hoverCleanupRef — so the library's onDragEnd and the window-level fallback
+  // listeners can both call it without fighting. Clearing `dragActive` is what
+  // flushes the list updates the sidebar and group cards buffered mid-drag.
+  const endDragCleanup = () => {
+    const labelsElement = document.getElementById('Labels');
+    if (labelsElement) labelsElement.classList.remove('Labels-dragging');
+    stopHoverTracking();
+    setDragActive(false);
+  };
+
   // The heart of TabCommand: dropping a tab into a group moves its urlKey into
   // that label, and dragging a group reorders the grid. The transform itself
   // lives in the testable `applyDrag` reducer; here we persist the result and
   // ungroup any real Chrome tabs that left an active label.
   const handleDrag = (dragResult) => {
-    const labelsElement = document.getElementById('Labels');
-    if (labelsElement) labelsElement.style.overflowY = 'scroll';
+    cancelDragAbortTimer();
 
     // For a mouse drag, the tab drops into whichever group the cursor is over —
     // overriding @hello-pangea/dnd's center-based destination. If the cursor
     // isn't over any group, there is no drop (a tab released in empty space or
     // back in the sidebar stays put). Keyboard drags keep the library's target.
+    // Read the hover state BEFORE the cleanup below clears it.
     const { cursorActive, dropId: cursorDropId } = getDragHover();
-    stopHoverTracking();
+    endDragCleanup();
 
     let result = dragResult;
     if (dragResult.type === ItemTypes.URL && cursorActive) {
@@ -123,34 +149,67 @@ const App = () => {
   };
 
   const handleDragStart = (info) => {
-    if (info.type !== ItemTypes.URL) return;
+    // Every drag freezes the lists — keyboard as well as mouse, group reorders
+    // as well as tabs. A background storage write that re-renders (and re-sorts)
+    // a list mid-drag is what cancels the drag and strands the dragged row.
+    setDragActive(true);
 
     const labelsElement = document.getElementById('Labels');
-    if (labelsElement) labelsElement.style.overflowY = 'hidden';
+    if (labelsElement) labelsElement.classList.add('Labels-dragging');
 
-    // Only a fluid (pointer) drag has a cursor to follow; keyboard drags report
-    // mode 'SNAP' and keep @hello-pangea/dnd's built-in targeting + highlight.
-    if (info.mode !== 'FLUID') return;
-
-    setDragHover({ cursorActive: true, dropId: null });
+    // Only a fluid (pointer) drag on a tab has a cursor to follow; keyboard
+    // drags report mode 'SNAP' and keep @hello-pangea/dnd's built-in targeting
+    // and highlight, and group reorders use the library's own destination.
+    const tracksCursor = info.mode === 'FLUID' && info.type === ItemTypes.URL;
 
     const onPointerMove = (event) => {
       const point = (event.touches && event.touches[0]) || event;
       setDragHover({ cursorActive: true, dropId: dropTargetIdAtPoint(point.clientX, point.clientY) });
     };
 
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('touchmove', onPointerMove);
+    if (tracksCursor) {
+      setDragHover({ cursorActive: true, dropId: null });
+      window.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('touchmove', onPointerMove);
+    }
+
+    // Safety net, not the mechanism: the real fix is that the drag no longer
+    // gets cancelled. But if the library ever loses one anyway — a swallowed
+    // pointerup, the window losing focus — this unwedges the UI instead of
+    // leaving the grid unscrollable with a group stuck highlighted. Armed on a
+    // delay because a healthy drop fires pointerup first; onDragEnd disarms it.
+    const onAbort = (event) => {
+      if (event.type === 'keydown' && event.key !== 'Escape') return;
+      cancelDragAbortTimer();
+      dragAbortTimerRef.current = setTimeout(() => {
+        dragAbortTimerRef.current = null;
+        endDragCleanup();
+      }, DRAG_ABORT_GRACE_MS);
+    };
+
+    window.addEventListener('pointerup', onAbort);
+    window.addEventListener('pointercancel', onAbort);
+    window.addEventListener('blur', onAbort);
+    window.addEventListener('keydown', onAbort);
 
     hoverCleanupRef.current = () => {
-      window.removeEventListener('mousemove', onPointerMove);
-      window.removeEventListener('touchmove', onPointerMove);
+      if (tracksCursor) {
+        window.removeEventListener('mousemove', onPointerMove);
+        window.removeEventListener('touchmove', onPointerMove);
+      }
+      window.removeEventListener('pointerup', onAbort);
+      window.removeEventListener('pointercancel', onAbort);
+      window.removeEventListener('blur', onAbort);
+      window.removeEventListener('keydown', onAbort);
       hoverCleanupRef.current = null;
       setDragHover({ cursorActive: false, dropId: null });
     };
   };
 
-  useEffect(() => stopHoverTracking, []);
+  useEffect(() => () => {
+    cancelDragAbortTimer();
+    endDragCleanup();
+  }, []);
 
   const changePage = (pageName) => {
     Chrome.get('App2', 'uxSettings', ({ uxSettings }) => {

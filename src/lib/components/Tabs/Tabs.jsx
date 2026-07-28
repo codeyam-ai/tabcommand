@@ -1,13 +1,12 @@
 import './Tabs.css';
 
-import React, { useEffect, useState } from 'react';
-import { Url } from '..';
+import React, { useEffect, useRef, useState } from 'react';
 import { Icon } from '../Icon';
+import { DraggableTabUrls } from '../DraggableTabUrls';
 
-import { Droppable, Draggable } from '@hello-pangea/dnd';
-
-import { ItemTypes, MaxAutoClosedTime, Pages, HeavyThresholdDefault } from '../../../Constants';
+import { MaxAutoClosedTime, Pages, HeavyThresholdDefault } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { getDragActive, subscribeDragActive } from '../../utils/dragHoverStore';
 import { summarizeProcessLoad } from '../../utils/processLoad';
 import humanReadableNumber from '../../utils/humanReadableNumber';
 
@@ -36,6 +35,10 @@ const Tabs = ({ reviewMode = false }) => {
     urlDataMap: {},
     settings: { heavyThreshold: HeavyThresholdDefault }
   });
+
+  // Storage updates that arrived while a drag was in flight, held until it ends.
+  const pendingUpdatesRef = useRef({});
+  const pendingLoadRefreshRef = useRef(false);
 
   const generateTabUrlLabels = (tabUrls) => {
     const labels = [];
@@ -126,27 +129,42 @@ const Tabs = ({ reviewMode = false }) => {
       )
     };
 
+    // Applying state mid-drag re-renders this subtree, which makes
+    // @hello-pangea/dnd cancel the drag and strand the dragged row — and the
+    // service worker writes a load sample every few seconds, so any drag
+    // lasting more than a moment was getting hit. Hold the updates instead and
+    // apply them the instant the drag ends, so the settled state still matches
+    // storage exactly.
+    const applyOrBuffer = (updates) => {
+      if (getDragActive()) {
+        pendingUpdatesRef.current = { ...pendingUpdatesRef.current, ...updates };
+        return;
+      }
+      setPartialState(updates);
+    };
+
     // Reads `settings` + the per-URL process records for the current active tabs,
     // so the Heaviest-Tabs section can size its bars. Mirrors how Triage feeds
-    // its heavy count.
+    // its heavy count. Its callbacks route through the same gate: a Chrome.get
+    // issued before the drag started can still resolve mid-drag.
     const readLoad = () => {
       Chrome.get('Tabs2', ['settings', 'activeTabs'], (base) => {
         const newSettings = base.settings || {};
         const activeTabs = (base.activeTabs || []).filter((t) => !t.pinned);
         const urlKeys = activeTabs.map((t) => t.urlKey);
         if (!urlKeys.length) {
-          setPartialState({ settings: newSettings, urlDataMap: {} });
+          applyOrBuffer({ settings: newSettings, urlDataMap: {} });
           return;
         }
         Chrome.get('Tabs3', urlKeys, (urls) => {
-          setPartialState({ settings: newSettings, urlDataMap: urls });
+          applyOrBuffer({ settings: newSettings, urlDataMap: urls });
         });
       });
     };
 
     Chrome.get('Tabs1', ['activeTabs', 'autoClosed', 'labels'], (result) => {
       const autoClosed = sortAutoClosed(result.autoClosed);
-      setPartialState({
+      applyOrBuffer({
         activeTabUrls: (result.activeTabs).filter(tabUrl => !tabUrl.pinned),
         autoClosedUrlKeys: autoClosed,
         labelMap: generateLabelMap(result.labels),
@@ -176,22 +194,44 @@ const Tabs = ({ reviewMode = false }) => {
         updates.autoClosedUrlKeys = sortAutoClosed(changes.autoClosed.newValue);
       }
 
-      setPartialState(updates);
-
       // Refresh the heaviest-tabs feed when its inputs move: the tab set, the
       // threshold, or any per-URL process record (`url-*`).
-      if (
+      const needsLoadRefresh = !!(
         changes.activeTabs ||
         changes.settings ||
         Object.keys(changes).some((key) => key.startsWith('url-'))
-      ) {
+      );
+
+      if (getDragActive()) {
+        pendingUpdatesRef.current = { ...pendingUpdatesRef.current, ...updates };
+        if (needsLoadRefresh) pendingLoadRefreshRef.current = true;
+        return;
+      }
+
+      setPartialState(updates);
+      if (needsLoadRefresh) readLoad();
+    };
+
+    // Drag over: apply everything that piled up, in one render, and re-read the
+    // load feed once rather than once per suppressed change.
+    const flushPending = () => {
+      if (getDragActive()) return;
+      const pending = pendingUpdatesRef.current;
+      pendingUpdatesRef.current = {};
+      setPartialState(pending);
+      if (pendingLoadRefreshRef.current) {
+        pendingLoadRefreshRef.current = false;
         readLoad();
       }
     };
 
     chrome.storage.onChanged.addListener(handleChange);
+    const unsubscribeDragActive = subscribeDragActive(flushPending);
 
-    return () => chrome.storage.onChanged.removeListener(handleChange);
+    return () => {
+      chrome.storage.onChanged.removeListener(handleChange);
+      unsubscribeDragActive();
+    };
   }, []);
 
   // Closes a heaviest-tab the same way Url's ✕ does: kill the live Chrome tab
@@ -218,53 +258,6 @@ const Tabs = ({ reviewMode = false }) => {
       Chrome.set('Tabs2', { uxSettings: uxSettings });
     });
   };
-
-  const DraggableTabUrls = ({name, urls, autoClosed}) => {
-    return (
-      <Droppable
-        key={`Tabs-urls-${name}`}
-        droppableId={`Tabs-urls-${name}`}
-        isDropDisabled={true}
-        direction="vertical"
-        type={ItemTypes.URL}
-      >
-        {provided => (
-          <div
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className={`Tabs-urls-${name}`}
-          >
-            {urls.map(({urlKey, tabKey, closed}, urlIndex) => (
-              <Draggable
-                key={`Tabs-urls-${name}-${urlKey}`}
-                id={`Tabs-urls-${name}-${urlKey}`}
-                draggableId={`Tabs-urls-${name}-${urlKey}`}
-                index={urlIndex}
-              >
-                {(dragProvided, dragSnapshot) => (
-                  <Url
-                    key={`${urlKey}-${tabKey}}`}
-                    dragRef={dragProvided.innerRef}
-                    draggableProps={dragProvided.draggableProps}
-                    dragHandleProps={dragProvided.dragHandleProps}
-                    dragging={dragSnapshot.isDragging}
-                    tabId={tabKey && parseInt(tabKey.split('-')[1])}
-                    urlKey={urlKey}
-                    closed={closed}
-                    showLoad={!closed && !autoClosed}
-                    showActions={false}
-                    showClose={autoClosed}
-                    encourageDrag={name.indexOf('ungrouped') > -1}
-                  />
-                )}
-              </Draggable>
-            ))}
-            { provided.placeholder }
-          </div>
-        )}
-      </Droppable>
-    );
-  }
 
   const heavyRows = heaviestTabs();
 

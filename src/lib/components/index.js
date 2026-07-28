@@ -1,4 +1,5 @@
 export { Tabs } from "./Tabs";
+export { DraggableTabUrls } from "./DraggableTabUrls";
 export { Url } from "./Url";
 export { Favicon } from "./Favicon";
 export { AppBrand } from "./AppBrand";
