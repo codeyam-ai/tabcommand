@@ -22,6 +22,18 @@ updates:
       interval: quarterly
     open-pull-requests-limit: 5
     groups:
+      # A dependency lands in the FIRST group whose patterns match, so this
+      # must precede `routine`.
+      #
+      # The linter packages carry peer-dependency constraints on each other, so
+      # a lone bump can't install: @eslint/js@10 requires eslint@^10, and a PR
+      # raising only @eslint/js fails at `npm ci` before it runs anything (see
+      # PR #6). Majors are included here on purpose — for this cluster the
+      # reviewable unit is the whole toolchain, not one package.
+      eslint:
+        patterns: ['eslint', '@eslint/*', 'eslint-plugin-*', '@eslint-community/*']
+        update-types: [major, minor, patch]
+
       # Everything routine collapses into one PR you can review or close in a
       # single pass. Majors are deliberately left out of the group, so each
       # arrives as its own PR — a major is a decision, not a chore.
