@@ -12,9 +12,17 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege: nothing here writes to the repo. The repo-wide default is
+# `write`, which this overrides. release.yml declares its own contents:write.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Runs take ~1 min; the GitHub default cap is 360, so a hung job would sit
+    # burning runner minutes for six hours.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -42,3 +50,17 @@ jobs:
             echo "::error::build/ contains codeyam artifacts or internal URLs"
             exit 1
           fi
+
+  # Separate job so it runs alongside `build` rather than lengthening it.
+  # Complements `npm audit`, which only sees production deps at high+: this
+  # inspects what the diff actually introduces, dev deps included. Free on
+  # public repos.
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
