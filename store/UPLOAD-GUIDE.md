@@ -136,6 +136,24 @@ grep -rl "codeyam\|s2/favicons\|notion.so\|fonts.googleapis" /tmp/zc   # → no 
 
 ## Regenerate the package (if you change code)
 
+Preferred: let CI do it. Bump `manifest.json`, commit, then tag:
+
+```bash
+git tag v<version> && git push origin v<version>   # e.g. v0.21
+```
+
+`.github/workflows/release.yml` lints, tests, builds, runs the sanity check
+above, packages the zip, and attaches it to a GitHub Release — so there is a
+permanent record of exactly what was uploaded (the local `.zip` is gitignored).
+It fails the run if the tag and `manifest.json` version disagree. `manifest.json`
+is the source of truth for the shipped version; `package.json`'s `version` is
+unrelated and unused (npm requires semver, which Chrome's `0.20` scheme isn't).
+
+Run the workflow manually (Actions → Release → Run workflow) to get a package
+off an untagged commit without cutting a release.
+
+By hand, if you need to:
+
 ```bash
 # 1. bump the version in manifest.json (the Web Store rejects re-used versions)
 # 2. rebuild

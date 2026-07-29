@@ -25,3 +25,13 @@ jobs:
       - run: npm run lint
       - run: npx vitest run
       - run: npm run build
+
+      # Guards a real regression: an earlier package shipped internal URLs and
+      # scenario mock data. See store/UPLOAD-GUIDE.md. Release runs this too,
+      # but catching it on the PR beats catching it at the tag.
+      - name: Verify no codeyam artifacts or internal URLs in build
+        run: |
+          if grep -rlE "codeyam|s2/favicons|notion\.so|fonts\.googleapis" build; then
+            echo "::error::build/ contains codeyam artifacts or internal URLs"
+            exit 1
+          fi

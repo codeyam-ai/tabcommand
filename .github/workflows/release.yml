@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  # Lets you produce a package off an untagged commit without cutting a
+  # release — useful for handing someone a build to load unpacked.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx vitest run
+      - run: npm run build
+
+      # manifest.json is the source of truth for the shipped version — the Web
+      # Store rejects a re-used version, and package.json can't hold Chrome's
+      # non-semver scheme (0.20) anyway.
+      - name: Resolve version
+        id: version
+        run: echo "value=$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag matches manifest version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          MANIFEST: ${{ steps.version.outputs.value }}
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$tag" != "$MANIFEST" ]; then
+            echo "::error::tag $GITHUB_REF_NAME implies version $tag but manifest.json says $MANIFEST"
+            exit 1
+          fi
+
+      # Guards a real regression: an earlier package shipped internal URLs and
+      # scenario mock data. See store/UPLOAD-GUIDE.md.
+      - name: Verify no codeyam artifacts or internal URLs in build
+        run: |
+          if grep -rlE "codeyam|s2/favicons|notion\.so|fonts\.googleapis" build; then
+            echo "::error::build/ contains codeyam artifacts or internal URLs"
+            exit 1
+          fi
+
+      # manifest.json must sit at the ZIP ROOT. -X drops extra file attributes
+      # so the archive is reproducible.
+      - name: Package
+        run: |
+          mkdir -p dist
+          cd build && zip -rqX "../dist/tabcommand-${{ steps.version.outputs.value }}.zip" . -x ".*"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tabcommand-${{ steps.version.outputs.value }}
+          path: dist/*.zip
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.zip --title "$GITHUB_REF_NAME" --generate-notes
