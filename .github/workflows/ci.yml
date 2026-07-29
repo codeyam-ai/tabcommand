@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+# Supersede in-flight runs for the same ref — codeyam state commits often land
+# in quick succession and only the latest one needs a verdict.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
