@@ -28,7 +28,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run --reporter=json",
+    "test": "vitest run",
+    "test:json": "vitest run --reporter=json",
     "test:watch": "vitest",
     "lint": "eslint ."
   },

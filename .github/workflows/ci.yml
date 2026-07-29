@@ -23,7 +23,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
-      - run: npx vitest run
+      - run: npm test
       - run: npm run build
 
       # Guards a real regression: an earlier package shipped internal URLs and
