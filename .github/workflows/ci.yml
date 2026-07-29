@@ -22,6 +22,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+
+      # Production deps only — those are the ones that end up in the packaged
+      # extension. The dev toolchain carries known advisories whose fixes are
+      # major bumps (vite, vitest); Dependabot surfaces those as reviewable PRs
+      # instead of wedging every unrelated CI run red.
+      - run: npm audit --omit=dev --audit-level=high
+
       - run: npm run lint
       - run: npm test
       - run: npm run build
