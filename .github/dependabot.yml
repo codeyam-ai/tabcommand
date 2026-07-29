@@ -1,30 +1,40 @@
 version: 2
 
+# Tuned for "rarely, and only when it matters": security fixes and majors.
+#
+# Two separate mechanisms are at work here:
+#
+#   * Security updates fire when an advisory is published, are NOT bound by the
+#     schedule below, and are NOT subject to open-pull-requests-limit. They are
+#     enabled at the repo level (Settings → Code security), not in this file.
+#   * Version updates are the scheduled sweep configured below.
+#
+# Deliberately NO `ignore:` rules for semver levels. `ignore` filters security
+# updates as well as version updates, so ignoring semver-patch to cut noise
+# would also swallow a patch-level CVE fix — the opposite of the intent.
+# Noise is controlled with grouping and cadence instead, neither of which
+# touches security updates.
+
 updates:
-  # Grouped and monthly on purpose: this is a small extension with a fast CI
-  # run, and a weekly ungrouped cadence would bury real security bumps under
-  # routine churn.
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: monthly
+      interval: quarterly
     open-pull-requests-limit: 5
     groups:
-      dev-dependencies:
-        dependency-type: development
+      # Everything routine collapses into one PR you can review or close in a
+      # single pass. Majors are deliberately left out of the group, so each
+      # arrives as its own PR — a major is a decision, not a chore.
+      routine:
+        patterns: ['*']
         update-types: [minor, patch]
-      production-minor-patch:
-        dependency-type: production
-        update-types: [minor, patch]
-    ignore:
-      # Pinned to a 2.x beta by the build; a major bump needs the Vite/MV3
-      # packaging path re-verified by hand, not an auto-PR.
-      - dependency-name: '@crxjs/vite-plugin'
+    labels: [dependencies]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: quarterly
     groups:
       actions:
         patterns: ['*']
+    labels: [dependencies]
