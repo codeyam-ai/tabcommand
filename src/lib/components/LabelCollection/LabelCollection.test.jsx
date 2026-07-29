@@ -117,6 +117,44 @@ describe('LabelCollection', () => {
     });
   });
 
+  // Reproduction: the group row's ✕ means "un-file this page", so it must ask
+  // about the GROUP and nothing else. The old flow asked a second question —
+  // "Also delete … from your history entirely?" — on every single removal, and
+  // one stray Enter on that dialog destroyed the page's history.
+  it('does not offer to delete the url from history', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    seed('labels', {
+      Work: { title: 'Work', backgroundColor: '#1873E4', position: 0, urlKeys: ['url-a', 'url-b'] }
+    });
+    seed('url-a', { title: 'Alpha', favicon: '' });
+    seed('url-b', { title: 'Beta', favicon: '' });
+    seed('allUrls', ['url-a', 'url-b']);
+    installChromeShim();
+
+    const { container } = renderCollection({
+      title: 'Work',
+      backgroundColor: '#1873E4',
+      urlKeys: ['url-a', 'url-b'],
+      expanded: true
+    });
+
+    await screen.findByText('Alpha');
+    await userEvent.click(container.querySelectorAll('[data-tool-tip="Remove"]')[0]);
+
+    await waitFor(async () => {
+      const { labels } = await get('labels');
+      expect(labels.Work.urlKeys).toEqual(['url-b']);
+    });
+
+    // exactly one dialog, and it is the group question
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(confirmSpy.mock.calls[0][0]).not.toMatch(/history/i);
+    // the page itself survives — no tombstone was written
+    const { allUrls, deletedUrls } = await get(['allUrls', 'deletedUrls']);
+    expect(allUrls).toContain('url-a');
+    expect(deletedUrls || {}).not.toHaveProperty('url-a');
+  });
+
   // the group menu control is a real button with a large enough hit target that a
   // near-miss cannot fall through to the header's expand/collapse handler
   it('renders the group menu control as a button with a large hit area', async () => {

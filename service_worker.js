@@ -4,7 +4,9 @@ import samePageKey from './src/lib/utils/samePageKey.js';
 import pruneDeletedUrls from './src/lib/utils/pruneDeletedUrls.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
 import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
+import navigatedAwayFromRecordedSlot from './src/lib/utils/navigatedAwayFromRecordedSlot.js';
 import { buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource } from './src/lib/utils/groupRemovalLog.js';
+import { buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource } from './src/lib/utils/groupAdditionLog.js';
 
 let defaultWindowId;
 let listening = true;
@@ -74,6 +76,46 @@ function recordRemoval(source, details) {
       )
     });
   });
+}
+
+// Records a group-membership ADDITION to an always-on audit trail — the mirror
+// image of `recordRemoval`, and unconditional for the same reason. The phantom
+// "App Store Connect" members that kept appearing in the CodeYam group could
+// only be diagnosed by reading the code, because nothing recorded which path
+// appended them; this trail names the exact source on every add. Persists to its
+// own `groupAdditionLog` key so it is never buried by, or trimmed with, the
+// noisy auto-group breadcrumbs in `groupingLog`:
+//   chrome.storage.local.get('groupAdditionLog', console.log)
+// Fire-and-forget: the async storage round-trip never blocks the caller, and it
+// only records additions — it never changes grouping behavior.
+function recordAddition(source, details) {
+  getLocalStorage([GROUP_ADDITION_LOG_KEY], (result) => {
+    update({
+      [GROUP_ADDITION_LOG_KEY]: appendGroupingLog(
+        result[GROUP_ADDITION_LOG_KEY],
+        buildGroupAdditionEntry(source, { ...details, t: Date.now() }),
+        GROUP_ADDITION_LOG_CAP
+      )
+    });
+  });
+}
+
+// Stamp an `activeTabs` entry with the label slot its URL was just filed under.
+// This is what lets a later grouping sync tell "the tab I already recorded has
+// navigated" apart from "a genuinely new URL joined the group" — without it,
+// every navigation of a grouped tab looked like a brand-new member and got
+// appended (the phantom "App Store Connect" rows).
+//
+// It has to live ON the activeTabs entry rather than in a module-level Map:
+// MV3 tears the worker down constantly, and the post-teardown sync is exactly
+// the window where the bogus append happens, so an in-memory map would be empty
+// precisely when it is needed. `activeTabs` already persists to
+// `chrome.storage.local` and its entries vanish when the tab closes, so cleanup
+// is free. Returns true so callers can tell whether they must persist the array.
+function stampLabelMembership(activeTab, labelTitle, urlKey) {
+  activeTab.labelTitle = labelTitle;
+  activeTab.labelUrlKey = urlKey;
+  return true;
 }
 
 // Whether `urlKey` is a deliberate, recorded member of `label`. Centralizes the
@@ -313,6 +355,17 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
                 tabId: tab.id,
                 remaining: label.urlKeys.length
               });
+            } else {
+              // The position-preserving rewrite put a key into a slot that did
+              // not hold it before — an add-in-place. Record both keys so the
+              // rewrite chain behind a surprising member is readable.
+              recordAddition(AdditionSource.WORKER_DRIFT_HEAL, {
+                labelTitle,
+                urlKeys: [newUrlKey],
+                previousKey,
+                tabId: tab.id,
+                total: label.urlKeys.length
+              });
             }
           }
         }
@@ -464,7 +517,13 @@ async function updateActiveTabs() {
             openedAt: (existingTab ?? { openedAt: Date.now() }).openedAt,
             tabCommandPinned: (existingTab ?? {}).tabCommandPinned,
             autoClosedAt: (autoClosed || {})[getUrlKey(tab.url)],
-            active: tab.active
+            active: tab.active,
+            // Carry the group-membership stamp forward. This rebuild constructs
+            // a fresh object per tab, so any field it does not name is erased —
+            // and this one is erased on the very NEXT tab update, long before the
+            // sync that needs it, leaving the append guard blind.
+            labelTitle: (existingTab ?? {}).labelTitle,
+            labelUrlKey: (existingTab ?? {}).labelUrlKey
           }
         }
       );
@@ -1080,6 +1139,7 @@ async function handleActiveTabsGroupChanges(changes) {
       const { labels } = await getLocalStorage('labels') || {};
 
       let changed = false;
+      let stamped = false;
       if (newGroup) {
         // Seed the label before pushing — the old `|| { urlKeys: [] }` fallback
         // was never written back, so pushing into `labels[newGroup.title]` threw
@@ -1108,6 +1168,16 @@ async function handleActiveTabsGroupChanges(changes) {
           // earlier auto-grouped flag so groupTabs won't later yank the tab out.
           autoGroupedTabs.delete(parseTabId(newTab));
           label.urlKeys.push(newTab.urlKey);
+          // Stamp the tab with the label/key it was just filed under, so a later
+          // grouping sync can tell "this tab navigated" apart from "a new URL
+          // joined the group" (see the guard in recordInGroupTab).
+          stamped = stampLabelMembership(newTab, newGroup.title, newTab.urlKey);
+          recordAddition(AdditionSource.WORKER_GROUP_CHANGED, {
+            labelTitle: newGroup.title,
+            urlKeys: [newTab.urlKey],
+            tabId: parseTabId(newTab),
+            total: label.urlKeys.length
+          });
           changed = true;
         }
       }
@@ -1132,7 +1202,11 @@ async function handleActiveTabsGroupChanges(changes) {
         }
       }
 
-      if (changed) update({ labels: labels });
+      // The stamp lives on the `activeTabs` entry (see stampLabelMembership), so
+      // it only survives if this same write persists the mutated array. `newValue`
+      // IS the array storage currently holds, and the re-entrant onChanged this
+      // write triggers no-ops because no groupId moved.
+      if (changed) update({ labels: labels, ...(stamped ? { activeTabs: newValue } : {}) });
     }
   }
 }
@@ -1177,8 +1251,13 @@ async function ejectAutoGroupedTab(activeTab, groupTitle) {
 // doesn't exist yet, and persist. This is the "make membership permanent" path —
 // it now runs only for non-auto-grouped tabs (e.g. startup sync of pre-existing
 // Chrome groups), never for Chrome's per-tab inheritance.
-function recordInGroupTab(labels, group, activeTab) {
+// `activeTabs` is optional and only used to PERSIST the membership stamp — the
+// caller (groupTabs) already holds the array `activeTab` came out of, so the
+// stamp rides along in this same write instead of costing another storage read.
+function recordInGroupTab(labels, group, activeTab, activeTabs) {
   const label = labels[group.title];
+  let stamped = false;
+  const stamp = (urlKey) => { stamped = stampLabelMembership(activeTab, group.title, urlKey); };
   debugGroup('groupTabs: record in-group tab urlKey into label', {
     tabId: parseTabId(activeTab),
     urlKey: activeTab.urlKey,
@@ -1193,6 +1272,13 @@ function recordInGroupTab(labels, group, activeTab) {
       urlKeys: [activeTab.urlKey],
       color: mapColors(group.color)
     };
+    stamp(activeTab.urlKey);
+    recordAddition(AdditionSource.WORKER_IN_GROUP_SYNC, {
+      labelTitle: group.title,
+      urlKeys: [activeTab.urlKey],
+      tabId: parseTabId(activeTab),
+      total: 1
+    });
   } else {
     // Drift-aware record. When MV3 tears down the service worker, the next sync
     // sees a Google Doc whose live `?tab=t.…` has drifted away from the recorded
@@ -1200,12 +1286,53 @@ function recordInGroupTab(labels, group, activeTab) {
     // the doc to the bottom of the group. Heal a same-page slot in place first
     // (shared with the onUpdated drift-heal) so the doc keeps its recorded
     // position; only a genuinely-new URL falls through to an append.
-    const { found, removed, previousKey } = healDriftedLabelSlot(
+    const { found, mutated, removed, previousKey } = healDriftedLabelSlot(
       label,
       activeTab.urlKey,
       activeTab.urlKey.replace(/^url-/, '')
     );
-    if (!found) label.urlKeys.push(activeTab.urlKey);
+    if (found) {
+      // A position-preserving rewrite is an add-in-place — the slot now holds a
+      // different key than it did — so it belongs in the addition trail too,
+      // carrying both keys so a rewrite chain is readable. The dedup SPLICE
+      // branch (`removed`) is a drop, not an add; it is audited as a removal below.
+      if (mutated && !removed) {
+        stamp(activeTab.urlKey);
+        recordAddition(AdditionSource.WORKER_DRIFT_HEAL, {
+          labelTitle: group.title,
+          urlKeys: [activeTab.urlKey],
+          previousKey,
+          tabId: parseTabId(activeTab),
+          total: label.urlKeys.length
+        });
+      }
+    } else if (navigatedAwayFromRecordedSlot(label, group.title, activeTab)) {
+      // This is the tab we already filed under `labelUrlKey`, and it has simply
+      // navigated somewhere else on the site. A path change is not a same-page
+      // drift, so healDriftedLabelSlot found nothing and the old code appended
+      // the live URL as a SECOND permanent member — one phantom row per
+      // navigation the eject path missed (MV3 teardown, ungroup races). Refuse
+      // the append and leave the label untouched. Membership for the TAB is
+      // already owned by the onUpdated eject path, which ungroups on a real
+      // navigation; this only stops the LABEL from growing a member nobody filed.
+      debugGroup('groupTabs: refuse append for tab navigating away from its recorded slot', {
+        tabId: parseTabId(activeTab),
+        recordedUrlKey: activeTab.labelUrlKey,
+        liveUrlKey: activeTab.urlKey,
+        label: group.title,
+        groupId: activeTab.groupId
+      });
+      return;
+    } else {
+      label.urlKeys.push(activeTab.urlKey);
+      stamp(activeTab.urlKey);
+      recordAddition(AdditionSource.WORKER_IN_GROUP_SYNC, {
+        labelTitle: group.title,
+        urlKeys: [activeTab.urlKey],
+        tabId: parseTabId(activeTab),
+        total: label.urlKeys.length
+      });
+    }
     // A dedup splice here collapses a drifted duplicate — record it so the trail
     // is complete (same source tag as the onUpdated drift-heal).
     if (removed) {
@@ -1217,7 +1344,7 @@ function recordInGroupTab(labels, group, activeTab) {
       });
     }
   }
-  update({ labels: labels });
+  update({ labels: labels, ...(stamped && activeTabs ? { activeTabs } : {}) });
 }
 
 async function groupTabs(activeTabs, labels) {
@@ -1306,7 +1433,7 @@ async function groupTabs(activeTabs, labels) {
 
       // Non-auto-grouped tab sitting in a group with an unrecorded URL — record it
       // (startup-sync path; Chrome's per-tab inheritance is handled above).
-      recordInGroupTab(labels, group, activeTab);
+      recordInGroupTab(labels, group, activeTab, activeTabs);
 
       labelTabIds[group.title] ||= [];
       labelTabIds[group.title].push(activeTab);

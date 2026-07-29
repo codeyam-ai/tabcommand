@@ -534,8 +534,10 @@ const ISOLATION_PROPS = {
       index: 0,
       draggable: false,
       title: 'Work',
-      // Two open tabs (seeded into `activeTabs`) plus two saved-only tabs, so
-      // the card exercises both the OPEN section and the plain saved section.
+      // Three open tabs (seeded into `activeTabs` by the work-group scenario)
+      // plus one saved-only tab, so the card exercises both the OPEN section and
+      // the plain saved section, with enough open rows to cover the many-active
+      // case rather than just a pair.
       urlKeys: [
         'url-https://github.com/codeyam/tabcommand',
         'url-https://www.figma.com/file/tabcommand',
@@ -555,6 +557,34 @@ const ISOLATION_PROPS = {
         title: 'Inbox',
         urlKeys: [],
         backgroundColor: '#707071',
+        expanded: true,
+      },
+      // The bug, before the fix: ONE App Store Connect page was filed into the
+      // CodeYam group, but every time that tab navigated deeper into the site the
+      // grouping sync appended the live URL as another permanent member. The rows
+      // share a title, so the card's ambiguous-title path shows the disambiguating
+      // URL subtitle — which is what makes the duplication legible at all.
+      'phantom-members': {
+        index: 0,
+        draggable: false,
+        title: 'CodeYam',
+        urlKeys: [
+          'url-https://appstoreconnect.apple.com/apps',
+          'url-https://appstoreconnect.apple.com/apps/123/distribution',
+          'url-https://appstoreconnect.apple.com/apps/123/testflight',
+          'url-https://appstoreconnect.apple.com/apps/123/appstore/versions',
+        ],
+        backgroundColor: '#1873E4',
+        expanded: true,
+      },
+      // The same group after the guard: the tab may wander anywhere inside the
+      // site, and the group still holds exactly the one page the user filed.
+      'guarded-single-member': {
+        index: 0,
+        draggable: false,
+        title: 'CodeYam',
+        urlKeys: ['url-https://appstoreconnect.apple.com/apps'],
+        backgroundColor: '#1873E4',
         expanded: true,
       },
     },

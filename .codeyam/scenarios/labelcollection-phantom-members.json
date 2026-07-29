@@ -1,0 +1,22 @@
+{
+  "name": "LabelCollection - Phantom Members",
+  "id": "075110d3-46d3-4848-835c-25883f6c98e8",
+  "url": "/?isolate=LabelCollection&variant=phantom-members",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://appstoreconnect.apple.com/apps/123/appstore/versions": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps/123/distribution": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://appstoreconnect.apple.com/apps/123/distribution\",\"tabKey\":\"tab-311\",\"pinned\":false}]",
+      "uxSettings": "{\"selectedLabel\":\"CodeYam\",\"page\":{\"name\":\"Home\"}}",
+      "url-https://appstoreconnect.apple.com/apps/123/testflight": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "description": "The bug before the fix: a single App Store Connect page was filed into the CodeYam group, but each time that tab navigated deeper into the site the grouping sync appended its live URL as another permanent member. Four rows from one add — the shared title forces the disambiguating URL subtitle that makes the duplication visible."
+}

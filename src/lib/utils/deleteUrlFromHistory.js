@@ -1,9 +1,10 @@
 import { Chrome } from './Chrome';
 
 // The single place a page is deleted from History. Every caller — the History
-// page's row ✕, the group card's "also delete from history" path, and Url's
-// remove action — routes through here so there is exactly one read-modify-write
-// over the history stores instead of a copy per call site.
+// page's row ✕ and Url's remove action — routes through here so there is exactly
+// one read-modify-write over the history stores instead of a copy per call site.
+// Note the group card is NOT a caller: its ✕ un-files a page from the group and
+// deliberately leaves history alone.
 //
 // Deleting is a THREE-store operation, and the order matters:
 //

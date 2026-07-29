@@ -8,12 +8,19 @@ import samePageKey from './src/lib/utils/samePageKey.js';
 import pruneDeletedUrls from './src/lib/utils/pruneDeletedUrls.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
 import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
+import navigatedAwayFromRecordedSlot from './src/lib/utils/navigatedAwayFromRecordedSlot.js';
 import {
   buildGroupRemovalEntry,
   GROUP_REMOVAL_LOG_KEY,
   GROUP_REMOVAL_LOG_CAP,
   RemovalSource,
 } from './src/lib/utils/groupRemovalLog.js';
+import {
+  buildGroupAdditionEntry,
+  GROUP_ADDITION_LOG_KEY,
+  GROUP_ADDITION_LOG_CAP,
+  AdditionSource,
+} from './src/lib/utils/groupAdditionLog.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -82,10 +89,15 @@ function loadWorker(chrome) {
     'pruneDeletedUrls',
     'appendGroupingLog',
     'healDriftedLabelSlot',
+    'navigatedAwayFromRecordedSlot',
     'buildGroupRemovalEntry',
     'GROUP_REMOVAL_LOG_KEY',
     'GROUP_REMOVAL_LOG_CAP',
     'RemovalSource',
+    'buildGroupAdditionEntry',
+    'GROUP_ADDITION_LOG_KEY',
+    'GROUP_ADDITION_LOG_CAP',
+    'AdditionSource',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
@@ -96,7 +108,7 @@ function loadWorker(chrome) {
              startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad,
              autoCloseSweep, isAutoCloseEligible, pruneAutoClosed,
              autoCloseThresholdMinutes, urlKeyIsMember, ejectAutoGroupedTab,
-             recordInGroupTab, debugGroup, pruneVisits },
+             recordInGroupTab, debugGroup, pruneVisits, stampLabelMembership },
       state: {
         get groups() { return groups; },
         get samples() { return samples; },
@@ -106,7 +118,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource);
 }
 
 describe('service_worker.js', () => {
@@ -1014,6 +1026,107 @@ describe('service_worker.js', () => {
         'url-https://docs.google.com/document/d/ABC/edit?tab=t.9',
         'url-https://other.com',
       ]);
+    });
+
+    // Reproduction: one App Store Connect page was filed into the group, then that
+    // same tab navigated deeper into the site. A path change is not a same-page
+    // drift, so healDriftedLabelSlot finds no slot and the sync path appends the new
+    // URL as a SECOND permanent member — which is how the CodeYam group ended up
+    // with several "App Store Connect" rows from a single add.
+    it('does not add a second member when the recorded tab navigates within the site', () => {
+      const labels = {
+        CodeYam: {
+          title: 'CodeYam',
+          urlKeys: ['url-https://appstoreconnect.apple.com/apps'],
+          color: '#1873E4',
+        },
+      };
+      fns.recordInGroupTab(
+        labels,
+        { title: 'CodeYam', color: 'blue' },
+        {
+          tabKey: 'tab-7',
+          urlKey: 'url-https://appstoreconnect.apple.com/apps/123/distribution',
+          groupId: 5,
+          labelTitle: 'CodeYam',
+          labelUrlKey: 'url-https://appstoreconnect.apple.com/apps',
+        }
+      );
+      expect(labels.CodeYam.urlKeys).toEqual(['url-https://appstoreconnect.apple.com/apps']);
+    });
+
+    // The guard is per-tab-and-per-label: a tab stamped for a DIFFERENT group is
+    // not the tab this label recorded, so its URL is a genuine new member.
+    it('still appends when the tab is stamped for a different label', () => {
+      const labels = {
+        CodeYam: {
+          title: 'CodeYam',
+          urlKeys: ['url-https://appstoreconnect.apple.com/apps'],
+          color: '#1873E4',
+        },
+      };
+      fns.recordInGroupTab(
+        labels,
+        { title: 'CodeYam', color: 'blue' },
+        {
+          tabKey: 'tab-7',
+          urlKey: 'url-https://example.com/new',
+          groupId: 5,
+          labelTitle: 'Work',
+          labelUrlKey: 'url-https://example.com/old',
+        }
+      );
+      expect(labels.CodeYam.urlKeys).toEqual([
+        'url-https://appstoreconnect.apple.com/apps',
+        'url-https://example.com/new',
+      ]);
+    });
+
+    // A stale stamp must not suppress real appends forever: once the user removes
+    // the recorded slot by hand, the stamp points at a non-member and the guard
+    // stands down.
+    it('still appends when the stamped slot is no longer a member', () => {
+      const labels = {
+        CodeYam: { title: 'CodeYam', urlKeys: ['url-https://other.com'], color: '#1873E4' },
+      };
+      fns.recordInGroupTab(
+        labels,
+        { title: 'CodeYam', color: 'blue' },
+        {
+          tabKey: 'tab-7',
+          urlKey: 'url-https://appstoreconnect.apple.com/apps/123/distribution',
+          groupId: 5,
+          labelTitle: 'CodeYam',
+          labelUrlKey: 'url-https://appstoreconnect.apple.com/apps',
+        }
+      );
+      expect(labels.CodeYam.urlKeys).toEqual([
+        'url-https://other.com',
+        'url-https://appstoreconnect.apple.com/apps/123/distribution',
+      ]);
+    });
+
+    // Recording a member stamps the tab with the slot it was filed under — that
+    // stamp is the entire input to the navigation guard on the next sync.
+    it('stamps the tab with the label and urlKey it was filed under', () => {
+      const labels = {};
+      const activeTab = { tabKey: 'tab-7', urlKey: 'url-https://b.com', groupId: 5 };
+      fns.recordInGroupTab(labels, { title: 'Work', color: 'blue' }, activeTab);
+      expect(activeTab.labelTitle).toBe('Work');
+      expect(activeTab.labelUrlKey).toBe('url-https://b.com');
+    });
+
+    // The stamp only survives if it is persisted with the labels write; the caller
+    // hands in the activeTabs array it came from so both land in one storage set.
+    it('persists the stamped activeTabs alongside the labels write', () => {
+      const labels = {};
+      const activeTab = { tabKey: 'tab-7', urlKey: 'url-https://b.com', groupId: 5 };
+      const activeTabs = [activeTab];
+      fns.recordInGroupTab(labels, { title: 'Work', color: 'blue' }, activeTab, activeTabs);
+      const written = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.labels);
+      expect(written.activeTabs[0].labelUrlKey).toBe('url-https://b.com');
     });
 
     // A genuinely new URL (no same-page slot) still appends, so the drift-heal

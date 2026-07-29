@@ -1,0 +1,19 @@
+{
+  "name": "LabelCollection - Guarded Single Member",
+  "id": "2e79d2e5-6584-42e7-bca7-5f4a601bf165",
+  "url": "/?isolate=LabelCollection&variant=guarded-single-member",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "uxSettings": "{\"selectedLabel\":\"CodeYam\",\"page\":{\"name\":\"Home\"}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://appstoreconnect.apple.com/apps/123/distribution\",\"tabKey\":\"tab-311\",\"pinned\":false,\"labelTitle\":\"CodeYam\",\"labelUrlKey\":\"url-https://appstoreconnect.apple.com/apps\"}]",
+      "url-https://appstoreconnect.apple.com/apps": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "description": "The same CodeYam group after the append guard: the recorded tab may navigate anywhere inside appstoreconnect.apple.com and the group still holds exactly the one page the user filed. No phantom rows, no title collision, no URL subtitle. Its activeTabs entry carries the labelTitle/labelUrlKey stamp the guard reads."
+}

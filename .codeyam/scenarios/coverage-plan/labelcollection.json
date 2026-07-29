@@ -1,0 +1,228 @@
+{
+  "surface": "LabelCollection",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "inactiveUrls",
+      "value": "empty",
+      "rationale": "source-derived state inactiveUrls=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "inactiveUrls",
+      "value": "one",
+      "rationale": "source-derived state inactiveUrls=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "inactiveUrls",
+      "value": "many",
+      "rationale": "source-derived state inactiveUrls=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "activeUrls",
+      "value": "empty",
+      "rationale": "source-derived state activeUrls=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "activeUrls",
+      "value": "one",
+      "rationale": "source-derived state activeUrls=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "activeUrls",
+      "value": "many",
+      "rationale": "source-derived state activeUrls=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "currentUrlKeys",
+      "value": "empty",
+      "rationale": "source-derived state currentUrlKeys=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "currentUrlKeys",
+      "value": "one",
+      "rationale": "source-derived state currentUrlKeys=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "currentUrlKeys",
+      "value": "many",
+      "rationale": "source-derived state currentUrlKeys=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "updatedUrlKeys",
+      "value": "empty",
+      "rationale": "source-derived state updatedUrlKeys=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "updatedUrlKeys",
+      "value": "one",
+      "rationale": "source-derived state updatedUrlKeys=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "updatedUrlKeys",
+      "value": "many",
+      "rationale": "source-derived state updatedUrlKeys=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "relevant",
+      "value": "empty",
+      "rationale": "source-derived state relevant=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "relevant",
+      "value": "one",
+      "rationale": "source-derived state relevant=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "relevant",
+      "value": "many",
+      "rationale": "source-derived state relevant=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "t",
+      "value": "true",
+      "rationale": "source-derived state t=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "t",
+      "value": "false",
+      "rationale": "source-derived state t=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "menuDisplayed",
+      "value": "true",
+      "rationale": "source-derived state menuDisplayed=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "menuDisplayed",
+      "value": "false",
+      "rationale": "source-derived state menuDisplayed=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "event",
+      "value": "true",
+      "rationale": "source-derived state event=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "event",
+      "value": "false",
+      "rationale": "source-derived state event=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "hasTitles",
+      "value": "true",
+      "rationale": "source-derived state hasTitles=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "hasTitles",
+      "value": "false",
+      "rationale": "source-derived state hasTitles=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "hasUpdates",
+      "value": "true",
+      "rationale": "source-derived state hasUpdates=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "hasUpdates",
+      "value": "false",
+      "rationale": "source-derived state hasUpdates=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "currentBackgroundColor",
+      "value": "true",
+      "rationale": "source-derived state currentBackgroundColor=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "currentBackgroundColor",
+      "value": "false",
+      "rationale": "source-derived state currentBackgroundColor=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "rect",
+      "value": "true",
+      "rationale": "source-derived state rect=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "rect",
+      "value": "false",
+      "rationale": "source-derived state rect=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "tab",
+      "value": "true",
+      "rationale": "source-derived state tab=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "tab",
+      "value": "false",
+      "rationale": "source-derived state tab=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "changedTitles",
+      "value": "true",
+      "rationale": "source-derived state changedTitles=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "changedTitles",
+      "value": "false",
+      "rationale": "source-derived state changedTitles=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "updates",
+      "value": "true",
+      "rationale": "source-derived state updates=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "updates",
+      "value": "false",
+      "rationale": "source-derived state updates=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "record",
+      "value": "true",
+      "rationale": "source-derived state record=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "record",
+      "value": "false",
+      "rationale": "source-derived state record=false",
+      "status": "covered"
+    }
+  ]
+}

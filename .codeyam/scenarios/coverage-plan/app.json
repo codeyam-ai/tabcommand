@@ -1,0 +1,66 @@
+{
+  "surface": "App",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "tracksCursor",
+      "value": "true",
+      "rationale": "source-derived state tracksCursor=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "tracksCursor",
+      "value": "false",
+      "rationale": "source-derived state tracksCursor=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "labelsElement",
+      "value": "true",
+      "rationale": "source-derived state labelsElement=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "labelsElement",
+      "value": "false",
+      "rationale": "source-derived state labelsElement=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "addition",
+      "value": "true",
+      "rationale": "source-derived state addition=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "addition",
+      "value": "false",
+      "rationale": "source-derived state addition=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "removal",
+      "value": "true",
+      "rationale": "source-derived state removal=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "removal",
+      "value": "false",
+      "rationale": "source-derived state removal=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "isHome",
+      "value": "true",
+      "rationale": "source-derived state isHome=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "isHome",
+      "value": "false",
+      "rationale": "source-derived state isHome=false",
+      "status": "covered"
+    }
+  ]
+}

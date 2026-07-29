@@ -160,6 +160,14 @@
     "description": "One group card: a colored title bar (click selects the group via uxSettings.selectedLabel), a 28px menu button opening a LabelCollectionMenu, and a full-card Droppable spanning the title bar and a vertical list of Url rows split into active above inactive. The menu and its click-outside dismiss overlay are portalled to document.body and positioned via anchoredMenuCoords, because the card's own overflow: hidden (load-bearing for the UrlOver inset ring and rounded corners) would otherwise clip the menu at the card's bottom edge. While a tab is dragged the whole card highlights in the group color when it is the cursor target. removeUrl keeps its original meaning — un-file the page from the group and log it via buildGroupRemovalEntry — and then offers an explicit second choice to also delete the page from history, asked only after the group removal and its audit entry are already written so declining never rolls back the un-filing. The card is itself draggable for reordering.",
     "filePath": "src/lib/components/LabelCollection/LabelCollection.jsx",
     "name": "LabelCollection",
+    "scenarios": [
+      "labelcollection-work-group",
+      "labelcollection-phantom-members",
+      "labelcollection-guarded-single-member",
+      "labelcollection-remove-control-revealed",
+      "labelcollection-empty",
+      "labelcollection-menu-open"
+    ],
     "testFile": "src/lib/components/LabelCollection/LabelCollection.test.jsx"
   },
   {
@@ -471,6 +479,12 @@
     "testFile": "src/lib/utils/bucketVisitsByWeek.test.js"
   },
   {
+    "description": "Builds one entry for the always-on group-membership ADDITION audit trail, the mirror image of buildGroupRemovalEntry. Coerces urlKeys to an array, normalizes a missing tabId to null while preserving tabId 0, carries `total` as the label's member count AFTER the add, and carries `previousKey` only for the drift-heal source where the add is a rewrite-in-place. Clock-free: `t` is caller-supplied so the builder stays pure and needs no chrome or Date stubbing. Exists because groups were growing members nobody filed and no trail recorded which code path appended them.",
+    "filePath": "src/lib/utils/groupAdditionLog.js",
+    "name": "buildGroupAdditionEntry",
+    "testFile": "src/lib/utils/groupAdditionLog.test.js"
+  },
+  {
     "description": "Pure builder for one always-on group-membership removal audit entry. Given a removal source tag and details, returns a uniform record carrying the caller-supplied timestamp t, source, label title, a urlKeys array coerced from a bare key or array, a tabId normalized to null when absent while preserving a real 0, and the label's remaining member count after the removal. Clock-free and IO-free so both runtimes build identical breadcrumbs and it is unit-testable without stubbing chrome or Date.",
     "filePath": "src/lib/utils/groupRemovalLog.js",
     "name": "buildGroupRemovalEntry",
@@ -599,6 +613,12 @@
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "deriveUrlLabels",
     "testFile": "src/lib/utils/urlDetails.test.js"
+  },
+  {
+    "description": "Describes the destination-group addition caused by a URL drag, or null when nothing joined a group: non-URL drags (label reorders), drops outside any group, drags with no destination, and same-group reorders. Mirror of describeDragRemoval, but deliberately DOES describe a sidebar-origin drag — that drop adds a member while removing none, which is exactly the 'where did that row come from' case the addition trail exists for. The returned shape feeds straight into buildGroupAdditionEntry as its details object.",
+    "filePath": "src/lib/utils/describeDragAddition.js",
+    "name": "describeDragAddition",
+    "testFile": "src/lib/utils/describeDragAddition.test.js"
   },
   {
     "description": "Pure descriptor of the source-group member removal caused by a URL drag, or null when nothing should be recorded: non-URL label reorders, sidebar-origin drags with no source group, drags with no destination, and same-group reorders. Parses the @hello-pangea/dnd result to name the source label and moved urlKey, and reads the post-applyDrag labels map for the source group's new length. Its return shape feeds directly into buildGroupRemovalEntry as the details object.",
@@ -904,6 +924,12 @@
     "testFile": "src/lib/utils/deriveSystemTotals.test.js"
   },
   {
+    "description": "Whether a tab is the one already filed under a slot in a label and is now sitting on a different url — a navigation, not a new member. The precise, per-tab, exact-key test behind the phantom-member fix: a path change is not a same-page drift, so healDriftedLabelSlot finds no slot and the grouping sync used to append the live url as a second permanent member, one per navigation the eject path missed. Deliberately not per-title or per-host, since a group legitimately holds several pages of one site. Requires the recorded slot to still be a live member so a stale stamp cannot suppress genuine appends forever.",
+    "filePath": "src/lib/utils/navigatedAwayFromRecordedSlot.js",
+    "name": "navigatedAwayFromRecordedSlot",
+    "testFile": "src/lib/utils/navigatedAwayFromRecordedSlot.test.js"
+  },
+  {
     "description": "Registers a newly-visited URL and returns the storage updates. Maintains `allUrls` as a true LRU: the url key is MOVED TO THE FRONT on every visit, not merely inserted when absent, so the list genuinely means recency — the ordering the tail-eviction and every consumer already assume. Keys past MAX_TRACKED_URLS (500) are evicted from the tail and their non-labeled records deleted. A real visit also UN-FORGETS a deleted page: it clears the url's `deletedUrls` tombstone and prunes expired tombstones via pruneDeletedUrls on the same pass, so deleting from History means forget-this rather than block-this and the tombstone map stays bounded by DELETED_URL_TTL_MS. Records the visit twice: on the url-* record (visitCount plus a pruned `visits` array, kept for History and backward compatibility) and, durably, under the site's host in the `siteVisits` map, which the eviction branch never touches — so evicting a url-* key can no longer destroy a site's visit history, and every page of a content site credits the site rather than minting an orphan record. All writes land in one storage set. Gated to real websites via isTrackableUrl; no-ops without a tabId/url.",
     "filePath": "service_worker.js",
     "name": "newUrl",
@@ -1004,6 +1030,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Records a group-membership addition to the always-on groupAdditionLog trail — the mirror of recordRemoval, and unconditional for the same reason. Reads the existing ring buffer, appends a buildGroupAdditionEntry via the shared appendGroupingLog, and writes back under the dedicated groupAdditionLog key so it is never buried by or trimmed with the noisy debugGrouping breadcrumbs. Fire-and-forget: the async storage round-trip never blocks the caller and it only records additions, never changing grouping behavior. Called from every append site with a distinct AdditionSource tag so a phantom member is provable rather than inferred.",
+    "filePath": "service_worker.js",
+    "name": "recordAddition",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Records an in-group tab's URL into its group's label, seeding the label with the group's mapped color when it does not exist yet, then persists via update. Runs only for non-auto-grouped tabs such as startup sync of pre-existing Chrome groups.",
     "filePath": "service_worker.js",
     "name": "recordInGroupTab",
@@ -1086,6 +1118,12 @@
     "filePath": "src/lib/utils/importExport.js",
     "name": "sortLabels",
     "testFile": "src/lib/utils/importExport.test.js"
+  },
+  {
+    "description": "Stamps an activeTabs entry with the label slot its url was just filed under (labelTitle / labelUrlKey), which is the sole input to the navigatedAwayFromRecordedSlot append guard. Lives on the persisted activeTabs entry rather than a module-level Map because MV3 tears the worker down constantly and the post-teardown sync is exactly the window where the bogus append happens, so an in-memory map would be empty precisely when needed; activeTabs entries also vanish when the tab closes, so cleanup is free. Returns true so callers know they must persist the mutated array in their own update write.",
+    "filePath": "service_worker.js",
+    "name": "stampLabelMembership",
+    "testFile": "service_worker.test.js"
   },
   {
     "description": "Starts the stable-Chrome system-load poll loop: runs pollSystemLoad then re-schedules every SYSTEM_POLL_INTERVAL_MS, idempotently (guards against a double timer). Defensively switches back to the chrome.processes listener if that richer API appears mid-session.",

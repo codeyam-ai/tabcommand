@@ -1,0 +1,35 @@
+{
+  "claimStartedAt": "2026-07-29T19:21:07Z",
+  "completedAt": "2026-07-29T22:06:00Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-2",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "group-url-removal-without-history-prompt-and-no-phantom-group-members",
+    "sessionId": "e70978bc-76de-408c-ab00-b9410c9fbbf1",
+    "startedAt": "2026-07-29T19:21:07Z"
+  },
+  "createdAt": "2026-07-29T15:27:51Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/components/LabelCollection/LabelCollection.jsx",
+    "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+    "src/lib/pages/App/App.jsx",
+    "src/lib/utils/deleteUrlFromHistory.js",
+    "src/lib/utils/describeDragAddition.js",
+    "src/lib/utils/describeDragAddition.test.js",
+    "src/lib/utils/groupAdditionLog.js",
+    "src/lib/utils/groupAdditionLog.test.js",
+    "src/lib/utils/navigatedAwayFromRecordedSlot.js",
+    "src/lib/utils/navigatedAwayFromRecordedSlot.test.js"
+  ],
+  "journalTimestamp": "2026-07-29T22:06:00Z",
+  "mode": "ui",
+  "planFile": "completed/group-url-removal-without-history-prompt-and-no-phantom-group-members.md",
+  "slug": "group-url-removal-without-history-prompt-and-no-phantom-group-members",
+  "title": "Group Url Removal Without History Prompt and No Phantom Group Members"
+}

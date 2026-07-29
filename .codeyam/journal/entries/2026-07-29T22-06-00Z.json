@@ -1,0 +1,471 @@
+{
+  "timestamp": "2026-07-29T22:06:00Z",
+  "title": "Group Url Removal Without History Prompt and No Phantom Group Members",
+  "type": "feature",
+  "userRequest": "Can you continue?",
+  "description": "Fixed two group-membership bugs. Removing a URL from a group now asks exactly one question, about the group: the trailing \"Also delete … from your history entirely?\" confirm is gone from LabelCollection.removeUrl, so the row's ✕ means \"un-file this page\" and nothing more — history deletion keeps its own entry points on the History page and in Url's remove action. Second, groups no longer accumulate members nobody filed: the service worker stamps each activeTabs entry with the label slot its URL was recorded under (labelTitle/labelUrlKey, carried through the updateActiveTabs rebuild) and recordInGroupTab now refuses to append when that same tab has merely navigated elsewhere on the site — a path change is not a same-page drift, so healDriftedLabelSlot found no slot and every missed navigation used to land another permanent member (the CodeYam group's several identical \"App Store Connect\" rows from one add). The guard is a new pure predicate, navigatedAwayFromRecordedSlot, extracted beside healDriftedLabelSlot with unit cases for each boundary: unstamped tab, wrong-label stamp, stamp equal to the live key, and a stale stamp whose slot the user removed by hand — each of which still appends normally. Added the mirror-image group-ADDITION audit trail (groupAdditionLog, AdditionSource, recordAddition, describeDragAddition) so the next unexplained member names the exact path that added it — worker:group-changed, worker:in-group-sync, worker:drift-heal or ui:drag — rather than being inferred; the removal trail was always-on but recorded only removals, which is why this bug had no evidence. Both reproduction tests were confirmed RED before the fix, and neutering the guard turns both the unit test and the worker repro red again. Suite: 691 passing, up from 683 with 25 new registered tests.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/group-url-removal-without-history-prompt-and-no-phantom-group-members.md\t.codeyam/plans/completed/group-url-removal-without-history-prompt-and-no-phantom-group-members.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollection-work-group.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-search-engine-dated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-search-engine-dated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-single-entry--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-single-entry--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-stable-chrome-footer--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-token",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/deleteUrlFromHistory.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/app.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/labelcollection.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollection-guarded-single-member.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollection-phantom-members.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollection-remove-control-revealed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-guarded-single-member--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-guarded-single-member--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-phantom-members--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-phantom-members--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-remove-control-revealed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-remove-control-revealed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/describeDragAddition.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/describeDragAddition.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/groupAdditionLog.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/groupAdditionLog.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/navigatedAwayFromRecordedSlot.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/navigatedAwayFromRecordedSlot.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "History - Delete Confirm Armed",
+      "screenshotPath": "history-delete-confirm-armed--desktop.png"
+    },
+    {
+      "name": "History - Empty",
+      "screenshotPath": "history-empty--desktop.png"
+    },
+    {
+      "name": "History - Populated",
+      "screenshotPath": "history-populated--desktop.png"
+    },
+    {
+      "name": "History - Search Engine Dated",
+      "screenshotPath": "history-search-engine-dated--desktop.png"
+    },
+    {
+      "name": "History - Single Entry",
+      "screenshotPath": "history-single-entry--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Group Menu Open",
+      "screenshotPath": "home-group-menu-open--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Stable Chrome Footer",
+      "screenshotPath": "home-stable-chrome-footer--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Guarded Single Member",
+      "screenshotPath": "labelcollection-guarded-single-member--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Menu Open",
+      "screenshotPath": "labelcollection-menu-open--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Phantom Members",
+      "screenshotPath": "labelcollection-phantom-members--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Remove Control Revealed",
+      "screenshotPath": "labelcollection-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Dragging",
+      "screenshotPath": "url-dragging--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 691,
+    "passed": 691,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 691,
+        "passed": 691
+      }
+    ]
+  }
+}

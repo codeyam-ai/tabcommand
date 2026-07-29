@@ -15,12 +15,19 @@ import { Chrome } from '../../utils/Chrome';
 import { applyDrag } from '../../utils/dragReducer';
 import appendGroupingLog from '../../utils/groupingLog';
 import { describeDragRemoval } from '../../utils/describeDragRemoval';
+import { describeDragAddition } from '../../utils/describeDragAddition';
 import {
   buildGroupRemovalEntry,
   GROUP_REMOVAL_LOG_KEY,
   GROUP_REMOVAL_LOG_CAP,
   RemovalSource
 } from '../../utils/groupRemovalLog';
+import {
+  buildGroupAdditionEntry,
+  GROUP_ADDITION_LOG_KEY,
+  GROUP_ADDITION_LOG_CAP,
+  AdditionSource
+} from '../../utils/groupAdditionLog';
 import { dropTargetIdAtPoint } from '../../utils/dropTargeting';
 import { hasPerTabLoadData } from '../../utils/hasPerTabLoadData';
 import { setDragHover, getDragHover, setDragActive } from '../../utils/dragHoverStore';
@@ -133,7 +140,7 @@ const App = () => {
 
     if (!result.destination || !result.destination.droppableId) return;
 
-    Chrome.get('App3', ['labels', 'activeTabs', GROUP_REMOVAL_LOG_KEY], ({ labels, activeTabs, [GROUP_REMOVAL_LOG_KEY]: removalLog }) => {
+    Chrome.get('App3', ['labels', 'activeTabs', GROUP_REMOVAL_LOG_KEY, GROUP_ADDITION_LOG_KEY], ({ labels, activeTabs, [GROUP_REMOVAL_LOG_KEY]: removalLog, [GROUP_ADDITION_LOG_KEY]: additionLog }) => {
       const dropResult = applyDrag(result, { labels, activeTabs });
       if (!dropResult) return;
 
@@ -152,6 +159,19 @@ const App = () => {
           removalLog,
           buildGroupRemovalEntry(RemovalSource.UI_DRAG, { ...removal, t: Date.now() }),
           GROUP_REMOVAL_LOG_CAP
+        );
+      }
+
+      // The mirror side of the same drop: the destination group gained a member.
+      // Recorded unconditionally alongside the removal so a member that appeared
+      // out of nowhere can be traced to a drag rather than inferred from its
+      // absence in the worker trail.
+      const addition = describeDragAddition(result, dropResult.labels);
+      if (addition) {
+        updates[GROUP_ADDITION_LOG_KEY] = appendGroupingLog(
+          additionLog,
+          buildGroupAdditionEntry(AdditionSource.UI_DRAG, { ...addition, t: Date.now() }),
+          GROUP_ADDITION_LOG_CAP
         );
       }
 
