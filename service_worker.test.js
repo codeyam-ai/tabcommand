@@ -892,6 +892,74 @@ describe('service_worker.js', () => {
         .find((o) => o && o.labels);
       expect(wroteLabels).toBeUndefined();
     });
+
+    // The sibling append site needs the same navigated-away guard recordInGroupTab
+    // has. Note this site is only ever reached on a group-to-group move: the
+    // function bails at `if !oldGroup || !newGroup`, so an ungroup-to-nothing
+    // followed by a regroup never arrives here. The reachable case is a tab still
+    // stamped under the DESTINATION label, sitting in another group, moved back in
+    // after navigating. Its live URL must not become a second permanent member.
+    it('refuses the append for a stamped tab moved back into the label it is filed under', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) =>
+        cb(id === 5 ? { id: 5, title: 'GroupB', color: 'blue' }
+                    : { id: 2, title: 'GroupA', color: 'red' })
+      );
+      const labels = {
+        GroupA: { title: 'GroupA', urlKeys: [] },
+        GroupB: { title: 'GroupB', urlKeys: ['url-https://b.com/one'] },
+      };
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ labels }));
+
+      await fns.handleActiveTabsGroupChanges({
+        oldValue: [{ tabKey: 'tab-1', urlKey: 'url-https://b.com/two', groupId: 2, pinned: false }],
+        newValue: [{
+          tabKey: 'tab-1',
+          urlKey: 'url-https://b.com/two',
+          groupId: 5,
+          pinned: false,
+          labelTitle: 'GroupB',
+          labelUrlKey: 'url-https://b.com/one',
+        }],
+      });
+
+      expect(labels.GroupB.urlKeys).toEqual(['url-https://b.com/one']);
+      const wroteLabels = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.labels);
+      expect(wroteLabels).toBeUndefined();
+    });
+
+    // The guard is per-tab and must not block a genuine re-home: a tab stamped under
+    // GroupA moved by hand into GroupB is still recorded into B and removed from A.
+    it('still re-homes a stamped tab moved into a different label', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) =>
+        cb(id === 5 ? { id: 5, title: 'GroupB', color: 'blue' }
+                    : { id: 2, title: 'GroupA', color: 'red' })
+      );
+      const labels = {
+        GroupA: { title: 'GroupA', urlKeys: ['url-z'] },
+        GroupB: { title: 'GroupB', urlKeys: [] },
+      };
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ labels }));
+
+      await fns.handleActiveTabsGroupChanges({
+        oldValue: [{ tabKey: 'tab-1', urlKey: 'url-z', groupId: 2, pinned: false }],
+        newValue: [{
+          tabKey: 'tab-1',
+          urlKey: 'url-z',
+          groupId: 5,
+          pinned: false,
+          labelTitle: 'GroupA',
+          labelUrlKey: 'url-z',
+        }],
+      });
+
+      const written = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o.labels);
+      expect(written.labels.GroupB.urlKeys).toContain('url-z');
+      expect(written.labels.GroupA.urlKeys).not.toContain('url-z');
+    });
   });
 
   describe('groupTabs', () => {
@@ -957,6 +1025,30 @@ describe('service_worker.js', () => {
     it('is false when the label is undefined or null', () => {
       expect(fns.urlKeyIsMember(undefined, 'url-https://a.com')).toBe(false);
       expect(fns.urlKeyIsMember(null, 'url-https://a.com')).toBe(false);
+    });
+  });
+
+  describe('stampLabelMembership', () => {
+    // The stamp reports whether it CHANGED anything, not just that it ran. groupTabs
+    // stamps on every pass, and its persist is a bare storage.set that re-enters
+    // onChanged -> groupTabs; a constant `true` there would loop forever. A repeat
+    // stamp with identical values must therefore be a no-op that returns false while
+    // leaving the recorded slot intact.
+    it('returns true on a fresh stamp and false when the stamp already matches', () => {
+      const activeTab = { tabKey: 'tab-7', urlKey: 'url-https://b.com' };
+      expect(fns.stampLabelMembership(activeTab, 'Work', 'url-https://b.com')).toBe(true);
+      expect(fns.stampLabelMembership(activeTab, 'Work', 'url-https://b.com')).toBe(false);
+      expect(activeTab.labelTitle).toBe('Work');
+      expect(activeTab.labelUrlKey).toBe('url-https://b.com');
+    });
+
+    // A genuinely different slot is still a change, so a re-home re-stamps.
+    it('returns true when the label or key differs from the existing stamp', () => {
+      const activeTab = { labelTitle: 'Work', labelUrlKey: 'url-https://b.com' };
+      expect(fns.stampLabelMembership(activeTab, 'Reading', 'url-https://b.com')).toBe(true);
+      expect(activeTab.labelTitle).toBe('Reading');
+      expect(fns.stampLabelMembership(activeTab, 'Reading', 'url-https://c.com')).toBe(true);
+      expect(activeTab.labelUrlKey).toBe('url-https://c.com');
     });
   });
 
@@ -1217,12 +1309,101 @@ describe('service_worker.js', () => {
       chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
       state.autoGroupedTabs.add(7);
       const labels = { Work: { title: 'Work', urlKeys: ['url-https://b.com'] } };
-      await fns.groupTabs(
-        [{ tabKey: 'tab-7', urlKey: 'url-https://b.com', pinned: false, groupId: 5 }],
-        labels
-      );
+      const activeTab = { tabKey: 'tab-7', urlKey: 'url-https://b.com', pinned: false, groupId: 5 };
+      await fns.groupTabs([activeTab], labels);
       expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
       expect(state.autoGroupedTabs.has(7)).toBe(false);
+      // Confirming membership also records the slot — this is the branch the stamp
+      // was added to, so the flag-clearing and the stamp must happen together.
+      expect(activeTab.labelTitle).toBe('Work');
+      expect(activeTab.labelUrlKey).toBe('url-https://b.com');
+    });
+
+    // Reproduction (root cause): a tab sitting in a group on a URL that IS already a
+    // deliberate member takes groupTabs' urlKeyIsMember `continue` branch, which
+    // confirms membership without recording WHICH slot the tab occupies. The append
+    // guard reads only that stamp, so on this path it is permanently blind.
+    it('stamps the label slot a confirmed member tab occupies', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'CodeYam', color: 'blue' }));
+      const labels = {
+        CodeYam: { title: 'CodeYam', urlKeys: ['url-https://appstoreconnect.apple.com/apps'] },
+      };
+      const activeTab = {
+        tabKey: 'tab-7',
+        urlKey: 'url-https://appstoreconnect.apple.com/apps',
+        pinned: false,
+        groupId: 5,
+      };
+      await fns.groupTabs([activeTab], labels);
+      expect(activeTab.labelTitle).toBe('CodeYam');
+      expect(activeTab.labelUrlKey).toBe('url-https://appstoreconnect.apple.com/apps');
+    });
+
+    // Reproduction (user-visible): open a page already in the group, navigate deeper
+    // into the same site, sync again. A path change is not a same-page drift, so the
+    // heal finds no slot -- and with no stamp from the first pass the guard cannot
+    // fire, so the second page is appended as a permanent second member.
+    it('does not gain a member when a grouped tab navigates within the site', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'CodeYam', color: 'blue' }));
+      const labels = {
+        CodeYam: { title: 'CodeYam', urlKeys: ['url-https://appstoreconnect.apple.com/apps'] },
+      };
+      const activeTab = {
+        tabKey: 'tab-7',
+        urlKey: 'url-https://appstoreconnect.apple.com/apps',
+        pinned: false,
+        groupId: 5,
+      };
+      // Pass 1: the tab is confirmed as a member of the group it is sitting in.
+      await fns.groupTabs([activeTab], labels);
+      // The user navigates deeper into the same site; the tab is still in the group
+      // (the onUpdated eject is async, and its pendingUngroups set is empty after an
+      // MV3 teardown).
+      activeTab.urlKey = 'url-https://appstoreconnect.apple.com/apps/123/distribution';
+      await fns.groupTabs([activeTab], labels);
+      expect(labels.CodeYam.urlKeys).toEqual(['url-https://appstoreconnect.apple.com/apps']);
+    });
+
+    // The other confirm path: an UNGROUPED tab whose urlKey already matches a label
+    // is about to be auto-added to that group. That is the earliest point the binding
+    // is known -- it fires when the user clicks a group row, before Chrome's
+    // tabs.group has landed -- so it must stamp too, closing the window where the
+    // in-group confirm branch has not run yet.
+    it('stamps an ungrouped tab whose urlKey matches a label', async () => {
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://b.com'] } };
+      const activeTab = { tabKey: 'tab-7', urlKey: 'url-https://b.com', pinned: false, groupId: -1 };
+      await fns.groupTabs([activeTab], labels);
+      expect(activeTab.labelTitle).toBe('Work');
+      expect(activeTab.labelUrlKey).toBe('url-https://b.com');
+    });
+
+    // The stamps are persisted in ONE batched write per pass, and a pass that stamps
+    // nothing new must not write at all: update is a bare storage.local.set whose
+    // write re-enters onChanged -> groupTabs, so an unconditional write here would
+    // be an infinite write loop. Two tabs stamping in the same pass therefore
+    // produce a single activeTabs write, and an identical second pass produces none.
+    it('persists stamps in one write per pass and skips the write when nothing changed', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://b.com'] } };
+      const activeTabs = [
+        { tabKey: 'tab-7', urlKey: 'url-https://b.com', pinned: false, groupId: 5 },
+        { tabKey: 'tab-8', urlKey: 'url-https://b.com', pinned: false, groupId: 5 },
+      ];
+
+      await fns.groupTabs(activeTabs, labels);
+      const firstPassWrites = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .filter((o) => o && o.activeTabs);
+      expect(firstPassWrites).toHaveLength(1);
+      expect(activeTabs[0].labelUrlKey).toBe('url-https://b.com');
+      expect(activeTabs[1].labelUrlKey).toBe('url-https://b.com');
+
+      chrome.storage.local.set.mockClear();
+      await fns.groupTabs(activeTabs, labels);
+      const secondPassWrites = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .filter((o) => o && o.activeTabs);
+      expect(secondPassWrites).toHaveLength(0);
     });
 
     // An explicit groupId change is user intent and must clear an earlier

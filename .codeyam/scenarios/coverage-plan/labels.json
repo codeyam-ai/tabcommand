@@ -1,0 +1,120 @@
+{
+  "surface": "Labels",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "sortedLabels",
+      "value": "empty",
+      "rationale": "source-derived state sortedLabels=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "sortedLabels",
+      "value": "one",
+      "rationale": "source-derived state sortedLabels=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "sortedLabels",
+      "value": "many",
+      "rationale": "source-derived state sortedLabels=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "sortedNewLabels",
+      "value": "empty",
+      "rationale": "source-derived state sortedNewLabels=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "sortedNewLabels",
+      "value": "one",
+      "rationale": "source-derived state sortedNewLabels=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "sortedNewLabels",
+      "value": "many",
+      "rationale": "source-derived state sortedNewLabels=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "existingLabels",
+      "value": "empty",
+      "rationale": "source-derived state existingLabels=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "existingLabels",
+      "value": "one",
+      "rationale": "source-derived state existingLabels=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "existingLabels",
+      "value": "many",
+      "rationale": "source-derived state existingLabels=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "newSelectedLabelTitle",
+      "value": "true",
+      "rationale": "source-derived state newSelectedLabelTitle=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "newSelectedLabelTitle",
+      "value": "false",
+      "rationale": "source-derived state newSelectedLabelTitle=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "newLabels",
+      "value": "true",
+      "rationale": "source-derived state newLabels=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "newLabels",
+      "value": "false",
+      "rationale": "source-derived state newLabels=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "_selectedLabel",
+      "value": "true",
+      "rationale": "source-derived state _selectedLabel=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "_selectedLabel",
+      "value": "false",
+      "rationale": "source-derived state _selectedLabel=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "same",
+      "value": "true",
+      "rationale": "source-derived state same=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "same",
+      "value": "false",
+      "rationale": "source-derived state same=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "selectedLabel",
+      "value": "true",
+      "rationale": "source-derived state selectedLabel=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "selectedLabel",
+      "value": "false",
+      "rationale": "source-derived state selectedLabel=false",
+      "status": "planned"
+    }
+  ]
+}

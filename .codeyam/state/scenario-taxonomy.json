@@ -118,6 +118,34 @@
         "status": "added"
       }
     },
+    "LabelCollection": {
+      "empty": {
+        "status": "covered"
+      },
+      "single": {
+        "status": "covered"
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "added"
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "The group card renders from props and a synchronous chrome-shim storage read; there is no pending or skeleton state to capture."
+      },
+      "edge": {
+        "status": "covered"
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "The card has no failure UI: a storage read that yields nothing falls through to the same empty-state path as a group with no members, so no distinct error state renders."
+      },
+      "key-interaction": {
+        "status": "covered"
+      }
+    },
     "Load": {
       "empty": {
         "status": "n-a",

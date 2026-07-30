@@ -1,0 +1,27 @@
+{
+  "name": "LabelCollection - Overflowing Members",
+  "id": "7eb9802d-fac6-4f60-9e66-ff50b9dc86ba",
+  "url": "/?isolate=LabelCollection&variant=overflowing-members",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://appstoreconnect.apple.com/apps/123/activity": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps/123/pricing": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps/123/appstore/versions": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps/123/distribution": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"selectedLabel\":\"CodeYam\",\"page\":{\"name\":\"Home\"}}",
+      "url-https://appstoreconnect.apple.com/apps/123/appstore/info": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://appstoreconnect.apple.com/apps/123/activity\",\"tabKey\":\"tab-311\",\"pinned\":false,\"labelTitle\":\"CodeYam\",\"labelUrlKey\":\"url-https://appstoreconnect.apple.com/apps\"}]",
+      "url-https://appstoreconnect.apple.com/apps/123/analytics": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps/123/reviews": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps/123/testflight": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "description": "The phantom-member bug left to run: one filed App Store Connect page, and a member appended for every place that tab wandered, until the group card has more rows than it has room to render. This is the overflow boundary the four-row Phantom Members case only hints at, and the reason the fix refuses the append at its source instead of trimming what gets displayed. Every row still carries its disambiguating URL subtitle, so the accumulation is legible rather than a wall of identical titles."
+}

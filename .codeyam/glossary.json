@@ -163,7 +163,9 @@
     "scenarios": [
       "labelcollection-work-group",
       "labelcollection-phantom-members",
+      "labelcollection-overflowing-members",
       "labelcollection-guarded-single-member",
+      "labelcollection-deliberate-same-site-members",
       "labelcollection-remove-control-revealed",
       "labelcollection-empty",
       "labelcollection-menu-open"
@@ -759,7 +761,7 @@
     "testFile": "src/lib/utils/groupSearchUrlsByLabel.test.js"
   },
   {
-    "description": "Reconciles Chrome tab groups against the labels model: groups labeled tabs (creating/coloring groups as needed) and ungroups tabs that no longer belong to any label, skipping pinned tabs. Refuses to record a tab whose ungroup is in flight (in pendingUngroups) so a tab navigating out of a group is never captured into it.",
+    "description": "Reconciles Chrome tab groups against the labels model: groups labeled tabs (creating/coloring groups as needed) and ungroups tabs that no longer belong to any label, skipping pinned tabs. Refuses to record a tab whose ungroup is in flight (in pendingUngroups) so a tab navigating out of a group is never captured into it. Also stamps the label slot each tab occupies on both paths that CONFIRM membership rather than create it -- the urlKeyIsMember branch for an in-group tab, and the urlKeys-match branch for an ungrouped tab about to be auto-added -- because the append guard reads only that stamp, and clicking a URL already filed in a group appends nothing and so never triggers the create-time stamps. Persists every stamp from a pass in ONE conditional activeTabs write after the loop; the condition is load-bearing, since an unconditional write would re-enter onChanged and loop forever.",
     "filePath": "service_worker.js",
     "name": "groupTabs",
     "tags": [
@@ -771,7 +773,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Diffs old vs new activeTabs to reconcile label membership when a tab moves between groups, adding/removing its url key from the affected labels; seeds a missing destination label instead of throwing, skips tabs whose ungroup is pending, and no-ops without a previous value.",
+    "description": "Diffs old vs new activeTabs to reconcile label membership when a tab moves between groups, adding/removing its url key from the affected labels; seeds a missing destination label instead of throwing, skips tabs whose ungroup is pending, and no-ops without a previous value. Only group-to-group moves reach the append site -- it bails when either the old or new group fails to resolve, so an ungroup-to-nothing never arrives -- and that append now also carries the navigatedAwayFromRecordedSlot guard, so a tab still stamped under the destination label that navigated and was moved back in does not contribute its live url as a second phantom member. The old-group removal below is unguarded, so a genuine re-home into a DIFFERENT label still moves the member.",
     "filePath": "service_worker.js",
     "name": "handleActiveTabsGroupChanges",
     "tags": [
@@ -1120,7 +1122,7 @@
     "testFile": "src/lib/utils/importExport.test.js"
   },
   {
-    "description": "Stamps an activeTabs entry with the label slot its url was just filed under (labelTitle / labelUrlKey), which is the sole input to the navigatedAwayFromRecordedSlot append guard. Lives on the persisted activeTabs entry rather than a module-level Map because MV3 tears the worker down constantly and the post-teardown sync is exactly the window where the bogus append happens, so an in-memory map would be empty precisely when needed; activeTabs entries also vanish when the tab closes, so cleanup is free. Returns true so callers know they must persist the mutated array in their own update write.",
+    "description": "Stamps an activeTabs entry with the label slot its url was filed under or confirmed as occupying (labelTitle / labelUrlKey), which is the sole input to the navigatedAwayFromRecordedSlot append guard. Lives on the persisted activeTabs entry rather than a module-level Map because MV3 tears the worker down constantly and the post-teardown sync is exactly the window where the bogus append happens, so an in-memory map would be empty precisely when needed; activeTabs entries also vanish when the tab closes, so cleanup is free. Returns whether the stamp actually CHANGED, not a constant true: groupTabs stamps on every pass and persists via a bare storage.local.set that re-enters onChanged and calls groupTabs again, so a caller on that hot path needs the no-op-returns-false signal to avoid an infinite write loop.",
     "filePath": "service_worker.js",
     "name": "stampLabelMembership",
     "testFile": "service_worker.test.js"

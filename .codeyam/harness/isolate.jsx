@@ -587,6 +587,48 @@ const ISOLATION_PROPS = {
         backgroundColor: '#1873E4',
         expanded: true,
       },
+      // The counter-case to phantom-members, and the reason the append guard is
+      // keyed per-tab on an exact urlKey rather than per-host: a group may
+      // legitimately hold several pages of ONE site, each filed deliberately.
+      // These rows look like the phantom ones — same host, same title, same
+      // disambiguating URL subtitles — so nothing about their appearance could
+      // tell them apart. Collapsing by title or host would silently delete real
+      // members, which is why the guard suppresses only the tab whose OWN
+      // recorded slot moved.
+      'deliberate-same-site-members': {
+        index: 0,
+        draggable: false,
+        title: 'CodeYam',
+        urlKeys: [
+          'url-https://appstoreconnect.apple.com/apps',
+          'url-https://appstoreconnect.apple.com/apps/123/testflight',
+        ],
+        backgroundColor: '#1873E4',
+        expanded: true,
+      },
+      // Overflow: the phantom bug left to run. Every navigation of the one filed
+      // tab appended another member, so the card fills past the height it has to
+      // render in and the list runs out of room. This is the boundary the 4-row
+      // phantom-members case only hints at — and the reason the fix stops the
+      // append at the source rather than trimming the display.
+      'overflowing-members': {
+        index: 0,
+        draggable: false,
+        title: 'CodeYam',
+        urlKeys: [
+          'url-https://appstoreconnect.apple.com/apps',
+          'url-https://appstoreconnect.apple.com/apps/123/distribution',
+          'url-https://appstoreconnect.apple.com/apps/123/testflight',
+          'url-https://appstoreconnect.apple.com/apps/123/appstore/versions',
+          'url-https://appstoreconnect.apple.com/apps/123/appstore/info',
+          'url-https://appstoreconnect.apple.com/apps/123/pricing',
+          'url-https://appstoreconnect.apple.com/apps/123/reviews',
+          'url-https://appstoreconnect.apple.com/apps/123/analytics',
+          'url-https://appstoreconnect.apple.com/apps/123/activity',
+        ],
+        backgroundColor: '#1873E4',
+        expanded: true,
+      },
     },
   },
   LabelSectionHeader: {

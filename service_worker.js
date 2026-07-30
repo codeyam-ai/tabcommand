@@ -111,8 +111,10 @@ function recordAddition(source, details) {
 // the window where the bogus append happens, so an in-memory map would be empty
 // precisely when it is needed. `activeTabs` already persists to
 // `chrome.storage.local` and its entries vanish when the tab closes, so cleanup
-// is free. Returns true so callers can tell whether they must persist the array.
+// is free. Returns whether the stamp actually changed, so a caller on a hot path
+// does not write `activeTabs` on every pass (see the write-loop note in groupTabs).
 function stampLabelMembership(activeTab, labelTitle, urlKey) {
+  if (activeTab.labelTitle === labelTitle && activeTab.labelUrlKey === urlKey) return false;
   activeTab.labelTitle = labelTitle;
   activeTab.labelUrlKey = urlKey;
   return true;
@@ -1151,9 +1153,14 @@ async function handleActiveTabsGroupChanges(changes) {
         };
         const label = labels[newGroup.title];
         // Skip a tab mid-ungroup for the same reason as in `groupTabs`.
+        // The navigated-away guard closes the ungroup-then-regroup race that
+        // `pendingUngroups` cannot: that Set is module-level, so an MV3 teardown
+        // empties it exactly when the bogus append happens. A tab already filed
+        // under this label that merely navigated is not a new member.
         if (
           label.urlKeys.indexOf(newTab.urlKey) === -1 &&
-          !pendingUngroups.has(parseTabId(newTab))
+          !pendingUngroups.has(parseTabId(newTab)) &&
+          !navigatedAwayFromRecordedSlot(label, newGroup.title, newTab)
         ) {
           // A tab's groupId changed and we're now recording its URL into the
           // destination label permanently (makes it sticky/auto-group).
@@ -1179,6 +1186,18 @@ async function handleActiveTabsGroupChanges(changes) {
             total: label.urlKeys.length
           });
           changed = true;
+        } else if (
+          label.urlKeys.indexOf(newTab.urlKey) === -1 &&
+          navigatedAwayFromRecordedSlot(label, newGroup.title, newTab)
+        ) {
+          debugGroup('handleActiveTabsGroupChanges: refuse append for tab navigating away from its recorded slot', {
+            tabId: parseTabId(newTab),
+            recordedUrlKey: newTab.labelUrlKey,
+            liveUrlKey: newTab.urlKey,
+            label: newGroup.title,
+            oldGroupId: oldTab.groupId,
+            newGroupId: newTab.groupId
+          });
         }
       }
 
@@ -1400,6 +1419,7 @@ async function groupTabs(activeTabs, labels) {
   };
 
   const labelTabIds = {};
+  let stampsChanged = false;
   for (const activeTab of activeTabs) {
     if (activeTab.pinned) continue;
     if (activeTab.groupId && activeTab.groupId > -1) {
@@ -1421,6 +1441,12 @@ async function groupTabs(activeTabs, labels) {
         // The URL is a deliberate member of this label — confirmed intent.
         // Whatever put the tab here, it belongs; stop tracking it as auto-grouped.
         autoGroupedTabs.delete(parseTabId(activeTab));
+        // Record WHICH slot this tab occupies, so a later sync can tell this tab
+        // navigating apart from a new URL joining the group. Without it the append
+        // guard is blind on the most common path of all: clicking a URL that is
+        // already filed in a group never appends anything, so the create-time
+        // stamps never run and every later navigation looks like a new member.
+        stampsChanged = stampLabelMembership(activeTab, group.title, activeTab.urlKey) || stampsChanged;
         continue;
       }
 
@@ -1450,6 +1476,10 @@ async function groupTabs(activeTabs, labels) {
             urlKey: activeTab.urlKey,
             label: labelTitle
           });
+          // Earliest point the binding is known — this fires when the user clicks a
+          // group row, before Chrome's `chrome.tabs.group` has even landed — so it
+          // closes the window where the confirm-branch stamp above has not run yet.
+          stampsChanged = stampLabelMembership(activeTab, labelTitle, activeTab.urlKey) || stampsChanged;
           labelTabIds[labelTitle] ||= [];
           labelTabIds[labelTitle].push(activeTab);
         }
@@ -1466,6 +1496,16 @@ async function groupTabs(activeTabs, labels) {
       }
     }
   }
+
+  // One batched write for every stamp this pass made, instead of an `update()` per
+  // tab. It MUST stay conditional: `update` is a bare `chrome.storage.local.set`
+  // whose write re-enters `onChanged`, which calls groupTabs again — so an
+  // unconditional write here is an infinite write loop. stampLabelMembership's
+  // changed-check is what makes this safe, since a pass that stamps nothing new
+  // writes nothing. (recordInGroupTab persists the same `activeTabs` array on its
+  // own path; both writes carry the same object, so an overlap is redundant at
+  // worst, never conflicting.)
+  if (stampsChanged) update({ activeTabs });
 
   for (const labelTitle of Object.keys(labelTabIds)) {
     groupLabeledTab(labelTabIds[labelTitle], labels[labelTitle]);

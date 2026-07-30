@@ -1,0 +1,20 @@
+{
+  "name": "LabelCollection - Deliberate Same Site Members",
+  "id": "c1a6eaa1-7b11-4a0e-850c-6afb8edbc740",
+  "url": "/?isolate=LabelCollection&variant=deliberate-same-site-members",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://appstoreconnect.apple.com/apps": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://appstoreconnect.apple.com/apps/123/testflight": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\":\"url-https://appstoreconnect.apple.com/apps\",\"tabKey\":\"tab-311\",\"pinned\":false,\"labelTitle\":\"CodeYam\",\"labelUrlKey\":\"url-https://appstoreconnect.apple.com/apps\"}]",
+      "uxSettings": "{\"selectedLabel\":\"CodeYam\",\"page\":{\"name\":\"Home\"}}"
+    }
+  },
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "description": "The counter-case to Phantom Members, and the reason the append guard is keyed per-tab on an exact urlKey rather than per-host: the CodeYam group legitimately holds two App Store Connect pages the user filed on purpose, and both survive. The rows are indistinguishable in appearance from phantom ones -- same host, same colliding title, same disambiguating URL subtitles -- so no title-based or host-based collapse could tell them apart without deleting real members. The open tab sits on the /apps slot and is stamped to that same slot, which is a confirmed membership rather than a navigated-away one, so nothing is suppressed."
+}
