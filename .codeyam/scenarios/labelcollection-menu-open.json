@@ -8,6 +8,7 @@
   "mocks": {},
   "componentName": "LabelCollection",
   "scenarioType": "component",
+  "description": "The edit form open on a group card with nothing yet changed — the baseline the three preview scenarios contrast against. The card still shows its committed color and title because no swatch has been clicked and the name has not been retyped, so no preview is pending. Everything the preview states demonstrate is the difference between this frame and theirs.",
   "interactions": [
     {
       "action": "click",

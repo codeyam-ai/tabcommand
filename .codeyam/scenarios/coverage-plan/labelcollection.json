@@ -18,7 +18,7 @@
       "dimension": "inactiveUrls",
       "value": "many",
       "rationale": "source-derived state inactiveUrls=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "activeUrls",
@@ -36,7 +36,7 @@
       "dimension": "activeUrls",
       "value": "many",
       "rationale": "source-derived state activeUrls=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "currentUrlKeys",
@@ -54,7 +54,7 @@
       "dimension": "currentUrlKeys",
       "value": "many",
       "rationale": "source-derived state currentUrlKeys=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "updatedUrlKeys",
@@ -72,7 +72,7 @@
       "dimension": "updatedUrlKeys",
       "value": "many",
       "rationale": "source-derived state updatedUrlKeys=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "relevant",
@@ -90,7 +90,7 @@
       "dimension": "relevant",
       "value": "many",
       "rationale": "source-derived state relevant=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "t",
@@ -153,15 +153,15 @@
       "status": "covered"
     },
     {
-      "dimension": "currentBackgroundColor",
+      "dimension": "displayedColor",
       "value": "true",
-      "rationale": "source-derived state currentBackgroundColor=true",
+      "rationale": "source-derived state displayedColor=true",
       "status": "covered"
     },
     {
-      "dimension": "currentBackgroundColor",
+      "dimension": "displayedColor",
       "value": "false",
-      "rationale": "source-derived state currentBackgroundColor=false",
+      "rationale": "source-derived state displayedColor=false",
       "status": "covered"
     },
     {

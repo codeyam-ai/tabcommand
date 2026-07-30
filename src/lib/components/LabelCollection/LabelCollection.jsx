@@ -23,6 +23,7 @@ import {
   subscribeDragActive
 } from '../../utils/dragHoverStore';
 import anchoredMenuCoords from '../../utils/anchoredMenuCoords';
+import groupCardAppearance from '../../utils/groupCardAppearance';
 
 // Must match the border-box width in LabelCollectionMenu.css — the menu is
 // positioned in viewport coordinates, so its width has to be known before it is
@@ -58,6 +59,8 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
       currentTitle,
       currentUrlKeys,
       currentBackgroundColor,
+      previewTitle,
+      previewBackgroundColor,
       menuDisplayed,
       menuAnchor,
       menuCoords,
@@ -68,6 +71,11 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
         currentTitle: title,
         currentUrlKeys: urlKeys || [],
         currentBackgroundColor: backgroundColor,
+        // Uncommitted appearance reported by the open edit form. Deliberately
+        // card-local: a preview must never reach chrome.storage, or it would
+        // leak to the real Chrome tab group and every other surface.
+        previewTitle: null,
+        previewBackgroundColor: null,
         menuDisplayed: false,
         menuAnchor: null,
         menuCoords: { top: 0, left: 0 },
@@ -281,16 +289,41 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
     });
   };
 
+  const handlePreview = ({ title: nextTitle, backgroundColor: nextBackgroundColor }) =>
+    setPartialState({ previewTitle: nextTitle, previewBackgroundColor: nextBackgroundColor });
+
+  // Save promotes the previewed values into the committed ones in the SAME
+  // update that clears the preview, so there is no frame showing the old color.
+  // Storage remains the source of truth — Labels re-keys this card once the
+  // storage change lands, and the remount arrives on these same values.
+  const handleSaved = ({ title: savedTitle, backgroundColor: savedBackgroundColor }) =>
+    setPartialState({
+      currentTitle: savedTitle,
+      currentBackgroundColor: savedBackgroundColor,
+      previewTitle: null,
+      previewBackgroundColor: null
+    });
+
   const toggleMenu = (event) => {
     if (event) event.stopPropagation();
+    // Both branches drop the preview: toggleMenu is the single handler behind
+    // Cancel, the dismiss overlay, and the ⋮ button, so clearing here reverts
+    // the card on every dismissal path.
     if (menuDisplayed) {
-      setPartialState({ menuDisplayed: false, menuAnchor: null });
+      setPartialState({
+        menuDisplayed: false,
+        menuAnchor: null,
+        previewTitle: null,
+        previewBackgroundColor: null
+      });
       return;
     }
     const rect = menuButtonRef.current && menuButtonRef.current.getBoundingClientRect();
     setPartialState({
       menuDisplayed: true,
       menuAnchor: rect || null,
+      previewTitle: null,
+      previewBackgroundColor: null,
       menuCoords: rect
         ? anchoredMenuCoords(rect, { width: MENU_WIDTH, height: MENU_HEIGHT_ESTIMATE })
         : { top: 0, left: 0 }
@@ -336,14 +369,28 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
     return !!t && titleCounts[t] > 1;
   };
 
+  // What the card actually paints — the pending edit when one is in flight,
+  // otherwise the committed values. See groupCardAppearance for the fallbacks.
+  const { color: displayedColor, titleText: displayedTitleText } = groupCardAppearance({
+    previewTitle,
+    previewBackgroundColor,
+    currentTitle,
+    currentBackgroundColor,
+    title
+  });
+
   const menu = () => (
     <LabelCollectionMenu
       menuRef={menuRef}
       title={title}
+      // Seeded from the COMMITTED color, never the preview — otherwise a
+      // cancelled edit would reopen already dirtied.
       backgroundColor={currentBackgroundColor}
       coords={menuCoords}
       onCancel={toggleMenu}
       onDelete={deleteLabel}
+      onPreview={handlePreview}
+      onSaved={handleSaved}
     />
   );
 
@@ -384,18 +431,18 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
             ref={dropProvided.innerRef}
             {...dropProvided.droppableProps}
             style={
-              currentBackgroundColor
-                ? { ...dropProvided.droppableProps.style, '--group-color': currentBackgroundColor }
+              displayedColor
+                ? { ...dropProvided.droppableProps.style, '--group-color': displayedColor }
                 : dropProvided.droppableProps.style
             }
           >
             <div
               className='LabelCollection-title'
-              style={{ backgroundColor: currentBackgroundColor || '#707071' }}
+              style={{ backgroundColor: displayedColor || '#707071' }}
               {...provided.dragHandleProps}
               onClick={pin}
             >
-              <h3>{currentTitle || title}</h3>
+              <h3>{displayedTitleText}</h3>
               <span className='LabelCollection-count'>{(currentUrlKeys || []).length}</span>
               <button
                 ref={menuButtonRef}

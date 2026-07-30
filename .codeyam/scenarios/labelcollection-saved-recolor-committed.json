@@ -1,0 +1,31 @@
+{
+  "name": "LabelCollection - Saved Recolor Committed",
+  "id": "a304e1ea-c116-4de8-8092-2ca5eae2b7af",
+  "url": "/?isolate=LabelCollection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#2f7de1\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://linear.app/codeyam/tabcommand\",\"url-https://www.notion.so/codeyam/tabcommand-spec\"]}}"
+    }
+  },
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "description": "The other half of the preview: after picking teal and hitting Save the menu is closed and the card is teal, with its members intact and no intervening frame of the old blue. Save does not simply drop the preview — the form hands the committed values back through onSaved and the card promotes them in the same state update that clears the preview, closing the gap in which it would otherwise repaint the color the user just replaced while waiting for the storage change to re-render it. Seeds a real labels entry so the save round-trips against a group that actually exists in storage, the way it does in the full app.",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".LabelCollection-menuButton"
+    },
+    {
+      "action": "click",
+      "selector": "button[aria-label='Use color #168f8f']"
+    },
+    {
+      "action": "click",
+      "selector": ".LabelForm-create"
+    }
+  ]
+}

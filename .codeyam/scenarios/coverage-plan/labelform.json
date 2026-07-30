@@ -1,0 +1,102 @@
+{
+  "surface": "LabelForm",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "Colors",
+      "value": "empty",
+      "rationale": "source-derived state Colors=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "Colors",
+      "value": "one",
+      "rationale": "source-derived state Colors=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "Colors",
+      "value": "many",
+      "rationale": "source-derived state Colors=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "title",
+      "value": "empty",
+      "rationale": "source-derived state title=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "title",
+      "value": "one",
+      "rationale": "source-derived state title=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "title",
+      "value": "many",
+      "rationale": "source-derived state title=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "onCancel",
+      "value": "true",
+      "rationale": "source-derived state onCancel=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "onCancel",
+      "value": "false",
+      "rationale": "source-derived state onCancel=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "onSaved",
+      "value": "true",
+      "rationale": "source-derived state onSaved=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "onSaved",
+      "value": "false",
+      "rationale": "source-derived state onSaved=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "onPreview",
+      "value": "true",
+      "rationale": "source-derived state onPreview=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "onPreview",
+      "value": "false",
+      "rationale": "source-derived state onPreview=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "label",
+      "value": "true",
+      "rationale": "source-derived state label=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "label",
+      "value": "false",
+      "rationale": "source-derived state label=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "existingTitle",
+      "value": "true",
+      "rationale": "source-derived state existingTitle=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "existingTitle",
+      "value": "false",
+      "rationale": "source-derived state existingTitle=false",
+      "status": "covered"
+    }
+  ]
+}

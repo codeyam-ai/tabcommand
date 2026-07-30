@@ -1,0 +1,23 @@
+{
+  "name": "LabelCollection - Preview Name Cleared",
+  "id": "023422af-ec80-4d7c-9c3d-d5e92e27cf0d",
+  "url": "/?isolate=LabelCollection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "description": "The empty-name edge of the preview: the name field has been cleared to its placeholder, but the card header still reads the committed title instead of going blank. The fallback chain is deliberate — a previewed title falls through to the committed one rather than rendering the empty string, so a user midway through retyping a name never sees the group's header disappear.",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".LabelCollection-menuButton"
+    },
+    {
+      "action": "fill",
+      "selector": ".LabelForm-nameInput",
+      "value": ""
+    }
+  ]
+}

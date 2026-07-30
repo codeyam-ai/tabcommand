@@ -18,7 +18,9 @@ const LabelCollectionMenu = ({
   coords = { top: 0, left: 0 },
   menuRef,
   onCancel,
-  onDelete
+  onDelete,
+  onPreview,
+  onSaved
 }) => (
   <div
     ref={menuRef}
@@ -28,6 +30,8 @@ const LabelCollectionMenu = ({
   >
     <LabelForm
       onCancel={onCancel}
+      onPreview={onPreview}
+      onSaved={onSaved}
       label={{ title: title, backgroundColor: backgroundColor }}
     />
     <LabelCollectionMenuActions onDelete={onDelete} />
@@ -40,7 +44,9 @@ LabelCollectionMenu.propTypes = {
   coords: PropTypes.shape({ top: PropTypes.number, left: PropTypes.number }),
   menuRef: PropTypes.object,
   onCancel: PropTypes.func,
-  onDelete: PropTypes.func
+  onDelete: PropTypes.func,
+  onPreview: PropTypes.func,
+  onSaved: PropTypes.func
 };
 
 export default LabelCollectionMenu;

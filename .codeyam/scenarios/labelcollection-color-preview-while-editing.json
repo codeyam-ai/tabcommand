@@ -1,0 +1,22 @@
+{
+  "name": "LabelCollection - Color Preview While Editing",
+  "id": "bab9f317-7bf7-4ed1-a06b-b90b502484ea",
+  "url": "/?isolate=LabelCollection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "description": "The feature in one frame: the edit form is open and a purple swatch has been picked, and the card's own title bar behind it has already turned purple even though nothing has been saved. Editing a group used to be blind — the card kept its old color until Save remounted it, so picking a hue meant committing to find out how it looked. The preview lives only in the card's state and never reaches chrome.storage, so the real Chrome tab group keeps its committed color while this is on screen.",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".LabelCollection-menuButton"
+    },
+    {
+      "action": "click",
+      "selector": "button[aria-label='Use color #7c3aed']"
+    }
+  ]
+}

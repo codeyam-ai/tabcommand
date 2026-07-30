@@ -1,0 +1,27 @@
+{
+  "name": "LabelCollection - Title And Color Preview",
+  "id": "018817dc-cc31-4ee0-b7cc-b8edce538d5a",
+  "url": "/?isolate=LabelCollection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "LabelCollection",
+  "scenarioType": "component",
+  "description": "A rename and a recolor previewing together: the name field holds 'Deep Work' and the red swatch is picked, so the card header shows both pending values at once rather than the committed 'Work' in blue. Both ride the same onPreview callback — it is keyed on the form's derived preview color and title, so a swatch click, a custom hex, and a keystroke all report through one path.",
+  "interactions": [
+    {
+      "action": "click",
+      "selector": ".LabelCollection-menuButton"
+    },
+    {
+      "action": "click",
+      "selector": "button[aria-label='Use color #d8352a']"
+    },
+    {
+      "action": "fill",
+      "selector": ".LabelForm-nameInput",
+      "value": "Deep Work"
+    }
+  ]
+}

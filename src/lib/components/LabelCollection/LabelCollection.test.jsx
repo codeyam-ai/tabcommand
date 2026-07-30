@@ -202,4 +202,105 @@ describe('LabelCollection', () => {
     await userEvent.click(document.querySelector('.LabelCollection-overlay'));
     expect(document.querySelector('.LabelCollection-menu')).toBeNull();
   });
+
+  // the card's title bar, which the preview repaints
+  const titleBar = () => document.querySelector('.LabelCollection-title');
+
+  // picking a swatch in the open edit form repaints the card behind it, before
+  // anything is saved — editing a group used to be blind until Save remounted it
+  it('previews a picked color on the card while the edit is unsaved', async () => {
+    installChromeShim();
+
+    renderCollection({ title: 'Work', backgroundColor: '#2f7de1', urlKeys: [] });
+    await userEvent.click(screen.getByRole('button', { name: 'Group menu' }));
+
+    await userEvent.click(screen.getByLabelText('Use color #7c3aed'));
+
+    await waitFor(() => expect(titleBar().style.backgroundColor).toBe('rgb(124, 58, 237)'));
+    // nothing was saved, so storage still holds the committed color
+    const { labels } = await get('labels');
+    expect(labels).toBeUndefined();
+  });
+
+  // the pending name shows on the card header alongside the pending color
+  it('previews a retyped title on the card header', async () => {
+    installChromeShim();
+
+    renderCollection({ title: 'Work', backgroundColor: '#2f7de1', urlKeys: [] });
+    await userEvent.click(screen.getByRole('button', { name: 'Group menu' }));
+
+    const input = screen.getByPlaceholderText('Group Title');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'Deep Work');
+
+    await waitFor(() => expect(titleBar().textContent).toContain('Deep Work'));
+  });
+
+  // clearing the name previews as the committed title rather than a blank header
+  it('falls back to the committed title when the name field is emptied', async () => {
+    installChromeShim();
+
+    renderCollection({ title: 'Work', backgroundColor: '#2f7de1', urlKeys: [] });
+    await userEvent.click(screen.getByRole('button', { name: 'Group menu' }));
+
+    await userEvent.clear(screen.getByPlaceholderText('Group Title'));
+
+    await waitFor(() => expect(titleBar().textContent).toContain('Work'));
+  });
+
+  // the revert guarantee, and the half most likely to regress: Cancel drops the
+  // preview so the card returns to exactly what storage committed
+  it('reverts the card to its committed appearance when the edit is cancelled', async () => {
+    installChromeShim();
+
+    renderCollection({ title: 'Work', backgroundColor: '#2f7de1', urlKeys: [] });
+    await userEvent.click(screen.getByRole('button', { name: 'Group menu' }));
+
+    await userEvent.click(screen.getByLabelText('Use color #7c3aed'));
+    const input = screen.getByPlaceholderText('Group Title');
+    await userEvent.clear(input);
+    await userEvent.type(input, 'Deep Work');
+    await waitFor(() => expect(titleBar().style.backgroundColor).toBe('rgb(124, 58, 237)'));
+
+    await userEvent.click(screen.getByText('Cancel'));
+
+    await waitFor(() => expect(titleBar().style.backgroundColor).toBe('rgb(47, 125, 225)'));
+    expect(titleBar().textContent).toContain('Work');
+    expect(titleBar().textContent).not.toContain('Deep Work');
+  });
+
+  // the same revert through the click-outside path rather than the Cancel button
+  it('reverts the card when the edit is dismissed via the overlay', async () => {
+    installChromeShim();
+
+    renderCollection({ title: 'Work', backgroundColor: '#2f7de1', urlKeys: [] });
+    await userEvent.click(screen.getByRole('button', { name: 'Group menu' }));
+
+    await userEvent.click(screen.getByLabelText('Use color #7c3aed'));
+    await waitFor(() => expect(titleBar().style.backgroundColor).toBe('rgb(124, 58, 237)'));
+
+    await userEvent.click(document.querySelector('.LabelCollection-overlay'));
+
+    await waitFor(() => expect(titleBar().style.backgroundColor).toBe('rgb(47, 125, 225)'));
+  });
+
+  // saving promotes the previewed color into the committed one in a single
+  // update, so no frame repaints the old color between the write and the reload
+  it('keeps the saved color on the card without flashing the old one', async () => {
+    installChromeShim();
+
+    renderCollection({ title: 'Work', backgroundColor: '#2f7de1', urlKeys: [] });
+    await userEvent.click(screen.getByRole('button', { name: 'Group menu' }));
+
+    await userEvent.click(screen.getByLabelText('Use color #168f8f'));
+    await userEvent.click(screen.getByText('Save'));
+
+    await waitFor(async () => {
+      const { labels } = await get('labels');
+      expect(labels.Work.backgroundColor).toBe('#168f8f');
+    });
+    // the menu is closed and the card never fell back to the old blue
+    expect(document.querySelector('.LabelCollection-menu')).toBeNull();
+    expect(titleBar().style.backgroundColor).toBe('rgb(22, 143, 143)');
+  });
 });

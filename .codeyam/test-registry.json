@@ -523,12 +523,48 @@
       "runner": "tests"
     },
     {
+      "description": "clearing the name previews as the committed title rather than a blank header",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › falls back to the committed title when the name field is emptied",
+      "line": 240,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "saving promotes the previewed color into the committed one in a single update, so no frame repaints the old color between the write and the reload",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › keeps the saved color on the card without flashing the old one",
+      "line": 289,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
       "description": "jsdom does no layout, so visual clipping can't be observed directly — assert the structural fix instead: the open menu is portalled OUT of the card, whose `overflow: hidden` is what cut it off.",
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › portals the open menu out of the clipping card",
       "line": 177,
       "registeredAt": "2026-07-28T00:47:00Z",
+      "runner": "tests"
+    },
+    {
+      "description": "picking a swatch in the open edit form repaints the card behind it, before anything is saved — editing a group used to be blind until Save remounted it",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › previews a picked color on the card while the edit is unsaved",
+      "line": 211,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the pending name shows on the card header alongside the pending color",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › previews a retyped title on the card header",
+      "line": 226,
+      "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
     {
@@ -559,6 +595,24 @@
       "runner": "tests"
     },
     {
+      "description": "the revert guarantee, and the half most likely to regress: Cancel drops the preview so the card returns to exactly what storage committed",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › reverts the card to its committed appearance when the edit is cancelled",
+      "line": 253,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the same revert through the click-outside path rather than the Cancel button",
+      "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "format": "vitest",
+      "key": "LabelCollection › reverts the card when the edit is dismissed via the overlay",
+      "line": 273,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
       "description": "tabs sharing a title get a url subtitle; uniquely-titled tabs stay clean",
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
@@ -583,6 +637,42 @@
       "key": "LabelForm › renames an existing label, deleting the old key",
       "line": 42,
       "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "picking a swatch reports the pending appearance so the card behind can preview it",
+      "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "format": "vitest",
+      "key": "LabelForm › reports a picked swatch through onPreview with the current title",
+      "line": 68,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "typing reports too, so the card header tracks the pending name alongside the color",
+      "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "format": "vitest",
+      "key": "LabelForm › reports a retyped title through onPreview",
+      "line": 86,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "saving hands back the committed values so the card can promote them without repainting the old color in the gap before storage re-renders it",
+      "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "format": "vitest",
+      "key": "LabelForm › reports the committed values through onSaved on submit",
+      "line": 107,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "with no swatch picked the saved color is the length-derived one, matching what actually lands in storage rather than the previously committed color",
+      "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "format": "vitest",
+      "key": "LabelForm › reports the length-derived color through onSaved when no swatch was picked",
+      "line": 127,
+      "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
     {
@@ -3364,6 +3454,87 @@
       "key": "groupAdditionLog constants › exposes a stable store key and a positive cap",
       "line": 113,
       "registeredAt": "2026-07-29T19:37:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an emptied name field must not blank the header — '' falls through the chain",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › falls back to the committed title when the pending title is empty",
+      "line": 44,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a card whose committed title has not loaded yet still shows its mount-time prop",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › falls back to the mounted title prop when the committed title is absent",
+      "line": 49,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a swatch was clicked but not saved: the pending color wins over the committed one",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › prefers a pending color over the committed color",
+      "line": 21,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the name was retyped alongside a recolor: both pending values show together",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › prefers a pending title and color together",
+      "line": 27,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a renamed group: the committed title is what a rename updated, not the prop",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › prefers the committed title over the mounted title prop",
+      "line": 55,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a group with no color at all yields an undefined color, which the caller turns into the neutral default — the helper must not invent a color itself",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › returns an undefined color when neither a pending nor committed color exists",
+      "line": 62,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the revert guarantee: clearing the preview is the whole of cancel, so nulls must land back on the committed appearance rather than on undefined",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › reverts to the committed appearance when the preview is cleared",
+      "line": 37,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "called with nothing at all it must not throw — every field is optional",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › tolerates being called with no argument",
+      "line": 68,
+      "registeredAt": "2026-07-30T14:17:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "no edit in flight: the card paints exactly what storage committed",
+      "file": "src/lib/utils/groupCardAppearance.test.js",
+      "format": "vitest",
+      "key": "groupCardAppearance › uses the committed values when no preview is pending",
+      "line": 15,
+      "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
     {
