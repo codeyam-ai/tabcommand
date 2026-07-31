@@ -44,6 +44,7 @@
     }
   ],
   "testPartitions": [],
+  "testCacheIgnorePatterns": [],
   "staticChecks": [
     {
       "name": "eslint",
@@ -184,6 +185,16 @@
       {
         "filePath": ".claude/hooks/editor-step-hook.py",
         "name": "_tool_loading_already_injected",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-pretool-hook.py",
+        "name": "_configured_test_scripts",
+        "reason": "derive-generated"
+      },
+      {
+        "filePath": ".claude/hooks/editor-pretool-hook.py",
+        "name": "is_test_run_command",
         "reason": "derive-generated"
       }
     ],

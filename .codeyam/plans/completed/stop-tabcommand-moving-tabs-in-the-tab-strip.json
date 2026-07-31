@@ -1,0 +1,32 @@
+{
+  "claimStartedAt": "2026-07-31T15:43:00Z",
+  "completedAt": "2026-07-31T18:05:16Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "backend-step15",
+    "machine": "codeyam-editor-codeyam-editor-2",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "stop-tabcommand-moving-tabs-in-the-tab-strip",
+    "sessionId": "5b072b5d-34aa-44c1-a2cd-dd083a46b1b9",
+    "startedAt": "2026-07-31T15:43:00Z"
+  },
+  "createdAt": "2026-07-31T11:16:36Z",
+  "deliverables": [
+    "package-lock.json",
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/utils/findLabelForUrlKey.js",
+    "src/lib/utils/findLabelForUrlKey.test.js",
+    "src/lib/utils/groupMoveLog.js",
+    "src/lib/utils/groupMoveLog.test.js",
+    "src/lib/utils/tabPlacement.js",
+    "src/lib/utils/tabPlacement.test.js"
+  ],
+  "journalTimestamp": "2026-07-31T18:05:16Z",
+  "mode": "backend",
+  "planFile": "completed/stop-tabcommand-moving-tabs-in-the-tab-strip.md",
+  "slug": "stop-tabcommand-moving-tabs-in-the-tab-strip",
+  "title": "Stop TabCommand Moving Tabs In The Tab Strip"
+}
