@@ -9,6 +9,9 @@ allowlists, then blocks:
   don't carry the code-change capability.
 - Bash `git commit` / `git add` outside slugs in `commitSlugs`.
 - Bash `git push` outside slugs in `pushSlugs`.
+- Bash test runs (`refresh-tests` / raw runners) at slugs NOT in
+  `testRunSlugs` — the pre-Demo phases whose `test_scope` is `none`.
+  This holds the prototype-speed "no tests before Demo" boundary.
 - AskUserQuestion at slugs in `previewRequiredSlugs` unless
   `.codeyam/preview-shown.json` matches the current step.
 
@@ -111,6 +114,59 @@ def _preview_hint(mode, project_dir):
     return f'{cli} editor preview \'{{"dimension":"{default_dim}"}}\''
 
 
+# Stack-agnostic raw test runners, matched as word-boundary regexes so a
+# command that merely CONTAINS "test" (`cargo build`, `ls tests/`,
+# `git commit -m "add test"`) does NOT trip the gate. `refresh-tests` is
+# codeyam's own test command — the one the workflow actually uses — and is
+# always a test run.
+_TEST_RUN_PATTERNS = [
+    r"\brefresh-tests\b",
+    r"\bcargo\s+(?:test|nextest)\b",
+    r"\bnpx\s+vitest\b",
+    r"\bvitest\s+run\b",
+    r"\bjest\b",
+    r"\bpytest\b",
+    r"\bgo\s+test\b",
+]
+
+
+def _configured_test_scripts(project_dir):
+    """Project-specific test-runner SCRIPT invocations derived from
+    `testRunners[].command` in editor.json — e.g. `bash scripts/run-shell-tests.sh`.
+
+    Lets the gate catch a raw run of the project's OWN test script, not just
+    the stack-agnostic runners above, so the gate is config-aware rather than a
+    fixed hardcoded list. Only tokens that look like a script path (`scripts/…`
+    or ending in `.sh`) are lifted — that deliberately skips a bare interpreter
+    like `python3` in `python3 -m pytest`, which the `pytest` regex already
+    covers and which would over-block if treated as a runner."""
+    cfg_path = os.path.join(project_dir, ".codeyam", "editor.json")
+    scripts = []
+    try:
+        with open(cfg_path) as f:
+            cfg = json.load(f)
+    except Exception:
+        return scripts
+    for runner in cfg.get("testRunners", []) or []:
+        cmd = runner.get("command", "") if isinstance(runner, dict) else ""
+        for tok in cmd.split():
+            if tok.startswith("scripts/") or tok.endswith(".sh"):
+                scripts.append(tok)
+    return scripts
+
+
+def is_test_run_command(command, project_dir):
+    """True iff `command` invokes a test run — `refresh-tests`, a common raw
+    runner, or the project's configured test script."""
+    for pat in _TEST_RUN_PATTERNS:
+        if re.search(pat, command):
+            return True
+    for script in _configured_test_scripts(project_dir):
+        if script in command:
+            return True
+    return False
+
+
 def main():
     # Only enforce in editor mode
     if not os.environ.get("CODEYAM_EDITOR_ACTIVE"):
@@ -142,6 +198,7 @@ def main():
     commit_slugs = set(mode_table.get("commitSlugs", []))
     push_slugs = set(mode_table.get("pushSlugs", []))
     preview_required_slugs = set(mode_table.get("previewRequiredSlugs", []))
+    test_run_slugs = set(mode_table.get("testRunSlugs", []))
 
     # Read the tool use event from stdin
     try:
@@ -160,6 +217,35 @@ def main():
     # either spelling keep working after the canonical-name rollout.
     if tool_name == "Bash":
         command = tool_input.get("command", "")
+
+        # Prototype-speed test-run gate. The Plan→Demo stretch (phases
+        # plan/confirm/prepare/prototype/demo, all test_scope: none) exists to
+        # build fast and get working functionality in front of the user;
+        # hardening (tests, extraction, glossary) starts at Deconstruct.
+        # `testRunSlugs` is the per-mode set of slugs whose phase declares a
+        # non-None test_scope — a slug NOT in it may not run tests. This must
+        # fire BEFORE the "always allow codeyam-editor editor" short-circuit
+        # below, because `codeyam-editor editor refresh-tests` is itself a test
+        # run. Empty `testRunSlugs` (a stale v1/v2 cache) => no gating, mirroring
+        # the `and commit_slugs` / `and push_slugs` short-circuits below — a
+        # cache skew degrades to "allow", never "block every test run".
+        if (
+            slug
+            and test_run_slugs
+            and slug not in test_run_slugs
+            and is_test_run_command(command, project_dir)
+        ):
+            print(
+                f"BLOCKED: test runs are not allowed at {_slug_label(state, slug)} "
+                f"(pre-Demo, test_scope: none). The Plan→Demo stretch is for building "
+                f"fast and getting working functionality in front of the user — "
+                f"hardening (tests, extraction, glossary) starts at Deconstruct.\n"
+                f"Next valid action: keep building — run tests at "
+                f"`ui-extract-tdd` / `backend-extract-tdd`.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+
         if (
             "codeyam-editor editor" in command
             or "codeyam-editor:editor" in command

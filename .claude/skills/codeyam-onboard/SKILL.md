@@ -105,7 +105,9 @@ After `editor init` runs, if `.codeyam/seed-adapter.ts` already existed before i
 codeyam-editor editor refresh-seed-adapter
 ```
 
-The command compares the installed file against the shipped template + known prior versions. If the file is recognised (pristine prior version or matches the current shipped content), it upgrades automatically with no prompts. If it has been hand-edited, the command refuses and prints the `--force --accept-data-loss` re-run instruction (which backs up the existing file at `.codeyam/seed-adapter.ts.pre-refresh-<timestamp>` before overwriting). When the safe path doesn't apply, **surface the diff and refusal message to the user — do not pass `--accept-data-loss` autonomously.**
+The command compares the installed file against the shipped template + known prior versions. If the file is recognised (pristine prior version or matches the current shipped content), it upgrades automatically with no prompts. If it has been hand-edited, the command refuses and prints the `--force --accept-data-loss` re-run instruction. When the safe path doesn't apply, **surface the diff and refusal message to the user — do not pass `--accept-data-loss` autonomously.**
+
+Every overwrite backs the previous content up to `.codeyam/seed-adapter.ts.pre-refresh-<timestamp>` first — the automatic upgrade as much as the forced one — so a refresh is always recoverable by diffing against that file. The only overwrite without a backup is one where the content was already byte-identical.
 
 ## Phase 3b — Install project dependencies (all branches)
 

@@ -14,6 +14,19 @@ description: |
 
 You are helping the user pick a design direction inside the new-project questionnaire's chat substep. The project files do not exist yet — **do not scaffold, install dependencies, or run any `codeyam-editor editor` command**. Your only job is to read the brief and assets, read the bundled design systems, write mockup HTML, and (on the user's pick) POST a single API call.
 
+## Round mode — designing against an app that already exists
+
+This skill has two modes. Everything above and below assumes **questionnaire mode** (project does not exist yet). When a **design round** is active — the file `.codeyam/design/rounds/.active` exists, naming a round id — you are in **round mode**, running against an app that already exists, and the following overrides apply. Everything else in this skill (the design read, the tier table, imagery/typography rules, atomic writes, the Step 3b lint self-correction loop) is reused verbatim.
+
+- **Active round + directory.** Read the active round id from `.codeyam/design/rounds/.active`; the round directory is `.codeyam/design/rounds/<round-id>/`. It already holds `current-state.md`, written by the grounding step.
+- **`current-state.md` is a primary input, alongside `projectDescription`.** It describes the surface being modified as it looks TODAY — the scenarios that render it, their data states, and what this round is trying to change. Read it before deriving the design read; the mockups are **variations on that real screen**, not a fresh invention.
+- **The existing `.codeyam/design/design_system.md` (if any) is the anchored tier's reference** instead of a freshly-chosen catalog system.
+- **Step 1 changes.** "Which page to mock up" is already answered by grounding — **do NOT re-ask it.** The count question (2/4/6/8, default 6) and the assets question stay.
+- **Tier semantics gain the existing-app reading.** The **anchored** tier means "the app as it looks today, with the requested change applied" — the safe, minimally-disruptive direction — not a fresh catalog system. Exploratory and off-catalog keep their meaning. The 2/4/6/8 → anchored/exploratory/off-catalog allocation table is reused unchanged.
+- **The `codeyam-editor` command prohibition is LIFTED in round mode.** The project exists and you legitimately need `codeyam-editor editor plan-show`, `... scenarios`, and the capture commands to ground and iterate. (The prohibition stays in questionnaire mode.)
+- **Output paths are round-relative.** `target.json` and every `NN-*-mockup.html` go in the round directory, NEVER `.codeyam/design/project_mockups/`. The mockup/tab/lint API calls take a `?round=<round-id>` scope; the project-wide directory is left untouched.
+- **Selection is handled by the WORKFLOW, not the Step 6 POST.** In round mode do NOT POST `/api/editor-design-select`. The user's pick is recorded by the design workflow's iterate/apply steps (`codeyam-editor editor branch-outcome design-iterate use` then `... design-round --select <mockup>`), which synthesizes an off-catalog token document automatically — closing the handoff gap the questionnaire flow leaves open. Your job in round mode ends at generating and iterating on the mockups; the workflow carries the selection.
+
 **The brief drives; the systems are a floor, not a ceiling.** The user's product description and any uploaded design assets are the primary signal — every mockup must feel like *their* product, not a stock template. The curated design systems in `.codeyam/design/design_systems/` are a quality floor: a vocabulary of robust, internally-consistent languages you can adhere to, stretch, or set aside depending on a mockup's *tier* (Step 2). Your goal across a set is **genuine range** — diverse directions — anchored by at least one safe, on-brief option, and (when the set is large enough) reaching all the way to a fully bespoke, off-catalog direction.
 
 ## Inputs
