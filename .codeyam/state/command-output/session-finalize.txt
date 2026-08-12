@@ -1,22 +1,57 @@
-> auto-backgrounded — the harness completion notification arrives on its own when this exits; you do NOT need to do anything to receive it, and waiting adds nothing. KEEP WORKING: continue with anything that does not depend on this result — the notification interrupts you when it lands. "Do not poll" does NOT mean "stop working": ending the turn to wait is the one response that is never correct. ONLY if you need the result inside the CURRENT turn, block with: codeyam-editor editor wait-for /tmp/claude-0/-workspace/1d1a9991-3b40-4272-b058-4664626dfa76/tasks/bof8y3ib4.output (ONE call, bare — never piped through `| tail`; its budget is capped to fit the tool-call ceiling, so a long run returns WAIT_FOR STILL_RUNNING in-call and the notification still arrives. Re-issue only on LIKELY_WEDGED; do NOT hand-roll an `until grep … sleep` loop, the harness blocks it). Just want to know it is still alive? Read /tmp/claude-0/-workspace/1d1a9991-3b40-4272-b058-4664626dfa76/tasks/bof8y3ib4.heartbeat — one line, always the newest heartbeat; the output file below stays clean of them. Output too long? You do not need `| tail`: run it bare and read the `CODEYAM_FULL_OUTPUT` line the command prints — it names a file holding the COMPLETE output, which you can `cat` afterwards.
-{"command":"session-finalize","elapsed_secs":0,"emitted_at_unix":1786564438,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":158735}
-session-finalize started: 2026-08-12T19:53:58Z, output: /workspace/.codeyam/logs/session-finalize.log (PID 158735)
+> auto-backgrounded — the harness completion notification arrives on its own when this exits; you do NOT need to do anything to receive it, and waiting adds nothing. KEEP WORKING: continue with anything that does not depend on this result — the notification interrupts you when it lands. "Do not poll" does NOT mean "stop working": ending the turn to wait is the one response that is never correct. ONLY if you need the result inside the CURRENT turn, block with: codeyam-editor editor wait-for /tmp/claude-0/-workspace/1d1a9991-3b40-4272-b058-4664626dfa76/tasks/b6fanw0i8.output (ONE call, bare — never piped through `| tail`; its budget is capped to fit the tool-call ceiling, so a long run returns WAIT_FOR STILL_RUNNING in-call and the notification still arrives. Re-issue only on LIKELY_WEDGED; do NOT hand-roll an `until grep … sleep` loop, the harness blocks it). Just want to know it is still alive? Read /tmp/claude-0/-workspace/1d1a9991-3b40-4272-b058-4664626dfa76/tasks/b6fanw0i8.heartbeat — one line, always the newest heartbeat; the output file below stays clean of them. Output too long? You do not need `| tail`: run it bare and read the `CODEYAM_FULL_OUTPUT` line the command prints — it names a file holding the COMPLETE output, which you can `cat` afterwards.
+session-finalize started: 2026-08-12T20:00:51Z, output: /workspace/.codeyam/logs/session-finalize.log (PID 168406)
+{"command":"session-finalize","elapsed_secs":0,"emitted_at_unix":1786564851,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":168406}
+The final workflow step ('Finalize', step 25) was interrupted before it completed — most likely an OOM/SIGKILL (exit 137) or SIGTERM (143) on this memory-constrained VM, not a logic failure. Your work is committed up to fb48389. A commit-queue head was held; `feature-complete` will release it as the terminal backstop on the resumed completion.
+
+Re-run the final step to resume: `codeyam-editor editor advance` (or `codeyam-editor editor feature-complete` if advance reports the terminal step).
 Finalizing session — running flag-free test suite + strict audit. This is the only full-suite run for this feature.
 Coverage thresholds … skipped (no runner declares a coverage_path)
 Phase 0/5: session-cleanup …
-Phase 1/5: reusing 1 green partition cache(s) from 2026-08-12T19:18:43.382338501+00:00; full re-run skipped (per-partition Merkle + registry digest match)
+Phase 1/5: refresh-tests (no filters) — source Merkle hash changed for partition 'all'
+════════════════════════════════════════════════════════════════════
+WARNING: refresh-tests --force is running the ENTIRE test suite.
+════════════════════════════════════════════════════════════════════
+You're at ui step 27: push. The full suite is reserved
+for the `finalize` step, where `session-finalize` runs it
+automatically. Running it here is slow and almost always avoidable.
+
+To update the cache for a NEW or RENAMED test, use:
+  codeyam-editor editor refresh-tests --test <name>
+  codeyam-editor editor refresh-tests --changed
+  codeyam-editor editor refresh-tests --runner <name>
+
+If the audit just bailed reporting cache staleness, the documented
+recovery is flag-free `refresh-tests` (no `--force`). See
+`reconcile.txt` for the full guidance.
+
+Proceeding with the full suite anyway.
+════════════════════════════════════════════════════════════════════
+
+warning: about to run the FULL test suite (~872 tests) — this can take many minutes.
+warning: narrow with --changed (current diff), --file <path>, or --test <name> to avoid a full run.
+Running tests via the configured runner command(s) — use these, do not reconstruct runner flags:
+  tests  ::  npx vitest run --reporter=json
+note: full re-run requested; merkle-hash optimization skipped
+Test refresh triggered. Waiting for results...
+[   2s] Running runner: tests
+[  12s] Still running: tests
+[  22s] Still running: tests
+[  32s] Still running: tests
+[  42s] Tests completed.
+{"failed":0,"passed":872,"skipped":0,"success":true,"total":872}
+All 872 tests passed.
 Phase 2/5: audit (--gate-mode strict, comprehensive) …
 [   0s] audit: running static checks
 [   3s] audit: rebuilding dependency graph (can take a few minutes on a large project)
 {
-Analyzed 253 files, found 471 import edges, graph has 350 nodes
   "analyzed": 253,
   "entityCount": 381,
+Analyzed 253 files, found 471 import edges, graph has 350 nodes
   "graphSize": 350,
   "totalImports": 471
 }
 [ 106s] audit: running registry invariant checks
-[ 107s] audit: gather complete
+[ 106s] audit: gather complete
 audit advisories (not blocking): 1 advisory finding(s). Run the printed `refresh-tests --partition <name>` and re-run audit.
 
 ## COMPLETED_PLAN_NEVER_LANDED_ADVISORY (1 finding(s)) — Completed plan's implementation never landed at HEAD
@@ -33,12 +68,12 @@ audit advisories (not blocking): 1 advisory finding(s). Run the printed `refresh
 audit advisories (not blocking): 1 advisory finding(s). Run the printed `refresh-tests --partition <name>` and re-run audit.
 Phase 3/5: analyze-imports …
 {
-Analyzed 253 files, found 471 import edges, graph has 350 nodes
   "analyzed": 253,
   "entityCount": 381,
   "graphSize": 350,
   "totalImports": 471
 }
+Analyzed 253 files, found 471 import edges, graph has 350 nodes
 Phase 3.5/5: screenshot coverage …
 Phase 3.5/5: screenshot coverage … 0 stale, 0 missing
 Phase 3.6/5: glossary reconciliation …
@@ -47,5 +82,4 @@ Phase 4/5: verify-build …
 CODEYAM_VERIFY_BUILD: PASS — 1 check(s) passed
 Phase 5/5: finalize invariants (per-test-evidence + ignore-lists) …
 Session finalize complete: ready to push.
-Presentability (open-source pass): README needs refresh. Review with `codeyam-editor editor presentability-scan`, then refresh the README with `codeyam-editor editor readme-sync` before merge. Remove only what you are sure about — ask the user about anything uncertain.
-session-finalize finished: status=ok, phase1=passed (reusing 1 green partition cache(s) from 2026-08-12T19:18:43.382338501+00:00), phase2=passed, phase3=passed, phase4=passed, phase5=passed, elapsed=116.4s
+session-finalize finished: status=ok, phase1=passed, phase2=passed, phase3=passed, phase4=passed, phase5=passed, elapsed=158.3s
