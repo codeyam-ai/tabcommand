@@ -137,12 +137,16 @@ def detect_event():
 TOOL_LOADING_SELECT_QUERY = "select:TaskCreate,TaskList,TaskUpdate,TaskGet"
 
 # SessionStart preloads one extra tool beyond the gate-step set: `Monitor`,
-# the supported way to watch a backgrounded long command (refresh-tests,
-# session-finalize, rebuild-self). Loading its schema once up front means the
-# first blocking op never hits the `Monitor`-before-its-schema-is-loaded
-# `InputValidationError` that historically triggered a fallback to polling
-# loops. It is NOT in the per-prompt gate-tool query because it is not a
-# gate-step tool — only the session-entry preload needs it.
+# for watching a condition the harness will not notify about. Loading its
+# schema once up front means the first such call never hits the
+# `Monitor`-before-its-schema-is-loaded `InputValidationError` that
+# historically triggered a fallback to polling loops. Monitor is NOT how a
+# backgrounded long command (refresh-tests, session-finalize, rebuild-self) is
+# awaited — that completion notification arrives on its own and
+# `editor wait-for` is the same-turn blocking path; see
+# `steps/library/fragments/background_wait_block.txt`. It is NOT in the
+# per-prompt gate-tool query because it is not a gate-step tool — only the
+# session-entry preload needs it.
 SESSION_START_SELECT_QUERY = TOOL_LOADING_SELECT_QUERY + ",Monitor"
 
 
@@ -204,11 +208,14 @@ def main():
         print(
             f"Call `ToolSearch` with `{SESSION_START_SELECT_QUERY}` before your first "
             "turn so the editor workflow's Task* step-tracking tools are available when "
-            "step-task tracking needs them, and `Monitor`'s schema is loaded before the "
-            "first backgroundable long command (refresh-tests, session-finalize) — so you "
-            "can watch it via the harness completion notification instead of falling back "
-            "to a `sleep`/`until grep` polling loop. (AskUserQuestion is already resident "
-            "in editor sessions, so it needs no preload.)"
+            "step-task tracking needs them, and `Monitor`'s schema is loaded before any "
+            "call that needs it — a Monitor invoked without its schema fails with "
+            "`InputValidationError`. Monitor is for watching a CONDITION the harness will "
+            "not notify you about; a backgrounded long command (refresh-tests, "
+            "session-finalize) is not that — its completion notification arrives on its "
+            "own, and `codeyam-editor editor wait-for` is the same-turn blocking path. "
+            "(AskUserQuestion is already resident in editor sessions, so it needs no "
+            "preload.)"
         )
         print("</session-start-hook>")
         return

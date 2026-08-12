@@ -222,6 +222,44 @@ Apply the failures whose fix is unambiguous and scripted. These have a
 Re-run `codeyam-editor editor audit --format json` after the mechanical pass so
 the remaining set is only the judgment calls.
 
+> GOTCHA — **Platform-gate drift can only be reconciled AFTER a full
+> `refresh-tests`, so do not hand-run `reconcile-registry` for it here.**
+> `REGISTRY_HAS_FOREIGN_HOST_GATED_TEST` fires when a test's registry
+> `platform_gate` disagrees with the `#[cfg(...)]` its source declares — the
+> shape you get the moment you add a `#[cfg(unix)]` to an already-registered
+> test. `reconcile-registry --auto-apply` re-infers the gate from source, but
+> it reads the **per-partition test cache**, so run before a full refresh it
+> sees the pre-edit cache and reports clean. The finding then surfaces in
+> `session-finalize` Phase 2 — after Phase 1's full suite has already run —
+> costing a `--start-from-phase 2` round trip of roughly 15 minutes.
+>
+> You do not need to sequence this by hand: `session-finalize` heals it
+> itself, in a Phase 1.5 pass between the refresh and the audit (whenever
+> Phase 2 is about to run, `--start-from-phase 2` included). It logs
+> `Phase 1.5/5: re-inferred platform_gate from source cfg for N registry
+> entr…` naming every rewritten key, and stays silent when nothing drifted.
+> If it ever fails it warns and continues, and Phase 2 reports the finding
+> with its usual recovery — so the only action left to you is reading that
+> line to understand a registry change in the resulting diff.
+>
+> One case the heal deliberately does NOT repair: an entry whose recorded
+> `line` no longer points at the item its key names. The inference verifies
+> that anchor before reading any `#[cfg]`, because a drifted line sitting
+> under a neighbouring attribute is exactly how a *false* gate gets stamped —
+> and a false gate is worse than a missing one, since it tells the audit to
+> expect the test not to run on a platform where it silently stopped running.
+> Those entries are named in the Phase 1.5 line as declined (with the token
+> that would have been stamped), and `reconcile-registry --auto-apply` exits
+> 2 rather than 0 when gate drift was detected and none of it was repaired.
+> Fix the anchor (a full `refresh-tests` re-derives `line` from runner
+> output), then reconcile — or repair the single entry with
+> `register-test … --clear-platform-gate` to drop a gate the source does not
+> declare.
+>
+> Note `backfill-platform-gates` is **not** the recovery for this: it is
+> fill-only (`None → Some`) and deliberately never overwrites a concrete
+> gate, which is exactly what a drifted entry carries.
+
 ### 4b. Judgment fixes (STOP and ask — never mass-apply)
 
 What's left needs a decision, not a script. **Surface the count and the items,
@@ -286,6 +324,30 @@ wants current evidence and screenshots.
 
 > A pure-backend / non-visual stack has no screenshots to refresh; this step is
 > a no-op there. Don't fabricate visual evidence for a stack that has none.
+
+> GOTCHA — **a recapture that fails everything is ONE cause, not N.** When
+> `recapture-stale` fails every capture (or most of them), treat it as a single
+> environmental cause until proven otherwise — unrelated scenarios do not
+> spontaneously break together. The command now does this grouping for you: it
+> normalizes each failure (stripping the per-scenario slug and URL), and when
+> two or more agree it leads the bail with one shared-cause diagnosis and puts
+> the same string on the JSON's `shared_failure_cause` key. Read that first.
+> Do NOT open the per-scenario failures one at a time, and do NOT hand-write a
+> `grep -o … | sort -u` over the output to discover how many distinct errors
+> there really are. The usual culprit is an error the app emits while loading
+> the page, which the capture guard rejects on; such errors are normally
+> suppressed in the app's own dev-server configuration, so read that file
+> first — a project that documented its own escape hatch is one read away.
+
+> GOTCHA — **`env.*` overrides do not reach a running app.** `codeyam-editor
+> editor config-override env.FOO bar` writes the value and live-reloads the
+> *editor's* config, but the app is a long-lived child process that read its
+> environment when it booted. The override does not take effect until that
+> process restarts, so a recapture run in between just re-proves the old
+> failure — minutes wasted. `config-override` now says so and prints
+> `Next valid action: codeyam-editor editor restart-dev-server` for these keys;
+> run it before re-capturing. Non-`env.` keys are genuinely live-reloaded and
+> owe no restart.
 
 ---
 
@@ -391,6 +453,29 @@ If the pre-push gate complains of deferred commits, do **not** override with
 `--allow-deferred`; it means finalize didn't cover the range — go back to the
 marker-stamp trap above.
 
+### Publishing a release AFTER the finalize
+
+If this branch publishes a versioned artifact, the ordering is:
+
+**bump → publish → commit → finalize → push** — never bump → publish → commit → push.
+
+A version-bump / release-metadata commit (a manifest version field, a lockfile,
+a changelog stamp) is a **source change like any other**. It falls outside the
+stamped `lastFullFinalizeSha`, so a branch driven to `verify-full-finalize`
+exit 0 and pushed silently stops being merge-ready the moment that commit
+lands — and the ordinary push gates do not catch it, because they classify
+manifests and lockfiles as owing no finalize. You then pay a second
+`session-finalize` plus a second push to get back.
+
+Put the release commit *inside* the finalize instead: bump and publish first,
+commit the version metadata, and only then run `session-finalize` and push.
+
+`editor push` now blocks on this rather than letting it through silently — a
+`BLOCKED:` with `Next valid action: codeyam-editor editor session-finalize`
+when the branch was stamped merge-ready and has drifted off it. On a feature
+branch under fast intent it warns instead of blocking, matching how the same
+gate treats ordinary post-finalize source commits there.
+
 ---
 
 ## 8. PR → CI → mergeability
@@ -404,6 +489,9 @@ With the branch pushed and merge-ready:
   `mergeStateStatus: CLEAN`. A `CONFLICTING` state means origin moved again —
   merge it in (never rebase) and re-run the finalize gate.
 - Merging the PR is the final outward action — confirm with the user.
+- **Merge with a stripped body — never let a squash inherit `[skip ci]`.** See
+  8b below; this is not optional polish, it is the difference between the merge
+  publishing a binary and publishing nothing.
 
 ### 8a. Red CI is not done — investigate before you classify
 
@@ -461,10 +549,64 @@ test that gains a `#[cfg(target_os = …)]` / `#[cfg(unix)]` (or whose enclosing
 module/file does) drifts its registry `platform_gate` from source and raises this
 finding. The remedy is `codeyam-editor editor reconcile-registry --auto-apply`,
 which now re-infers the source cfg for **existing** entries and rewrites a
-disagreeing (or missing) gate in place — or `backfill-platform-gates` for the
-fill-only bulk case (`None → Some`, never overwriting a concrete gate). Do NOT
-hand-edit with a per-test `register-test --platform-gate`; the finding's
-`fix_command` names the mechanical path.
+disagreeing (or missing) gate in place — in either direction, including
+*clearing* a stale gate when source verifiably declares no cfg — or
+`backfill-platform-gates` for the fill-only bulk case (`None → Some`, never
+overwriting a concrete gate). Do NOT hand-edit with a per-test
+`register-test --platform-gate`; the finding's `fix_command` names the
+mechanical path.
+
+**It is mechanical, not unconditional — and it now tells you when it did
+nothing.** The inference only trusts an entry whose recorded `line` still
+points at the item its key names; a drifted line is declined rather than
+stamped from a neighbouring attribute. So a run can legitimately repair zero
+entries. It no longer hides that: each declined entry is printed with the
+token it would have stamped, and the command exits **2** (not 0) when gate
+drift was detected and none was repaired — a `fix_command` that exits 0
+having changed nothing is indistinguishable from one that worked. Recover by
+re-anchoring (`refresh-tests` re-derives `line` from runner output) and
+re-running, or repair one entry with `register-test … --clear-platform-gate`.
+
+### 8b. A squash merge must not inherit a plan commit's `[skip ci]`
+
+A squash merge concatenates **every** branch commit message into the merge
+commit's body, and GitHub Actions honors a skip token **anywhere** in that
+message — not just on the subject line. Plan commits always carry `[skip ci]`,
+correctly, because a plan file changes no source. So the default
+`gh pr merge --squash` lands that token on the primary branch and silently skips
+the entire `cicd` workflow for the merge commit.
+
+Nothing announces it. On 2026-08-09 PR #100 merged as `6baba063b` with no CI run
+at all: no `codeyam-editor-binary:main-6baba063b` was published, no cloud image
+was built, and `fleet-advance-to.sh`'s retag resolved its source to a tag that
+exists nowhere — the newest `main-*` tag stayed ~130 commits stale.
+
+**Compose the body explicitly, with the token stripped:**
+
+```bash
+gh pr view <n> --json body -q .body > /tmp/pr-body.md
+bash scripts/lib/ci-skip-token.sh --strip < /tmp/pr-body.md > /tmp/pr-body.stripped.md
+gh pr merge <n> --squash --body-file /tmp/pr-body.stripped.md
+```
+
+Use the script rather than a hand-written `sed`: it knows every token GitHub
+honors (`[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]`,
+`***NO_CI***`), and it avoids `sed -i`, whose in-place flag differs between BSD
+and GNU — the merge is run from laptops and cloud VMs alike.
+
+**Do NOT stop `/codeyam-plan` emitting `[skip ci]`.** The token is right on the
+original plan-only commit. The defect is it *escaping into a squash body*.
+
+**After merging, confirm the merge commit actually got a run:**
+
+```bash
+codeyam-editor editor verify-primary-branch-ci
+```
+
+Exit `0` means a run exists. Exit `2` names the sha and the one command that
+recovers it (`gh workflow run cicd --ref main`). A `gh` that cannot answer, or a
+non-GitHub remote, reports unknown/not-applicable and exits `0` — this check
+never turns a network hiccup into a red gate.
 
 ---
 

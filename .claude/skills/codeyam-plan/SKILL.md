@@ -162,10 +162,18 @@ each tagged with one or both of:
 
 - **`leanContract`** — a SKILL.md governed by an enforced max-line-count
   test (`skill_md_is_lean`). When `atLimit` is true, additions fail that
-  test, so the plan must NOT schedule new lines there. Route the new
-  guidance to a step `.txt` file under
-  `crates/codeyam-editor/src/commands/editor/steps/library/` and name that
-  file in the plan. Reductions (refactors that shrink the file) stay fine.
+  test, so the plan must NOT schedule new lines there. Watch `nearLimit`
+  too: it is true within a few lines of the cap, which means a plan adding
+  more lines than `headroom` is already over even though `atLimit` is
+  false. In either case route the new guidance to a step-library fragment
+  and name it in the plan — the concrete command is
+  `codeyam-editor editor new-step-fragment <name> --slug <slug>`, which
+  writes the fragment, wires its `{<name>_block}` placeholder into
+  `step.rs` and each named slug, and prints the leak test to add. Do not
+  write a plan whose Implementation section targets a `nearLimit` or
+  `atLimit` SKILL.md: the Write/Edit hook refuses that edit, so the plan
+  would be unbuildable as written. Reductions (refactors that shrink the
+  file) stay fine.
 - **`agentConfig`** — a file the harness reads as instructions/settings
   (`.claude/`, `.gemini/`, `ui/.claude/`, `settings.json`, keybindings).
   Edits trip the auto-mode self-modification guard. If the plan genuinely
@@ -189,6 +197,57 @@ Good questions:
 - "This change touches the API layer — should we include backend changes, or keep it frontend-only?"
 
 **Skip this step entirely** if the request is unambiguous and investigation answered all questions. Don't ask questions for the sake of asking — only when the answer genuinely affects the plan.
+
+### Step 4b: Decide how many plans (and consolidate before writing)
+
+Investigation often surfaces several findings at once — especially for review,
+audit, or "what's wrong with X" requests. Decide the grouping **now**, before
+Step 5. Consolidating afterwards means deleting plan files and re-running
+`plan-create`, and a `plan-create` that already ran has stamped a `createdAt`
+you cannot reproduce.
+
+**One plan per concern — where a concern is a single reason the code changes.**
+Fewer plans is better. A reader should be able to state what one plan is about
+in a sentence, without "and also".
+
+**Merge two candidates when ALL of these hold:**
+
+1. **Shared cause or surface** — fixing one puts you in the same files, or they
+   trace to the same root cause.
+2. **One review** — a reviewer looking at one diff would want to see the other
+   in it.
+3. **One coherent Summary and Key Decisions** — the merged Summary names a
+   single problem, and the decisions read as one set rather than two lists
+   stapled together.
+4. **Nothing gets delayed** — neither piece is independently shippable in a way
+   the merge would hold up. A one-line `.gitattributes` fix must not be blocked
+   behind a multi-module refactor.
+
+**Keep them separate when any of these hold:**
+
+- **Different rationale, even in the same file.** Two unrelated rules in the
+  same hook are two plans.
+- **Different subsystems with no shared seam.**
+- **Materially different size or risk** — a trivial config change bundled with
+  a redesign hides the cheap win and inflates the risky one.
+- **The merged Implementation would need more than about five numbered
+  changes**, or the merged title needs an "and" joining unlike things.
+
+**The smell test:** write the merged title and the first Summary sentence. If
+either needs "and also", or names two problems, it is two plans. If the title
+reads as one sentence about one problem, merge.
+
+**Prefer merging over a `dependsOn` chain** when the pieces would land in the
+same commit anyway. Reserve `dependsOn` (Step 5) for genuinely sequential
+deliverables — a seam that must exist before its consumers can be built.
+
+**Decide this yourself; report it, don't ask.** Apply the test and act on it.
+When you authored more than two or three plans, tell the user the grouping in
+Step 6 — the count, and a one-line reason for each merge you made *and each one
+you declined*. That is a summary to react to, not a question to answer. Ask
+only when a genuine judgment call survives the test — for example when merging
+would produce one large plan that a reasonable person might still want split
+for review or scheduling reasons.
 
 ### Step 5: Write the plan file
 
@@ -265,8 +324,8 @@ it("returns the merged total for overlapping ranges", () => {
 });
 ```
 
-Status: PROPOSED — confirm red at execution. Expected failure: `mergeRanges`
-returns `[[1, 3], [2, 5]]`, so the `toEqual([[1, 5]])` assertion fails.
+Status: PROPOSED — confirm red at execution. Expected failure: mergeRanges
+returns [[1, 3], [2, 5]], so the `toEqual([[1, 5]])` assertion fails.
 
 ## Scenarios to Demonstrate
 
@@ -290,9 +349,38 @@ returns `[[1, 3], [2, 5]]`, so the `toEqual([[1, 5]])` assertion fails.
 - `--depends-on <slug>` (optional, repeatable) — A prerequisite plan. The Plan
   tab gates Run on this plan until each listed plan has been archived under
   `.codeyam/plans/completed/`.
+- `--skip-citation-check` (optional) — Suppress the citation report described
+  below. Only for the deliberate forward reference.
 
 Queue position (`order`) is set via the Plan tab's drag or `editor plan-reorder`,
 not at creation.
+
+**`plan-create` verifies the citations you just wrote.** After the plan is
+written it resolves every file, `path:line`, and symbol the body cites against
+the real tree, and prints a report. Plans routinely cite files, functions, and
+line numbers that do not exist; the cost lands on the build agent at the Confirm
+gate, an hour after you had the context to fix it in seconds.
+
+What it checks, and what it deliberately does not:
+
+| Section | Citation | Checked? |
+|---|---|---|
+| `## Implementation` | `**File**:` | Yes — you asserted it exists now |
+| `## Implementation` | `**New file**:` | No — you are about to create it |
+| `## Reused existing code` | paths and symbols | Yes — reuse presupposes existence |
+| `## Reproduction Test` | anything | No — a proposed test names what is not there yet |
+| Any fenced code block | anything | No — fixtures are not citations |
+| `## Summary`, `## Key Decisions` | anything | No — prose names files illustratively |
+
+A `path:840` is checked against the file's actual length, and against the
+symbols cited beside it — a line number that still lands inside the file but
+points at unrelated code is the error this catches and a bare path check cannot.
+
+**The report is advice, not a refusal.** `plan-create` writes the plan and exits
+`0` either way. Read the report, fix what is genuinely wrong, and move on; pass
+`--skip-citation-check` when the forward reference is deliberate. The same scan
+reappears as `citationAdvisory` on `editor plan-staleness-check`, so a plan
+queued before this shipped still gets the report at the Confirm gate.
 
 **Worked example (prefixed):** `--title "Dark Mode Toggle" --prefix "PROJ-123"`
 writes `.codeyam/plans/proj-123--dark-mode-toggle.md` with
@@ -300,8 +388,8 @@ writes `.codeyam/plans/proj-123--dark-mode-toggle.md` with
 the title and the `--` join in the slug are both derived for you.
 
 **When to use `dependsOn`:** if the user's request is too big to deliver in
-one plan and you split it into multiple plans, declare dependencies on the
-prerequisites instead of relying on queue order alone. Reference the slugs
+one plan and you split it into multiple plans (per the Step 4b test), declare
+dependencies on the prerequisites instead of relying on queue order alone. Reference the slugs
 of plans you've authored in the same session — they exist in
 `.codeyam/plans/`. The user can then run them in any order; the editor
 will block Run on a downstream plan until its prerequisites land.
@@ -327,6 +415,18 @@ editor workflow a red-first reproduction it can materialize verbatim. Shape:
   failure (which assertion fails and roughly what message). You cannot run the
   test (the critical rule), so confirming the red is the execution workflow's
   job, not yours.
+- **Backticks in this section are load-bearing.** `plan-staleness-check` reads
+  the first backticked bare identifier here and RUNS it, to detect a fix that
+  already landed. It only cites an identifier that names a **registered** test, so
+  an ordinary English word in backticks is passed over — but keep prose symbols
+  unbackticked anyway, and put the test you actually want run in backticks first.
+  The `**Target**:` path is documentation for the human and is **never run**. A
+  path names where the test will be written, not a test that exists, so running
+  that file would only prove its *other* tests pass — a fact about other work, not
+  about this plan. Citing one used to fire a blocking "the fix already landed"
+  false positive; now it anchors no run and reports a non-blocking advisory
+  instead. Only a backticked bare identifier naming a registered test anchors the
+  staleness run.
 - **When no reproduction test is writable** (visual/layout regressions, bugs
   needing live runtime state), still include the section but record a one-line
   *reason* instead of fabricating a weak test — e.g. *"Visual regression — no
@@ -371,7 +471,10 @@ assets simply has no `assets/<slug>/` directory — it is entirely optional.
 
 Run `codeyam-editor editor plans` to verify the plan is parseable and shows up correctly.
 
-Show the user a brief summary of the plan, then use AskUserQuestion with these options:
+Show the user a brief summary of the plan. When Step 4b produced more than two
+or three plans, lead with the grouping: how many there are, and one line per
+merge you made and per merge you considered and declined. Then use
+AskUserQuestion with these options:
 - **"Looks good, commit it" (Recommended)** — Commit the plan and finish
 - **"I want changes"** — User describes changes, you revise the plan, then re-present
 - **"Discard and start over"** — Delete the plan file and go back to Step 1
