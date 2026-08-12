@@ -23,7 +23,7 @@
 
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE_DIR = path.join(projectRoot, 'build');
@@ -122,7 +122,16 @@ async function main() {
   );
 }
 
-main().catch((e) => {
-  console.error('[sync-extension-dir] failed:', e);
-  process.exit(1);
-});
+// Only run the sync when this file is EXECUTED (`node scripts/sync-extension-dir.mjs`),
+// never when it is merely imported. `sync-extension-dir.test.js` imports the pure
+// helpers above, and an unguarded top-level `main()` runs the whole sync — including
+// its `process.exit(1)` when `build/` is absent — during the test run. Vitest surfaces
+// that as an unhandled rejection and fails the suite even though every test passed,
+// and it only reproduces where `build/` does NOT already exist: green on any machine
+// that has built recently, red in CI.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => {
+    console.error('[sync-extension-dir] failed:', e);
+    process.exit(1);
+  });
+}
