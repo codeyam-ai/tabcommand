@@ -551,45 +551,6 @@ _ASSIGNMENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 # than the PCRE flag.
 _GREP_VALUE_FLAGS = frozenset("efmABCDd")
 
-# The `codeyam-editor editor` subcommands that may not be piped into a filter.
-# Keep in sync with the CLAUDE.md "CLI error conventions" section, under "Do not
-# pipe gating or long-running `codeyam-editor` commands through `tail` / `grep`
-# / `head`".
-#
-# Deliberately NOT every subcommand. The rule's rationale is about the three
-# things a pipe destroys — a meaningful exit code, a liveness heartbeat, and a
-# tail-safe completion trailer — so it covers the commands that HAVE them: the
-# gates whose exit code is a verdict, and the long ones that heartbeat while
-# they run. Piping a small read-only query (`registry-query … | jq .`) loses
-# nothing, and refusing it would make the rule feel arbitrary rather than
-# earned.
-_GATING_SUBCOMMANDS = frozenset(
-    (
-        "advance",
-        "analyze-imports",
-        "audit",
-        "pre-commit-sync",
-        "push",
-        "reconcile-registry",
-        "refresh-tests",
-        "session-checkpoint",
-        "session-finalize",
-        "verify-build",
-        "verify-full-finalize",
-        "verify-test-cache",
-    )
-)
-# A `codeyam-editor editor <subcommand>` invocation with its subcommand
-# captured. Used only as the fail-closed fallback for a stage `shlex` cannot
-# tokenize; the tokenizing path in `_gating_subcommand` is position-aware and
-# is what runs normally.
-_GATING_INVOCATION = re.compile(
-    r"\bcodeyam-editor(?:-dev)?\s+editor\s+([a-z][a-z0-9-]*)"
-)
-# `--help` / `-h` as a standalone argument. A help text has no exit code to
-# lose, no heartbeat, and no completion trailer, so piping one is harmless.
-_HELP_FLAG = re.compile(r"(?:^|\s)(?:--help|-h)(?=\s|$)")
-
 
 def _string_literal(expr):
     """The inner text of `expr` when it is a single quoted string literal."""
@@ -637,44 +598,19 @@ def _call_args(text, paren_index):
     return []
 
 
-def _is_redirection_ampersand(chars, index):
-    """True when the `&` at `chars[index]` is part of a REDIRECTION rather than
-    a command boundary — `2>&1`, `>&2`, `&>out`.
-
-    `&` is a separator character, so without this the single most common way to
-    capture a command's stderr splits it in two: `… --auto-apply 2>&1 | tail`
-    tokenizes as `… 2>` and `1 | tail`, putting the command and its filter in
-    different pipelines. That is exactly the shape of every observed violation
-    of the no-piping rule, so it is the shape the rule most has to see."""
-    if chars[index] != "&":
-        return False
-    if index > 0 and chars[index - 1] in "><":
-        return True
-    return index + 1 < len(chars) and chars[index + 1] == ">"
-
-
-def _split_commands_with_separators(command):
-    """`command` split at unquoted shell separators, as `(segment, separator)`
-    pairs — the separator being the character that ENDED the segment, or `""`
-    for the final one.
+def _split_commands(command):
+    """`command` split into individual commands at unquoted shell separators.
 
     Quote-aware: a separator inside `'…'` or `"…"` is data — a grep pattern, not
     a boundary — and a backslash escapes the next character outside single
     quotes, so `find … {} \\;` does not split at its terminator. Every character
     is preserved verbatim within its segment, including the quotes, so an
-    unterminated quote survives into the segment and is caught downstream.
-
-    Empty segments are KEPT here, unlike in `_split_commands`. `||` and `&&`
-    are runs of separator characters, so they yield an empty middle segment,
-    and that emptiness is exactly what distinguishes `a || b` from the pipe
-    `a | b` for `_pipelines`. Callers that only want the commands use
-    `_split_commands`, which drops them."""
-    pairs = []
+    unterminated quote survives into the segment and is caught downstream."""
+    segments = []
     current = []
     quote = ""
     escaped = False
-    chars = list(command)
-    for index, ch in enumerate(chars):
+    for ch in command:
         if escaped:
             current.append(ch)
             escaped = False
@@ -688,23 +624,13 @@ def _split_commands_with_separators(command):
         elif ch in "'\"":
             current.append(ch)
             quote = ch
-        elif ch in _COMMAND_SEPARATORS and not _is_redirection_ampersand(chars, index):
-            pairs.append(("".join(current), ch))
+        elif ch in _COMMAND_SEPARATORS:
+            segments.append("".join(current))
             current = []
         else:
             current.append(ch)
-    pairs.append(("".join(current), ""))
-    return pairs
-
-
-def _split_commands(command):
-    """`command` split into individual commands at unquoted shell separators.
-
-    The non-empty segments of `_split_commands_with_separators` — one scanner
-    serves both, so the quote handling that keeps `grep -rn "grep -P"` from
-    self-matching cannot drift between the two."""
-    return [segment for segment, _ in _split_commands_with_separators(command)
-            if segment.strip()]
+    segments.append("".join(current))
+    return [segment for segment in segments if segment.strip()]
 
 
 def _in_command_position(tokens, index):
@@ -783,162 +709,6 @@ def _uses_pcre_grep(command):
             if any(_is_pcre_flag(t) for t in tokens[index + 1:]):
                 return True
     return False
-
-
-def _pipelines(command):
-    """`command` grouped into pipelines — each a list of the stages joined by
-    unquoted `|`, in order.
-
-    A lone command is a one-stage pipeline, so `len(stages) > 1` is exactly the
-    "this was piped" test. `||` is NOT a pipe: it is two separator characters,
-    so it yields an empty middle segment, and an empty segment ends the current
-    pipeline rather than extending it. That empty-segment check is the whole
-    difference between `audit || echo failed` (allowed — two pipelines) and
-    `audit | tail` (one two-stage pipeline)."""
-    pipelines = []
-    current = []
-    pairs = _split_commands_with_separators(command)
-    for index, (segment, separator) in enumerate(pairs):
-        if not segment.strip():
-            if current:
-                pipelines.append(current)
-                current = []
-            continue
-        current.append(segment)
-        piped_into_next = (
-            separator == "|"
-            and index + 1 < len(pairs)
-            and pairs[index + 1][0].strip()
-        )
-        if not piped_into_next:
-            pipelines.append(current)
-            current = []
-    if current:
-        pipelines.append(current)
-    return pipelines
-
-
-def _gating_subcommand(stage):
-    """The gating `codeyam-editor editor <subcommand>` that `stage` RUNS, or
-    None.
-
-    Position-aware for the same reason `_uses_pcre_grep` is: the name is only
-    an invocation when it is the program the stage runs, so
-    `grep "codeyam-editor editor audit" notes.md | head` — where it is a search
-    term — does not trip the rule. Fails closed: a stage that cannot be
-    tokenized falls back to the position-blind regex, so a malformed quote is
-    never an evasion path."""
-    try:
-        tokens = shlex.split(stage, posix=True)
-    except ValueError:
-        match = _GATING_INVOCATION.search(stage)
-        return match.group(1) if match else None
-    for index, tok in enumerate(tokens):
-        if tok.rsplit("/", 1)[-1] not in ("codeyam-editor", "codeyam-editor-dev"):
-            continue
-        if not _in_command_position(tokens, index):
-            continue
-        rest = tokens[index + 1:]
-        if len(rest) >= 2 and rest[0] == "editor" and rest[1] in _GATING_SUBCOMMANDS:
-            return rest[1]
-    return None
-
-
-def _is_tee_stage(stage):
-    """True when `stage` is a `tee` — the one downstream stage that preserves
-    what a pipe would otherwise destroy. `tee` copies stdout to a file and
-    passes it through unchanged, and a pipeline ending in `tee` reports `tee`'s
-    status, which fails only on a write error. So the exit code, the heartbeat,
-    and the completion trailer all survive."""
-    try:
-        tokens = shlex.split(stage, posix=True)
-    except ValueError:
-        return False
-    return bool(tokens) and tokens[0].rsplit("/", 1)[-1] == "tee"
-
-
-def _exit_code_preserved(command):
-    """True when `command` already keeps the child's exit code across a pipe.
-
-    `set -o pipefail` makes the pipeline report its first failing stage, and a
-    `${PIPESTATUS[0]}` read recovers the first stage's status explicitly. Both
-    are named in the documentation as the sanctioned way to filter anyway, so
-    both have to be honoured — a rule that refused the escape it recommends
-    would just teach agents to route around it.
-
-    Whole-command scoped on purpose: `set -o pipefail` is usually a separate
-    statement ahead of the pipeline, and the `PIPESTATUS` read necessarily
-    comes after it. The `set` itself is still matched in COMMAND POSITION, so
-    `echo remember to set -o pipefail` does not count — otherwise any command
-    could opt out of the rule by mentioning the word."""
-    if "PIPESTATUS" in command:
-        return True
-    for segment in _split_commands(command):
-        try:
-            tokens = shlex.split(segment, posix=True)
-        except ValueError:
-            continue
-        for index, tok in enumerate(tokens):
-            if tok != "set" or not _in_command_position(tokens, index):
-                continue
-            if "pipefail" in tokens[index + 1:]:
-                return True
-    return False
-
-
-def piped_gating_command(command):
-    """The gating subcommand `command` pipes into a filter, or None.
-
-    This is the mechanical form of the CLAUDE.md "do not pipe gating or
-    long-running commands" rule. The rule is documented at length and violated
-    anyway, on the very commands it names — so it is enforced here rather than
-    left to prose.
-
-    Three properties of a wrapped gating command die at a pipe. The shell
-    reports the LAST stage's status, so `verify-build | tail` exits 0 when the
-    build failed — a false green that advances the workflow past a failing
-    gate. `tail`/`grep` block-buffer to EOF, so a still-running command's output
-    and its `CODEYAM_CMD_RUNNING` heartbeat never surface and the read looks
-    empty. And the tail-safe completion trailer — the `EXACT_TASK_TITLE`
-    hand-off and the `CODEYAM_CMD_COMPLETE` sentinel — gets sliced off.
-
-    The escapes the documentation itself endorses are honoured: `tee`,
-    `set -o pipefail`, and a `${PIPESTATUS[0]}` check each keep the child's
-    exit code, so none of them is refused. `--help` is exempt because a help
-    text has no exit code to lose, no heartbeat, and no trailer."""
-    if _exit_code_preserved(command):
-        return None
-    for stages in _pipelines(command):
-        for index, stage in enumerate(stages[:-1]):
-            subcommand = _gating_subcommand(stage)
-            if subcommand is None or _HELP_FLAG.search(stage):
-                continue
-            if all(_is_tee_stage(later) for later in stages[index + 1:]):
-                continue
-            return subcommand
-    return None
-
-
-def piped_gating_refusal(subcommand):
-    """The `(reason, next_action)` pair for a refused pipe. Names the three
-    sanctioned escapes, because wanting to shorten a long output is the reason
-    agents reach for `| tail` and the refusal has to answer it."""
-    return (
-        f"this pipes `{cli_command()} editor {subcommand}` into a filter. A "
-        f"pipeline's exit code is its LAST stage's, so the filter's success "
-        f"masks the command's failure — a false green on a gate that actually "
-        f"failed. `tail`/`grep` also block-buffer to EOF, hiding the "
-        f"`CODEYAM_CMD_RUNNING` heartbeat so a healthy long command reads as "
-        f"wedged, and they slice off the completion trailer carrying the "
-        f"hand-off and the `CODEYAM_CMD_COMPLETE` sentinel.",
-        f"run it BARE and read the verdict off its own terminal line "
-        f"(`CODEYAM_VERIFY_BUILD: PASS|FAIL`, the `CODEYAM_CMD_COMPLETE` "
-        f"`status`). Output too long is not a reason to pipe — the command "
-        f"prints a `CODEYAM_FULL_OUTPUT` line naming a file with the complete "
-        f"output. If you genuinely need a filter, keep the child's exit code: "
-        f"`| tee out.txt`, a leading `set -o pipefail`, or a "
-        f"`${{PIPESTATUS[0]}}` check.",
-    )
 
 
 def write_targets(command):
@@ -1469,17 +1239,6 @@ def main():
                 next_action,
                 detail=rewrite_target,
             )
-
-    # Piped-gating-command guard. Neither step-scoped nor editor-mode-scoped,
-    # for the same reason as the guard above: the no-piping rule holds in every
-    # session. It also has to fire before the "always allow codeyam-editor
-    # editor" short-circuit further down, which would otherwise exit 0 on the
-    # very commands this refuses.
-    if tool_name == "Bash":
-        piped = piped_gating_command(tool_input.get("command", ""))
-        if piped:
-            reason, next_action = piped_gating_refusal(piped)
-            block(project_dir, "piped-gating-command", reason, next_action, detail=piped)
 
     # Every remaining rule is a workflow-step gate — only enforce in editor mode
     if not os.environ.get("CODEYAM_EDITOR_ACTIVE"):

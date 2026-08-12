@@ -23,12 +23,12 @@ Two `/codeyam-editor` panes on one project corrupt each other's workflow state. 
 
 ## Project description is mandatory
 
-Before doing ANYTHING in step 1, run `codeyam-editor editor project-info --format json` and inspect the returned `projectDescription`. Bare `project-info` (no JSON argument) is the read-only query surface for this: it parses `.codeyam/editor.json` and `.codeyam/stack.json` for you, returns them under the standard `entries` array, answers before the editor server is up, and exits `0` with `configPresent: false` on an un-scaffolded project. Do NOT hand-read those files with a `python3` heredoc or a `cat`/`jq` pipeline — that is the banned ad-hoc-parse path this command exists to close.
+Before doing ANYTHING in step 1, read `.codeyam/editor.json` and inspect the `projectDescription` field.
 
 - If it is **empty or missing**, stop and ask the user: *"I don't have a project description yet — what are you building?"*
 - If it is **shorter than 20 characters**, contains **no whitespace**, or matches a placeholder like `test`, `todo`, `app`, `demo`, `hello`, `untitled`, `foo`, `bar`, `tbd`, `wip`, `example` (case-insensitive), treat it as not-yet-set and ask the user the same question.
-- Do **NOT** call `editor project-info` *with a JSON argument* (the write path) to set a fabricated description. The endpoint enforces this — it returns `409 project_description_already_set` for any overwrite without `"allowOverwrite": true`, and `allowOverwrite` is only legitimate when the user has *explicitly* asked you to rename the project. Fabricating wastes a round-trip and confuses the user when they see the rejected POST in logs.
-- When you later need the project's display **title** (its brand / product name), take `projectTitle` from the same response — it already resolves the legacy `projectName` fallback, so you never check two keys. Never search the codebase (components, layouts, logos) for it. If it comes back unset, ask the user; do not fabricate one.
+- Do **NOT** call `editor project-info` to set a fabricated description. The endpoint enforces this — it returns `409 project_description_already_set` for any overwrite without `"allowOverwrite": true`, and `allowOverwrite` is only legitimate when the user has *explicitly* asked you to rename the project. Fabricating wastes a round-trip and confuses the user when they see the rejected POST in logs.
+- When you later need the project's display **title** (its brand / product name), read it from this same file: prefer `projectTitle`, and fall back to the legacy `projectName` key (older projects carry only that). Never search the codebase (components, layouts, logos) for it. If neither key is present, ask the user; do not fabricate one.
 
 Only proceed past step 1 once `projectDescription` is a real, multi-word description provided by the user.
 

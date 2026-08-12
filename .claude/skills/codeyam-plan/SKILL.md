@@ -198,57 +198,6 @@ Good questions:
 
 **Skip this step entirely** if the request is unambiguous and investigation answered all questions. Don't ask questions for the sake of asking — only when the answer genuinely affects the plan.
 
-### Step 4b: Decide how many plans (and consolidate before writing)
-
-Investigation often surfaces several findings at once — especially for review,
-audit, or "what's wrong with X" requests. Decide the grouping **now**, before
-Step 5. Consolidating afterwards means deleting plan files and re-running
-`plan-create`, and a `plan-create` that already ran has stamped a `createdAt`
-you cannot reproduce.
-
-**One plan per concern — where a concern is a single reason the code changes.**
-Fewer plans is better. A reader should be able to state what one plan is about
-in a sentence, without "and also".
-
-**Merge two candidates when ALL of these hold:**
-
-1. **Shared cause or surface** — fixing one puts you in the same files, or they
-   trace to the same root cause.
-2. **One review** — a reviewer looking at one diff would want to see the other
-   in it.
-3. **One coherent Summary and Key Decisions** — the merged Summary names a
-   single problem, and the decisions read as one set rather than two lists
-   stapled together.
-4. **Nothing gets delayed** — neither piece is independently shippable in a way
-   the merge would hold up. A one-line `.gitattributes` fix must not be blocked
-   behind a multi-module refactor.
-
-**Keep them separate when any of these hold:**
-
-- **Different rationale, even in the same file.** Two unrelated rules in the
-  same hook are two plans.
-- **Different subsystems with no shared seam.**
-- **Materially different size or risk** — a trivial config change bundled with
-  a redesign hides the cheap win and inflates the risky one.
-- **The merged Implementation would need more than about five numbered
-  changes**, or the merged title needs an "and" joining unlike things.
-
-**The smell test:** write the merged title and the first Summary sentence. If
-either needs "and also", or names two problems, it is two plans. If the title
-reads as one sentence about one problem, merge.
-
-**Prefer merging over a `dependsOn` chain** when the pieces would land in the
-same commit anyway. Reserve `dependsOn` (Step 5) for genuinely sequential
-deliverables — a seam that must exist before its consumers can be built.
-
-**Decide this yourself; report it, don't ask.** Apply the test and act on it.
-When you authored more than two or three plans, tell the user the grouping in
-Step 6 — the count, and a one-line reason for each merge you made *and each one
-you declined*. That is a summary to react to, not a question to answer. Ask
-only when a genuine judgment call survives the test — for example when merging
-would produce one large plan that a reasonable person might still want split
-for review or scheduling reasons.
-
 ### Step 5: Write the plan file
 
 **Do not create the plan file with the Write tool, and never hand-author its
@@ -388,8 +337,8 @@ writes `.codeyam/plans/proj-123--dark-mode-toggle.md` with
 the title and the `--` join in the slug are both derived for you.
 
 **When to use `dependsOn`:** if the user's request is too big to deliver in
-one plan and you split it into multiple plans (per the Step 4b test), declare
-dependencies on the prerequisites instead of relying on queue order alone. Reference the slugs
+one plan and you split it into multiple plans, declare dependencies on the
+prerequisites instead of relying on queue order alone. Reference the slugs
 of plans you've authored in the same session — they exist in
 `.codeyam/plans/`. The user can then run them in any order; the editor
 will block Run on a downstream plan until its prerequisites land.
@@ -471,10 +420,7 @@ assets simply has no `assets/<slug>/` directory — it is entirely optional.
 
 Run `codeyam-editor editor plans` to verify the plan is parseable and shows up correctly.
 
-Show the user a brief summary of the plan. When Step 4b produced more than two
-or three plans, lead with the grouping: how many there are, and one line per
-merge you made and per merge you considered and declined. Then use
-AskUserQuestion with these options:
+Show the user a brief summary of the plan, then use AskUserQuestion with these options:
 - **"Looks good, commit it" (Recommended)** — Commit the plan and finish
 - **"I want changes"** — User describes changes, you revise the plan, then re-present
 - **"Discard and start over"** — Delete the plan file and go back to Step 1
