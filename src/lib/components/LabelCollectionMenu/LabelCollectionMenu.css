@@ -37,11 +37,17 @@
   text-align: left;
 }
 
+/* This descendant selector is the ONLY thing styling these buttons — the
+   `.LabelCollection-delete` class the Delete Group button carries has no rule
+   anywhere in src/. With `border: none` and an inherited background, a button
+   here is visually indistinguishable from plain text, so without an explicit
+   cursor it does not read as clickable at all. */
 .LabelCollection-menu-actions button {
   display: block;
   border: none;
   background-color: inherit;
   margin-bottom: 6px;
+  cursor: pointer;
 }
 
 .LabelCollection-menu-actions button:last-child {

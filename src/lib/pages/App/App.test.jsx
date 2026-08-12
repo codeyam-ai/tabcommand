@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { installChromeShim } from '../../utils/chromeShim';
@@ -28,6 +28,38 @@ describe('App', () => {
     expect(screen.getByLabelText('TabCommand')).toBeInTheDocument();
     expect(await screen.findByText('Active Tabs')).toBeInTheDocument();
     expect(screen.getByText('Automatically Closed')).toBeInTheDocument();
+  });
+
+  // Regression: `labels` is in chrome.storage.sync and the areas fire SEPARATE
+  // onChanged events, so the blanket `areaName !== 'local'` guard this listener
+  // used to open with dropped every labels change and froze the footer's group
+  // count — it kept claiming the deleted group until a full reload.
+  it('updates the footer group count on a sync-area labels change', async () => {
+    window.localStorage.setItem(
+      'labels',
+      JSON.stringify({
+        Work: { title: 'Work', backgroundColor: '#1873E4', position: 0, urlKeys: [] },
+        Reading: { title: 'Reading', backgroundColor: '#1F8E43', position: 1, urlKeys: [] }
+      })
+    );
+    installChromeShim();
+    const { container } = render(<App />);
+
+    await waitFor(() =>
+      expect(container.querySelector('.App-sidebar-counts')).toHaveTextContent('2 groups')
+    );
+
+    await act(async () => {
+      globalThis.chrome.storage.sync.set({
+        labels: {
+          Reading: { title: 'Reading', backgroundColor: '#1F8E43', position: 1, urlKeys: [] }
+        }
+      });
+    });
+
+    await waitFor(() =>
+      expect(container.querySelector('.App-sidebar-counts')).toHaveTextContent('1 group')
+    );
   });
 
   // uxSettings.page selects which page renders — a non-HOME page shows its own content

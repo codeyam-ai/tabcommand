@@ -1,0 +1,31 @@
+{
+  "name": "Home - All Groups Deleted Tabs Survive",
+  "id": "196ba4f9-0948-476c-9434-52ee1ce2f09a",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"https://www.google.com/s2/favicons?domain=developer.mozilla.org&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://www.google.com/s2/favicons?domain=github.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"https://www.google.com/s2/favicons?domain=react.dev&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://www.reddit.com/r/programming": "{\"title\":\"r/programming\",\"favicon\":\"https://www.google.com/s2/favicons?domain=reddit.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-201\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://www.figma.com/file/tabcommand\", \"tabKey\": \"tab-202\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://www.notion.so/codeyam/Roadmap\", \"tabKey\": \"tab-203\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://react.dev/learn\", \"tabKey\": \"tab-204\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://developer.mozilla.org/en-US/docs/Web/API\", \"tabKey\": \"tab-205\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://www.amazon.com/wishlist\", \"tabKey\": \"tab-206\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://www.etsy.com/favorites\", \"tabKey\": \"tab-207\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://twitter.com/home\", \"tabKey\": \"tab-208\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://www.reddit.com/r/programming\", \"tabKey\": \"tab-209\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://mail.google.com/mail/u/0\", \"tabKey\": \"tab-210\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}, {\"urlKey\": \"url-https://news.ycombinator.com\", \"tabKey\": \"tab-211\", \"pinned\": false, \"tabCommandPinned\": false, \"groupId\": -1}]",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"https://www.google.com/s2/favicons?domain=notion.so&sz=64\",\"processes\":{\"samples\":0}}",
+      "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\",\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\",\"url-https://mail.google.com/mail/u/0\",\"url-https://news.ycombinator.com\"]",
+      "url-https://twitter.com/home": "{\"title\":\"Home / X\",\"favicon\":\"https://www.google.com/s2/favicons?domain=twitter.com&sz=64\",\"processes\":{\"samples\":10,\"network\":204800,\"cpu\":31000,\"privateMemory\":2100000000,\"jsMemoryAllocated\":1680000000,\"jsMemoryUsed\":1260000000}}",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=64\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "labels": "{}",
+      "url-https://mail.google.com/mail/u/0": "{\"title\":\"Inbox (1,284) - hello@codeyam.com - Gmail\",\"favicon\":\"https://www.google.com/s2/favicons?domain=mail.google.com&sz=64\",\"processes\":{\"samples\":10,\"network\":737280,\"cpu\":48000,\"privateMemory\":7660800000,\"jsMemoryAllocated\":6128640000,\"jsMemoryUsed\":4596480000}}",
+      "url-https://www.amazon.com/wishlist": "{\"title\":\"Your Wish List – Amazon\",\"favicon\":\"https://www.google.com/s2/favicons?domain=amazon.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://www.etsy.com/favorites": "{\"title\":\"Favorites – Etsy\",\"favicon\":\"https://www.google.com/s2/favicons?domain=etsy.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"https://www.google.com/s2/favicons?domain=figma.com&sz=64\",\"processes\":{\"samples\":0}}",
+      "autoClosed": "{}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx",
+  "description": "The boundary case: every group deleted at once. The grid falls back to its Add Group empty state and the footer reads 0 groups — but all eleven tabs are still open and still listed, now under Ungrouped. Deleting groups removes groups, never tabs. Distinct from Home - Empty, which is a profile with no tabs either; this is the populated browser a user is left with the moment after clearing their last group. It is also the state the worker's deletion diff has to survive: removing the final label drops the `labels` key wholesale rather than writing an empty map, so `newValue` arrives undefined and deletedLabelTitles has to coerce it or the deletion goes unreported."
+}

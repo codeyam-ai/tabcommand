@@ -544,7 +544,7 @@
     "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
-    "description": "Returns the change entry a storage.onChanged event carries for a key, but only when the event's areaName matches that key's OWN area. Exists because the two areas fire separately: one event carries only one area's keys, so the pre-split `if (areaName !== 'local') return` preamble silently dropped every labels change once labels moved to sync. Centralizing the gate means the service worker, LabelCollection, and Search cannot drift apart on it.",
+    "description": "Returns the change entry a storage.onChanged event carries for a key, but only when the event's areaName matches that key's OWN area. Exists because the two areas fire separately: one event carries only one area's keys, so the pre-split `if (areaName !== 'local') return` preamble silently dropped every labels change once labels moved to sync. Centralizing the gate means the service worker, LabelCollection, Search, Labels, Tabs, and App cannot drift apart on it. The last three were missed by the original conversion sweep, and the gap was not cosmetic: with the grid (Labels) deaf to every labels change, deleting a group wrote storage correctly and left its card on screen — the whole user-visible 'Delete Group does nothing' symptom — while the sidebar kept the group's heading and the footer kept its count. Recolor and rename hid the bug because LabelCollection repaints its own card from its own listener; deleting is the one mutation that needs the PARENT to re-render.",
     "filePath": "src/lib/utils/storageAreas.js",
     "name": "changedInArea",
     "testFile": "src/lib/utils/storageAreas.test.js"
@@ -647,6 +647,12 @@
     "testFile": "src/lib/utils/deleteUrlFromHistory.test.js"
   },
   {
+    "description": "Returns the label titles a `labels` write REMOVED — present in the previous map, absent from the next — which is exactly the set of groups the user just deleted and the trigger for dissolving their Chrome tab groups. Pure and area-agnostic so the worker's storage.onChanged listener keeps no set-difference logic of its own and the case can be tested without stubbing chrome.* at all. Both sides tolerate null/undefined: `newValue` is undefined when the key is removed wholesale, which is what deleting the LAST remaining group does, and coercing it to an empty map is what makes that case report the deletion instead of silently reporting nothing. Presence is keyed on the key rather than on truthiness, so a label whose value is falsy is not mistaken for a deleted one.",
+    "filePath": "src/lib/utils/deletedLabelTitles.js",
+    "name": "deletedLabelTitles",
+    "testFile": "src/lib/utils/deletedLabelTitles.test.js"
+  },
+  {
     "description": "Maps a stored processTotals record onto the two values the LoadMeter gauge renders: cpu (inner arc) and memory (outer arc, the sum of privateMemory + jsMemoryUsed bytes). Every field is optional so a partial or empty record reads as zero, never NaN. Factored out of LoadMeter's storage handler so the data binding is unit-testable independent of the SVG.",
     "filePath": "src/lib/utils/deriveGaugeTotals.js",
     "name": "deriveGaugeTotals",
@@ -675,6 +681,12 @@
     "filePath": "src/lib/utils/describeDragRemoval.js",
     "name": "describeDragRemoval",
     "testFile": "src/lib/utils/describeDragRemoval.test.js"
+  },
+  {
+    "description": "Dissolves the Chrome tab groups belonging to labels the user just deleted, so no tab survives in a titled group to re-record the label that was removed. Tabs stay open and stay put — chrome.tabs.ungroup only clears membership and never reorders tabs or moves them between windows — so this is a deliberate, user-initiated exception to the no-autonomous-tab-moving guarantee rather than a regression of it. Queries unscoped by window and handles EVERY returned group, since a label legitimately has one Chrome group per window and the deletion removes all of them. Each affected tab is added to pendingUngroups BEFORE the call lands, reusing the record loop's existing in-flight guard to close the window in which a concurrent groupTabs pass would re-record it, and cleared in the callback. A deleted label with no live Chrome group is the common case (its tabs are all closed) and is a silent no-op. Every ungroup is trailed through recordMove under MoveSource.WORKER_LABEL_DELETED.",
+    "filePath": "service_worker.js",
+    "name": "dissolveDeletedLabelGroups",
+    "testFile": "service_worker.test.js"
   },
   {
     "description": "Resolves the group droppableId under a viewport point via elementFromPoint, so a dragged tab targets whichever group the cursor is over instead of @hello-pangea/dnd's center-based collision. Returns null when the point is over no group card.",

@@ -1,0 +1,35 @@
+{
+  "claimStartedAt": "2026-08-12T18:04:02Z",
+  "completedAt": "2026-08-12T19:22:59Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-11",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "delete-group-actually-deletes",
+    "sessionId": "4558b085-f920-46f0-9f9d-2804d1241547",
+    "startedAt": "2026-08-12T18:04:02Z"
+  },
+  "createdAt": "2026-08-12T17:48:48Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.css",
+    "src/lib/components/Labels/Labels.jsx",
+    "src/lib/components/Labels/Labels.test.jsx",
+    "src/lib/components/Tabs/Tabs.jsx",
+    "src/lib/components/Tabs/Tabs.test.jsx",
+    "src/lib/pages/App/App.jsx",
+    "src/lib/pages/App/App.test.jsx",
+    "src/lib/utils/deletedLabelTitles.js",
+    "src/lib/utils/deletedLabelTitles.test.js",
+    "src/lib/utils/groupMoveLog.js"
+  ],
+  "journalTimestamp": "2026-08-12T19:22:59Z",
+  "mode": "ui",
+  "planFile": "completed/delete-group-actually-deletes.md",
+  "slug": "delete-group-actually-deletes",
+  "title": "Delete Group Actually Deletes"
+}

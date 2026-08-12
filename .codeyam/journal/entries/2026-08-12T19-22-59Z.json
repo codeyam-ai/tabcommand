@@ -1,0 +1,535 @@
+{
+  "timestamp": "2026-08-12T19:22:59Z",
+  "title": "Delete Group Actually Deletes",
+  "type": "feature",
+  "userRequest": "## Summary\n\nDeleting a group appears to do nothing. Confirming the dialog removes the label\nfrom storage, and the worker puts it straight back: a tab still sitting in a\nnative Chrome tab group of the same title reaches `recordInGroupTab`, which\nre-seeds the label it just lost. The card never disappears, so the whole action\nreads as broken. Separately, the Delete Group button has no pointer cursor, so it\ndoes not read as clickable in the first place.\n\nDeleting a group should delete it everywhere. This plan makes an explicit user\ndeletion also dissolve the corresponding Chrome tab group — the tabs are\nungrouped and stay open — so nothing survives to re-record the label, and gives\nthe button the cursor it should always have had.\n\nObserved on a live profile: sync `labels` held exactly one group (`CodeYam`, one\nurlKey) and `activeTabs` held exactly one grouped tab (`groupId 1380839889`). The\nconfirm dialog appeared and approving it changed nothing.\n\n## Key Decisions\n\n- **Dissolve the Chrome group, don't tombstone the title.** The alternative was a\n  short-lived \"recently deleted\" set the worker consults before recording, which\n  leaves the Chrome tab group on screen after its label is gone — a group the app\n  no longer knows about but Chrome still shows. Deleting a group should mean the\n  group is gone. Ungrouping leaves every tab open and in place; only the grouping\n  is removed.\n\n- **This is a deliberate, narrow exception to \"TabCommand does not move tabs.\"**\n  The completed `stop-tabcommand-moving-tabs-in-the-tab-strip` plan stopped the\n  worker from *autonomously* regrouping tabs. Ungrouping here is not autonomous:\n  it is the direct, confirmed consequence of a user action whose entire meaning is\n  \"remove this group.\" `chrome.tabs.ungroup` does not reorder or move tabs between\n  windows — it only clears group membership — so the tab-strip guarantee that\n  plan established (no unrequested repositioning) is preserved. Record it via the\n  existing `groupMoveLog` so the action stays auditable like every other\n  grouping mutation.\n\n- **Drive the ungroup from the worker, not the delete handler.** The worker\n  already owns every `chrome.tabs.ungroup` call, the `pendingUngroups` in-flight\n  guard, and the move log. `storage.onChanged` hands it both `oldValue` and\n  `newValue` for `labels` (`service_worker.js:1247` already reads `oldValue`), so\n  the titles that disappeared are derivable there. Putting the Chrome call in the\n  UI would duplicate that machinery and split ownership of tab mutations across\n  two surfaces.\n\n- **Reuse `pendingUngroups` rather than adding a second suppression mechanism.**\n  The record loop already skips a tab whose ungroup is in flight\n  (`service_worker.js:1656`). Marking the tabs before issuing the ungroup closes\n  the race window using the guard that exists, instead of introducing a parallel\n  one that could disagree with it.\n\n- **The cursor fix is not a regression and is included anyway.** It has been\n  missing since `a404030`, it is one declaration, and it is in the same button the\n  rest of this plan makes work. Fixing \"the button does nothing\" while leaving it\n  looking unclickable would be a half-delivered fix.\n\n## Implementation\n\n### 1. Give the menu's action buttons a pointer cursor\n\n**File**: `src/lib/components/LabelCollectionMenu/LabelCollectionMenu.css`\n\n`.LabelCollection-menu-actions button` (lines 40-45) sets `display`, `border`,\n`background-color`, and `margin-bottom` but no `cursor`. A `<button>` with\n`border: none` and an inherited background reads as plain text under the default\ncursor. Add `cursor: pointer` to that rule so every action in the menu — today\njust Delete Group — reads as clickable.\n\nNote that `.LabelCollection-delete` (the class on the button itself, set at\n`src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx:11`) has\n**no rule anywhere in `src/`**. The descendant selector above is the only thing\nstyling this button. Either add the declaration there or give\n`.LabelCollection-delete` a real rule — but do not assume the class is already\nstyled, because it is not.\n\n### 2. Dissolve the Chrome tab group when its label is deleted\n\n**File**: `service_worker.js`\n\nIn the `chrome.storage.onChanged` listener (`service_worker.js:1224-1257`), the\n`labelsChanged` branch already has both sides of the change and reads\n`changes.labels.oldValue` at `:1247`. Extend it to compute the titles present in\n`oldValue` but absent from `newValue` — the labels just deleted — and for each:\n\n1. `chrome.tabGroups.query({ title })` to find its Chrome group(s). The query is\n   not window-scoped, so handle multiple groups the way `groupLabeledTab` already\n   does (`service_worker.js:1580-1596`) rather than taking `groups[0]`.\n2. Add each affected tab id to `pendingUngroups` **before** issuing the call, so\n   the record loop's existing in-flight guard (`service_worker.js:1656`) cannot\n   re-record the tab in the window between the query and the ungroup landing.\n3. `chrome.tabs.ungroup(tabIds)`, clearing `pendingUngroups` in the callback and\n   swallowing `chrome.runtime.lastError` — the pattern `ejectAutoGroupedTab`\n   already uses at `service_worker.js:1453-1457`.\n4. Record the mutation through `recordMove` with a new `MoveSource` value for a\n   user-initiated group deletion (`src/lib/utils/groupMoveLog.js:35-41` holds the\n   existing set; there is no entry for this today).\n\nA deletion that finds no Chrome group must be a no-op, not an error: the common\ncase is deleting a group whose tabs are all closed.\n\n### 3. Stop the record path from resurrecting a deleted label\n\n**File**: `service_worker.js`\n\nStep 2 removes the *cause* in the common case, but the fall-through at\n`service_worker.js:1680` is what actually re-creates the label, and it will still\nfire for any tab that is in a titled Chrome group with no matching label — for\ninstance if the ungroup fails, or a second window's group is queried later. The\nloop reaches `recordInGroupTab` when all of these hold:\n\n- the tab is in a group (`activeTab.groupId > -1`)\n- `urlKeyIsMember(label, activeTab.urlKey)` is false — true here, because the\n  label no longer exists\n- `autoGroupedTabs.has(tabId)` is false — true here, because a pre-existing\n  Chrome group is not Chrome's per-tab inheritance\n\nMake the resurrection path defensive so a *deleted* label is not silently\nrecreated as a side effect of a sync pass. The precise mechanism is a tactical\ncall for execution — the constraint is that startup sync of genuinely\npre-existing Chrome groups (the case `recordInGroupTab` exists to serve, per its\ncomment at `service_worker.js:1494-1498`) must keep working. Do not simply delete\nthe call.\n\n### 4. Keep the removal breadcrumb accurate\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\n`deleteLabel` (`src/lib/components/LabelCollection/LabelCollection.jsx:217-238`)\nalready writes a `RemovalSource.UI_DELETE_LABEL` entry with the removed urlKeys\nvia `buildGroupRemovalEntry`. No change is needed to the write itself — but\nverify the entry still lands once, not twice, once the worker also reacts to the\nsame deletion. The removal log is the audit trail for \"where did my group go\",\nso a duplicated or missing entry there is a real defect.\n\n## Reused existing code\n\n- `recordInGroupTab` from `service_worker.js` (glossary entry: `recordInGroupTab`,\n  test `service_worker.test.js`) — the resurrection site; its startup-sync purpose\n  must survive.\n- `ejectAutoGroupedTab` from `service_worker.js` (glossary entry:\n  `ejectAutoGroupedTab`, test `service_worker.test.js`) — the existing\n  ungroup-a-tab idiom: `pendingUngroups.add` → `chrome.tabs.ungroup` → clear in\n  callback → swallow `lastError`. Copy this shape rather than inventing one.\n- `groupTabs` from `service_worker.js` (glossary entry: `groupTabs`, tags\n  `worker,ported-verbatim,tab-groups,labels`) — contains the record loop and the\n  multi-window `chrome.tabGroups.query` handling to mirror.\n- `LabelCollection` from `src/lib/components/LabelCollection/LabelCollection.jsx`\n  (glossary entry: `LabelCollection`, test\n  `src/lib/components/LabelCollection/LabelCollection.test.jsx`) — owns\n  `deleteLabel`.\n- `RemovalSource` / `buildGroupRemovalEntry` from\n  `src/lib/utils/groupRemovalLog.js` and `MoveSource` / `recordMove` from\n  `src/lib/utils/groupMoveLog.js` — the existing audit-trail helpers. `MoveSource`\n  has no user-deletion entry yet; add one there rather than logging an ad-hoc\n  string.\n\n**Existing-implementation survey.** There is no tombstone, suppression list, or\n\"recently deleted labels\" mechanism anywhere in the worker — `autoGroupedTabs` and\n`pendingUngroups` are the only two in-memory tab sets, and both are keyed by tab\nid, not by label title. No code path today ungroups tabs in response to a label\ndeletion. There are exactly two ungroup call sites today, both keyed off a single\ntab: the navigation-eject branch inside the `onUpdated` handler, and\n`ejectAutoGroupedTab` (`service_worker.js:1453-1457`).\n\n**Test coverage.** `service_worker.test.js` has 139 registered tests covering\n`groupTabs`, `recordInGroupTab`, and `ejectAutoGroupedTab`;\n`src/lib/components/LabelCollection/LabelCollection.test.jsx` covers the delete\nhandler. Both are the natural homes for the new coverage.\n\n## Reproduction Test\n\nThe worker re-creates a label immediately after the user deletes it, whenever a\ntab is still in a native Chrome group of that title.\n\n**Target**: `service_worker.test.js` — run with\n`codeyam-editor editor refresh-tests --test <name>`.\n\n```js\n// A label deleted by the user must not be resurrected by the in-group record\n// path while its tabs are still sitting in the Chrome group of the same title.\nit('does not re-create a label the user just deleted', async () => {\n  // labels no longer has \"Work\"; a tab is still in the Chrome group \"Work\".\n  const labels = {};\n  const activeTabs = [\n    { id: 1, groupId: 42, urlKey: 'url-https://a.com', pinned: false }\n  ];\n  stubTabGroup(42, { id: 42, title: 'Work' });\n\n  await groupTabs(activeTabs, labels);\n\n  expect(labels.Work).toBeUndefined();\n});\n```\n\nStatus: PROPOSED — confirm red at execution, and confirm the fixture actually\nreaches the `recordInGroupTab` fall-through before trusting it (the tab must be\nabsent from `autoGroupedTabs` and from `pendingUngroups`, or the loop `continue`s\nearlier and the test would pass for the wrong reason). The helper names\n(`stubTabGroup`) are indicative — use whatever `service_worker.test.js` already\nuses to stub `chrome.tabGroups`. Expected failure: `recordInGroupTab` seeds\n`labels.Work`, so `toBeUndefined()` fails.\n\n## Scenarios to Demonstrate\n\n- Delete a group whose tabs are still in a Chrome tab group — card disappears and\n  stays gone, tabs remain open and ungrouped.\n- Delete a group with no tabs currently open — no-op on the Chrome side, no error.\n- Delete one of two groups sharing a window — only the deleted group dissolves.\n- The same label grouped in two windows — both Chrome groups dissolve, no tab\n  crosses a window.\n- Startup sync of a genuinely pre-existing Chrome group with no label — still\n  records, proving the fix did not disable `recordInGroupTab`.\n- Group menu open — Delete Group shows a pointer cursor on hover.",
+  "description": "Deleting a group appeared to do nothing, and it turned out to have TWO independent causes — the second one found by the user at the demo gate, after the planned fix was already in place.\n\nCause 1, the worker resurrected the label. A tab still sitting in a native Chrome tab group of the deleted title reached `recordInGroupTab`, whose whole job is to make an unrecorded in-group membership real — exactly the shape a just-deleted group presents. The storage listener now diffs oldValue against newValue through a new pure `deletedLabelTitles` util to find the titles the user removed; `dissolveDeletedLabelGroups` then ungroups their Chrome tab groups (every window's group, not groups[0]; tabs marked in `pendingUngroups` before the call, mirroring `ejectAutoGroupedTab`), and `recordInGroupTab` refuses to re-seed a title in the `userDeletedLabels` set. That set is keyed by title and cleared the moment the title reappears in `labels`, so delete-then-recreate works immediately and startup sync of genuinely pre-existing Chrome groups is untouched. Every ungroup is trailed under a new `MoveSource.WORKER_LABEL_DELETED`.\n\nCause 2, the UI never re-rendered — and this is what the user actually saw. `labels` had moved to chrome.storage.sync, but `Labels.jsx` (the group grid), `Tabs.jsx` (the sidebar's group sections) and `App.jsx` (the footer count) still opened with a blanket `if (areaName !== 'local') return`. Because the two areas fire SEPARATE onChanged events, every labels change arrived tagged `sync` and was dropped: the delete wrote storage correctly and the card stayed on screen. storageAreas.js documents this exact trap and ships `changedInArea`; LabelCollection and Search had been converted and these three were missed. The bug looked selective because recolor and rename are repainted by LabelCollection's own already-correct listener — deleting is the one mutation that needs the PARENT to re-render. The plan's worker fix alone would NOT have made the card disappear.\n\nAlso: `cursor: pointer` on the group menu's action buttons, which had been missing since a404030 and left Delete Group reading as plain text.\n\nVerification note worth carrying forward: the delete cannot be driven headlessly, because the capture browser auto-dismisses `confirm()`. The live re-render was proven instead through Add Group, which writes `labels` down the identical sync-area path with no dialog — the new card appeared live and the footer moved 3 groups to 4. 12 new tests: the plan's reproduction (confirmed red without the fix, and driven through the REAL storage.onChanged listener rather than by poking the suppression set, since 'the user just deleted it' IS a labels write whose oldValue held the title), 6 for the extracted util including the newValue-undefined case when the last group goes, 6 for the dissolve path, and 4 pinning the three sync-area listeners. 872 passing.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/delete-group-actually-deletes.md\t.codeyam/plans/completed/delete-group-actually-deletes.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/labels.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labels-grouped.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-first-run-migration-from-local--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-color-preview-in-context--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-color-preview-in-context--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-restored-from-sync-after-uninstall--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-stable-chrome-footer--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-stable-chrome-footer--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-sync-wins-over-stale-local--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-bottom-row-flipped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-long-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/change-origin.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/analyze-imports.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/audit.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/recapture-stale.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/reconcile-registry.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/refresh-tests.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/verify-build.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/wait-for.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/merge-drivers-version",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/refusal-fingerprints.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/1a67c28707fc1400be8f1dfdc70eff94a653dd069f3af3970371292ed816192b.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/5f829f4f748fa06a074e3a90c3edff105de6a1787e709bc7b0e244c9cea9b8c3.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Labels/Labels.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/groupMoveLog.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/tabs.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-all-groups-deleted-tabs-survive.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-deleted-group-stays-deleted.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-deleted-group-stays-deleted--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-deleted-group-stays-deleted--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/24cbc7024767c5f94edc18eb29e9df9fdab0f7aa77609e7e33106c36e365a730.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/b4470d0120b61709e6621c8878a4bb838e8fb80986538161522f8e58fb3b65d8.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/deletedLabelTitles.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/deletedLabelTitles.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - All Groups Deleted Tabs Survive",
+      "screenshotPath": "home-all-groups-deleted-tabs-survive--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Deleted Group Stays Deleted",
+      "screenshotPath": "home-deleted-group-stays-deleted--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - First Run Migration From Local",
+      "screenshotPath": "home-first-run-migration-from-local--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Group Color Preview In Context",
+      "screenshotPath": "home-group-color-preview-in-context--desktop.png"
+    },
+    {
+      "name": "Home - Group Menu Open",
+      "screenshotPath": "home-group-menu-open--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Groups Restored From Sync After Uninstall",
+      "screenshotPath": "home-groups-restored-from-sync-after-uninstall--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Stable Chrome Footer",
+      "screenshotPath": "home-stable-chrome-footer--desktop.png"
+    },
+    {
+      "name": "Home - Sync Wins Over Stale Local",
+      "screenshotPath": "home-sync-wins-over-stale-local--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenu - Bottom Row Flipped",
+      "screenshotPath": "labelcollectionmenu-bottom-row-flipped--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenu - Long Title",
+      "screenshotPath": "labelcollectionmenu-long-title--desktop.png"
+    },
+    {
+      "name": "LabelCollectionMenu - Work Group",
+      "screenshotPath": "labelcollectionmenu-work-group--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 872,
+    "passed": 7,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 872,
+        "passed": 7
+      }
+    ]
+  }
+}

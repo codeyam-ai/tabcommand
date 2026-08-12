@@ -32,6 +32,7 @@ import { areaForKey } from './src/lib/utils/storageAreas.js';
 import { readByArea, writeByArea } from './src/lib/utils/storageAccess.js';
 import { migrateLabelsToSync } from './src/lib/utils/migrateLabelsToSync.js';
 import findLabelForUrlKey from './src/lib/utils/findLabelForUrlKey.js';
+import deletedLabelTitles from './src/lib/utils/deletedLabelTitles.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -130,6 +131,7 @@ function loadWorker(chrome) {
     'needsUngroupCall',
     'bucketTabsByWindow',
     'findLabelForUrlKey',
+    'deletedLabelTitles',
     'areaForKey',
     'readByArea',
     'writeByArea',
@@ -144,17 +146,19 @@ function loadWorker(chrome) {
              startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad,
              autoCloseSweep, isAutoCloseEligible, pruneAutoClosed,
              autoCloseThresholdMinutes, urlKeyIsMember, ejectAutoGroupedTab,
-             recordInGroupTab, debugGroup, pruneVisits, stampLabelMembership },
+             recordInGroupTab, debugGroup, pruneVisits, stampLabelMembership,
+             dissolveDeletedLabelGroups },
       state: {
         get groups() { return groups; },
         get samples() { return samples; },
         get processesIndex() { return processesIndex; },
         get pendingUngroups() { return pendingUngroups; },
         get autoGroupedTabs() { return autoGroupedTabs; },
+        get userDeletedLabels() { return userDeletedLabels; },
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey, areaForKey, readByArea, writeByArea, migrateLabelsToSync);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey, deletedLabelTitles, areaForKey, readByArea, writeByArea, migrateLabelsToSync);
 }
 
 describe('service_worker.js', () => {
@@ -1700,6 +1704,172 @@ describe('service_worker.js', () => {
         { tabKey: 'tab-7', urlKey: 'url-https://b.com', groupId: 5 }
       );
       expect(labels.Work.urlKeys).toEqual(['url-https://a.com', 'url-https://b.com']);
+    });
+
+    // ── Reproduction (from the plan) ────────────────────────────────────────
+    // The bug: deleting a group appeared to do nothing, because a tab still
+    // sitting in the native Chrome group of the same title reached this
+    // function, which helpfully re-seeded the label the user had just removed.
+    //
+    // The deletion is driven through the REAL storage.onChanged listener rather
+    // than by poking the suppression set directly — "the user just deleted it"
+    // is precisely a labels write whose oldValue had the title and whose
+    // newValue does not, and testing it any other way would not prove the wiring.
+    it('does not re-create a label the user just deleted', () => {
+      const onChanged = chrome.storage.onChanged.addListener.mock.calls[0][0];
+
+      onChanged(
+        { labels: { oldValue: { Work: { title: 'Work', urlKeys: [] } }, newValue: {} } },
+        areaForKey('labels')
+      );
+
+      const labels = {};
+      fns.recordInGroupTab(
+        labels,
+        { title: 'Work', color: 'blue' },
+        { tabKey: 'tab-7', urlKey: 'url-https://a.com', groupId: 42 }
+      );
+
+      expect(labels.Work).toBeUndefined();
+    });
+
+    // The counter-case that keeps the guard from becoming "never record". A
+    // genuinely pre-existing Chrome group — one the user made in Chrome, never
+    // deleted here — is the whole reason recordInGroupTab exists, and startup
+    // sync of it must still work.
+    it('still records a group title the user never deleted', () => {
+      const onChanged = chrome.storage.onChanged.addListener.mock.calls[0][0];
+
+      onChanged(
+        { labels: { oldValue: { Work: { title: 'Work', urlKeys: [] } }, newValue: {} } },
+        areaForKey('labels')
+      );
+
+      const labels = {};
+      fns.recordInGroupTab(
+        labels,
+        { title: 'Reading', color: 'green' },
+        { tabKey: 'tab-8', urlKey: 'url-https://b.com', groupId: 43 }
+      );
+
+      expect(labels.Reading.urlKeys).toEqual(['url-https://b.com']);
+    });
+
+    // Re-creating a group with the same name must work immediately — the
+    // suppression is cleared the moment the title is back in `labels`, so a
+    // deleted-then-recreated group is not permanently unrecordable.
+    it('records again once the deleted title reappears in labels', () => {
+      const onChanged = chrome.storage.onChanged.addListener.mock.calls[0][0];
+      const area = areaForKey('labels');
+
+      onChanged({ labels: { oldValue: { Work: { title: 'Work' } }, newValue: {} } }, area);
+      onChanged({ labels: { oldValue: {}, newValue: { Work: { title: 'Work', urlKeys: [] } } } }, area);
+
+      const labels = {};
+      fns.recordInGroupTab(
+        labels,
+        { title: 'Work', color: 'blue' },
+        { tabKey: 'tab-9', urlKey: 'url-https://c.com', groupId: 44 }
+      );
+
+      expect(labels.Work.urlKeys).toEqual(['url-https://c.com']);
+    });
+  });
+
+  describe('dissolveDeletedLabelGroups', () => {
+    // Deleting a group dissolves its Chrome tab group so nothing survives to
+    // re-record the label. The tabs stay open — ungroup only clears membership.
+    it('ungroups every tab in the Chrome group of a deleted label', () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 42, title: 'Work' }]));
+      chrome.tabs.query.mockImplementation((_q, cb) => cb([{ id: 1 }, { id: 2 }]));
+
+      fns.dissolveDeletedLabelGroups(['Work']);
+
+      expect(chrome.tabs.ungroup).toHaveBeenCalledWith([1, 2], expect.any(Function));
+    });
+
+    // A label legitimately has one Chrome group PER WINDOW and the deletion
+    // removes all of them, so every returned group is handled — not groups[0],
+    // the multi-window bug groupLabeledTab already had to be fixed for.
+    it('dissolves the group in every window the label spans', () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) =>
+        cb([{ id: 42, title: 'Work' }, { id: 43, title: 'Work' }])
+      );
+      chrome.tabs.query.mockImplementation((q, cb) =>
+        cb(q.groupId === 42 ? [{ id: 1 }] : [{ id: 9 }])
+      );
+
+      fns.dissolveDeletedLabelGroups(['Work']);
+
+      const ungrouped = chrome.tabs.ungroup.mock.calls.map((c) => c[0]);
+      expect(ungrouped).toEqual([[1], [9]]);
+    });
+
+    // The in-flight guard must be armed BEFORE the ungroup is issued, or a
+    // concurrent groupTabs pass re-records the tabs in the async gap.
+    it('marks the tabs pending before issuing the ungroup', () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 42, title: 'Work' }]));
+      chrome.tabs.query.mockImplementation((_q, cb) => cb([{ id: 1 }]));
+      // never invoke the ungroup callback — freeze the call mid-flight
+      chrome.tabs.ungroup.mockImplementation(() => {});
+
+      fns.dissolveDeletedLabelGroups(['Work']);
+
+      expect(state.pendingUngroups.has(1)).toBe(true);
+    });
+
+    // ...and released once it lands, or the tab is permanently unrecordable.
+    it('clears the pending mark in the ungroup callback', () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 42, title: 'Work' }]));
+      chrome.tabs.query.mockImplementation((_q, cb) => cb([{ id: 1 }]));
+      chrome.tabs.ungroup.mockImplementation((_ids, cb) => cb());
+
+      fns.dissolveDeletedLabelGroups(['Work']);
+
+      expect(state.pendingUngroups.has(1)).toBe(false);
+    });
+
+    // The COMMON case: deleting a group whose tabs are all closed. No Chrome
+    // group exists, and that must be a silent no-op rather than an error.
+    it('is a no-op when the deleted label has no Chrome group', () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([]));
+
+      expect(() => fns.dissolveDeletedLabelGroups(['Work'])).not.toThrow();
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+    });
+
+    // An existing group holding no tabs must not produce an empty ungroup call.
+    it('issues no ungroup when the group holds no tabs', () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 42, title: 'Work' }]));
+      chrome.tabs.query.mockImplementation((_q, cb) => cb([]));
+
+      fns.dissolveDeletedLabelGroups(['Work']);
+
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+    });
+
+    // The ungroup is auditable like every other grouping mutation, under its own
+    // source so a user deletion is distinguishable from an autonomous eject.
+    it('records the ungroup in the move log under the deletion source', async () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 42, title: 'Work' }]));
+      chrome.tabs.query.mockImplementation((_q, cb) => cb([{ id: 1 }]));
+      // recordMove reads the existing log before appending; the default stub
+      // never invokes its callback, so the write would never be issued.
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({}));
+
+      fns.dissolveDeletedLabelGroups(['Work']);
+      await Promise.resolve();
+
+      const written = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .find((o) => o && o[GROUP_MOVE_LOG_KEY]);
+      const entry = written[GROUP_MOVE_LOG_KEY][0];
+      expect(entry.source).toBe(MoveSource.WORKER_LABEL_DELETED);
+      expect(entry.action).toBe('ungroup');
+      expect(entry.toGroupId).toBe(-1);
+      expect(entry.fromGroupId).toBe(42);
+      expect(entry.label).toBe('Work');
+      expect(entry.tabId).toBe(1);
     });
   });
 

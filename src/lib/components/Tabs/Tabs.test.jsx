@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DragDropContext } from '@hello-pangea/dnd';
@@ -89,6 +89,35 @@ describe('Tabs', () => {
 
     expect(await screen.findByText('Work')).toBeInTheDocument();
     expect(screen.getByText('Ungrouped')).toBeInTheDocument();
+  });
+
+  // Regression: `labels` is in chrome.storage.sync and the areas fire SEPARATE
+  // onChanged events, so the blanket `areaName !== 'local'` guard this listener
+  // used to open with dropped every labels change — the sidebar kept a deleted
+  // group's heading until a full reload.
+  it('drops a deleted group heading on a sync-area labels change', async () => {
+    seed('activeTabs', [
+      { urlKey: 'url-https://gh.com', tabKey: 'tab-1', pinned: false },
+      { urlKey: 'url-https://hn.com', tabKey: 'tab-2', pinned: false },
+    ]);
+    seed('allUrls', ['url-https://gh.com', 'url-https://hn.com']);
+    seed('url-https://gh.com', { title: 'GitHub', favicon: '' });
+    seed('url-https://hn.com', { title: 'Hacker News', favicon: '' });
+    seed('labels', {
+      Work: { title: 'Work', color: '#1873E4', position: 0, urlKeys: ['url-https://gh.com'] },
+    });
+    installChromeShim();
+    renderTabs();
+
+    await screen.findByText('Work');
+
+    await act(async () => {
+      globalThis.chrome.storage.sync.set({ labels: {} });
+    });
+
+    await waitFor(() => expect(screen.queryByText('Work')).not.toBeInTheDocument());
+    // its tab is not lost — it falls back into the Ungrouped remainder
+    expect(screen.getByText('GitHub')).toBeInTheDocument();
   });
 
   // in Active Tabs, grouped label headings render before the Ungrouped remainder

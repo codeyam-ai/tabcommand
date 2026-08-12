@@ -89,9 +89,9 @@ States captured as runnable scenarios with codeyam-editor:
 
 <img src=".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png" alt="History - Delete Confirm Armed" width="280">
 
-### Home - Automatically Closed
+### Home - All Groups Deleted Tabs Survive
 
-<img src=".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png" alt="Home - Automatically Closed" width="280">
+<img src=".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png" alt="Home - All Groups Deleted Tabs Survive" width="280">
 
 ### Import / Export - Backup
 

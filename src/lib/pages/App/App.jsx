@@ -12,6 +12,7 @@ import { ItemTypes, Pages } from '../../../Constants';
 import { DragDropContext } from '@hello-pangea/dnd';
 
 import { Chrome } from '../../utils/Chrome';
+import { changedInArea } from '../../utils/storageAreas';
 import { applyDrag } from '../../utils/dragReducer';
 import appendGroupingLog from '../../utils/groupingLog';
 import { describeDragRemoval } from '../../utils/describeDragRemoval';
@@ -81,14 +82,21 @@ const App = () => {
     });
 
     const handleChange = (changes, areaName) => {
-      if (areaName !== 'local') return;
+      // `labels` is in sync, the rest of the keys read here are local, and one
+      // event carries only one area's keys — so a blanket local-only guard left
+      // the footer's group count frozen after every group add or delete.
+      const labelsChange = changedInArea(changes, areaName, 'labels');
+      const isLocal = areaName === 'local';
+      if (!labelsChange && !isLocal) return;
+      if (labelsChange) refreshCounts();
+      if (!isLocal) return;
       if (changes.uxSettings) {
         const newValue = changes.uxSettings.newValue || {};
         if (newValue.page !== page) {
           setPage(newValue.page || { name: Pages.HOME });
         }
       }
-      if (changes.labels || changes.activeTabs) refreshCounts();
+      if (changes.activeTabs) refreshCounts();
       if (changes.loadDataSource) setLoadSource(changes.loadDataSource.newValue || null);
     };
 

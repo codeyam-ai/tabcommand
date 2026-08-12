@@ -1,54 +1,26 @@
-> auto-backgrounded — the harness completion notification arrives on its own when this exits; you do NOT need to do anything to receive it, and waiting adds nothing. KEEP WORKING: continue with anything that does not depend on this result — the notification interrupts you when it lands. "Do not poll" does NOT mean "stop working": ending the turn to wait is the one response that is never correct. ONLY if you need the result inside the CURRENT turn, block with: codeyam-editor editor wait-for /tmp/claude-0/-workspace/68aca8ca-d90d-4379-9816-d5eb225cf5c3/tasks/bov6fbgwr.output (ONE call, bare — never piped through `| tail`; its budget is capped to fit the tool-call ceiling, so a long run returns WAIT_FOR STILL_RUNNING in-call and the notification still arrives. Re-issue only on LIKELY_WEDGED; do NOT hand-roll an `until grep … sleep` loop, the harness blocks it). Just want to know it is still alive? Read /tmp/claude-0/-workspace/68aca8ca-d90d-4379-9816-d5eb225cf5c3/tasks/bov6fbgwr.heartbeat — one line, always the newest heartbeat; the output file below stays clean of them. Output too long? You do not need `| tail`: run it bare and read the `CODEYAM_FULL_OUTPUT` line the command prints — it names a file holding the COMPLETE output, which you can `cat` afterwards.
-{"command":"refresh-tests","elapsed_secs":0,"emitted_at_unix":1786549413,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":177249}
-
-note: --test name(s) not yet in the registry (orderedSyncPlan) — scoping the run to the current diff so they run without registration first:
-  .gitignore
-  CONTRIBUTING.md
-  README.md
-  eslint.config.mjs
-  manifest.json
-  package.json
-  scripts/sync-extension-dir.mjs
-  scripts/sync-extension-dir.test.js
-  service_worker.js
-  service_worker.test.js
-  src/index.jsx
-  src/lib/components/LabelCollection/LabelCollection.jsx
-  src/lib/components/LabelCollection/LabelCollection.test.jsx
-  src/lib/components/LabelForm/LabelForm.test.jsx
-  src/lib/components/Search/Search.jsx
-  src/lib/components/Search/Search.test.jsx
-  src/lib/components/SyncWarning/SyncWarning.css
-  src/lib/components/SyncWarning/SyncWarning.jsx
-  src/lib/components/SyncWarning/index.js
-  src/lib/pages/ImportExport/ImportExport.jsx
-  src/lib/pages/ImportExport/ImportExport.test.jsx
-  src/lib/pages/UrlDetails/UrlDetails.test.jsx
-  src/lib/utils/Chrome/Chrome.js
-  src/lib/utils/Chrome/Chrome.test.js
-  src/lib/utils/chromeShim/chromeShim.js
-  src/lib/utils/chromeShim/chromeShim.test.js
-  src/lib/utils/importExport.js
-  src/lib/utils/importExport.test.js
-  src/lib/utils/migrateLabelsToSync.js
-  src/lib/utils/migrateLabelsToSync.test.js
-  src/lib/utils/storageAccess.js
-  src/lib/utils/storageAccess.test.js
-  src/lib/utils/storageAreas.js
-  src/lib/utils/storageAreas.test.js
-  src/lib/utils/syncQuota.js
-  src/lib/utils/syncQuota.test.js
-  vite.config.mjs
-note: the named tests run in Targeted mode, narrowed to the changed package(s). No --runner or raw-runner fallback is needed; register them at the Reconcile step as usual.
+⚠️  CODEYAM: stdout is piped through tail/grep — the consumer block-buffers its input to EOF, so this task's `.output` would be empty until the command exits. Liveness is being mirrored to stderr (below) so it stays visible.
+> liveness is mirrored to stderr (this file) because stdout is piped through tail/grep. Run this command BARE instead and block with `codeyam-editor editor wait-for <task .output path printed by the harness>` — a pipe reports the filter's exit code, not the command's. If you piped it to shorten the output, you did not need to: run bare and the command prints a `CODEYAM_FULL_OUTPUT` line naming a file that holds the COMPLETE output, which you can `cat` afterwards (or capture with `tee` if you want both at once).
+{"command":"refresh-tests","elapsed_secs":0,"emitted_at_unix":1786562280,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140}
+{"command":"refresh-tests","elapsed_secs":0,"emitted_at_unix":1786562280,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140}
 Running tests via the configured runner command(s) — use these, do not reconstruct runner flags:
   tests  ::  npx vitest run --reporter=json
 Test refresh triggered. Waiting for results...
 [   2s] Running runner: tests
+{"command":"refresh-tests","elapsed_secs":10,"emitted_at_unix":1786562290,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[   2s] Running runner: tests"}
+{"command":"refresh-tests","elapsed_secs":10,"emitted_at_unix":1786562290,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[   2s] Running runner: tests"}
 [  12s] Still running: tests
+{"command":"refresh-tests","elapsed_secs":20,"emitted_at_unix":1786562300,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  12s] Still running: tests"}
+{"command":"refresh-tests","elapsed_secs":20,"emitted_at_unix":1786562300,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  12s] Still running: tests"}
 [  22s] Still running: tests
-[  30s] Tests completed.
-All 5 tests passed.
-{"failed":0,"passed":5,"skipped":847,"success":true,"total":5}
+{"command":"refresh-tests","elapsed_secs":30,"emitted_at_unix":1786562310,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  22s] Still running: tests"}
+{"command":"refresh-tests","elapsed_secs":30,"emitted_at_unix":1786562310,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  22s] Still running: tests"}
+[  32s] Still running: tests
+{"command":"refresh-tests","elapsed_secs":40,"emitted_at_unix":1786562320,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  32s] Still running: tests"}
+{"command":"refresh-tests","elapsed_secs":40,"emitted_at_unix":1786562320,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  32s] Still running: tests"}
+[  42s] Still running: tests
+[  44s] Tests completed.
+{"failed":0,"passed":7,"skipped":865,"success":true,"total":7}
+All 7 tests passed.
 
 Partial run — partition caches WERE updated; the full-suite test-cache.json was
 NOT (full-suite hash invariant). If a stale-partition bail sent you here, that

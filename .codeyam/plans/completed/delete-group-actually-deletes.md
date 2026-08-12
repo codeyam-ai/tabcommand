@@ -218,3 +218,46 @@ uses to stub `chrome.tabGroups`. Expected failure: `recordInGroupTab` seeds
 - Startup sync of a genuinely pre-existing Chrome group with no label — still
   records, proving the fix did not disable `recordInGroupTab`.
 - Group menu open — Delete Group shows a pointer cursor on hover.
+
+## Amendment (found during the build): a second, independent root cause
+
+Found by the user at the Demo gate: with the worker fix in place, confirming the
+delete dialog STILL left the group card on screen. The worker-side resurrection
+described above is real, but it is not the whole bug — and on its own it does not
+fix the symptom this plan's title promises.
+
+`labels` moved to `chrome.storage.sync`, and the two storage areas fire SEPARATE
+`onChanged` events: one event carries only one area's keys. Three UI listeners
+still opened with the pre-split `if (areaName !== 'local') return` preamble, so
+every `labels` change arrived tagged `sync` and was dropped on the floor:
+
+- `src/lib/components/Labels/Labels.jsx` — the group grid, so the deleted card
+  never disappeared. THIS is the user-visible "Delete Group does nothing".
+- `src/lib/components/Tabs/Tabs.jsx` — the sidebar's per-group sections kept the
+  deleted group's heading.
+- `src/lib/pages/App/App.jsx` — the footer's group count stayed frozen.
+
+`src/lib/utils/storageAreas.js` documents this exact trap and ships
+`changedInArea` as the remedy. Its glossary entry even enumerates the call sites
+that were converted — the worker, `LabelCollection`, and `Search`. These three
+were missed by that sweep. Each now gates per-key with `changedInArea`, matching
+the sibling components.
+
+Why the bug looked selective: recolor and rename APPEARED to work because
+`LabelCollection` repaints its own card from its own already-correct listener.
+Deleting is the one mutation that requires the PARENT grid to drop a card, so it
+was the only operation whose failure was visible.
+
+Verification note: the delete cannot be driven headlessly — the capture browser
+auto-dismisses `confirm()` — so the live re-render was proven through **Add
+Group**, which writes `labels` through the identical sync-area path with no
+dialog. The new card appeared live and the footer moved 3 groups → 4 groups;
+before the fix neither updated. The user then confirmed the delete itself in a
+real browser tab.
+
+### Additional scenarios to demonstrate
+
+- Add a group — the new card appears in the grid live with no reload, and the
+  footer count increments (the sync-area re-render path, dialog-free).
+- Delete a group — the card leaves the grid, the sidebar section goes, and the
+  footer count decrements, all from one `labels` write.

@@ -10,6 +10,7 @@ import { buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP
 import { buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource } from './src/lib/utils/groupMoveLog.js';
 import { needsGroupCall, needsUngroupCall, bucketTabsByWindow } from './src/lib/utils/tabPlacement.js';
 import findLabelForUrlKey from './src/lib/utils/findLabelForUrlKey.js';
+import deletedLabelTitles from './src/lib/utils/deletedLabelTitles.js';
 import { areaForKey } from './src/lib/utils/storageAreas.js';
 import { readByArea, writeByArea } from './src/lib/utils/storageAccess.js';
 import { migrateLabelsToSync } from './src/lib/utils/migrateLabelsToSync.js';
@@ -31,6 +32,21 @@ const pendingUngroups = new Set();
 // permanently sticky); instead it ungroups them once their real URL has loaded,
 // unless that URL is already a deliberate member of the label.
 const autoGroupedTabs = new Set();
+
+// Label titles the user has deleted during this worker's lifetime. Deleting a
+// group dissolves its Chrome tab group (see `dissolveDeletedLabelGroups`), but
+// that is async and unreliable in the tail cases — a second window's group
+// queried later, an ungroup that fails — and any tab still sitting in a titled
+// Chrome group with no matching label reaches `recordInGroupTab`, which
+// helpfully re-creates the label the user just deleted. This is the belt to that
+// suspenders: while a title is in here, the record path refuses to seed it.
+//
+// Keyed by TITLE rather than tab id (unlike the two Sets above) because that is
+// what a deletion actually identifies. A title is removed again the moment it
+// reappears in `labels`, so deliberately re-creating a group with the same name
+// works immediately. Startup sync of a genuinely pre-existing Chrome group is
+// untouched: its title was never deleted here, so it was never added.
+const userDeletedLabels = new Set();
 
 // Diagnostic logging for the tab-grouping decision points. The prototype proved
 // the auto-group stickiness bug with unconditional `[TC-GROUP]` console noise;
@@ -1233,7 +1249,21 @@ chrome.storage.onChanged.addListener(
       // unavailable, garbage-collected, or simply not yet populated — make an
       // absent `labels` materially more likely than it was when everything was
       // local.
+      const priorLabels = changes.labels.oldValue || {};
       labels = changes.labels.newValue || {};
+
+      // Titles present before this change and absent after it are exactly the
+      // groups the user just deleted. Both bookkeeping steps run BEFORE the
+      // `groupTabs` call below, because groupTabs on THIS pass is the thing that
+      // would otherwise re-record a deleted label — `dissolveDeletedLabelGroups`
+      // is async and its `pendingUngroups` marks cannot land in time to stop it.
+      const deletedTitles = deletedLabelTitles(priorLabels, labels);
+      for (const title of deletedTitles) userDeletedLabels.add(title);
+      // A title back in `labels` is no longer deleted, however it got there —
+      // re-created by hand, or pushed in by sync from another device.
+      for (const title of Object.keys(labels)) userDeletedLabels.delete(title);
+
+      if (deletedTitles.length > 0) dissolveDeletedLabelGroups(deletedTitles);
     }
 
     if (activeTabsChanged) {
@@ -1458,6 +1488,64 @@ async function ejectAutoGroupedTab(activeTab, groupTitle) {
   return 'ejected';
 }
 
+// Dissolve the Chrome tab groups belonging to labels the user just deleted, so
+// nothing survives to re-record the label that was removed. Every tab stays open
+// and stays where it is: `chrome.tabs.ungroup` only clears group membership, it
+// never reorders tabs or moves them between windows, so the tab-strip guarantee
+// `stop-tabcommand-moving-tabs-in-the-tab-strip` established is preserved. That
+// plan stopped the worker from grouping tabs AUTONOMOUSLY; this is the direct,
+// confirmed consequence of a user action whose entire meaning is "remove this
+// group", which is why it is a deliberate exception rather than a regression.
+//
+// A deleted label with no live Chrome group is the COMMON case — deleting a
+// group whose tabs are all closed — and must be a silent no-op, never an error.
+function dissolveDeletedLabelGroups(titles) {
+  for (const title of titles) {
+    // Deliberately NOT window-scoped. A label legitimately has one Chrome group
+    // per window and the deletion removes all of them, so every returned group
+    // is handled — never `groups[0]`, the multi-window bug `groupLabeledTab`
+    // already had to be fixed for.
+    chrome.tabGroups.query({ title }, (groups) => {
+      void (chrome.runtime && chrome.runtime.lastError);
+      if (!groups || groups.length === 0) return;
+
+      for (const group of groups) {
+        chrome.tabs.query({ groupId: group.id }, (tabs) => {
+          void (chrome.runtime && chrome.runtime.lastError);
+          if (!tabs || tabs.length === 0) return;
+
+          const tabIds = tabs.map((tab) => tab.id);
+          debugGroup('dissolveDeletedLabelGroups: ungroup tabs of deleted label', {
+            label: title,
+            groupId: group.id,
+            tabIds
+          });
+
+          for (const tabId of tabIds) {
+            recordMove(MoveSource.WORKER_LABEL_DELETED, {
+              action: 'ungroup',
+              tabId,
+              fromGroupId: group.id,
+              toGroupId: -1,
+              labelTitle: title
+            });
+            // Mark BEFORE issuing the call, exactly as `ejectAutoGroupedTab`
+            // does: the record loop's existing in-flight guard is what stops a
+            // concurrent groupTabs pass from re-recording these tabs in the gap
+            // between this query and the ungroup landing.
+            pendingUngroups.add(tabId);
+          }
+
+          chrome.tabs.ungroup(tabIds, () => {
+            void (chrome.runtime && chrome.runtime.lastError);
+            for (const tabId of tabIds) pendingUngroups.delete(tabId);
+          });
+        });
+      }
+    });
+  }
+}
+
 // Record an in-group tab's URL into its group's label, seeding the label when it
 // doesn't exist yet, and persist. This is the "make membership permanent" path —
 // it now runs only for non-auto-grouped tabs (e.g. startup sync of pre-existing
@@ -1466,6 +1554,26 @@ async function ejectAutoGroupedTab(activeTab, groupTitle) {
 // caller (groupTabs) already holds the array `activeTab` came out of, so the
 // stamp rides along in this same write instead of costing another storage read.
 function recordInGroupTab(labels, group, activeTab, activeTabs) {
+  // The resurrection guard. This function's whole job is "a tab is sitting in a
+  // titled Chrome group with no matching label, so make that membership real" —
+  // which is precisely the shape a just-deleted group presents while its tabs
+  // are still grouped. Without this, confirming the delete dialog removed the
+  // label and the very next sync pass put it straight back, so the card never
+  // disappeared and the action read as broken.
+  //
+  // Scoped to titles the user actually deleted, so the startup-sync case this
+  // function exists to serve (a genuinely pre-existing Chrome group the user
+  // made in Chrome, which was never deleted here) still records normally.
+  if (userDeletedLabels.has(group.title)) {
+    debugGroup('groupTabs: refuse to re-create a label the user deleted', {
+      tabId: parseTabId(activeTab),
+      urlKey: activeTab.urlKey,
+      label: group.title,
+      groupId: activeTab.groupId
+    });
+    return;
+  }
+
   const label = labels[group.title];
   let stamped = false;
   // Whether this pass actually CHANGED `labels`. The write at the end used to be

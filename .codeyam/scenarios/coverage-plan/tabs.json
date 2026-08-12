@@ -1,0 +1,168 @@
+{
+  "surface": "Tabs",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "autoClosedUrlKeys",
+      "value": "empty",
+      "rationale": "source-derived state autoClosedUrlKeys=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "autoClosedUrlKeys",
+      "value": "one",
+      "rationale": "source-derived state autoClosedUrlKeys=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "autoClosedUrlKeys",
+      "value": "many",
+      "rationale": "source-derived state autoClosedUrlKeys=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "activeTabUrls",
+      "value": "empty",
+      "rationale": "source-derived state activeTabUrls=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "activeTabUrls",
+      "value": "one",
+      "rationale": "source-derived state activeTabUrls=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "activeTabUrls",
+      "value": "many",
+      "rationale": "source-derived state activeTabUrls=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "heavyRows",
+      "value": "empty",
+      "rationale": "source-derived state heavyRows=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "heavyRows",
+      "value": "one",
+      "rationale": "source-derived state heavyRows=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "heavyRows",
+      "value": "many",
+      "rationale": "source-derived state heavyRows=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "urlKeys",
+      "value": "empty",
+      "rationale": "source-derived state urlKeys=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "urlKeys",
+      "value": "one",
+      "rationale": "source-derived state urlKeys=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "urlKeys",
+      "value": "many",
+      "rationale": "source-derived state urlKeys=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "labels",
+      "value": "empty",
+      "rationale": "source-derived state labels=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "labels",
+      "value": "one",
+      "rationale": "source-derived state labels=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "labels",
+      "value": "many",
+      "rationale": "source-derived state labels=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "tabId",
+      "value": "true",
+      "rationale": "source-derived state tabId=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "tabId",
+      "value": "false",
+      "rationale": "source-derived state tabId=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "needsLoadRefresh",
+      "value": "true",
+      "rationale": "source-derived state needsLoadRefresh=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "needsLoadRefresh",
+      "value": "false",
+      "rationale": "source-derived state needsLoadRefresh=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "labelsChange",
+      "value": "true",
+      "rationale": "source-derived state labelsChange=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "labelsChange",
+      "value": "false",
+      "rationale": "source-derived state labelsChange=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "reviewMode",
+      "value": "true",
+      "rationale": "source-derived state reviewMode=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "reviewMode",
+      "value": "false",
+      "rationale": "source-derived state reviewMode=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "url",
+      "value": "true",
+      "rationale": "source-derived state url=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "url",
+      "value": "false",
+      "rationale": "source-derived state url=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "settings",
+      "value": "true",
+      "rationale": "source-derived state settings=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "settings",
+      "value": "false",
+      "rationale": "source-derived state settings=false",
+      "status": "planned"
+    }
+  ]
+}

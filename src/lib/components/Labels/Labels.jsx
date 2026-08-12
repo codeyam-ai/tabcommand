@@ -5,6 +5,7 @@ import { Droppable } from '@hello-pangea/dnd';
 import { LabelFormContainer, LabelCollection } from '..';
 import { ItemTypes, ColumnsDefault } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { changedInArea } from '../../utils/storageAreas';
 import { effectiveColumns, COLUMN_BREAKPOINTS } from '../../utils/effectiveColumns';
 
 const Labels = () => {
@@ -91,12 +92,21 @@ const Labels = () => {
 
     chrome.storage.onChanged.addListener(
       (changes, areaName) => {
-        if (areaName !== "local") return;
+        // `labels` lives in chrome.storage.sync while `uxSettings` and
+        // `settings` stay local, and the areas fire SEPARATELY — one event
+        // carries only one area's keys. The blanket `areaName !== 'local'`
+        // guard that used to stand here dropped every single `labels` change,
+        // so the group grid never re-rendered: deleting a group wrote storage
+        // correctly and the card stayed on screen, which is the entire
+        // "Delete Group does nothing" symptom as the user experiences it.
+        const labelsChange = changedInArea(changes, areaName, 'labels');
+        const isLocal = areaName === 'local';
+        if (!labelsChange && !isLocal) return;
 
         const updates = {};
 
-        if (changes.labels) {
-          updates.newLabels = changes.labels.newValue;
+        if (labelsChange) {
+          updates.newLabels = labelsChange.newValue || {};
         }
 
         if (changes.uxSettings) {

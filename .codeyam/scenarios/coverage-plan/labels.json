@@ -57,6 +57,18 @@
       "status": "planned"
     },
     {
+      "dimension": "labelsChange",
+      "value": "true",
+      "rationale": "source-derived state labelsChange=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "labelsChange",
+      "value": "false",
+      "rationale": "source-derived state labelsChange=false",
+      "status": "planned"
+    },
+    {
       "dimension": "newSelectedLabelTitle",
       "value": "true",
       "rationale": "source-derived state newSelectedLabelTitle=true",

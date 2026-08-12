@@ -6,6 +6,7 @@ import { DraggableTabUrls } from '../DraggableTabUrls';
 
 import { MaxAutoClosedTime, Pages, HeavyThresholdDefault } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { changedInArea } from '../../utils/storageAreas';
 import { getDragActive, subscribeDragActive } from '../../utils/dragHoverStore';
 import { summarizeProcessLoad } from '../../utils/processLoad';
 import humanReadableNumber from '../../utils/humanReadableNumber';
@@ -174,18 +175,24 @@ const Tabs = ({ reviewMode = false }) => {
     readLoad();
 
     const handleChange = (changes, areaName) => {
-      if (areaName !== 'local') return;
+      // Gate each key against ITS OWN area: `labels` is in sync, everything
+      // else here is local, and one event carries only one area's keys. A
+      // blanket local-only guard silently froze the sidebar's group sections
+      // against every label change — a deleted group kept its heading.
+      const labelsChange = changedInArea(changes, areaName, 'labels');
+      const isLocal = areaName === 'local';
+      if (!labelsChange && !isLocal) return;
 
       const updates = {};
 
-      if (changes.activeTabs) {
+      if (changes.activeTabs && isLocal) {
         updates.activeTabUrls = (changes.activeTabs.newValue).filter(
           tabUrl => !tabUrl.pinned
         );
       }
 
-      if (changes.labels) {
-        const labels = changes.labels.newValue;
+      if (labelsChange) {
+        const labels = labelsChange.newValue || {};
         updates.labelMap = generateLabelMap(labels);
         updates.colorMap = generateColorMap(labels);
       }

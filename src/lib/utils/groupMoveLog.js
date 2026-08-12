@@ -38,6 +38,12 @@ export const MoveSource = {
   WORKER_AUTO_GROUP_EJECT: 'worker:auto-group-eject',
   WORKER_NO_MATCHING_LABEL: 'worker:no-matching-label',
   WORKER_AUTO_CLOSE_REVISIT: 'worker:auto-close-revisit',
+  // The user deleted a group and the worker dissolved its Chrome tab group in
+  // response. Tagged `worker:` like its neighbours because the prefix names the
+  // code path that ISSUES the move, and the ungroup is issued by the worker's
+  // storage listener — but unlike every other `worker:` source it is the direct
+  // consequence of a confirmed user action, not an autonomous decision.
+  WORKER_LABEL_DELETED: 'worker:label-deleted',
   UI_DRAG: 'ui:drag',
 };
 
