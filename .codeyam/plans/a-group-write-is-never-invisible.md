@@ -56,8 +56,25 @@ successful one that did nothing.
 - **The import parsing itself is not broken.** A full round trip through
   `sortLabels` → `resolveLabelUrls` → `buildImportUpdates` reproduces the correct
   `labels` map and `url-*` records for a well-formed export. Do not "fix" the
-  parser; add the error surface, and let a real failing payload tell you whether
-  anything else is wrong.
+  parser.
+
+- **CONFIRMED root cause of the reported failure: a hard-wrapped snapshot.** A
+  real user snapshot that silently failed to import was recovered and diagnosed.
+  `JSON.parse` rejected it with *"Bad control character in string literal in JSON
+  at position 356"* — the text carried **literal newline characters inside string
+  values**, each sitting exactly where a space belongs in a page title
+  (`"Screen⏎Porch Scope Doc - Google⏎Docs"`). The export itself is valid:
+  `ImportExport.jsx:78` builds it with `JSON.stringify`, which escapes newlines as
+  `\n` and emits one line. The corruption is introduced *after* export, by any
+  medium that hard-wraps long lines — pasting the snapshot into an email, a chat,
+  a note, or a document before pasting it back. Replacing the stray newlines with
+  spaces made the same snapshot import cleanly: 5 groups, 14 URL records, 1,712
+  bytes (well under sync's 8,192-byte cap, so quota was never involved).
+
+  This makes the error surface in change 4 the primary fix — the user was given
+  no indication whatsoever — and adds a second, cheap one: a snapshot that fails
+  only because it was line-wrapped is mechanically recoverable, and refusing it
+  outright makes the user's own backup useless to them.
 
 ## Implementation
 
@@ -113,16 +130,31 @@ catch (e) { console.log("Error Importing", e); }
 if (onComplete) onComplete();
 ```
 
-Three changes:
+Four changes:
 
 1. Render the failure in the UI instead of `console.log` — enough for the user to
-   tell "that isn't valid JSON" from "that JSON isn't an export".
+   tell "that isn't valid JSON" from "that JSON isn't an export". Include the
+   parser's own message; `JSON.parse` reports a position, which is what made the
+   real failure diagnosable.
 2. Only call `onComplete()` on success, so a failed import keeps the user on the
    page with their pasted text intact.
 3. Validate the parsed payload's shape before writing. `buildImportUpdates`
    (`src/lib/utils/importExport.js:57-80`) assumes an array of labels each with
    `title` and `urls`; a well-formed JSON document of the wrong shape currently
    produces a partial or empty `labels` map rather than an error.
+4. **Tolerate a line-wrapped snapshot.** This is the confirmed real-world failure
+   (see Key Decisions): raw newlines inside string values, introduced by pasting
+   the snapshot through a medium that hard-wraps. The export is always a single
+   line from `JSON.stringify`, so a newline inside a string literal is never
+   legitimate content — it is always wrap damage, and it always replaced a space.
+   On a parse failure, retry once with those newlines collapsed to spaces rather
+   than rejecting outright; a user's own backup should not be unusable because it
+   travelled through an email client. Recovering silently would be wrong too —
+   say that the snapshot was repaired, so the user learns their stored copy is
+   damaged and can save a clean one.
+
+   Scope it narrowly: only newline characters, only inside string literals, only
+   as a retry after a first parse fails. Do not write a lenient JSON parser.
 
 Confirm success from storage rather than from the absence of an exception —
 `Chrome.set` is fire-and-forget, so "no throw" does not mean "written."
@@ -206,8 +238,13 @@ queries only the sync area for `labels`, which never received the value, so
 - Sync recovers after a fallback — groups reconcile to one copy, with no
   resurrection of a stale value from the other area.
 - Import a valid export — groups appear, page closes.
-- Import malformed JSON — an error is shown, the pasted text is preserved, the
-  page stays open.
+- Import malformed JSON — an error is shown with the parser's position, the
+  pasted text is preserved, the page stays open.
+- Import a hard-wrapped snapshot (raw newlines inside titles, as produced by
+  pasting an export through an email or chat client) — the groups are restored
+  and the user is told the snapshot was repaired. This is the confirmed
+  real-world failure; a fixture is available from the recovered user snapshot
+  (5 groups, 14 URLs, 1,712 bytes).
 - Import well-formed JSON of the wrong shape (e.g. an object, or labels with no
   `urls`) — an error is shown, and no partial `labels` map is written.
 - Import an empty paste — no write, no error, nothing destroyed.
