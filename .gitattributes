@@ -14,3 +14,4 @@
 .codeyam/editor.json merge=codeyam-editor-config
 crates/codeyam-editor/src/scaffold/hook_skip_list.json merge=codeyam-generated-artifact
 crates/codeyam-editor/skills.lock merge=codeyam-generated-artifact
+.codeyam/state/red-proof.json merge=codeyam-keep-replayed
