@@ -53,10 +53,13 @@ successful one that did nothing.
   Keeping the user on the page with the pasted text intact is what makes the
   failure recoverable.
 
-- **The import parsing itself is not broken.** A full round trip through
-  `sortLabels` → `resolveLabelUrls` → `buildImportUpdates` reproduces the correct
-  `labels` map and `url-*` records for a well-formed export. Do not "fix" the
-  parser.
+- **The import parsing itself is not broken — but it should be far more
+  forgiving.** A full round trip through `sortLabels` → `resolveLabelUrls` →
+  `buildImportUpdates` reproduces the correct `labels` map and `url-*` records for
+  a well-formed export, so there is no parsing bug to fix. The defect is that
+  anything less than perfect input is rejected outright and silently. Strictness
+  buys nothing here: this is the user's own backup of their own data, nothing is
+  executed, and no third party is trusted. Recover whatever can be recovered.
 
 - **CONFIRMED root cause of the reported failure: a hard-wrapped snapshot.** A
   real user snapshot that silently failed to import was recovered and diagnosed.
@@ -142,46 +145,51 @@ Four changes:
    (`src/lib/utils/importExport.js:57-80`) assumes an array of labels each with
    `title` and `urls`; a well-formed JSON document of the wrong shape currently
    produces a partial or empty `labels` map rather than an error.
-4. **Tolerate a line-wrapped snapshot.** This is the confirmed real-world failure
-   (see Key Decisions): raw newlines inside string values, introduced by pasting
-   the snapshot through a medium that hard-wraps. The export is always a single
-   line from `JSON.stringify`, so a newline inside a string literal is never
-   legitimate content — it is always wrap damage, and it always replaced a space.
-   On a parse failure, retry once against a repaired copy rather than rejecting
-   outright; a user's own backup should not be unusable because it travelled
-   through an email client. Recovering silently would be wrong too — say that the
-   snapshot was repaired and name what was fixed, so the user learns their stored
-   copy is damaged and can save a clean one.
+4. **Recover any snapshot that can be recovered — be maximally permissive.**
+   Strictness has no upside here. This text is the user's own backup of their own
+   groups; nothing is executed and nothing is trusted from a third party. The only
+   question worth asking is "can the groups be recovered from this?", and if the
+   answer is yes, recover them. Refusing a snapshot on a technicality helps no one
+   and is exactly how a user loses data they had correctly backed up.
 
-   **The repair set is a fixed, enumerated list — not a lenient JSON parser.**
-   Every entry is damage a transport medium inflicts on a `JSON.stringify` export;
-   none of them can alter well-formed input, because the export never legitimately
-   contains any of them:
+   Parse in escalating passes, stopping at the first that yields a usable result:
 
-   - **Raw newlines inside string literals** (`\n`, `\r`, `\r\n`) → a single
-     space. The confirmed failure. The export is one line, so a newline inside a
-     string is always wrap damage and always replaced a space.
-   - **Raw tabs inside string literals** → a space. Same cause; some clients
-     re-indent rather than wrap.
-   - **Non-breaking spaces (U+00A0) and zero-width characters** (U+200B/200C/
-     200D/FEFF) → a normal space, or dropped. Introduced by HTML rendering and by
-     word processors; invisible, so the user cannot see why it failed.
-   - **Curly/smart quotes** (U+201C/201D/2018/2019) → straight `"` / `'`. Word
-     processors autocorrect these, and they destroy JSON structure rather than
-     just string contents — so repairing them is higher-risk and must only run
-     when the strict parse has already failed.
-   - **Surrounding non-JSON wrapper** — leading/trailing whitespace, and a
-     markdown code fence (```` ```json ```` … ```` ``` ````). Pasting a snapshot
-     via chat or a doc routinely adds these.
+   1. **Strict `JSON.parse`** — the fast path for an intact snapshot.
+   2. **Transport-damage repair**, for corruption a medium inflicted on a
+      `JSON.stringify` export in transit:
+      - raw newlines (`\n`, `\r`, `\r\n`) and tabs inside string literals → a
+        space (the confirmed real-world failure; line wrapping replaced spaces)
+      - non-breaking spaces (U+00A0) and zero-width characters
+        (U+200B/200C/200D/FEFF) → a normal space, or dropped
+      - curly/smart quotes (U+201C/201D/2018/2019) → straight `"` / `'`
+      - surrounding non-JSON wrapper: leading/trailing prose or whitespace, and a
+        markdown code fence (```` ```json ```` … ```` ``` ````)
+   3. **Relaxed JSON syntax**, for a snapshot that was hand-edited along the way:
+      trailing commas, `//` and `/* */` comments, unquoted keys, single-quoted
+      strings, and `NaN`/`Infinity`/`undefined` literals. This is JSON5-shaped
+      tolerance; a vetted small dependency (`json5`, `jsonc-parser`) is
+      acceptable if it beats hand-rolling, but weigh the added bundle against a
+      focused implementation — this is an extension, and the payload is small.
+   4. **Structural salvage**, as the last resort: extract whatever well-formed
+      label objects can be found and import those, rather than failing whole. A
+      snapshot truncated mid-copy — a real and common way backups break — should
+      still restore the groups that survived.
 
-   Deliberately **not** repaired: trailing commas, comments, unquoted keys, or
-   single-quoted strings. Those signal hand-edited or hand-authored JSON, not a
-   damaged export, and silently accepting them would mean guessing at intent.
+   Two things stay non-negotiable regardless of how permissive the parse is,
+   because neither is about JSON strictness:
 
-   Attempt the strict parse first and only fall back on failure, so an intact
-   snapshot never goes down the repair path. If the repaired text still fails,
-   report the **original** parse error with its position — the repaired one would
-   point at an offset that does not exist in what the user pasted.
+   - **Validate the shape after parsing** (see item 3). A permissive parse must
+     not become a permissive *import*: something that parses but is not an export
+     must be rejected, not written as a partial `labels` map.
+   - **Always report what happened.** Say the snapshot was repaired and name what
+     was fixed; on a salvage, say plainly how many groups were recovered and how
+     many were lost. Silent recovery would leave the user believing a damaged
+     backup is healthy, and silent partial recovery is worse — it looks like a
+     complete restore.
+
+   If every pass fails, report the **original** strict-parse error with its
+   position; an error from a repaired copy points at an offset that does not
+   exist in what the user pasted.
 
 Confirm success from storage rather than from the absence of an exception —
 `Chrome.set` is fire-and-forget, so "no throw" does not mean "written."
@@ -280,10 +288,15 @@ queries only the sync area for `labels`, which never received the value, so
   the user with no way to see what was wrong.
 - Import an intact snapshot — the strict parse succeeds and the repair path never
   runs (no "repaired" message on healthy input).
-- Import hand-authored JSON with trailing commas — deliberately NOT repaired; a
-  clear error, since that signals hand-editing rather than transport damage.
-- Import a snapshot damaged beyond repair — the error reports the ORIGINAL parse
-  position, not an offset into the repaired text.
+- Import hand-edited JSON with trailing commas, comments, or single-quoted
+  strings — restored, repair reported.
+- Import a snapshot truncated mid-copy — the groups that survived are restored,
+  and the user is told plainly how many were recovered and how many were lost.
+- Import something that parses but is not an export (an array of numbers, an
+  object) — rejected with a clear error, NOT written as a partial labels map.
+  Permissive parsing must not become permissive importing.
+- Import a snapshot damaged beyond any recovery — the error reports the ORIGINAL
+  strict-parse position, not an offset into a repaired copy.
 - Import well-formed JSON of the wrong shape (e.g. an object, or labels with no
   `urls`) — an error is shown, and no partial `labels` map is written.
 - Import an empty paste — no write, no error, nothing destroyed.
