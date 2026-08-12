@@ -28,7 +28,7 @@ directory Chrome has loaded as an unpacked extension.
 ## Key Decisions
 
 - **`labels` → sync, `previousLabels` → local.** `previousLabels` is up to ten
-  full snapshots of `labels` (`service_worker.js:1068-1078`). `chrome.storage.sync`
+  full snapshots of `labels` (`service_worker.js:1189-1198`). `chrome.storage.sync`
   enforces `QUOTA_BYTES_PER_ITEM` = 8,192 and `QUOTA_BYTES` = 102,400, so a
   ten-deep snapshot stack would breach the per-item cap on any non-trivial group
   set and could alone consume the whole area. `labels` is the irreplaceable
@@ -38,7 +38,7 @@ directory Chrome has loaded as an unpacked extension.
 - **Storage routing belongs in one table, not at call sites.** Every consumer
   already goes through `Chrome` (`src/lib/utils/Chrome/Chrome.js`, imported by 20
   modules per `.codeyam/deps-index.txt:4`) or the worker's `update()` /
-  `getLocalStorage()` (`service_worker.js:626`, `:1091`). Adding a key→area map
+  `getLocalStorage()` (`service_worker.js:735`, `:1216`). Adding a key→area map
   and teaching those three functions to fan out keeps every call site unchanged,
   including mixed-key calls that span both areas.
 
@@ -47,12 +47,13 @@ directory Chrome has loaded as an unpacked extension.
   (`src/lib/pages/ImportExport/ImportExport.jsx:72`) reads across the new area
   boundary, `buildImportUpdates` (`src/lib/utils/importExport.js:57-80`) returns
   one updates map containing both `url-*` keys and `labels`, and the worker writes
-  `update({ labels, activeTabs })` in a single call (`service_worker.js:1235`,
-  `:1366`). A naive per-area switch silently drops half of each.
+  `update({ labels, activeTabs })` in a single call (`service_worker.js:1348`,
+  `:1496`). A naive per-area switch silently drops half of each.
 
-- **Writes must be coalesced before `labels` can live in sync.** `groupTabs`
-  ends with an unconditional `update({ labels, … })` (`service_worker.js:1366`)
-  and is invoked from the `storage.onChanged` listener (`:1066`), which fires on
+- **Writes must be coalesced before `labels` can live in sync.**
+  `recordInGroupTab` ends with an unconditional `update({ labels, … })`
+  (`service_worker.js:1496`) and is called per tab from `groupTabs`
+  (`:1602`), which the `storage.onChanged` listener invokes (`:1186`) on
   every `activeTabs` change — and `updateActiveTabs()` has 8 call sites driven by
   tab events. Sync enforces `MAX_WRITE_OPERATIONS_PER_MINUTE` = 120 and
   `MAX_WRITE_OPERATIONS_PER_HOUR` = 1800. Writing `labels` unchanged on every tab
@@ -74,7 +75,7 @@ directory Chrome has loaded as an unpacked extension.
   fallback rather than deleting it, so a sync failure degrades to today's
   behavior instead of losing data.
 
-- **Out of scope, noted for a later plan.** `service_worker.js:666-669` builds
+- **Out of scope, noted for a later plan.** `service_worker.js:775-782` builds
   `allLabelUrlKeys` with `+=` on an array, coercing it to a comma-joined string so
   the subsequent `indexOf` is a substring match rather than an array lookup. It
   errs toward over-protecting label members (no data loss), so it is recorded here
@@ -108,7 +109,7 @@ map so existing importers are unaffected.
   results into a single object, then apply the **existing** default-hydration and
   `previousLabels` timestamp-stripping rules (`:21-52`) exactly once on the merged
   result, and invoke `callback` once. The single-callback contract must hold for
-  the mixed-key read at `ImportExport.jsx:72`.
+  the mixed-key read at `src/lib/pages/ImportExport/ImportExport.jsx:72`.
 
 Preserve the leading `from` debug-label argument and the callback signature — the
 glossary entry for `Chrome` describes this as "the storage contract every feature
@@ -118,29 +119,32 @@ plan's reads build on", and 20 modules depend on it.
 
 **File**: `service_worker.js`
 
-- `update(updates)` (`:626-628`) — partition by area and fan out, mirroring
-  `Chrome.set`. This covers the mixed writes at `:343`, `:1235`, and `:1366`.
-- `getLocalStorage(query, callback)` (`:1091-1101`) — fan out and merge, mirroring
+- `update(updates)` (`:735-737`) — partition by area and fan out, mirroring
+  `Chrome.set`. This covers the mixed writes at `:426`, `:1348`, and `:1496`.
+- `getLocalStorage(query, callback)` (`:1216-1226`) — fan out and merge, mirroring
   `Chrome.get`. Consider renaming to `getStorage` since it is no longer
   local-only; it is referenced by name in the glossary
   (`getLocalStorage :: service_worker.js :: tags=worker,ported-verbatim,storage`),
   so update that entry if renamed.
-- `chrome.storage.onChanged` listener (`:1048-1075`) — the early return
+- `chrome.storage.onChanged` listener (`:1172-1198`) — the early return
   `if (areaName !== 'local') return;` must accept `'sync'` for `labels` and
   `'local'` for `activeTabs`. Handle the two areas independently; a single change
   event now carries only one area's keys.
-- **Guard the in-memory assignment.** `labels = changes.labels.newValue;` (`:1054`)
-  assigns `undefined` when `labels` is removed, and `groupTabs` then dereferences
-  it via `Object.keys(labels)` (`:1468`). Coerce to `{}`. Cross-area transitions
-  make an absent `labels` materially more likely than it is today.
+- **Guard the in-memory assignment.** `labels = changes.labels.newValue;` (`:1178`)
+  assigns `undefined` when `labels` is removed. `findLabelForUrlKey` is
+  null-tolerant by contract (`src/lib/utils/findLabelForUrlKey.js:25`), but the
+  bare `labels[group.title]` dereferences at `:1407` and `:1578` are not. Coerce
+  to `{}`. Cross-area transitions make an absent `labels` materially more likely
+  than it is today.
 
 ### 4. Coalesce `labels` writes
 
 **File**: `service_worker.js`
 
-Stop writing `labels` when nothing changed. `groupTabs` (`:1369-…`) ends with an
-unconditional `update({ labels, … })` at `:1366`; make that write conditional on
-an actual mutation, following the pattern already used at `:1235`
+Stop writing `labels` when nothing changed. `recordInGroupTab` (`:1406-1497`)
+ends with an unconditional `update({ labels, … })` at `:1496` and is called per
+tab from `groupTabs` (`:1602`); make that write conditional on an actual
+mutation, following the pattern already used at `:1348`
 (`if (changed) update({ … })`). Additionally guard the sync write behind a
 shallow equality check against the last-persisted `labels` so a redundant write is
 dropped even if a caller is over-eager. This is what keeps the extension under
@@ -151,7 +155,7 @@ sync's 120-writes-per-minute ceiling.
 **New file**: `src/lib/utils/migrateLabelsToSync.js`
 
 Idempotent, runs on worker boot before the existing
-`getLocalStorage(['labels','activeTabs'], …)` bootstrap (`service_worker.js:1042`):
+`getLocalStorage(['labels', 'activeTabs'], …)` bootstrap (`service_worker.js:1155`):
 
 1. Read `labels` from sync and from local.
 2. If sync already holds a non-empty `labels`, do nothing — sync wins.
@@ -232,6 +236,11 @@ directory, and add it to `.gitignore`.
 - `groupingLog` from `src/lib/utils/groupingLog.js` and `groupRemovalLog` from
   `src/lib/utils/groupRemovalLog.js` — existing capped-array breadcrumb helpers;
   reuse for migration and quota-fallback breadcrumbs rather than adding a new log.
+- `findLabelForUrlKey` from `src/lib/utils/findLabelForUrlKey.js` — the single
+  resolver for "which label claims this urlKey", added by the tab-strip fix. It
+  reads `labels` from both `service_worker.js:634` and `:1619`, so it is a
+  consumer of the newly synced key; it is already null-tolerant on both arguments
+  and needs no change.
 
 **Existing-implementation survey.** There is no existing storage-area abstraction,
 no key→area routing, no quota accounting, and no migration or schema-version
@@ -244,9 +253,9 @@ permission is required (`unlimitedStorage` does not raise sync quotas and must n
 be added in the belief that it does).
 
 **Test coverage in the affected area** (from `.codeyam/test-registry.json`):
-`service_worker.test.js` has 123 registered tests, `src/lib/utils/importExport.test.js`
-14, `src/lib/utils/chromeShim/chromeShim.test.js` 12, plus
-`src/lib/utils/Chrome/Chrome.test.js`. That last file's cases assert
+`service_worker.test.js` has 139 registered tests, `src/lib/utils/importExport.test.js`
+14, `src/lib/utils/chromeShim/chromeShim.test.js` 12, and
+`src/lib/utils/Chrome/Chrome.test.js` 7. That last file's cases assert
 `chrome.storage.local.set` / `.get` / `.remove` delegation directly (`:67-75`) and
 will need updating to the fan-out contract — that is expected churn, not a
 regression.
@@ -272,4 +281,4 @@ regression.
 - **Empty state** — no groups in either area; the app renders its normal empty
   state and the migration writes nothing.
 - **Rename collision** — a group renamed to an existing title, exercising the
-  delete-and-recreate path in `LabelForm.jsx:43-55` across the new area boundary.
+  delete-and-recreate path in `src/lib/components/LabelForm/LabelForm.jsx:43-55` across the new area boundary.
