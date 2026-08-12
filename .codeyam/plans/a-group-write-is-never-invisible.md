@@ -147,14 +147,41 @@ Four changes:
    the snapshot through a medium that hard-wraps. The export is always a single
    line from `JSON.stringify`, so a newline inside a string literal is never
    legitimate content — it is always wrap damage, and it always replaced a space.
-   On a parse failure, retry once with those newlines collapsed to spaces rather
-   than rejecting outright; a user's own backup should not be unusable because it
-   travelled through an email client. Recovering silently would be wrong too —
-   say that the snapshot was repaired, so the user learns their stored copy is
-   damaged and can save a clean one.
+   On a parse failure, retry once against a repaired copy rather than rejecting
+   outright; a user's own backup should not be unusable because it travelled
+   through an email client. Recovering silently would be wrong too — say that the
+   snapshot was repaired and name what was fixed, so the user learns their stored
+   copy is damaged and can save a clean one.
 
-   Scope it narrowly: only newline characters, only inside string literals, only
-   as a retry after a first parse fails. Do not write a lenient JSON parser.
+   **The repair set is a fixed, enumerated list — not a lenient JSON parser.**
+   Every entry is damage a transport medium inflicts on a `JSON.stringify` export;
+   none of them can alter well-formed input, because the export never legitimately
+   contains any of them:
+
+   - **Raw newlines inside string literals** (`\n`, `\r`, `\r\n`) → a single
+     space. The confirmed failure. The export is one line, so a newline inside a
+     string is always wrap damage and always replaced a space.
+   - **Raw tabs inside string literals** → a space. Same cause; some clients
+     re-indent rather than wrap.
+   - **Non-breaking spaces (U+00A0) and zero-width characters** (U+200B/200C/
+     200D/FEFF) → a normal space, or dropped. Introduced by HTML rendering and by
+     word processors; invisible, so the user cannot see why it failed.
+   - **Curly/smart quotes** (U+201C/201D/2018/2019) → straight `"` / `'`. Word
+     processors autocorrect these, and they destroy JSON structure rather than
+     just string contents — so repairing them is higher-risk and must only run
+     when the strict parse has already failed.
+   - **Surrounding non-JSON wrapper** — leading/trailing whitespace, and a
+     markdown code fence (```` ```json ```` … ```` ``` ````). Pasting a snapshot
+     via chat or a doc routinely adds these.
+
+   Deliberately **not** repaired: trailing commas, comments, unquoted keys, or
+   single-quoted strings. Those signal hand-edited or hand-authored JSON, not a
+   damaged export, and silently accepting them would mean guessing at intent.
+
+   Attempt the strict parse first and only fall back on failure, so an intact
+   snapshot never goes down the repair path. If the repaired text still fails,
+   report the **original** parse error with its position — the repaired one would
+   point at an offset that does not exist in what the user pasted.
 
 Confirm success from storage rather than from the absence of an exception —
 `Chrome.set` is fire-and-forget, so "no throw" does not mean "written."
@@ -242,9 +269,21 @@ queries only the sync area for `labels`, which never received the value, so
   pasted text is preserved, the page stays open.
 - Import a hard-wrapped snapshot (raw newlines inside titles, as produced by
   pasting an export through an email or chat client) — the groups are restored
-  and the user is told the snapshot was repaired. This is the confirmed
-  real-world failure; a fixture is available from the recovered user snapshot
-  (5 groups, 14 URLs, 1,712 bytes).
+  and the user is told the snapshot was repaired, with the fix named. This is the
+  confirmed real-world failure; a fixture is available from the recovered user
+  snapshot (5 groups, 14 URLs, 1,712 bytes).
+- Import a snapshot wrapped in a markdown code fence — restored, repair reported.
+- Import a snapshot whose quotes were autocorrected to curly quotes by a word
+  processor — restored, repair reported.
+- Import a snapshot carrying non-breaking or zero-width spaces — restored; the
+  point is that these are invisible, so rejecting without explanation would leave
+  the user with no way to see what was wrong.
+- Import an intact snapshot — the strict parse succeeds and the repair path never
+  runs (no "repaired" message on healthy input).
+- Import hand-authored JSON with trailing commas — deliberately NOT repaired; a
+  clear error, since that signals hand-editing rather than transport damage.
+- Import a snapshot damaged beyond repair — the error reports the ORIGINAL parse
+  position, not an offset into the repaired text.
 - Import well-formed JSON of the wrong shape (e.g. an object, or labels with no
   `urls`) — an error is shown, and no partial `labels` map is written.
 - Import an empty paste — no write, no error, nothing destroyed.
