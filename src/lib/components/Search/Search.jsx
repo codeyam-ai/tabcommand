@@ -9,6 +9,7 @@ import { Icon } from '../Icon'
 
 import { KeyDown } from '../../utils';
 import { Chrome } from '../../utils/Chrome';
+import { LOCAL, changedInArea } from '../../utils/storageAreas';
 import segmentSearchResults from '../../utils/segmentSearchResults';
 import { buildSearchDocuments, buildUrlDocuments } from '../../utils/buildSearchDocuments';
 
@@ -114,16 +115,22 @@ const Search = () => {
     };
 
     const handleStorageChange = (changes, areaName) => {
-      if (areaName !== 'local') return;
+      // `labels` lives in chrome.storage.sync while `allUrls` and the `url-*`
+      // records stay local, so ONE event carries only one area's keys. A blanket
+      // `areaName !== 'local'` guard would drop every group change and the index
+      // would go stale the moment a group was renamed or a member added.
+      const labelsChange = changedInArea(changes, areaName, 'labels');
+      const allUrlsChange = changedInArea(changes, areaName, 'allUrls');
 
       // A label change OR a grow/shrink of the archive re-indexes everything.
-      if (changes.labels || changes.allUrls) {
+      if (labelsChange || allUrlsChange) {
         rebuildFromStorage();
         return;
       }
 
       // A notes edit on any already-indexed URL (labeled or archived) re-indexes
-      // so its updated notes are searchable.
+      // so its updated notes are searchable. `url-*` records are local-only.
+      if (areaName !== LOCAL) return;
       for (const changedKey of Object.keys(changes)) {
         if (!changedKey.startsWith('url-')) continue;
         const { newValue, oldValue } = changes[changedKey];

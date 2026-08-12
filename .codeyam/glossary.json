@@ -23,7 +23,7 @@
     ]
   },
   {
-    "description": "Callback-based storage abstraction faithfully ported from the reference TabCommand. Wraps chrome.storage.local with get(from, keys, callback) / set(from, updates) / remove(from, keys), preserving the leading `from` debug-label arg. On get it applies default-hydration (labels/uxSettings/autoClosed -> {}, activeTabs/allUrls/previousLabels -> []) and strips each previousLabels entry's timestamp while dropping falsy entries. The storage contract every feature plan's reads build on.",
+    "description": "Callback-based storage abstraction faithfully ported from the reference TabCommand. Exposes get(from, keys, callback) / set(from, updates) / remove(from, keys), preserving the leading `from` debug-label arg. Keys are now ROUTED PER AREA underneath that unchanged contract: `labels` lives in chrome.storage.sync so groups survive an uninstall, everything else stays local. A mixed batch fans out and re-merges, and get still invokes its callback exactly once. On get it applies default-hydration once on the merged result (labels/uxSettings/autoClosed -> {}, activeTabs/allUrls/previousLabels -> []) and strips each previousLabels entry's timestamp while dropping falsy entries. The storage contract every feature plan's reads build on.",
     "filePath": "src/lib/utils/Chrome/Chrome.js",
     "name": "Chrome",
     "tags": [
@@ -145,7 +145,7 @@
     ]
   },
   {
-    "description": "The Import / Export page (entry point for Pages.IMPORTEXPORT in App): a recover/backup view reached from the sidebar Import/Export link. Reads labels + previousLabels from Chrome storage and renders the Current export (groups serialized to JSON, sorted and url-resolved) plus a read-only Previous textarea per snapshot; the Import textarea + button parse pasted JSON to restore groups, swallowing malformed JSON, then call onComplete to return Home. Pure logic lives in utils/importExport; also covered by the import-export-backup application scenario.",
+    "description": "The Import / Export page (entry point for Pages.IMPORTEXPORT in App): a recover/backup view reached from the sidebar Import/Export link. Reads labels (sync), previousLabels and syncStatus (local) in ONE cross-area Chrome.get and renders the Current export (groups serialized to JSON, sorted and url-resolved) plus a read-only Previous textarea per snapshot; the Import textarea + button parse pasted JSON to restore groups, swallowing malformed JSON, then call onComplete to return Home. Renders SyncWarning above the controls when syncStatus shows the user's groups are not reaching sync, positioned so the Export snapshot it tells them to copy is directly below. Pure logic lives in utils/importExport; also covered by the import-export-backup application scenario.",
     "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
     "name": "ImportExport",
     "testFile": "src/lib/pages/ImportExport/ImportExport.test.jsx"
@@ -337,6 +337,15 @@
     "testFile": "src/lib/pages/ImportExport/ImportExport.test.jsx"
   },
   {
+    "description": "The banner telling the user their groups are NOT reaching chrome.storage.sync, rendered above the Import / Export controls so the Export snapshot it points them to sits directly below. Takes a syncStatus record and returns null for the three non-alarming cases — no record, a healthy `ok`, and an unrecognized status from a future version — so it only ever appears when there is something to act on. The copy differs by remedy: an over-quota set needs the user to export and prune, an unavailable sync area needs them to sign in. It names the consequence in the user's terms (will not survive a reinstall) and never the mechanism. It exists because silence here would be worse than the old local-only behavior: a swallowed sync failure looks exactly like a working backup.",
+    "filePath": "src/lib/components/SyncWarning/SyncWarning.jsx",
+    "name": "SyncWarning",
+    "scenarios": [
+      "syncwarning-groups-too-large",
+      "syncwarning-sync-unavailable"
+    ]
+  },
+  {
     "description": "Home tab list: renders Active Tabs, Automatically Closed, and collapsible History sections from chrome.storage; splits tabs into label groups vs an ungrouped remainder; filters browser-pinned tabs and expired auto-closed entries. Each row is a draggable Url.",
     "filePath": "src/lib/components/Tabs/Tabs.jsx",
     "name": "Tabs",
@@ -419,6 +428,12 @@
     "filePath": "src/lib/utils/dragReducer.js",
     "name": "applyDrag",
     "testFile": "src/lib/utils/dragReducer.test.js"
+  },
+  {
+    "description": "Resolves which chrome.storage area owns a key, defaulting anything unknown to local. `labels` is the sole sync entry — it is the irreplaceable record of the user's groups, and Chrome destroys the local area on uninstall (including the implicit uninstall when an unpacked extension's directory goes missing) while the sync area is restored from the user's Google account. The unbounded dynamic `url-<url>` records default to local because they would blow the 102,400-byte sync area quota.",
+    "filePath": "src/lib/utils/storageAreas.js",
+    "name": "areaForKey",
+    "testFile": "src/lib/utils/storageAreas.test.js"
   },
   {
     "description": "Maps a process's task tab ids back to tabs (chrome.tabs.get) and merges per-url process metrics into the updates object.",
@@ -529,6 +544,12 @@
     "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
+    "description": "Returns the change entry a storage.onChanged event carries for a key, but only when the event's areaName matches that key's OWN area. Exists because the two areas fire separately: one event carries only one area's keys, so the pre-split `if (areaName !== 'local') return` preamble silently dropped every labels change once labels moved to sync. Centralizing the gate means the service worker, LabelCollection, and Search cannot drift apart on it.",
+    "filePath": "src/lib/utils/storageAreas.js",
+    "name": "changedInArea",
+    "testFile": "src/lib/utils/storageAreas.test.js"
+  },
+  {
     "description": "Clamps a number to the [0, 1] range, used to normalize CPU/memory ratios before rendering the load gauge.",
     "filePath": "src/lib/components/LoadMeter/LoadMeter.jsx",
     "name": "clamp01",
@@ -564,13 +585,22 @@
     "testFile": "src/lib/utils/effectiveColumns.test.js"
   },
   {
+    "description": "Copies one relative path from the scratch build directory into the stable extension mirror, creating parent directories as needed.",
+    "filePath": "scripts/sync-extension-dir.mjs",
+    "name": "copyFile",
+    "untestabilityReason": {
+      "justification": "A two-call fs.mkdir/fs.copyFile boundary with no branching.",
+      "kind": "platform-glue"
+    }
+  },
+  {
     "description": "Internal helper of deriveSystemTotals: average per-core busy fraction = delta(kernel+user)/delta(total) across processors between two chrome.system.cpu samples. Returns 0 (never NaN) for missing/empty/single-sample input and for a non-advancing counter.",
     "filePath": "src/lib/utils/deriveSystemTotals.js",
     "name": "cpuUtilization",
     "testFile": "src/lib/utils/deriveSystemTotals.test.js"
   },
   {
-    "description": "Builds the chrome shim object backed by an in-memory store hydrated from window.localStorage (codeyam's seed inlet) over the shared KNOWN_KEYS. Serves storage.local get/set/remove/clear with localStorage mirroring (JSON string boundary kept inside the shim) and onChanged dispatch (areaName 'local'), plus callable no-op tabs/tabGroups/processes/runtime action stubs so interactive preview scenarios never throw on missing chrome APIs.",
+    "description": "Builds the chrome shim object backed by in-memory stores for BOTH storage areas, hydrated from window.localStorage (codeyam's seed inlet). Each seeded key lands in the area that owns it, so existing scenarios seed unchanged; the `sync::` / `local::` prefixes override that to make the cross-area states seedable — sync populated with local wiped, and local populated with sync empty. Serves storage.local and storage.sync get/set/remove/clear with localStorage mirroring (JSON string boundary kept inside the shim) and onChanged dispatch carrying the correct areaName, plus callable no-op tabs/tabGroups/processes/runtime action stubs so interactive preview scenarios never throw on missing chrome APIs.",
     "filePath": "src/lib/utils/chromeShim/chromeShim.js",
     "name": "createChromeShim",
     "tags": [
@@ -591,6 +621,12 @@
     "filePath": "src/lib/utils/visitDecay.js",
     "name": "decayedVisitScore",
     "testFile": "src/lib/utils/visitDecay.test.js"
+  },
+  {
+    "description": "The local-to-sync migration decision as a pure function of both areas' current values, returning the outcome, the labels the session should run with, and whether a copy is owed. Sync wins whenever it holds groups (the second-machine case), local is copied up when sync is empty (the upgrade path), and an over-quota map is left local rather than written to fail. Pure so the decision table is testable without stubbing chrome.",
+    "filePath": "src/lib/utils/migrateLabelsToSync.js",
+    "name": "decideMigration",
+    "testFile": "src/lib/utils/migrateLabelsToSync.test.js"
   },
   {
     "description": "Internal shim helper: invokes a callback asynchronously on a microtask (Promise.resolve().then) with an optional value, matching Chrome's async callback contract so consumers never depend on synchronous delivery. No-ops when no callback is supplied.",
@@ -692,6 +728,12 @@
     "testFile": "src/lib/utils/historyTimestamp.test.js"
   },
   {
+    "description": "Whether an item is small enough to write to chrome.storage.sync under an enforced 7KB margin below Chrome's 8,192-byte QUOTA_BYTES_PER_ITEM. Measuring before the write means an oversized labels map is redirected to local deliberately, rather than discovered as a runtime error whose swallowing would leave the user's groups silently un-backed-up while the UI still showed them.",
+    "filePath": "src/lib/utils/syncQuota.js",
+    "name": "fitsSyncItemQuota",
+    "testFile": "src/lib/utils/syncQuota.test.js"
+  },
+  {
     "description": "Formats the auto-close inactivity threshold in minutes for the Settings control, rendering Off for non-positive values, whole minutes under an hour, or hours with a single decimal only when not whole.",
     "filePath": "src/lib/utils/formatAutoClose.js",
     "name": "formatAutoClose",
@@ -716,9 +758,9 @@
     "testFile": "src/lib/utils/dragHoverStore.test.js"
   },
   {
-    "description": "Promise/callback hybrid wrapper around chrome.storage.local.get: invokes the callback when supplied, otherwise resolves with the result.",
+    "description": "Promise/callback hybrid read across BOTH storage areas, handing back one merged result: invokes the callback when supplied, otherwise resolves with the result. Renamed from getLocalStorage because it is no longer local-only — `labels` comes from chrome.storage.sync while everything alongside it in the same query (activeTabs, allUrls, the url-* records) comes from local.",
     "filePath": "service_worker.js",
-    "name": "getLocalStorage",
+    "name": "getStorage",
     "tags": [
       "worker",
       "ported-verbatim",
@@ -809,6 +851,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Whether a labels map is a non-empty object. The distinction is the migration's whole correctness argument: {} is the hydrated empty default, so treating it as authoritative would let an empty sync area permanently shadow a populated local one and the user's groups would appear to vanish.",
+    "filePath": "src/lib/utils/migrateLabelsToSync.js",
+    "name": "hasGroups",
+    "testFile": "src/lib/utils/migrateLabelsToSync.test.js"
+  },
+  {
     "description": "Predicate over the loadDataSource storage marker: true only for the 'processes' source, which is the sole source that attributes CPU and memory to individual tabs. Stable Chrome reports 'system'/'none', and the marker is absent before the service worker writes it. Shared by LoadMeter, Triage, Settings, LoadPerTabNote and App's sidebar-footer gauge wrapper so all five per-tab surfaces hide and show on exactly the same condition. Distinct from loadLevel, which bands an already-known load percentage rather than deciding whether per-tab load is knowable at all.",
     "filePath": "src/lib/utils/hasPerTabLoadData.js",
     "name": "hasPerTabLoadData",
@@ -843,6 +891,12 @@
     "filePath": "src/lib/utils/humanReadableNumber.js",
     "name": "humanReadableNumber",
     "testFile": "src/lib/utils/humanReadableNumber.test.js"
+  },
+  {
+    "description": "Applies the Chrome abstraction's default-hydration rules — labels/uxSettings/autoClosed to {}, activeTabs/allUrls/previousLabels to [], theme to dark, settings to the load tunables — plus the previousLabels timestamp strip and falsy-entry drop. Extracted so the rules run exactly ONCE on the merged cross-area result and behave identically whether a read touched one area or both.",
+    "filePath": "src/lib/utils/Chrome/Chrome.js",
+    "name": "hydrateDefaults",
+    "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
     "description": "Popup entry point: focuses the existing pinned TabCommand app tab if open, otherwise creates one at index 0, then closes the popup.",
@@ -915,6 +969,15 @@
     "testFile": "src/lib/utils/historyTimestamp.test.js"
   },
   {
+    "description": "Recursively lists every file under a directory as paths relative to it, returning an empty list when the directory is absent. Used on both sides of the mirror: to enumerate what the build produced and what the target still holds.",
+    "filePath": "scripts/sync-extension-dir.mjs",
+    "name": "listFiles",
+    "untestabilityReason": {
+      "justification": "A bare fs.readdir recursion whose entire work is the filesystem call; it carries no decision of its own, since the ordering and pruning rules live in the separately-tested orderedSyncPlan and staleFiles.",
+      "kind": "platform-glue"
+    }
+  },
+  {
     "description": "Subscribes processProcesses to chrome.processes.onUpdatedWithMemory, guarded by try/catch so a missing processes API (non-Chrome / no permission) degrades quietly.",
     "filePath": "service_worker.js",
     "name": "listenToProcesses",
@@ -938,6 +1001,15 @@
     "testFile": "src/lib/utils/loadLevel.test.js"
   },
   {
+    "description": "Entry point for the extension-directory mirror: copies the built output into dist/extension in orderedSyncPlan order, then prunes what the build no longer produces. Exists because Vite builds with emptyOutDir, so build/ is deleted and recreated on every run — and if Chrome reads the directory it has loaded while it is missing, it treats the extension as uninstalled and destroys its chrome.storage.local with it, which is the incident this feature exists to prevent.",
+    "filePath": "scripts/sync-extension-dir.mjs",
+    "name": "main",
+    "untestabilityReason": {
+      "justification": "Build-time orchestration of filesystem I/O and process exit; its two real rules are extracted into orderedSyncPlan and staleFiles, both unit-tested, and the end-to-end guarantee is confirmed by running npm run build.",
+      "kind": "platform-glue"
+    }
+  },
+  {
     "description": "Bidirectional Chrome group-color map: converts a named tab-group color to its hex value and vice versa. Lifted to module scope so both groupTabs and handleActiveTabsGroupChanges can color a seeded label.",
     "filePath": "service_worker.js",
     "name": "mapColors",
@@ -948,6 +1020,18 @@
     "filePath": "src/lib/utils/deriveSystemTotals.js",
     "name": "memoryUtilization",
     "testFile": "src/lib/utils/deriveSystemTotals.test.js"
+  },
+  {
+    "description": "Reads both storage areas, applies decideMigration, performs the copy when owed, and hands back the resolved labels. Runs on service-worker boot AND on app boot — MV3 recycles the worker constantly, so a not-yet-migrated user who opened the full-page app first would read labels from an empty sync area and see zero groups. Idempotent, so both entry points running it is safe. Deliberately one-way-safe: the local value is LEFT IN PLACE as a read-only fallback, never deleted, so a sync failure degrades to the old behavior instead of losing data.",
+    "filePath": "src/lib/utils/migrateLabelsToSync.js",
+    "name": "migrateLabelsToSync",
+    "testFile": "src/lib/utils/migrateLabelsToSync.test.js"
+  },
+  {
+    "description": "The localStorage key a shim write mirrors back to — the inverse of resolveSeedKey, so a value round-trips into the area it was written to. A key in its natural area mirrors unprefixed (keeping the seed format stable); a key written to the OTHER area, like the labels local fallback after a quota rejection, mirrors prefixed so the next boot does not hydrate it as if it were the synced copy.",
+    "filePath": "src/lib/utils/chromeShim/chromeShim.js",
+    "name": "mirrorKeyFor",
+    "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
   },
   {
     "description": "Whether a tab is the one already filed under a slot in a label and is now sitting on a different url — a navigation, not a new member. The precise, per-tab, exact-key test behind the phantom-member fix: a path change is not a same-page drift, so healDriftedLabelSlot finds no slot and the grouping sync used to append the live url as a second permanent member, one per navigation the eject path missed. Deliberately not per-title or per-host, since a group legitimately holds several pages of one site. Requires the recorded slot to still be a live member so a stale stamp cannot suppress genuine appends forever.",
@@ -991,6 +1075,12 @@
     "testFile": "src/lib/utils/normalizeUrl.test.js"
   },
   {
+    "description": "Reorders the built file list so every asset is copied before manifest.json. A directory holding a manifest IS an installed extension to Chrome, so writing the manifest first would briefly advertise an extension whose code has not landed. Pure and never adds or drops an entry, so the mirror cannot silently drift from the build.",
+    "filePath": "scripts/sync-extension-dir.mjs",
+    "name": "orderedSyncPlan",
+    "testFile": "scripts/sync-extension-dir.test.js"
+  },
+  {
     "description": "Extracts the integer Chrome tab id from a `tab-<n>` storage key.",
     "filePath": "service_worker.js",
     "name": "parseTabId",
@@ -1000,6 +1090,18 @@
       "util"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Splits a chrome.storage read query into one query per owning area, preserving the caller's argument form — string, array, defaults-object, or null for everything. Lets a mixed read like Chrome.get(['labels','previousLabels']) fan out and re-merge instead of silently returning half its keys.",
+    "filePath": "src/lib/utils/storageAreas.js",
+    "name": "partitionKeysByArea",
+    "testFile": "src/lib/utils/storageAreas.test.js"
+  },
+  {
+    "description": "Splits a chrome.storage write map into one map per owning area, emitting only non-empty areas so a local-only write still costs exactly one round trip. The case that forces it: buildImportUpdates returns url-* records and labels in ONE map, and a naive per-area switch would drop half of every import.",
+    "filePath": "src/lib/utils/storageAreas.js",
+    "name": "partitionUpdatesByArea",
+    "testFile": "src/lib/utils/storageAreas.test.js"
   },
   {
     "description": "Scales a value within a [base, max] window to a clamped 0-100 percentage for the triage load bands.",
@@ -1044,6 +1146,24 @@
     "testFile": "src/lib/utils/pruneDeletedUrls.test.js"
   },
   {
+    "description": "Removes empty subdirectories left behind by pruning. The passed directory itself is never a removal candidate — only its descendants — which is what guarantees the mirror root Chrome has loaded always survives a rebuild.",
+    "filePath": "scripts/sync-extension-dir.mjs",
+    "name": "pruneEmptyDirs",
+    "untestabilityReason": {
+      "justification": "An fs.readdir/fs.rmdir recursion at the filesystem boundary; the invariant it protects (the mirror root survives) is verified against the real filesystem by rebuilding and confirming the directory inode is unchanged.",
+      "kind": "platform-glue"
+    }
+  },
+  {
+    "description": "Deletes the files staleFiles identified from the mirror, then tidies up empty directories. The decision of WHAT is stale is delegated to the tested pure helper; this is the removal boundary only.",
+    "filePath": "scripts/sync-extension-dir.mjs",
+    "name": "pruneStale",
+    "untestabilityReason": {
+      "justification": "A bare fs.rm loop over paths chosen by the separately-tested staleFiles; it owns no selection logic of its own.",
+      "kind": "platform-glue"
+    }
+  },
+  {
     "description": "Service-worker mirror of the visitDecay pruneVisits helper: drops visit timestamps older than VISIT_RETENTION_MS (30 days), filters non-finite entries, sorts ascending, and caps to the newest MAX_VISITS (50). Applied on each newUrl write so per-site visit history recorded for Favorites time-decay ranking stays bounded. Duplicated here because the service-worker runtime cannot import the ES module, matching the GAUGE and AUTO_CLOSE constant-mirroring convention.",
     "filePath": "service_worker.js",
     "name": "pruneVisits",
@@ -1060,6 +1180,12 @@
     "filePath": "src/lib/utils/rankFavorites.js",
     "name": "rankFavorites",
     "testFile": "src/lib/utils/rankFavorites.test.js"
+  },
+  {
+    "description": "Reads keys from whichever areas own them and hands the MERGED result to the callback exactly once. The single-callback contract is load-bearing: the Import / Export page reads labels (sync) and previousLabels plus syncStatus (local) in one call and would render twice with partial data otherwise. Degrades to a local-only read when the host exposes no sync area.",
+    "filePath": "src/lib/utils/storageAccess.js",
+    "name": "readByArea",
+    "testFile": "src/lib/utils/storageAccess.test.js"
   },
   {
     "description": "Returns a new labels map where every label containing oldUrlKey has it replaced by newUrlKey, position preserved, de-duplicating when newUrlKey is already present. Pure and non-mutating; mirrors the service worker label drift-healing. Used when an edited URL re-keys a record so its group memberships follow.",
@@ -1086,7 +1212,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Records an in-group tab's URL into its group's label, seeding the label with the group's mapped color when it does not exist yet, then persists via update. Runs only for non-auto-grouped tabs such as startup sync of pre-existing Chrome groups.",
+    "description": "Records an in-group tab's URL into its group's label, seeding the label with the group's mapped color when it does not exist yet, then persists via update. Runs only for non-auto-grouped tabs such as startup sync of pre-existing Chrome groups. The final write is now CONDITIONAL on an actual mutation, and the activeTabs membership stamp is written independently of the labels map — the common path (clicking a URL already filed in the group) stamps without mutating labels, and re-persisting an unchanged labels map would burn the sync area's 120-writes-per-minute budget.",
     "filePath": "service_worker.js",
     "name": "recordInGroupTab",
     "testFile": "service_worker.test.js"
@@ -1104,10 +1230,22 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Persists the outcome of the most recent sync write under the local-area syncStatus key, but only when the status actually CHANGES. The memo matters because labels is written on every ordinary group edit, so recording unconditionally would turn one diagnostic key into a write on every mutation — the same churn the worker's coalescing guard exists to prevent.",
+    "filePath": "src/lib/utils/storageAccess.js",
+    "name": "recordSyncStatus",
+    "testFile": "src/lib/utils/storageAccess.test.js"
+  },
+  {
     "description": "Pure formatter that maps an epoch-ms timestamp to a compact how-long-ago label relative to a caller-supplied now: sub-hour reads as just now, under a day as N hours ago, under two weeks as N days ago, and beyond as N weeks ago. A missing timestamp reads as never, and a future timestamp is clamped to just now. Used by the Favorites View All page for each favorite's last-visited stat.",
     "filePath": "src/lib/utils/relativeTime.js",
     "name": "relativeTime",
     "testFile": "src/lib/utils/relativeTime.test.js"
+  },
+  {
+    "description": "Removes keys from whichever areas own them, routing the same way reads and writes do so a Chrome.remove spanning both areas clears both.",
+    "filePath": "src/lib/utils/storageAccess.js",
+    "name": "removeByArea",
+    "testFile": "src/lib/utils/storageAccess.test.js"
   },
   {
     "description": "Returns a new labels map with a urlKey spliced out of the named label's urlKeys (fresh array, input not mutated; unknown label returns the map unchanged). Backs the UrlDetails Groups-chip removal. Extracted from the page's handleLabelClick.",
@@ -1116,16 +1254,28 @@
     "testFile": "src/lib/utils/urlDetails.test.js"
   },
   {
+    "description": "Clears the module-level status memo so each test case starts from a known state. Exported for tests only; production never needs to forget the last recorded sync status.",
+    "filePath": "src/lib/utils/storageAccess.js",
+    "name": "resetSyncStatusMemo",
+    "testFile": "src/lib/utils/storageAccess.test.js"
+  },
+  {
     "description": "Resolves a Chrome group id to its label title, preferring the in-memory groups map and falling back to chrome.tabGroups.get. The fallback is not an optimization detail: right after an MV3 service-worker restart that map is cold, and both onUpdated branches needing a title — the navigation-eject membership check and the in-page drift heal — run in exactly that window. Extracted because those two branches of the same conditional had resolved the title with duplicated inline code.",
     "filePath": "service_worker.js",
     "name": "resolveGroupTitle",
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Attaches each label's resolved urls array (url/title/favicon, plus notes only when present) from the per-URL info map and drops urlKeys, returning the labels ready to JSON.stringify into the export.",
+    "description": "Attaches each label's resolved urls array (url/title/favicon, plus notes only when present) from the per-URL info map and drops urlKeys, returning the labels ready to JSON.stringify into the export. A urlKey with NO per-URL record is expected rather than exceptional now that labels lives in sync while the url-* records stay local: after an uninstall restores the groups, the local records they point at are gone. The URL is reconstructed from the urlKey itself. Dereferencing the missing record previously threw and took down the whole Export panel, leaving the user no way to back up the groups they had just recovered; skipping the member would be worse still, since the export would look complete while silently dropping URLs from the backup.",
     "filePath": "src/lib/utils/importExport.js",
     "name": "resolveLabelUrls",
     "testFile": "src/lib/utils/importExport.test.js"
+  },
+  {
+    "description": "Splits a raw localStorage seed key into the area that owns it and the key the app sees. Unprefixed keys route through the storage-areas table, so every pre-existing scenario seeds unchanged; the `sync::` and `local::` prefixes override that, which is what makes the cross-area states seedable at all — sync populated with local wiped (the uninstall a user survives) and local populated with sync empty (the state the migration converts).",
+    "filePath": "src/lib/utils/chromeShim/chromeShim.js",
+    "name": "resolveSeedKey",
+    "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
   },
   {
     "description": "Reduces a URL to its origin + pathname so the tab-grouping eject path can tell an in-page URL rewrite (query/hash change — keep grouped) apart from a real navigation (different origin/path — eject). Drops the query string and fragment; falls back to the raw input for non-string or unparseable values so they compare equal only when literally identical.",
@@ -1150,6 +1300,12 @@
     "filePath": "src/lib/utils/segmentSearchResults.js",
     "name": "segmentSearchResults",
     "testFile": "src/lib/utils/segmentSearchResults.test.js"
+  },
+  {
+    "description": "Measures a key plus its JSON encoding in UTF-8 bytes, the way chrome.storage.sync counts its quota. UTF-8 rather than String.length because group titles are user-supplied and routinely non-ASCII — an emoji title undercounts by up to 3x under UTF-16 code units, which would let an over-quota write through to fail at runtime.",
+    "filePath": "src/lib/utils/syncQuota.js",
+    "name": "serializedByteLength",
+    "testFile": "src/lib/utils/syncQuota.test.js"
   },
   {
     "description": "Sets the drag-in-flight flag for the whole drag lifecycle, including keyboard drags and group reorders. No-ops when the value is unchanged, and never clobbers the cursor-hover state, which is owned by pointer tracking instead.",
@@ -1180,6 +1336,12 @@
     "filePath": "src/lib/utils/importExport.js",
     "name": "sortLabels",
     "testFile": "src/lib/utils/importExport.test.js"
+  },
+  {
+    "description": "The target files the new build no longer produces — a set difference over relative paths. Extracted and pinned by tests because it is the one place a bug would DELETE a file the loaded extension still needs; hashed asset names change every build, so pruning has to happen, but it has to prune only what is genuinely gone.",
+    "filePath": "scripts/sync-extension-dir.mjs",
+    "name": "staleFiles",
+    "testFile": "scripts/sync-extension-dir.test.js"
   },
   {
     "description": "Stamps an activeTabs entry with the label slot its url was filed under or confirmed as occupying (labelTitle / labelUrlKey), which is the sole input to the navigatedAwayFromRecordedSlot append guard. Lives on the persisted activeTabs entry rather than a module-level Map because MV3 tears the worker down constantly and the post-teardown sync is exactly the window where the bogus append happens, so an in-memory map would be empty precisely when needed; activeTabs entries also vanish when the tab closes, so cleanup is free. Returns whether the stamp actually CHANGED, not a constant true: groupTabs stamps on every pass and persists via a bare storage.local.set that re-enters onChanged and calls groupTabs again, so a caller on that hot path needs the no-op-returns-false signal to avoid an infinite write loop.",
@@ -1227,6 +1389,12 @@
     "testFile": "src/lib/utils/processLoad.test.js"
   },
   {
+    "description": "Whether chrome.storage.sync exists at all. Absent in unit tests that stub only storage.local and in any host predating the shim's sync support; degrading to local-only there preserves exactly the pre-sync behavior instead of throwing on chrome.storage.sync.set of undefined.",
+    "filePath": "src/lib/utils/storageAccess.js",
+    "name": "syncAvailable",
+    "testFile": "src/lib/utils/storageAccess.test.js"
+  },
+  {
     "description": "Detects whether chrome.system.cpu and chrome.system.memory are both present, gating the stable-Chrome whole-browser load fallback that drives the gauge when chrome.processes is unavailable.",
     "filePath": "service_worker.js",
     "name": "systemApiAvailable",
@@ -1255,7 +1423,7 @@
     "testFile": "service_worker.test.js"
   },
   {
-    "description": "Thin write helper that persists an updates object to chrome.storage.local.set; the single storage-write chokepoint for the worker.",
+    "description": "The worker's single storage-write chokepoint. Routes each key to its owning area (labels -> sync, everything else -> local) and guards the sync path against quota and availability failures. Also COALESCES: a labels write byte-identical to the last one persisted is dropped, because labels now lives in sync, which caps writes at 120/minute — and recordInGroupTab runs per tab from groupTabs on every activeTabs change, so re-persisting an unchanged map would breach the quota within a minute of ordinary browsing. Dropping is safe by construction since identical content means storage already holds the value.",
     "filePath": "service_worker.js",
     "name": "update",
     "tags": [
@@ -1345,5 +1513,11 @@
     "filePath": "src/lib/utils/rankFavorites.js",
     "name": "visitsFor",
     "testFile": "src/lib/utils/rankFavorites.test.js"
+  },
+  {
+    "description": "Writes an updates map to its keys' owning areas, guarding every sync write two ways sync can refuse one: an over-quota item is measured first and redirected to local, and a rejected write (signed out, sync disabled, throttled) is retried into local off chrome.runtime.lastError. Both record the outcome under syncStatus so a group mutation is never dropped and the degraded state is visible to the user rather than silent.",
+    "filePath": "src/lib/utils/storageAccess.js",
+    "name": "writeByArea",
+    "testFile": "src/lib/utils/storageAccess.test.js"
   }
 ]

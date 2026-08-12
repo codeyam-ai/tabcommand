@@ -89,6 +89,10 @@ blob-report/
 node_modules/
 build/
 dev-dist/
+# The stable unpacked-extension directory `npm run build` syncs into (dist/extension).
+# It is the one Chrome loads, so it must never be deleted wholesale — but it is
+# still generated output and does not belong in the repo.
+dist/
 
 # OS / packaging artifacts
 .DS_Store

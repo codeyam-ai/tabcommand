@@ -1,0 +1,18 @@
+{
+  "name": "Import / Export - Export After Uninstall Recovery",
+  "id": "86a1e4b4-59bd-45d7-9f91-7dd237d8f669",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "sync::labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}}",
+      "uxSettings": "{\"page\":{\"name\":\"ImportExport\"}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+  "description": "The export rendered when the groups came back from sync but their local url- records did NOT — the state right after Chrome destroyed the local area. Every member URL is reconstructed from its urlKey with an empty title and favicon, which is the edge shape of an export entry: present and restorable, just not yet re-enriched. Before the fix this page threw on the first missing record and the whole Export panel went blank, leaving no way to back up the groups the user had just recovered."
+}

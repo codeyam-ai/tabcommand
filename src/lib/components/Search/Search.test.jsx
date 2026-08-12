@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { installChromeShim } from '../../utils/chromeShim';
+import { writeByArea } from '../../utils/storageAccess';
 import Search from './Search';
 
 const seed = (key, value) => window.localStorage.setItem(key, JSON.stringify(value));
@@ -94,7 +95,10 @@ describe('Search', () => {
     await flushIndex();
 
     await act(async () => {
-      globalThis.chrome.storage.local.set({
+      // Write through the area router: `labels` lives in chrome.storage.sync, so
+      // a hardcoded local write would fire an onChanged carrying areaName
+      // 'local' and Search would correctly ignore it.
+      writeByArea({
         labels: {
           Travel: { title: 'Travel', backgroundColor: '#9334E2', position: 0, urlKeys: [] },
         },

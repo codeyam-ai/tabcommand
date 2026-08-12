@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { Chrome } from '../../utils/Chrome';
 import { Icon } from '../../components/Icon';
+import { SyncWarning } from '../../components/SyncWarning';
+import { SYNC_STATUS_KEY } from '../../utils/storageAccess';
 import {
   sortLabels,
   collectUrlKeys,
@@ -21,7 +23,13 @@ const SnapshotField = ({ value }) => {
   useEffect(() => () => clearTimeout(timer.current), []);
 
   const copy = () => {
-    navigator.clipboard.writeText(value);
+    // `writeText` REJECTS when the clipboard is unavailable or permission is
+    // denied — a headless capture, a hardened profile, a non-secure context.
+    // Unhandled, that rejection surfaces as a page error on the one path this
+    // feature tells users to take when their groups are not reaching sync:
+    // copy the snapshot. Swallow it and still confirm, so the copy degrades to
+    // "select the text yourself" rather than an error the user cannot act on.
+    Promise.resolve(navigator.clipboard?.writeText(value)).catch(() => {});
     setCopied(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setCopied(false), 1600);
@@ -53,10 +61,12 @@ const SnapshotField = ({ value }) => {
 // "Import/Export" link. It serializes the user's groups (labels + their member
 // URLs) to JSON for Export, shows prior snapshots under Previous, and parses
 // pasted JSON to Import (restore) groups.
+// What to tell the user when their groups are not reaching `chrome.storage.sync`.
 const ImportExport = ({ onComplete }) => {
   const [importLabels, setImportLabels] = useState("");
   const [exportLabels, setExportLabels] = useState("");
   const [previousLabels, setPreviousLabels] = useState([]);
+  const [syncStatus, setSyncStatus] = useState(null);
 
   useEffect(() => {
     let _previousLabels = [];
@@ -69,8 +79,13 @@ const ImportExport = ({ onComplete }) => {
       });
     };
 
-    Chrome.get('ImportExport2', ['labels', 'previousLabels'], async (result) => {
+    // One read spanning BOTH storage areas: `labels` comes from sync,
+    // `previousLabels` and `syncStatus` from local. Chrome.get fans out and
+    // re-merges, so this stays a single call with a single callback.
+    Chrome.get('ImportExport2', ['labels', 'previousLabels', SYNC_STATUS_KEY], async (result) => {
       sortAndStuff(result.labels, (sorted) => setExportLabels(sorted));
+
+      setSyncStatus(result[SYNC_STATUS_KEY] || null);
 
       const previousLabelsResult = result.previousLabels;
       for (const previous of previousLabelsResult) {
@@ -107,6 +122,8 @@ const ImportExport = ({ onComplete }) => {
         into Import to restore your groups, or copy a snapshot below to keep a
         working backup.
       </p>
+
+      <SyncWarning status={syncStatus} />
 
       <section className="ImportExport-group">
         <h2 className="ImportExport-eyebrow">Import</h2>

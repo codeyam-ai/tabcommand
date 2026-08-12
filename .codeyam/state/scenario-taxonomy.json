@@ -118,6 +118,33 @@
         "status": "added"
       }
     },
+    "ImportExport": {
+      "empty": {
+        "status": "covered"
+      },
+      "single": {
+        "status": "covered"
+      },
+      "typical": {
+        "status": "covered"
+      },
+      "many": {
+        "status": "added"
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "The page reads storage in a useEffect that resolves against the in-process chrome shim or the extension storage API; there is no network round trip and no pending UI, so the pre-callback frame is a blank textarea rather than a designed loading state."
+      },
+      "edge": {
+        "status": "added"
+      },
+      "error": {
+        "status": "added"
+      },
+      "key-interaction": {
+        "status": "added"
+      }
+    },
     "LabelCollection": {
       "empty": {
         "status": "covered"

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
 import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
@@ -28,6 +28,9 @@ import {
   MoveSource,
 } from './src/lib/utils/groupMoveLog.js';
 import { needsGroupCall, needsUngroupCall, bucketTabsByWindow } from './src/lib/utils/tabPlacement.js';
+import { areaForKey } from './src/lib/utils/storageAreas.js';
+import { readByArea, writeByArea } from './src/lib/utils/storageAccess.js';
+import { migrateLabelsToSync } from './src/lib/utils/migrateLabelsToSync.js';
 import findLabelForUrlKey from './src/lib/utils/findLabelForUrlKey.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
@@ -86,6 +89,19 @@ function makeChrome() {
 // strip the import line and inject the REAL util as a parameter — the worker
 // tests then exercise the same util that deriveSystemTotals.test.js covers.
 function loadWorker(chrome) {
+  // The worker's `update` / `getStorage` delegate to the storageAccess module,
+  // which is a REAL import here and therefore reads the ambient global `chrome`
+  // — not the mock passed as a Function parameter below. In the shipped service
+  // worker those are the same object; the parameter injection is an artifact of
+  // the sloppy-mode Function wrapper. Publishing the mock globally HERE (rather
+  // than in beforeEach) keeps them in step for the several tests that build
+  // their own chrome and call loadWorker directly.
+  //
+  // Note the mocks deliberately expose NO `chrome.storage.sync`, which exercises
+  // storageAccess's degrade-to-local path — the behavior a host without a sync
+  // area gets, identical to this worker's pre-sync behavior.
+  globalThis.chrome = chrome;
+
   const raw = fs.readFileSync(SW_PATH, 'utf8');
   const code = raw.replace(/^\s*import\s.*$/gm, '');
   const factory = new Function(
@@ -114,12 +130,16 @@ function loadWorker(chrome) {
     'needsUngroupCall',
     'bucketTabsByWindow',
     'findLabelForUrlKey',
+    'areaForKey',
+    'readByArea',
+    'writeByArea',
+    'migrateLabelsToSync',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
              newUrl, recordAccess, closeUrl, processProcesses, updateTotals, associateProcess,
              tabUpdates, urlUpdates, getUrlKey, validTab, getTabGroup, mapColors,
-             getLocalStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs,
+             getStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs,
              initLoadSource, processesApiAvailable, systemApiAvailable,
              startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad,
              autoCloseSweep, isAutoCloseEligible, pruneAutoClosed,
@@ -134,7 +154,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey, areaForKey, readByArea, writeByArea, migrateLabelsToSync);
 }
 
 describe('service_worker.js', () => {
@@ -147,6 +167,10 @@ describe('service_worker.js', () => {
     const loaded = loadWorker(chrome);
     fns = loaded.fns;
     state = loaded.state;
+  });
+
+  afterEach(() => {
+    delete globalThis.chrome;
   });
 
   // registers chrome listeners at load without throwing
@@ -351,21 +375,69 @@ describe('service_worker.js', () => {
       fns.update({ allUrls: ['url-a'] });
       expect(chrome.storage.local.set).toHaveBeenCalledWith({ allUrls: ['url-a'] });
     });
+
+    // labels now lives in chrome.storage.sync, which caps writes at 120/minute.
+    // recordInGroupTab runs per tab from groupTabs on every activeTabs change, so
+    // re-persisting an identical labels map would breach the quota within a
+    // minute of ordinary browsing.
+    it('drops a labels write identical to the last one persisted', () => {
+      fns.update({ labels: { Work: { title: 'Work' } } });
+      chrome.storage.local.set.mockClear();
+
+      fns.update({ labels: { Work: { title: 'Work' } } });
+
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+    });
+
+    // the guard must only suppress genuinely-identical content — a real group
+    // edit still has to reach storage
+    it('persists a labels write whose content changed', () => {
+      fns.update({ labels: { Work: { title: 'Work' } } });
+      chrome.storage.local.set.mockClear();
+
+      fns.update({ labels: { Work: { title: 'Renamed' } } });
+
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({ labels: { Work: { title: 'Renamed' } } });
+    });
+
+    // dropping a redundant labels key must not drop its co-written keys — the
+    // activeTabs membership stamp rides along in the same call
+    it('still writes companion keys when the labels key is dropped', () => {
+      const labels = { Work: { title: 'Work' } };
+      fns.update({ labels });
+      chrome.storage.local.set.mockClear();
+
+      fns.update({ labels, activeTabs: [{ tabKey: 'tab-1' }] });
+
+      expect(chrome.storage.local.set).toHaveBeenCalledWith({ activeTabs: [{ tabKey: 'tab-1' }] });
+    });
+
+    // when the redundant labels key was the ONLY key, no write should be issued
+    // at all rather than an empty set
+    it('issues no write when the dropped labels key was the only key', () => {
+      const labels = { Work: { title: 'Work' } };
+      fns.update({ labels });
+      chrome.storage.local.set.mockClear();
+
+      fns.update({ labels });
+
+      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+    });
   });
 
-  describe('getLocalStorage', () => {
+  describe('getStorage', () => {
     // invokes the callback form with the chrome result
     it('invokes the callback with the storage result', () => {
       chrome.storage.local.get.mockImplementation((_q, cb) => cb({ activeTabs: [1] }));
       const cb = vi.fn();
-      fns.getLocalStorage('activeTabs', cb);
+      fns.getStorage('activeTabs', cb);
       expect(cb).toHaveBeenCalledWith({ activeTabs: [1] });
     });
 
     // resolves a promise with the result when no callback is given
     it('resolves with the result when no callback is passed', async () => {
       chrome.storage.local.get.mockImplementation((_q, cb) => cb({ labels: {} }));
-      await expect(fns.getLocalStorage('labels')).resolves.toEqual({ labels: {} });
+      await expect(fns.getStorage('labels')).resolves.toEqual({ labels: {} });
     });
   });
 
@@ -861,8 +933,17 @@ describe('service_worker.js', () => {
       const nav = makeChrome();
       nav.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
       nav.storage.local.get.mockImplementation((query, cb) => {
-        if (Array.isArray(query) && query.includes('labels') && query.includes('activeTabs')) {
-          cb({ labels, activeTabs: [] });
+        // Boot now reads the two keys SEPARATELY: `labels` through the
+        // local -> sync migration (this mock exposes no sync area, so the
+        // migration falls back to a local ['labels'] read) and `activeTabs`
+        // through the ordinary bootstrap. They used to arrive as one combined
+        // ['labels','activeTabs'] query.
+        if (Array.isArray(query) && query.includes('labels')) {
+          cb({ labels });
+          return;
+        }
+        if (Array.isArray(query) && query.includes('activeTabs')) {
+          cb({ activeTabs: [] });
           return;
         }
         if (query === 'activeTabs') {
@@ -1858,9 +1939,13 @@ describe('service_worker.js', () => {
   describe('onUpdated group leave keeps member sticky', () => {
     // Sets the module-level `labels` by driving the storage.onChanged listener,
     // which mirrors how the worker keeps `labels` in sync at runtime.
+    // `labels` lives in chrome.storage.sync now, so its change events carry
+    // areaName 'sync'. The worker's listener gates each key against ITS OWN
+    // area, so firing this as 'local' would be silently ignored — exactly what
+    // would happen in the real extension.
     const setLabels = (chrome, labelsObj) => {
       const onChanged = chrome.storage.onChanged.addListener.mock.calls[0][0];
-      onChanged({ labels: { newValue: labelsObj, oldValue: {} } }, 'local');
+      onChanged({ labels: { newValue: labelsObj, oldValue: {} } }, areaForKey('labels'));
     };
 
     // Membership is sticky: a tab leaving all groups (groupId → -1) — Chrome's
@@ -1961,9 +2046,13 @@ describe('service_worker.js', () => {
     // Publishes `labelsObj` into the worker's module-level `labels` the same way
     // the runtime does — by driving the storage.onChanged listener — so the heal
     // branch reads it and mutations are visible on the same object reference.
+    // `labels` lives in chrome.storage.sync now, so its change events carry
+    // areaName 'sync'. The worker's listener gates each key against ITS OWN
+    // area, so firing this as 'local' would be silently ignored — exactly what
+    // would happen in the real extension.
     const setLabels = (chrome, labelsObj) => {
       const onChanged = chrome.storage.onChanged.addListener.mock.calls[0][0];
-      onChanged({ labels: { newValue: labelsObj, oldValue: {} } }, 'local');
+      onChanged({ labels: { newValue: labelsObj, oldValue: {} } }, areaForKey('labels'));
     };
 
     // The reported bug: a Google Docs tab in a group rewrites only its `?tab=`

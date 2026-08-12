@@ -51,6 +51,28 @@ const FAV_NOW = 1782486000000;
 const D = 86400000;
 
 const ISOLATION_PROPS = {
+  // The banner shown when the user's groups are NOT reaching chrome.storage.sync.
+  // Both states are worth pinning because their COPY differs by remedy: an
+  // over-quota set needs the user to export and prune, while an unavailable sync
+  // area needs them to sign in. The component renders null for a healthy or
+  // absent status, so there is deliberately no third variant here — that state is
+  // covered visually by the Import / Export page scenarios, where the absence of
+  // the banner is the observable thing.
+  SyncWarning: {
+    default: {
+      status: { status: 'too-large', key: 'labels', bytes: 9147, at: 1786545000000 },
+    },
+    variants: {
+      'sync-failed': {
+        status: {
+          status: 'sync-failed',
+          key: 'labels',
+          message: 'Please sign in to Chrome to use chrome.storage.sync',
+          at: 1786545000000,
+        },
+      },
+    },
+  },
   // The sidebar wordmark introduced by the visual redesign: the 4-color mark plus
   // the Tab/Command text wordmark. Single visual state; click is a no-op here.
   AppBrand: {

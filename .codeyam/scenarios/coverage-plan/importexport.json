@@ -1,0 +1,84 @@
+{
+  "surface": "ImportExport",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "importLabels",
+      "value": "empty",
+      "rationale": "source-derived state importLabels=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "importLabels",
+      "value": "one",
+      "rationale": "source-derived state importLabels=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "importLabels",
+      "value": "many",
+      "rationale": "source-derived state importLabels=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "previousLabelsResult",
+      "value": "empty",
+      "rationale": "source-derived state previousLabelsResult=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "previousLabelsResult",
+      "value": "one",
+      "rationale": "source-derived state previousLabelsResult=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "previousLabelsResult",
+      "value": "many",
+      "rationale": "source-derived state previousLabelsResult=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "_previousLabels",
+      "value": "empty",
+      "rationale": "source-derived state _previousLabels=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "_previousLabels",
+      "value": "one",
+      "rationale": "source-derived state _previousLabels=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "_previousLabels",
+      "value": "many",
+      "rationale": "source-derived state _previousLabels=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "onComplete",
+      "value": "true",
+      "rationale": "source-derived state onComplete=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "onComplete",
+      "value": "false",
+      "rationale": "source-derived state onComplete=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "copied",
+      "value": "true",
+      "rationale": "source-derived state copied=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "copied",
+      "value": "false",
+      "rationale": "source-derived state copied=false",
+      "status": "covered"
+    }
+  ]
+}

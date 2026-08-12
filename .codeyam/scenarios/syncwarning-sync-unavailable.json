@@ -1,0 +1,12 @@
+{
+  "name": "SyncWarning - Sync Unavailable",
+  "id": "258c633e-3632-4e85-8eb0-93726e9d8dae",
+  "url": "/?isolate=SyncWarning&variant=sync-failed",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SyncWarning",
+  "scenarioType": "component",
+  "description": "The sync-rejected state: signed out of Chrome, or extension sync turned off. Deliberately distinct copy from the quota case because the remedy differs — sign in rather than prune groups — and the group edit itself still landed locally, so the message says nothing was lost."
+}

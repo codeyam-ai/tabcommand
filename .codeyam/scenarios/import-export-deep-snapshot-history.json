@@ -1,0 +1,28 @@
+{
+  "name": "Import / Export - Deep Snapshot History",
+  "id": "90381e9a-43bb-406c-9f72-92b239f741fe",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"url\":\"https://react.dev/learn\",\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"url\":\"https://www.notion.so/codeyam/Roadmap\",\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"url\":\"https://github.com/codeyam/tabcommand\",\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"page\":{\"name\":\"ImportExport\"}}",
+      "url-https://www.amazon.com/wishlist": "{\"url\":\"https://www.amazon.com/wishlist\",\"title\":\"Your Wish List – Amazon\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "previousLabels": "[{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\"]}},{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}},{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}},{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\"]}},{\"Research\":{\"title\":\"Research\",\"backgroundColor\":\"#8334B8\",\"position\":0,\"urlKeys\":[\"url-https://developer.mozilla.org/en-US/docs/Web/API\"]}},{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]}}]",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\"]}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"url\":\"https://developer.mozilla.org/en-US/docs/Web/API\",\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+  "description": "The Previous section carrying a deep undo stack — every prior shape of the group set, each with its own Copy button, stacked below the current export. This is the state that makes the page a recovery tool rather than a backup button: when a sync warning appears, the user needs not just the current snapshot but the one from before whatever went wrong.",
+  "demonstratesState": {
+    "previousLabelsResult": "many"
+  }
+}

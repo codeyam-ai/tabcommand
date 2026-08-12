@@ -12,6 +12,18 @@ import { codeyamPlugin } from './codeyam/vite-plugin-codeyam.mjs';
 export default defineConfig({
   plugins: [codeyamPlugin(), react(), crx({ manifest })],
   build: {
+    // Build into a SCRATCH directory, never into the directory Chrome has
+    // loaded as an unpacked extension. `emptyOutDir` deletes and recreates
+    // outDir on every build, so pointing it at the loaded directory means every
+    // `npm run build` removes the extension out from under Chrome — and if
+    // Chrome reads it mid-rewrite it treats the extension as UNINSTALLED and
+    // destroys its `chrome.storage.local` with it. That is the proximate cause
+    // of the incident this feature exists to prevent.
+    //
+    // `npm run build` syncs this scratch output into `dist-extension/`, which is
+    // created once and never deleted wholesale (see the build script in
+    // package.json). Load `dist-extension/` in chrome://extensions — it always
+    // exists and always contains a valid manifest.json.
     outDir: 'build',
     emptyOutDir: true,
     rollupOptions: {

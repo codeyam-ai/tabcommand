@@ -3,11 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { installChromeShim } from '../../utils/chromeShim';
+import { readByArea } from '../../utils/storageAccess';
 import { Colors } from '../../../Constants';
 import LabelForm from './LabelForm';
 
 const seed = (key, value) => window.localStorage.setItem(key, JSON.stringify(value));
-const get = (keys) => new Promise((resolve) => chrome.storage.local.get(keys, resolve));
+// Read back through the area router rather than chrome.storage.local directly:
+// `labels` lives in chrome.storage.sync now, so a hardcoded local read would
+// come back empty no matter what the component wrote.
+const get = (keys) => new Promise((resolve) => readByArea(keys, resolve));
 
 describe('LabelForm', () => {
   beforeEach(() => {

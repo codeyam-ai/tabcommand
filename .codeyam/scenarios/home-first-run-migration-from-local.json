@@ -1,0 +1,20 @@
+{
+  "name": "Home - First Run Migration From Local",
+  "id": "b112bd0c-450c-421a-8865-86d2d9872a87",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "local::labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"url\":\"https://react.dev/learn\",\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"url\":\"https://github.com/codeyam/tabcommand\",\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx",
+  "description": "The upgrade path. Groups exist only in the old local area and sync is empty — every existing user’s state the moment they take this version. The boot migration copies local into sync and the UI is unchanged, which is the point: the user sees nothing happen while their groups become durable."
+}

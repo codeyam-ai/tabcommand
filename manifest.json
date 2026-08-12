@@ -2,6 +2,7 @@
   "name": "TabCommand",
   "version": "0.22",
   "description": "Command Central for your browsing experience.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzP+2P2LtI1kpxnmsXXCQiD0L+a39kuDZ9Co8WabU5oad5nVjpQNeeAiJvdcriNWfycjHMS7xFuZTFOGnBgEJj9AchWFdKSHjy5HNXkooN5qF89/9pc/5164dNCq8FEvqsAag58Y6CscwKfA8SHsP0B8k2cQz5oRAeELA3Lz0/VjkPONnJU9ORQECBGszPpSeRd+4V67lWHn3VYfCIDTL7KtD3yStocRwJUCGIBwwuqeJPy3b585AcXoVXKjqU2ufaIImcUGYImVpCzQbDPvzH83/kJ786XnlJjdFW++M4/+mZ8Km7EMR2NDuUsUBU8a4oDWKFMOGgYbZu/jANtSdBwIDAQAB",
   "permissions": ["storage", "tabs", "tabGroups", "system.cpu", "system.memory", "alarms"],
   "background": {
     "service_worker": "service_worker.js"

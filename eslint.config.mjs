@@ -6,6 +6,10 @@ export default [
   {
     ignores: [
       'build/**',
+      // The stable unpacked-extension mirror `npm run build` syncs into
+      // (`dist/extension`). Same bundled output as `build/`, just at a path
+      // Chrome can safely keep loaded.
+      'dist/**',
       'node_modules/**',
       'dev-dist/**',
       // Tooling / editor scaffolding — not part of the app source.
@@ -60,6 +64,8 @@ export default [
       'vite.config.mjs',
       'eslint.config.mjs',
       'codeyam/**/*.{js,mjs}',
+      // Packaging scripts (the unpacked-extension mirror) also run under Node.
+      'scripts/**/*.{js,mjs}',
     ],
     languageOptions: {
       sourceType: 'module',

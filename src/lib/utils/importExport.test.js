@@ -97,6 +97,37 @@ describe('resolveLabelUrls', () => {
     expect(resolved[0].urls[1]).not.toHaveProperty('notes');
   });
 
+  // After an uninstall restores groups from sync, the local url-_url_ records
+  // they point at are GONE. Dereferencing the missing record used to throw and
+  // take down the whole Export panel — leaving the user no way to back up the
+  // groups they had just recovered. The URL is recovered from the urlKey.
+  it('reconstructs the url from its urlKey when the record is missing', () => {
+    const sorted = [{ title: 'Work', urlKeys: ['url-https://a.com'] }];
+    const resolved = resolveLabelUrls(sorted, {});
+    expect(resolved[0].urls).toEqual([
+      { url: 'https://a.com', title: '', favicon: '' },
+    ]);
+  });
+
+  // Skipping the missing member would be WORSE than the crash: the export would
+  // look complete while silently dropping URLs from the user's only backup.
+  it('keeps every member when only some records are missing', () => {
+    const sorted = [{ title: 'Work', urlKeys: ['url-https://a.com', 'url-https://b.com'] }];
+    const urlInfo = { 'url-https://b.com': { url: 'https://b.com', title: 'B', favicon: 'fav-b' } };
+    const resolved = resolveLabelUrls(sorted, urlInfo);
+    expect(resolved[0].urls).toHaveLength(2);
+    expect(resolved[0].urls.map((u) => u.url)).toEqual(['https://a.com', 'https://b.com']);
+    expect(resolved[0].urls[1].title).toBe('B');
+  });
+
+  // a reconstructed entry carries no notes, since there is no record to read
+  // them from — it must not emit an undefined notes key into the export JSON
+  it('omits notes on a reconstructed entry', () => {
+    const sorted = [{ title: 'Work', urlKeys: ['url-https://a.com'] }];
+    const resolved = resolveLabelUrls(sorted, {});
+    expect(resolved[0].urls[0]).not.toHaveProperty('notes');
+  });
+
   // resolves urls across multiple labels in order
   it('resolves urls across multiple labels in order', () => {
     const sorted = [

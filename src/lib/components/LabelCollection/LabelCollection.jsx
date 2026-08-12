@@ -9,6 +9,7 @@ import { LabelCollectionMenu } from '../LabelCollectionMenu';
 
 import { ItemTypes } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
+import { LOCAL, changedInArea } from '../../utils/storageAreas';
 import appendGroupingLog from '../../utils/groupingLog';
 import {
   buildGroupRemovalEntry,
@@ -156,27 +157,37 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
     });
 
     const handleChange = (changes, areaName) => {
-      if (areaName !== 'local') return;
+      // `labels` lives in chrome.storage.sync while `activeTabs` and the `url-*`
+      // records stay local, so ONE event carries only one area's keys. Gate each
+      // key against its own area — a blanket `areaName !== 'local'` guard would
+      // drop every group change and the card would stop updating live.
+      const labelsChange = changedInArea(changes, areaName, 'labels');
+      const activeTabsChange = changedInArea(changes, areaName, 'activeTabs');
+      const isLocal = areaName === LOCAL;
+      if (!labelsChange && !activeTabsChange && !isLocal) return;
 
       const updates = {};
 
-      if (changes.labels) {
-        const newLabels = changes.labels.newValue;
+      if (labelsChange) {
+        const newLabels = labelsChange.newValue || {};
         if (!newLabels[currentTitle]) return;
         if (newLabels[currentTitle].urlKeys !== currentUrlKeys) {
           updates.currentUrlKeys = newLabels[currentTitle].urlKeys;
         }
       }
 
-      if (changes.activeTabs) {
-        updates.activeTabs = changes.activeTabs.newValue;
+      if (activeTabsChange) {
+        updates.activeTabs = activeTabsChange.newValue;
       }
 
       // A tab's title can load/change after the card mounts; keep titleMap fresh
-      // so the ambiguity check (and its subtitles) react.
+      // so the ambiguity check (and its subtitles) react. `url-*` records are
+      // local-only, so this loop is scoped to local events.
       const changedTitles = {};
-      for (const key of Object.keys(changes).filter((key) => key.startsWith('url-'))) {
-        changedTitles[key] = displayedTitle(key, changes[key].newValue);
+      if (isLocal) {
+        for (const key of Object.keys(changes).filter((key) => key.startsWith('url-'))) {
+          changedTitles[key] = displayedTitle(key, changes[key].newValue);
+        }
       }
 
       applyOrBuffer(updates, changedTitles);

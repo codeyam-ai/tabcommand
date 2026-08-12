@@ -20,5 +20,6 @@
     }
   },
   "scenarioType": "application",
-  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx"
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+  "description": "The healthy baseline of the recover/backup page: groups resolved from chrome.storage.sync and previous snapshots from local, read across both areas in one call. It seeds no syncStatus, so it is also the state where SyncWarning renders NOTHING — the third and most common of its three states, and the reason there is no isolated component scenario for it. A blank capture would prove nothing about a component whose blank state is correct; here the absence of the banner is observable against the rest of the page."
 }

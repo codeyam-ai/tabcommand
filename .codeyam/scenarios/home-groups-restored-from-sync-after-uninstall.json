@@ -1,0 +1,17 @@
+{
+  "name": "Home - Groups Restored From Sync After Uninstall",
+  "id": "913ec9f9-a186-46e4-a862-eab4d97351a0",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "sync::labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\"]}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx",
+  "description": "The incident this feature exists to prevent, replayed with the fix in place. Chrome destroyed the local area (the implicit uninstall when an unpacked extension’s directory goes missing), so every local key is gone. The groups are seeded ONLY into chrome.storage.sync — and they come back."
+}

@@ -55,11 +55,20 @@
       "runner": "tests"
     },
     {
+      "description": "the Import / Export page reads across the area boundary in one call and is written against a single-callback contract",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › get merges a cross-area read into one callback",
+      "line": 98,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
       "description": "array-typed keys hydrate to [] when storage has no value",
       "file": "src/lib/utils/Chrome/Chrome.test.js",
       "format": "vitest",
       "key": "Chrome › hydrates activeTabs/allUrls/previousLabels to [] when absent",
-      "line": 30,
+      "line": 39,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -68,7 +77,7 @@
       "file": "src/lib/utils/Chrome/Chrome.test.js",
       "format": "vitest",
       "key": "Chrome › hydrates labels/uxSettings/autoClosed to {} when absent",
-      "line": 20,
+      "line": 30,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -77,26 +86,44 @@
       "file": "src/lib/utils/Chrome/Chrome.test.js",
       "format": "vitest",
       "key": "Chrome › passes through requested keys that are present",
-      "line": 48,
+      "line": 55,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
     {
-      "description": "remove delegates straight to chrome.storage.local.remove",
+      "description": "remove routes by area the same way get and set do",
       "file": "src/lib/utils/Chrome/Chrome.test.js",
       "format": "vitest",
-      "key": "Chrome › remove delegates to chrome.storage.local.remove",
-      "line": 73,
-      "registeredAt": "2026-06-09T16:05:23Z",
+      "key": "Chrome › remove routes labels to chrome.storage.sync",
+      "line": 110,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
-      "description": "set delegates straight to chrome.storage.local.set",
+      "description": "labels is routed to the sync area so groups survive an uninstall",
       "file": "src/lib/utils/Chrome/Chrome.test.js",
       "format": "vitest",
-      "key": "Chrome › set delegates to chrome.storage.local.set",
-      "line": 67,
-      "registeredAt": "2026-06-09T16:05:23Z",
+      "key": "Chrome › set routes labels to chrome.storage.sync",
+      "line": 75,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "everything other than labels still goes to the local area",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › set routes non-labels keys to chrome.storage.local",
+      "line": 82,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the import path writes url-* records and labels from ONE map; a naive per-area switch would drop half of it",
+      "file": "src/lib/utils/Chrome/Chrome.test.js",
+      "format": "vitest",
+      "key": "Chrome › set splits a mixed updates map across both areas",
+      "line": 90,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -104,7 +131,7 @@
       "file": "src/lib/utils/Chrome/Chrome.test.js",
       "format": "vitest",
       "key": "Chrome › strips timestamp and drops falsy previousLabels entries",
-      "line": 57,
+      "line": 65,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -113,7 +140,7 @@
       "file": "src/lib/utils/Chrome/Chrome.test.js",
       "format": "vitest",
       "key": "Chrome › supports a single string key",
-      "line": 40,
+      "line": 48,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -419,7 +446,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › imports a valid export, writing labels and per-url objects then calling onComplete",
-      "line": 60,
+      "line": 64,
       "registeredAt": "2026-06-13T10:52:46.158526+00:00",
       "runner": "tests"
     },
@@ -428,7 +455,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › renders a Previous textarea for each previousLabels snapshot",
-      "line": 46,
+      "line": 50,
       "registeredAt": "2026-06-13T10:52:46.158526+00:00",
       "runner": "tests"
     },
@@ -437,7 +464,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › serializes the seeded labels into the Current export field",
-      "line": 26,
+      "line": 30,
       "registeredAt": "2026-06-13T10:52:46.158526+00:00",
       "runner": "tests"
     },
@@ -446,7 +473,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › swallows a malformed-JSON import without writing, still calling onComplete",
-      "line": 86,
+      "line": 90,
       "registeredAt": "2026-06-13T10:52:46.158526+00:00",
       "runner": "tests"
     },
@@ -509,7 +536,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › dismisses the open menu when the overlay is clicked",
-      "line": 194,
+      "line": 198,
       "registeredAt": "2026-07-28T00:47:00Z",
       "runner": "tests"
     },
@@ -518,7 +545,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › does not offer to delete the url from history",
-      "line": 124,
+      "line": 128,
       "registeredAt": "2026-07-29T19:37:37Z",
       "runner": "tests"
     },
@@ -527,7 +554,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › falls back to the committed title when the name field is emptied",
-      "line": 240,
+      "line": 244,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -536,7 +563,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › keeps the saved color on the card without flashing the old one",
-      "line": 289,
+      "line": 293,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -545,7 +572,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › portals the open menu out of the clipping card",
-      "line": 177,
+      "line": 181,
       "registeredAt": "2026-07-28T00:47:00Z",
       "runner": "tests"
     },
@@ -554,7 +581,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › previews a picked color on the card while the edit is unsaved",
-      "line": 211,
+      "line": 215,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -563,7 +590,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › previews a retyped title on the card header",
-      "line": 226,
+      "line": 230,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -572,7 +599,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › removeUrl removes the url from the group urlKeys",
-      "line": 91,
+      "line": 95,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -581,7 +608,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › renders the group menu control as a button with a large hit area",
-      "line": 160,
+      "line": 164,
       "registeredAt": "2026-07-28T00:47:00Z",
       "runner": "tests"
     },
@@ -590,7 +617,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › renders the group title and its member urls",
-      "line": 32,
+      "line": 36,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -599,7 +626,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › reverts the card to its committed appearance when the edit is cancelled",
-      "line": 253,
+      "line": 257,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -608,7 +635,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › reverts the card when the edit is dismissed via the overlay",
-      "line": 273,
+      "line": 277,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -617,7 +644,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › shows url subtitles only for tabs whose title collides with a sibling",
-      "line": 68,
+      "line": 72,
       "registeredAt": "2026-06-28T22:25:29.394904+00:00",
       "runner": "tests"
     },
@@ -626,7 +653,7 @@
       "file": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
       "format": "vitest",
       "key": "LabelCollection › splits members into active and inactive sections",
-      "line": 45,
+      "line": 49,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -635,7 +662,7 @@
       "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
       "format": "vitest",
       "key": "LabelForm › renames an existing label, deleting the old key",
-      "line": 42,
+      "line": 46,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -644,7 +671,7 @@
       "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
       "format": "vitest",
       "key": "LabelForm › reports a picked swatch through onPreview with the current title",
-      "line": 68,
+      "line": 72,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -653,7 +680,7 @@
       "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
       "format": "vitest",
       "key": "LabelForm › reports a retyped title through onPreview",
-      "line": 86,
+      "line": 90,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -662,7 +689,7 @@
       "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
       "format": "vitest",
       "key": "LabelForm › reports the committed values through onSaved on submit",
-      "line": 107,
+      "line": 111,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -671,7 +698,7 @@
       "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
       "format": "vitest",
       "key": "LabelForm › reports the length-derived color through onSaved when no swatch was picked",
-      "line": 127,
+      "line": 131,
       "registeredAt": "2026-07-30T14:17:55Z",
       "runner": "tests"
     },
@@ -680,7 +707,7 @@
       "file": "src/lib/components/LabelForm/LabelForm.test.jsx",
       "format": "vitest",
       "key": "LabelForm › writes a new label with derived backgroundColor and position",
-      "line": 23,
+      "line": 27,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -1004,7 +1031,7 @@
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
       "key": "Search › hides the overlay when the query is cleared",
-      "line": 77,
+      "line": 78,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -1013,7 +1040,7 @@
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
       "key": "Search › re-indexes when allUrls changes",
-      "line": 124,
+      "line": 128,
       "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
@@ -1022,7 +1049,7 @@
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
       "key": "Search › re-indexes when labels change",
-      "line": 90,
+      "line": 91,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -1031,7 +1058,7 @@
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
       "key": "Search › renders the search input",
-      "line": 35,
+      "line": 36,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -1040,7 +1067,7 @@
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
       "key": "Search › shows No Results for an unmatched query",
-      "line": 66,
+      "line": 67,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -1049,7 +1076,7 @@
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
       "key": "Search › shows a matching label in the results",
-      "line": 42,
+      "line": 43,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -1058,7 +1085,7 @@
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
       "key": "Search › shows a matching labeled url in the results",
-      "line": 54,
+      "line": 55,
       "registeredAt": "2026-06-12T17:28:36.131235+00:00",
       "runner": "tests"
     },
@@ -1067,7 +1094,7 @@
       "file": "src/lib/components/Search/Search.test.jsx",
       "format": "vitest",
       "key": "Search › shows an archived unlabeled url in the results",
-      "line": 110,
+      "line": 114,
       "registeredAt": "2026-07-12T14:31:17Z",
       "runner": "tests"
     },
@@ -1544,7 +1571,7 @@
       "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
       "format": "vitest",
       "key": "UrlDetails › editing only the fragment updates in place",
-      "line": 136,
+      "line": 140,
       "registeredAt": "2026-07-11T01:17:42Z",
       "runner": "tests"
     },
@@ -1553,7 +1580,7 @@
       "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
       "format": "vitest",
       "key": "UrlDetails › editing the url migrates the record to the new key",
-      "line": 113,
+      "line": 117,
       "registeredAt": "2026-07-11T01:17:42Z",
       "runner": "tests"
     },
@@ -1562,7 +1589,7 @@
       "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
       "format": "vitest",
       "key": "UrlDetails › omits notes when the field is left empty",
-      "line": 97,
+      "line": 101,
       "registeredAt": "2026-06-12T23:19:22.408203+00:00",
       "runner": "tests"
     },
@@ -1571,7 +1598,7 @@
       "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
       "format": "vitest",
       "key": "UrlDetails › renders a chip per label that contains the url",
-      "line": 42,
+      "line": 46,
       "registeredAt": "2026-06-12T23:19:22.408203+00:00",
       "runner": "tests"
     },
@@ -1580,7 +1607,7 @@
       "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
       "format": "vitest",
       "key": "UrlDetails › renders no chips when the url belongs to no label",
-      "line": 59,
+      "line": 63,
       "registeredAt": "2026-06-12T23:19:22.408203+00:00",
       "runner": "tests"
     },
@@ -1589,7 +1616,7 @@
       "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
       "format": "vitest",
       "key": "UrlDetails › renders the stored url fields into the form",
-      "line": 29,
+      "line": 33,
       "registeredAt": "2026-06-12T23:19:22.408203+00:00",
       "runner": "tests"
     },
@@ -1598,7 +1625,7 @@
       "file": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
       "format": "vitest",
       "key": "UrlDetails › saves the edited url and returns home",
-      "line": 70,
+      "line": 74,
       "registeredAt": "2026-06-12T23:19:22.408203+00:00",
       "runner": "tests"
     },
@@ -2264,7 +2291,7 @@
       "file": "src/lib/utils/importExport.test.js",
       "format": "vitest",
       "key": "buildImportUpdates › builds a per-url object plus the rebuilt labels map",
-      "line": 120,
+      "line": 151,
       "registeredAt": "2026-06-13T10:49:20.736264+00:00",
       "runner": "tests"
     },
@@ -2273,7 +2300,7 @@
       "file": "src/lib/utils/importExport.test.js",
       "format": "vitest",
       "key": "buildImportUpdates › keys multiple labels by their title",
-      "line": 152,
+      "line": 183,
       "registeredAt": "2026-06-13T10:49:20.736264+00:00",
       "runner": "tests"
     },
@@ -2282,7 +2309,7 @@
       "file": "src/lib/utils/importExport.test.js",
       "format": "vitest",
       "key": "buildImportUpdates › preserves notes on a per-url object when present",
-      "line": 140,
+      "line": 171,
       "registeredAt": "2026-06-13T10:49:20.736264+00:00",
       "runner": "tests"
     },
@@ -2291,7 +2318,7 @@
       "file": "src/lib/utils/importExport.test.js",
       "format": "vitest",
       "key": "buildImportUpdates › throws on malformed JSON so the page can swallow it",
-      "line": 162,
+      "line": 193,
       "registeredAt": "2026-06-13T10:49:20.736264+00:00",
       "runner": "tests"
     },
@@ -2449,11 +2476,20 @@
       "runner": "tests"
     },
     {
+      "description": "a null read of one area must not leak the other area's keys",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › a full read of an area returns only that area",
+      "line": 84,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
       "description": "with no seeded processes the listener stays a no-op (table renders empty)",
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › does not emit to processes listeners when nothing is seeded",
-      "line": 115,
+      "line": 188,
       "registeredAt": "2026-06-12T12:42:15.267517+00:00",
       "runner": "tests"
     },
@@ -2462,8 +2498,17 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › emits a seeded processes snapshot to onUpdatedWithMemory listeners",
-      "line": 104,
+      "line": 177,
       "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the sync-write guard reads chrome.runtime.lastError; the shim never fails a write, so it must be present and undefined rather than missing",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › exposes an undefined runtime lastError",
+      "line": 169,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -2471,8 +2516,17 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › exposes callable no-op action stubs",
-      "line": 91,
+      "line": 156,
       "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a local write still reports areaName local",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › fires onChanged with areaName local for a local write",
+      "line": 114,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -2480,7 +2534,7 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › get supports string, array, and all forms",
-      "line": 38,
+      "line": 74,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -2489,17 +2543,17 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › hydrates dynamic url-_url_ keys that are not in KNOWN_KEYS",
-      "line": 30,
+      "line": 39,
       "registeredAt": "2026-06-09T18:49:03.130144+00:00",
       "runner": "tests"
     },
     {
-      "description": "seeded localStorage hydrates the in-memory store on install",
+      "description": "seeded localStorage hydrates the in-memory store on install, routing each key to the area that owns it",
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
-      "key": "chromeShim › hydrates the store from seeded localStorage",
-      "line": 18,
-      "registeredAt": "2026-06-09T16:05:23Z",
+      "key": "chromeShim › hydrates each seeded key into the area that owns it",
+      "line": 27,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -2507,7 +2561,7 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › ignores malformed seed values",
-      "line": 48,
+      "line": 93,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -2516,8 +2570,26 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › is inert when a real chrome.storage.local is present",
-      "line": 125,
+      "line": 198,
       "registeredAt": "2026-06-09T16:05:23Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the mirror key is the inverse of resolveSeedKey, so a value round-trips into the same area it was written to",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › mirrorKeyFor is the inverse of resolveSeedKey",
+      "line": 216,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a value written to the area that does NOT own it (the labels local fallback after a quota rejection) mirrors under its prefixed key, so the next boot does not hydrate it as if it were the synced copy",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › mirrors an off-area write under its prefixed key",
+      "line": 125,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -2525,7 +2597,7 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › remove clears the key and fires onChanged with the old value",
-      "line": 68,
+      "line": 133,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -2534,17 +2606,53 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › removeListener stops delivering change events",
-      "line": 80,
+      "line": 145,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
     {
-      "description": "set merges into the store, mirrors to localStorage, and fires onChanged",
+      "description": "an unprefixed key routes through the storage-areas table; a prefixed one overrides it",
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
-      "key": "chromeShim › set mirrors to localStorage and fires onChanged with areaName local",
-      "line": 55,
-      "registeredAt": "2026-06-09T16:05:23Z",
+      "key": "chromeShim › resolveSeedKey routes unprefixed keys by area and honors prefixes",
+      "line": 207,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "both prefixes at once is the \"sync wins over stale local\" state",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › seeds both areas independently when both prefixes are present",
+      "line": 65,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the local__ prefix seeds the pre-migration state: groups only in the old local area, sync still empty",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › seeds the local area from a local-prefixed key",
+      "line": 57,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the sync__ prefix seeds the uninstall-survival state: groups in sync with the whole local area wiped",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › seeds the sync area from a sync-prefixed key",
+      "line": 48,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a labels write mirrors to localStorage and reports the SYNC area, which is what the worker onChanged listener now gates on",
+      "file": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "format": "vitest",
+      "key": "chromeShim › set mirrors to localStorage and fires onChanged with areaName sync for labels",
+      "line": 101,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -2552,7 +2660,7 @@
       "file": "src/lib/utils/chromeShim/chromeShim.test.js",
       "format": "vitest",
       "key": "chromeShim › shares the known TabCommand storage keys",
-      "line": 133,
+      "line": 228,
       "registeredAt": "2026-06-09T16:05:23Z",
       "runner": "tests"
     },
@@ -2725,6 +2833,51 @@
       "key": "decayedVisitScore › sums decayed weights across visits",
       "line": 82,
       "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a fresh install has nothing anywhere and must write nothing",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "decideMigration › does nothing when neither area holds groups",
+      "line": 70,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the second-machine case: sync carries the current set, local carries whatever this machine last saw. Sync is authoritative and local is NOT copied over it.",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "decideMigration › lets sync win when both areas hold groups",
+      "line": 54,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the upgrade path every existing user hits: groups only in the old local area",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "decideMigration › migrates local into sync when sync is empty",
+      "line": 62,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an over-quota copy would fail; keep running off local and let the caller warn",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "decideMigration › refuses to migrate a labels map past the sync quota",
+      "line": 77,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the uninstall-survival case: local was destroyed, sync still has the groups",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "decideMigration › runs off sync when local is gone entirely",
+      "line": 86,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -3790,6 +3943,33 @@
       "runner": "tests"
     },
     {
+      "description": "{} is the hydrated empty default; treating it as authoritative would let an empty sync area permanently shadow a populated local one",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "hasGroups › is false for an empty map",
+      "line": 39,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "absent storage values must not throw or read as populated",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "hasGroups › is false for null and undefined",
+      "line": 44,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a populated map is the only thing that counts as \"this area has the user's groups\"",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "hasGroups › is true for a populated labels map",
+      "line": 33,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
       "description": "the match is exact — a near-miss value must not open the per-tab surfaces",
       "file": "src/lib/utils/hasPerTabLoadData.test.js",
       "format": "vitest",
@@ -4267,6 +4447,69 @@
       "runner": "tests"
     },
     {
+      "description": "a host with no sync area must still boot with the user's local groups rather than reporting an empty set",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "migrateLabelsToSync › falls back to local labels when there is no sync area",
+      "line": 143,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "re-running must not copy again — the migration runs on every worker boot AND every app boot, so a non-idempotent one would overwrite good sync data",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "migrateLabelsToSync › is idempotent once sync holds groups",
+      "line": 111,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the local value is a deliberate read-only fallback and must NOT be deleted: a later sync failure then degrades to the old behavior instead of data loss",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "migrateLabelsToSync › never writes to or clears the local area",
+      "line": 123,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a fresh install resolves to an empty map rather than undefined, so the worker's bare labels[title] dereferences stay safe",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "migrateLabelsToSync › resolves to an empty map when neither area has groups",
+      "line": 132,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "no storage at all must not throw during boot",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "migrateLabelsToSync › resolves to an empty map when storage is absent",
+      "line": 153,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a failed copy is not a failed boot — the session runs off the local value that is still there and retries on the next boot",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "migrateLabelsToSync › still resolves labels when the sync write fails",
+      "line": 163,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the copy must actually reach sync, not merely be decided on",
+      "file": "src/lib/utils/migrateLabelsToSync.test.js",
+      "format": "vitest",
+      "key": "migrateLabelsToSync › writes local labels into sync on first run",
+      "line": 99,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
       "description": "An empty label has no members, so no stamp can point at a live slot.",
       "file": "src/lib/utils/navigatedAwayFromRecordedSlot.test.js",
       "format": "vitest",
@@ -4543,6 +4786,51 @@
       "key": "normalizeUrl › treats http and https as equivalent",
       "line": 22,
       "registeredAt": "2026-06-28T14:43:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A build with no manifest is a broken build, not a crash here.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "orderedSyncPlan › handles a source list with no manifest",
+      "line": 32,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "An empty build produces an empty plan rather than a bare manifest write.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "orderedSyncPlan › handles an empty source list",
+      "line": 37,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Asset order among themselves is irrelevant and must be left alone.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "orderedSyncPlan › keeps the relative order of the assets",
+      "line": 27,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Reordering must never lose or invent a file, or the mirror silently drifts from the build.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "orderedSyncPlan › preserves every source file exactly once",
+      "line": 19,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "A directory holding a manifest IS an installed extension to Chrome, so the manifest must land only once its assets are already there.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "orderedSyncPlan › writes manifest.json last",
+      "line": 12,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
       "runner": "tests"
     },
     {
@@ -5041,11 +5329,38 @@
       "runner": "tests"
     },
     {
+      "description": "Skipping the missing member would be WORSE than the crash: the export would look complete while silently dropping URLs from the user's only backup.",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "resolveLabelUrls › keeps every member when only some records are missing",
+      "line": 114,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a reconstructed entry carries no notes, since there is no record to read them from — it must not emit an undefined notes key into the export JSON",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "resolveLabelUrls › omits notes on a reconstructed entry",
+      "line": 125,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "After an uninstall restores groups from sync, the local url-_url_ records they point at are GONE. Dereferencing the missing record used to throw and take down the whole Export panel — leaving the user no way to back up the groups they had just recovered. The URL is recovered from the urlKey.",
+      "file": "src/lib/utils/importExport.test.js",
+      "format": "vitest",
+      "key": "resolveLabelUrls › reconstructs the url from its urlKey when the record is missing",
+      "line": 104,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
       "description": "resolves urls across multiple labels in order",
       "file": "src/lib/utils/importExport.test.js",
       "format": "vitest",
       "key": "resolveLabelUrls › resolves urls across multiple labels in order",
-      "line": 101,
+      "line": 132,
       "registeredAt": "2026-06-13T10:49:20.736264+00:00",
       "runner": "tests"
     },
@@ -5288,7 +5603,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › associateProcess › fetches each task tab and merges its url updates",
-      "line": 967,
+      "line": 1048,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5297,7 +5612,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag on a deliberate group change",
-      "line": 1797,
+      "line": 1878,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5306,7 +5621,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › clears the auto-group flag when a flagged tab is removed",
-      "line": 1813,
+      "line": 1894,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5315,7 +5630,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › does not gain a member when a grouped tab navigates within the site",
-      "line": 1732,
+      "line": 1813,
       "registeredAt": "2026-07-30T12:55:10Z",
       "runner": "tests"
     },
@@ -5324,7 +5639,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › ejects an auto-grouped non-member and does not record its URL",
-      "line": 1677,
+      "line": 1758,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5333,7 +5648,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › keeps an auto-grouped tab whose URL is a deliberate member",
-      "line": 1694,
+      "line": 1775,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5342,7 +5657,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › persists stamps in one write per pass and skips the write when nothing changed",
-      "line": 1771,
+      "line": 1852,
       "registeredAt": "2026-07-30T12:55:10Z",
       "runner": "tests"
     },
@@ -5351,7 +5666,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › stamps an ungrouped tab whose urlKey matches a label",
-      "line": 1758,
+      "line": 1839,
       "registeredAt": "2026-07-30T12:55:10Z",
       "runner": "tests"
     },
@@ -5360,7 +5675,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › auto-grouped stickiness fix integration › stamps the label slot a confirmed member tab occupies",
-      "line": 1712,
+      "line": 1793,
       "registeredAt": "2026-07-30T12:55:10Z",
       "runner": "tests"
     },
@@ -5369,7 +5684,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › autoCloseThresholdMinutes › falls back to the default and maps Off to 0",
-      "line": 2372,
+      "line": 2461,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5378,7 +5693,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes a grouped/labeled inactive tab",
-      "line": 2312,
+      "line": 2401,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5387,7 +5702,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes and records an inactive ungrouped tab",
-      "line": 2277,
+      "line": 2366,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5396,7 +5711,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › closes nothing when autoCloseMinutes is 0 meaning Off",
-      "line": 2362,
+      "line": 2451,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5405,7 +5720,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › continues the sweep when one tab removal throws",
-      "line": 2320,
+      "line": 2409,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5414,7 +5729,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › keeps a tab that was active within the window",
-      "line": 2303,
+      "line": 2392,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5423,7 +5738,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › never closes pinned, tabCommandPinned, or the active tab",
-      "line": 2286,
+      "line": 2375,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5432,7 +5747,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › prunes autoClosed entries older than MAX_AUTO_CLOSED_TIME",
-      "line": 2338,
+      "line": 2427,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5441,7 +5756,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › registers the auto-close alarm at load",
-      "line": 2271,
+      "line": 2360,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5450,7 +5765,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › autoCloseSweep › respects a custom settings.autoCloseMinutes",
-      "line": 2352,
+      "line": 2441,
       "registeredAt": "2026-06-27T20:20:41Z",
       "runner": "tests"
     },
@@ -5459,7 +5774,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › leaves allUrls untouched when the key is not tracked",
-      "line": 425,
+      "line": 497,
       "registeredAt": "2026-07-14T16:25:02.907497060+00:00",
       "runner": "tests"
     },
@@ -5468,7 +5783,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › leaves allUrls untouched when the key was just deleted",
-      "line": 439,
+      "line": 511,
       "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
@@ -5477,7 +5792,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › reorders allUrls, persists, and invokes the callback",
-      "line": 413,
+      "line": 485,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5486,7 +5801,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › closeUrl › still reorders a tracked key when a different key is tombstoned",
-      "line": 452,
+      "line": 524,
       "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
@@ -5495,7 +5810,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › cold start grouping › does not group from the persisted snapshot when the worker wakes",
-      "line": 932,
+      "line": 1013,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5504,7 +5819,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › does not persist when the runtime flag is off",
-      "line": 1848,
+      "line": 1929,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -5513,7 +5828,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › is a no-op that does not throw when disabled",
-      "line": 1825,
+      "line": 1906,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5522,7 +5837,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › debugGroup › persists a breadcrumb to groupingLog when the runtime flag is on",
-      "line": 1833,
+      "line": 1914,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -5531,7 +5846,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › keeps the tab and clears the flag when fresh storage shows membership",
-      "line": 1642,
+      "line": 1723,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5540,7 +5855,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › returns wait and does nothing while the URL is still unloaded",
-      "line": 1628,
+      "line": 1709,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5549,7 +5864,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › ejectAutoGroupedTab › ungroups a confirmed non-member and tracks the in-flight ungroup",
-      "line": 1658,
+      "line": 1739,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -5557,18 +5872,18 @@
       "description": "invokes the callback form with the chrome result",
       "file": "service_worker.test.js",
       "format": "vitest",
-      "key": "service_worker.js › getLocalStorage › invokes the callback with the storage result",
-      "line": 358,
-      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "key": "service_worker.js › getStorage › invokes the callback with the storage result",
+      "line": 430,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
       "description": "resolves a promise with the result when no callback is given",
       "file": "service_worker.test.js",
       "format": "vitest",
-      "key": "service_worker.js › getLocalStorage › resolves with the result when no callback is passed",
-      "line": 366,
-      "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "key": "service_worker.js › getStorage › resolves with the result when no callback is passed",
+      "line": 438,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -5576,7 +5891,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves null for id -1 or null",
-      "line": 374,
+      "line": 446,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5585,7 +5900,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getTabGroup › resolves the group for a real id",
-      "line": 380,
+      "line": 452,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5594,7 +5909,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › getUrlKey › prefixes with url- and strips the fragment",
-      "line": 162,
+      "line": 186,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5603,7 +5918,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs move trail › records an entry for an issued group call",
-      "line": 1349,
+      "line": 1430,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5612,7 +5927,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs move trail › records nothing when the placement call is suppressed",
-      "line": 1373,
+      "line": 1454,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5621,7 +5936,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs tab placement › does not create a group when no tab needs to move into it",
-      "line": 1332,
+      "line": 1413,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5630,7 +5945,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs tab placement › groups a tab whose urlKey is in two labels exactly once",
-      "line": 1313,
+      "line": 1394,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5639,7 +5954,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs tab placement › issues no chrome calls when every tab is already correctly grouped",
-      "line": 1218,
+      "line": 1299,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5648,7 +5963,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs tab placement › never closes and re-creates tabs while grouping",
-      "line": 1294,
+      "line": 1375,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5657,7 +5972,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs tab placement › never relocates an in-group tab to another group",
-      "line": 1236,
+      "line": 1317,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5666,7 +5981,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs tab placement › scopes the group lookup to each tab window so tabs never cross windows",
-      "line": 1269,
+      "line": 1350,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5675,7 +5990,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs tab placement › still auto-groups an ungrouped tab whose urlKey is a member",
-      "line": 1253,
+      "line": 1334,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5684,7 +5999,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › captures a genuinely grouped tab",
-      "line": 1174,
+      "line": 1255,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -5693,7 +6008,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › does not capture a tab whose ungroup is pending",
-      "line": 1161,
+      "line": 1242,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -5702,7 +6017,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ignores pinned tabs",
-      "line": 1154,
+      "line": 1235,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5711,7 +6026,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › never re-groups a tab that is already in the target group",
-      "line": 1190,
+      "line": 1271,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -5720,7 +6035,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › groupTabs › ungroups an unlabeled grouped tab",
-      "line": 1147,
+      "line": 1228,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5729,7 +6044,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › no-ops when oldValue is missing",
-      "line": 995,
+      "line": 1076,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5738,7 +6053,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › re-home A→B adds the member to B and removes it from A",
-      "line": 1030,
+      "line": 1111,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -5747,7 +6062,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › refuses the append for a stamped tab moved back into the label it is filed under",
-      "line": 1082,
+      "line": 1163,
       "registeredAt": "2026-07-30T12:55:10Z",
       "runner": "tests"
     },
@@ -5756,7 +6071,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › seeds a missing label on the add path without throwing",
-      "line": 1005,
+      "line": 1086,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -5765,7 +6080,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › still re-homes a stamped tab moved into a different label",
-      "line": 1114,
+      "line": 1195,
       "registeredAt": "2026-07-30T12:55:10Z",
       "runner": "tests"
     },
@@ -5774,7 +6089,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › handleActiveTabsGroupChanges › ungroup-to-nothing keeps the member in the old group",
-      "line": 1055,
+      "line": 1136,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -5783,7 +6098,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › does not throw when the processes API throws",
-      "line": 403,
+      "line": 475,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5792,7 +6107,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › listenToProcesses › registers the processes listener",
-      "line": 396,
+      "line": 468,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5801,7 +6116,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › degrades to none when a system call throws",
-      "line": 2224,
+      "line": 2313,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -5810,7 +6125,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › falls back to chrome.system and tags 'system' when processes is absent",
-      "line": 2189,
+      "line": 2278,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -5819,7 +6134,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'none' and never throws when no load API is available",
-      "line": 2215,
+      "line": 2304,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -5828,7 +6143,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › load source fallback › tags 'processes' and keeps processing when chrome.processes is present",
-      "line": 2179,
+      "line": 2268,
       "registeredAt": "2026-06-25T18:41:51Z",
       "runner": "tests"
     },
@@ -5837,7 +6152,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › loads and registers chrome event listeners on import",
-      "line": 153,
+      "line": 177,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5846,7 +6161,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › maps a hex value back to a named color",
-      "line": 176,
+      "line": 200,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -5855,7 +6170,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › maps a named color to hex",
-      "line": 170,
+      "line": 194,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -5864,7 +6179,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › mapColors › returns undefined for an unknown color",
-      "line": 182,
+      "line": 206,
       "registeredAt": "2026-06-28T18:52:22Z",
       "runner": "tests"
     },
@@ -5873,7 +6188,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › accumulates visits from different pages of one site under one host",
-      "line": 539,
+      "line": 611,
       "registeredAt": "2026-07-14T16:25:03.121642779+00:00",
       "runner": "tests"
     },
@@ -5882,7 +6197,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › appends a visit timestamp on a repeat visit",
-      "line": 655,
+      "line": 727,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -5891,7 +6206,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › clears the deletedUrls tombstone when the page is revisited",
-      "line": 498,
+      "line": 570,
       "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
@@ -5900,7 +6215,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › does not append to an existing siteVisits bucket for a search engine",
-      "line": 586,
+      "line": 658,
       "registeredAt": "2026-07-19T13:06:34Z",
       "runner": "tests"
     },
@@ -5909,7 +6224,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › does not record non-website URLs",
-      "line": 599,
+      "line": 671,
       "registeredAt": "2026-06-29T19:50:50Z",
       "runner": "tests"
     },
@@ -5918,7 +6233,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › keeps siteVisits history for a site whose url record is evicted",
-      "line": 552,
+      "line": 624,
       "registeredAt": "2026-07-14T16:25:03.193100605+00:00",
       "runner": "tests"
     },
@@ -5927,7 +6242,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › moves a revisited url key to the front of allUrls",
-      "line": 483,
+      "line": 555,
       "registeredAt": "2026-07-14T16:25:02.978096739+00:00",
       "runner": "tests"
     },
@@ -5936,7 +6251,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prepends an unseen url key to allUrls",
-      "line": 471,
+      "line": 543,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5945,7 +6260,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prunes expired tombstones but keeps fresh ones",
-      "line": 510,
+      "line": 582,
       "registeredAt": "2026-07-28T17:18:28Z",
       "runner": "tests"
     },
@@ -5954,7 +6269,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › prunes visits older than the retention horizon on write",
-      "line": 674,
+      "line": 746,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -5963,7 +6278,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › records a first visit timestamp and visitCount on a new url",
-      "line": 616,
+      "line": 688,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -5972,7 +6287,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › records a search engine in history but not in the Favorites scoring stores",
-      "line": 571,
+      "line": 643,
       "registeredAt": "2026-07-19T13:06:34Z",
       "runner": "tests"
     },
@@ -5981,7 +6296,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › records the visit under the site host in siteVisits",
-      "line": 529,
+      "line": 601,
       "registeredAt": "2026-07-14T16:25:03.050019094+00:00",
       "runner": "tests"
     },
@@ -5990,7 +6305,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › returns early without tabId/url",
-      "line": 465,
+      "line": 537,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -5999,7 +6314,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › stamps lastVisit on a search engine while leaving visits empty",
-      "line": 643,
+      "line": 715,
       "registeredAt": "2026-07-27T19:49:29Z",
       "runner": "tests"
     },
@@ -6008,7 +6323,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › newUrl › stamps lastVisit on the url record for every visit",
-      "line": 630,
+      "line": 702,
       "registeredAt": "2026-07-27T19:49:29Z",
       "runner": "tests"
     },
@@ -6017,7 +6332,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated group leave keeps member sticky › keeps the member when a tab leaves a group",
-      "line": 1872,
+      "line": 1957,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -6026,7 +6341,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated group leave keeps member sticky › marks the tab ungrouped in activeTabs without touching labels",
-      "line": 1900,
+      "line": 1985,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -6035,7 +6350,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not heal the label on a real navigation",
-      "line": 2123,
+      "line": 2212,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -6044,7 +6359,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a fragment-only change",
-      "line": 1988,
+      "line": 2077,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -6053,7 +6368,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › does not ungroup a grouped tab on a query-string-only change",
-      "line": 1972,
+      "line": 2061,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -6062,7 +6377,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals a stale slot even when it is a third query variant",
-      "line": 2080,
+      "line": 2169,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -6071,7 +6386,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals the drifted label urlKey to the live key on a query-only change",
-      "line": 2057,
+      "line": 2146,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -6080,7 +6395,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › heals via the getTabGroup fallback when the groups map is cold",
-      "line": 2144,
+      "line": 2233,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -6089,7 +6404,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › keeps the member when a navigation ejects a grouped tab",
-      "line": 2033,
+      "line": 2122,
       "registeredAt": "2026-07-23T14:06:25Z",
       "runner": "tests"
     },
@@ -6098,7 +6413,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › removes the stale slot without duplicating an already-present live key",
-      "line": 2102,
+      "line": 2191,
       "registeredAt": "2026-07-02T00:44:37Z",
       "runner": "tests"
     },
@@ -6107,7 +6422,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different origin",
-      "line": 2018,
+      "line": 2107,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -6116,7 +6431,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated in-page URL change keeps tab grouped › still ungroups a grouped tab that navigates to a different path",
-      "line": 2004,
+      "line": 2093,
       "registeredAt": "2026-06-30T20:15:44Z",
       "runner": "tests"
     },
@@ -6125,7 +6440,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated incognito guard › records a normal-tab navigation but not an incognito one",
-      "line": 247,
+      "line": 271,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -6134,7 +6449,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated navigation eject › does not eject when the tab navigates to another url in the same label",
-      "line": 887,
+      "line": 968,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -6143,7 +6458,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › onUpdated navigation eject › still ejects when the tab navigates to a url no label claims",
-      "line": 909,
+      "line": 990,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -6152,7 +6467,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › parseTabId › parses the numeric id from a tabKey",
-      "line": 273,
+      "line": 297,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6161,7 +6476,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › processProcesses › bumps samples and persists process totals",
-      "line": 957,
+      "line": 1038,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6170,7 +6485,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › caps length to the newest 50 visits",
-      "line": 764,
+      "line": 836,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -6179,7 +6494,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › drops visits older than the retention horizon",
-      "line": 746,
+      "line": 818,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -6188,7 +6503,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › returns [] for non-array or empty input",
-      "line": 739,
+      "line": 811,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -6197,7 +6512,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › pruneVisits › sorts ascending and filters non-finite entries",
-      "line": 755,
+      "line": 827,
       "registeredAt": "2026-07-02T21:40:21.064419861+00:00",
       "runner": "tests"
     },
@@ -6206,7 +6521,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › ignores missing tabs and non-trackable URLs",
-      "line": 727,
+      "line": 799,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -6215,7 +6530,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › records a visit when the last visit is older than the throttle",
-      "line": 697,
+      "line": 769,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -6224,7 +6539,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordAccess › records nothing within the throttle window",
-      "line": 715,
+      "line": 787,
       "registeredAt": "2026-07-03T12:55:24Z",
       "runner": "tests"
     },
@@ -6233,7 +6548,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › does not add a second member when the recorded tab navigates within the site",
-      "line": 1514,
+      "line": 1595,
       "registeredAt": "2026-07-29T19:37:37Z",
       "runner": "tests"
     },
@@ -6242,7 +6557,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › persists the stamped activeTabs alongside the labels write",
-      "line": 1599,
+      "line": 1680,
       "registeredAt": "2026-07-29T19:37:37Z",
       "runner": "tests"
     },
@@ -6251,7 +6566,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › persists the updated labels to storage",
-      "line": 1466,
+      "line": 1547,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -6260,7 +6575,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › pushes the urlKey into an existing label",
-      "line": 1455,
+      "line": 1536,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -6269,7 +6584,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › rewrites a drifted Google Doc slot in place rather than pushing to the end",
-      "line": 1482,
+      "line": 1563,
       "registeredAt": "2026-07-19T11:55:52Z",
       "runner": "tests"
     },
@@ -6278,7 +6593,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › seeds a missing label with the tab urlKey and mapped color",
-      "line": 1443,
+      "line": 1524,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -6287,7 +6602,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › stamps the tab with the label and urlKey it was filed under",
-      "line": 1589,
+      "line": 1670,
       "registeredAt": "2026-07-29T19:37:37Z",
       "runner": "tests"
     },
@@ -6296,7 +6611,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › still appends a genuinely new URL that shares no page with any slot",
-      "line": 1612,
+      "line": 1693,
       "registeredAt": "2026-07-19T11:55:52Z",
       "runner": "tests"
     },
@@ -6305,7 +6620,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › still appends when the stamped slot is no longer a member",
-      "line": 1566,
+      "line": 1647,
       "registeredAt": "2026-07-29T19:37:37Z",
       "runner": "tests"
     },
@@ -6314,7 +6629,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › recordInGroupTab › still appends when the tab is stamped for a different label",
-      "line": 1538,
+      "line": 1619,
       "registeredAt": "2026-07-29T19:37:37Z",
       "runner": "tests"
     },
@@ -6323,7 +6638,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › stampLabelMembership › returns true on a fresh stamp and false when the stamp already matches",
-      "line": 1423,
+      "line": 1504,
       "registeredAt": "2026-07-30T12:55:10Z",
       "runner": "tests"
     },
@@ -6332,7 +6647,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › stampLabelMembership › returns true when the label or key differs from the existing stamp",
-      "line": 1432,
+      "line": 1513,
       "registeredAt": "2026-07-30T12:55:10Z",
       "runner": "tests"
     },
@@ -6341,7 +6656,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves keyed url updates for a valid tab",
-      "line": 986,
+      "line": 1067,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6350,7 +6665,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › tabUpdates › resolves {} for an invalid tab",
-      "line": 981,
+      "line": 1062,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6359,8 +6674,35 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › trackGroup › stores the group title by id",
-      "line": 388,
+      "line": 460,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "labels now lives in chrome.storage.sync, which caps writes at 120/minute. recordInGroupTab runs per tab from groupTabs on every activeTabs change, so re-persisting an identical labels map would breach the quota within a minute of ordinary browsing.",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › update › drops a labels write identical to the last one persisted",
+      "line": 383,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "when the redundant labels key was the ONLY key, no write should be issued at all rather than an empty set",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › update › issues no write when the dropped labels key was the only key",
+      "line": 417,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the guard must only suppress genuinely-identical content — a real group edit still has to reach storage",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › update › persists a labels write whose content changed",
+      "line": 394,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -6368,8 +6710,17 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › update › persists updates to chrome.storage.local",
-      "line": 350,
+      "line": 374,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "dropping a redundant labels key must not drop its co-written keys — the activeTabs membership stamp rides along in the same call",
+      "file": "service_worker.test.js",
+      "format": "vitest",
+      "key": "service_worker.js › update › still writes companion keys when the labels key is dropped",
+      "line": 405,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {
@@ -6377,7 +6728,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › does not eject a revisited auto-closed tab whose url is a label member",
-      "line": 817,
+      "line": 889,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -6386,7 +6737,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › queries tabs and persists the rebuilt active list",
-      "line": 776,
+      "line": 848,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6395,7 +6746,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › sorts tabs by their tab-strip index",
-      "line": 793,
+      "line": 865,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -6404,7 +6755,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateActiveTabs › still ejects a revisited auto-closed tab that no label claims",
-      "line": 839,
+      "line": 911,
       "registeredAt": "2026-07-31T17:52:44Z",
       "runner": "tests"
     },
@@ -6413,7 +6764,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateTotals › defaults missing metrics to 0",
-      "line": 290,
+      "line": 314,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6422,7 +6773,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › updateTotals › sums process metrics into processTotals",
-      "line": 280,
+      "line": 304,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6431,7 +6782,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false for a label with no urlKeys",
-      "line": 1405,
+      "line": 1486,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -6440,7 +6791,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the label is undefined or null",
-      "line": 1411,
+      "line": 1492,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -6449,7 +6800,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is false when the urlKey is absent",
-      "line": 1399,
+      "line": 1480,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -6458,7 +6809,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlKeyIsMember › is true when the urlKey is present in the label",
-      "line": 1393,
+      "line": 1474,
       "registeredAt": "2026-06-29T18:24:55Z",
       "runner": "tests"
     },
@@ -6467,7 +6818,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › accumulates process stats when a process is supplied",
-      "line": 311,
+      "line": 335,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6476,7 +6827,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › initializes processes and copies title/favicon/groupId",
-      "line": 299,
+      "line": 323,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6485,7 +6836,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › preserves an edited title and favicon",
-      "line": 328,
+      "line": 352,
       "registeredAt": "2026-07-11T01:17:42Z",
       "runner": "tests"
     },
@@ -6494,7 +6845,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › still copies the live title and favicon when not edited",
-      "line": 338,
+      "line": 362,
       "registeredAt": "2026-07-11T01:17:42Z",
       "runner": "tests"
     },
@@ -6503,7 +6854,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › urlUpdates › uses the url as title when title is missing",
-      "line": 322,
+      "line": 346,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6512,7 +6863,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › accepts http and https tabs",
-      "line": 190,
+      "line": 214,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6521,7 +6872,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › rejects empty and internal-scheme tabs",
-      "line": 195,
+      "line": 219,
       "registeredAt": "2026-06-09T14:04:48.012975+00:00",
       "runner": "tests"
     },
@@ -6530,7 +6881,7 @@
       "file": "service_worker.test.js",
       "format": "vitest",
       "key": "service_worker.js › validTab › rejects incognito tabs",
-      "line": 204,
+      "line": 228,
       "registeredAt": "2026-06-28T11:38:08Z",
       "runner": "tests"
     },
@@ -6634,6 +6985,339 @@
       "runner": "tests"
     },
     {
+      "description": "Paths are compared whole, so a nested file is not confused with a same-named file at the root.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "staleFiles › distinguishes nested paths from same-named root files",
+      "line": 70,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "The failure that would delete a live extension's code: anything still in the build must never be reported stale.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "staleFiles › never reports a file the new build still produces",
+      "line": 52,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Every target file is stale when the build produced none — but the caller only ever deletes files, never the directory itself.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "staleFiles › reports every target file when the source list is empty",
+      "line": 64,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "A first sync into an empty directory removes nothing.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "staleFiles › reports nothing when the target is empty",
+      "line": 58,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Hashed asset names change every build, so last build's files must go or the directory grows without bound.",
+      "file": "scripts/sync-extension-dir.test.js",
+      "format": "vitest",
+      "key": "staleFiles › reports target files the new build no longer produces",
+      "line": 45,
+      "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Same degradation on the read path.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › readByArea degrades to local-only when there is no sync area",
+      "line": 193,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "An empty key list requests nothing, so the callback must still fire rather than the caller hanging forever waiting on zero areas.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › readByArea fires the callback for an empty key list",
+      "line": 105,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Callers are written against a single-callback contract; firing once per area would render the Import / Export page twice with partial data.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › readByArea invokes the callback exactly once for a cross-area read",
+      "line": 81,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The mixed read on the Import / Export page: labels lives in sync while previousLabels and syncStatus live in local. Both areas must be read and the results merged, or the page renders half its data.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › readByArea merges results from both areas",
+      "line": 64,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A read touching only local keys must not manufacture a sync round trip.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › readByArea reads only the areas the keys belong to",
+      "line": 92,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Removals route by area the same way reads and writes do.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › removeByArea removes each key from its own area",
+      "line": 216,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A single string key is the common remove form and must reach the right area.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › removeByArea supports a single string key",
+      "line": 230,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Unit tests and older hosts stub only chrome.storage.local. Degrading to a single local write preserves exactly the pre-sync behavior instead of throwing on chrome.storage.sync.set of undefined.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › writeByArea degrades to local-only when there is no sync area",
+      "line": 182,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Sync signed out / disabled / throttled: the group edit must still persist locally so nothing is lost, and the degraded state must be visible.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › writeByArea falls back to local when the sync write fails",
+      "line": 144,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Nothing to write must produce no call at all, so a coalesced no-op write does not still burn a sync operation.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › writeByArea issues no call for an empty updates map",
+      "line": 205,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A healthy write records `ok` so a previously-shown warning clears.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › writeByArea records an ok status after a successful sync write",
+      "line": 156,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "labels is written on every ordinary group edit, so recording the status unconditionally would turn one diagnostic key into per-edit write churn.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › writeByArea records the status only when it changes",
+      "line": 167,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Over-quota labels must be REDIRECTED to local, not written to sync and left to fail — a swallowed quota error looks exactly like a working backup.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › writeByArea redirects an over-quota value to local and records it",
+      "line": 129,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "An import writes url-* records and labels from one updates map. Each key must land in its own area with nothing dropped.",
+      "file": "src/lib/utils/storageAccess.test.js",
+      "format": "vitest",
+      "key": "storageAccess › writeByArea splits a mixed updates map across both areas",
+      "line": 117,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the same labels change arriving tagged local is not real — the areas fire separately, so accepting it would mean acting on another area's payload",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › changedInArea ignores a labels change tagged with the wrong area",
+      "line": 64,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a labels change now arrives on the SYNC event; the old blanket `areaName !== 'local'` guard would have dropped it and every live-updating consumer would go stale on a group rename",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › changedInArea returns a labels change on a sync event",
+      "line": 57,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "local keys keep working exactly as before",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › changedInArea returns a local key change on a local event",
+      "line": 70,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an event that simply does not carry the key is not an error",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › changedInArea returns null when the key is absent or changes are missing",
+      "line": 77,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the dynamic url-<url> records are unbounded in number and far exceed the sync area quota, so unknown keys must default to local",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › defaults unknown and dynamic url- keys to local",
+      "line": 39,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "KNOWN_KEYS is derived from the table so a key can never be routed without being known, or known without being routed",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › derives KNOWN_KEYS from the routing table",
+      "line": 47,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a falsy or undefined VALUE is still a write and must not be dropped during partitioning",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › keeps falsy values when partitioning updates",
+      "line": 153,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "previousLabels is up to ten full snapshots of labels and would breach the 8KB per-item sync quota on its own, so it deliberately stays local",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › keeps previousLabels local",
+      "line": 26,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "null means \"everything\" to chrome.storage, which with two areas means everything from both",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › maps a null query to a full read of both areas",
+      "line": 108,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a read touching only local keys must not manufacture a pointless sync read",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › omits an area with no keys",
+      "line": 100,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a single string key routes to just its own area, so a local-only read still issues exactly one round trip",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › partitions a single string key into one area",
+      "line": 85,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty array requests nothing and must produce no reads at all",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › partitions an empty key array to no areas",
+      "line": 123,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty or absent updates map must not produce a write to either area",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › partitions empty updates to no areas",
+      "line": 145,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "chrome.storage.get also accepts a defaults map; the partition must preserve that shape per area rather than flattening it to an array",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › preserves the defaults-object query form per area",
+      "line": 115,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "labels must be the ONLY sync key — a second one would quietly eat the 102,400-byte area quota that labels depends on",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › routes every key other than labels to local",
+      "line": 32,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "labels is the irreplaceable record and the only key that must survive an uninstall, so it is the sole sync entry",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › routes labels to sync",
+      "line": 19,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the mixed read on the Import / Export page is the case a naive per-area switch would silently halve",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › splits a mixed key array across both areas",
+      "line": 92,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "buildImportUpdates returns url-* records and labels in ONE map; splitting it wrongly would drop half of every import",
+      "file": "src/lib/utils/storageAreas.test.js",
+      "format": "vitest",
+      "key": "storageAreas › splits a mixed updates map across both areas",
+      "line": 129,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
       "description": "averages divide the summed cpu/memory by the sample count",
       "file": "src/lib/utils/processLoad.test.js",
       "format": "vitest",
@@ -6685,6 +7369,78 @@
       "key": "summarizeProcessLoad › returns null when there are no samples",
       "line": 6,
       "registeredAt": "2026-06-12T12:42:15.267517+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an ordinary group set is nowhere near the cap and must sync",
+      "file": "src/lib/utils/syncQuota.test.js",
+      "format": "vitest",
+      "key": "syncQuota › accepts a realistic labels map",
+      "line": 45,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the boundary itself is inclusive — a value measuring exactly the safe cap still syncs",
+      "file": "src/lib/utils/syncQuota.test.js",
+      "format": "vitest",
+      "key": "syncQuota › accepts a value measuring exactly the safe cap",
+      "line": 77,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty group set is the smallest possible write and must never be judged over quota",
+      "file": "src/lib/utils/syncQuota.test.js",
+      "format": "vitest",
+      "key": "syncQuota › accepts an empty labels map",
+      "line": 71,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the quota counts the key name as well as the value",
+      "file": "src/lib/utils/syncQuota.test.js",
+      "format": "vitest",
+      "key": "syncQuota › counts the key name as well as the serialized value",
+      "line": 22,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the enforced cap must leave real headroom under Chrome's hard limit, so we fall back deliberately instead of discovering the limit as a runtime error",
+      "file": "src/lib/utils/syncQuota.test.js",
+      "format": "vitest",
+      "key": "syncQuota › enforces a margin below Chrome per-item quota",
+      "line": 15,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "group titles are user-supplied and routinely non-ASCII; String.length would undercount an emoji title by up to 3x and let an over-quota write through",
+      "file": "src/lib/utils/syncQuota.test.js",
+      "format": "vitest",
+      "key": "syncQuota › measures UTF-8 bytes rather than UTF-16 code units",
+      "line": 29,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "undefined has no JSON encoding; it must measure as a concrete value rather than producing NaN and silently passing the comparison",
+      "file": "src/lib/utils/syncQuota.test.js",
+      "format": "vitest",
+      "key": "syncQuota › measures undefined as a concrete value",
+      "line": 39,
+      "registeredAt": "2026-08-12T15:38:32Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the case that drives the user-visible warning: too many groups or too many member URLs to back up",
+      "file": "src/lib/utils/syncQuota.test.js",
+      "format": "vitest",
+      "key": "syncQuota › rejects a labels map past the safe cap",
+      "line": 55,
+      "registeredAt": "2026-08-12T15:38:32Z",
       "runner": "tests"
     },
     {

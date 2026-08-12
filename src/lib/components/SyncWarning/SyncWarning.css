@@ -1,0 +1,24 @@
+/* Shown only when the user's groups are NOT reaching chrome.storage.sync —
+   over the per-item quota, or sync unavailable. Rendered directly above the
+   Import/Export controls because the Export snapshot below it IS the recovery
+   the warning tells the user to take. */
+.SyncWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-t1);
+  background: var(--card-bg);
+  border: 0.5px solid var(--c-danger-fg);
+  border-left: 3px solid var(--c-danger-fg);
+  border-radius: var(--r-row);
+}
+
+.SyncWarning svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--c-danger-fg);
+}

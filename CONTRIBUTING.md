@@ -47,8 +47,24 @@ npm run build
 ```
 
 To try your build in Chrome: open `chrome://extensions`, enable **Developer
-mode**, choose **Load unpacked**, and select the `build/` folder. After code
-changes, re-run `npm run build` and reload the extension to pick them up.
+mode**, choose **Load unpacked**, and select the **`dist/extension/`** folder.
+After code changes, re-run `npm run build` and reload the extension to pick them
+up.
+
+Load `dist/extension/`, never `build/`. Vite builds with `emptyOutDir`, so
+`build/` is deleted and recreated on every build; if Chrome reads it mid-rewrite
+it treats the extension as uninstalled and destroys its `chrome.storage.local`
+along with it. `npm run build` mirrors the output into `dist/extension/`, which
+is created once and never removed wholesale, writing `manifest.json` last so the
+directory is never momentarily invalid. It sits under `dist/` because every tool
+here already excludes that path, so the mirrored bundle is never linted, scanned
+for tests, or enrolled in the glossary.
+
+Note that `manifest.json` carries a `key` field pinning the extension ID to
+TabCommand's published identity. That is deliberate — without it, the unpacked
+build and the Web Store install present separate storage partitions, so a user's
+groups appear to vanish when they switch between them. It also means you cannot
+have both loaded at once.
 
 ## Pull requests
 

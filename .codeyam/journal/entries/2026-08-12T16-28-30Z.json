@@ -1,0 +1,507 @@
+{
+  "timestamp": "2026-08-12T16:28:30Z",
+  "title": "Durable Group Storage",
+  "type": "feature",
+  "userRequest": "## Summary\n\nTabCommand's groups (the `labels` map) live only in `chrome.storage.local`, which\nChrome destroys whenever it uninstalls the extension — including the implicit\nuninstall that happens when an unpacked extension's directory goes missing. On\n2026-08-12 this wiped a real user's groups: the extension's LevelDB was recreated\nfrom scratch (`MANIFEST-000001`, `000003.log`), and both `labels` *and*\n`previousLabels` — the only backup — were gone. Surviving keys were just\n`activeTabs`, `allUrls`, `autoClosed`, `deletedUrls`, `loadDataSource`,\n`siteVisits`, `uxSettings`.\n\nThis plan makes group data durable across that event by (1) moving `labels` to\n`chrome.storage.sync`, which is backed by the user's Google account and restored\non reinstall, (2) pinning the extension ID with a manifest `key` so the unpacked\ndev build and the Web Store install stop presenting separate storage partitions,\nand (3) removing the build-time footgun where `emptyOutDir: true` deletes the very\ndirectory Chrome has loaded as an unpacked extension.\n\n`previousLabels` deliberately stays in `chrome.storage.local` — see Key Decisions.\n\n## Key Decisions\n\n- **`labels` → sync, `previousLabels` → local.** `previousLabels` is up to ten\n  full snapshots of `labels` (`service_worker.js:1189-1198`). `chrome.storage.sync`\n  enforces `QUOTA_BYTES_PER_ITEM` = 8,192 and `QUOTA_BYTES` = 102,400, so a\n  ten-deep snapshot stack would breach the per-item cap on any non-trivial group\n  set and could alone consume the whole area. `labels` is the irreplaceable\n  record; `previousLabels` is a local undo convenience. Sync the first, leave the\n  second.\n\n- **Storage routing belongs in one table, not at call sites.** Every consumer\n  already goes through `Chrome` (`src/lib/utils/Chrome/Chrome.js`, imported by 20\n  modules per `.codeyam/deps-index.txt:4`) or the worker's `update()` /\n  `getLocalStorage()` (`service_worker.js:735`, `:1216`). Adding a key→area map\n  and teaching those three functions to fan out keeps every call site unchanged,\n  including mixed-key calls that span both areas.\n\n- **Mixed-key reads and writes must fan out and re-merge.** These are not\n  hypothetical: `Chrome.get('ImportExport2', ['labels', 'previousLabels'], …)`\n  (`src/lib/pages/ImportExport/ImportExport.jsx:72`) reads across the new area\n  boundary, `buildImportUpdates` (`src/lib/utils/importExport.js:57-80`) returns\n  one updates map containing both `url-*` keys and `labels`, and the worker writes\n  `update({ labels, activeTabs })` in a single call (`service_worker.js:1348`,\n  `:1496`). A naive per-area switch silently drops half of each.\n\n- **Writes must be coalesced before `labels` can live in sync.**\n  `recordInGroupTab` ends with an unconditional `update({ labels, … })`\n  (`service_worker.js:1496`) and is called per tab from `groupTabs`\n  (`:1602`), which the `storage.onChanged` listener invokes (`:1186`) on\n  every `activeTabs` change — and `updateActiveTabs()` has 8 call sites driven by\n  tab events. Sync enforces `MAX_WRITE_OPERATIONS_PER_MINUTE` = 120 and\n  `MAX_WRITE_OPERATIONS_PER_HOUR` = 1800. Writing `labels` unchanged on every tab\n  event will hit quota errors within a minute of normal browsing. Local storage\n  tolerates this today; sync will not.\n\n- **Use the Chrome Web Store's public key for the manifest `key`.** TabCommand is\n  published (`store/tabcommand-0.22.zip`). Generating a fresh keypair would\n  stabilize the unpacked ID but leave a store install on a *different* ID with\n  different storage — reproducing the same \"my groups vanished\" experience the\n  first time the published build is installed. The store's key gives TabCommand\n  one identity and one synced partition everywhere.\n\n- **Sync is durable, not infallible — the migration must be one-way-safe.**\n  `chrome.storage.sync` falls back to local-only behavior when the user is signed\n  out or has extension sync disabled, and Chrome eventually garbage-collects\n  synced data for long-uninstalled extensions. The migration therefore copies\n  local → sync and leaves the local `labels` value in place as a read-only\n  fallback rather than deleting it, so a sync failure degrades to today's\n  behavior instead of losing data.\n\n- **Out of scope, noted for a later plan.** `service_worker.js:775-782` builds\n  `allLabelUrlKeys` with `+=` on an array, coercing it to a comma-joined string so\n  the subsequent `indexOf` is a substring match rather than an array lookup. It\n  errs toward over-protecting label members (no data loss), so it is recorded here\n  but not fixed by this plan.\n\n## Implementation\n\n### 1. Declare the key→area routing table\n\n**File**: `src/lib/utils/chromeShim/chromeShim.js`\n\n`KNOWN_KEYS` (`:13-22`) is already the shared source of truth that \"the Chrome\nabstraction's default lists and the shim's hydration never drift\" from. Extend it\ninto an area-aware map — e.g. export `STORAGE_AREAS` mapping each known key to\n`'sync'` or `'local'`, with `labels` the sole `'sync'` entry, plus a\n`areaForKey(key)` helper that defaults unknown keys (notably the dynamic\n`url-<url>` records) to `'local'`. Keep `KNOWN_KEYS` exported and derived from the\nmap so existing importers are unaffected.\n\n### 2. Make the `Chrome` abstraction area-aware\n\n**File**: `src/lib/utils/Chrome/Chrome.js`\n\n`get` / `set` / `remove` currently delegate straight to `chrome.storage.local`\n(`:10-18`). Rework each to group its keys by `areaForKey` and fan out:\n\n- `set(from, updates)` — partition `updates` into per-area objects, issue one\n  `chrome.storage[area].set` per non-empty partition.\n- `remove(from, keys)` — same partitioning.\n- `get(from, keys, callback)` — issue one read per area involved, merge the\n  results into a single object, then apply the **existing** default-hydration and\n  `previousLabels` timestamp-stripping rules (`:21-52`) exactly once on the merged\n  result, and invoke `callback` once. The single-callback contract must hold for\n  the mixed-key read at `src/lib/pages/ImportExport/ImportExport.jsx:72`.\n\nPreserve the leading `from` debug-label argument and the callback signature — the\nglossary entry for `Chrome` describes this as \"the storage contract every feature\nplan's reads build on\", and 20 modules depend on it.\n\n### 3. Make the worker's storage helpers area-aware\n\n**File**: `service_worker.js`\n\n- `update(updates)` (`:735-737`) — partition by area and fan out, mirroring\n  `Chrome.set`. This covers the mixed writes at `:426`, `:1348`, and `:1496`.\n- `getLocalStorage(query, callback)` (`:1216-1226`) — fan out and merge, mirroring\n  `Chrome.get`. Consider renaming to `getStorage` since it is no longer\n  local-only; it is referenced by name in the glossary\n  (`getLocalStorage :: service_worker.js :: tags=worker,ported-verbatim,storage`),\n  so update that entry if renamed.\n- `chrome.storage.onChanged` listener (`:1172-1198`) — the early return\n  `if (areaName !== 'local') return;` must accept `'sync'` for `labels` and\n  `'local'` for `activeTabs`. Handle the two areas independently; a single change\n  event now carries only one area's keys.\n- **Guard the in-memory assignment.** `labels = changes.labels.newValue;` (`:1178`)\n  assigns `undefined` when `labels` is removed. `findLabelForUrlKey` is\n  null-tolerant by contract (`src/lib/utils/findLabelForUrlKey.js:25`), but the\n  bare `labels[group.title]` dereferences at `:1407` and `:1578` are not. Coerce\n  to `{}`. Cross-area transitions make an absent `labels` materially more likely\n  than it is today.\n\n### 4. Coalesce `labels` writes\n\n**File**: `service_worker.js`\n\nStop writing `labels` when nothing changed. `recordInGroupTab` (`:1406-1497`)\nends with an unconditional `update({ labels, … })` at `:1496` and is called per\ntab from `groupTabs` (`:1602`); make that write conditional on an actual\nmutation, following the pattern already used at `:1348`\n(`if (changed) update({ … })`). Additionally guard the sync write behind a\nshallow equality check against the last-persisted `labels` so a redundant write is\ndropped even if a caller is over-eager. This is what keeps the extension under\nsync's 120-writes-per-minute ceiling.\n\n### 5. One-time local → sync migration\n\n**New file**: `src/lib/utils/migrateLabelsToSync.js`\n\nIdempotent, runs on worker boot before the existing\n`getLocalStorage(['labels', 'activeTabs'], …)` bootstrap (`service_worker.js:1155`):\n\n1. Read `labels` from sync and from local.\n2. If sync already holds a non-empty `labels`, do nothing — sync wins.\n3. If sync is empty and local has groups, write local's `labels` to sync.\n4. Leave the local `labels` value in place as a fallback (see Key Decisions); do\n   not `remove` it.\n5. Record the outcome via the existing `groupingLog` breadcrumb helper\n   (`src/lib/utils/groupingLog.js`) so the migration is auditable the same way\n   group mutations already are.\n\nThe bootstrap read must then resolve `labels` from sync with local as fallback.\n\n### 6. Quota guard and user-visible warning\n\n**Files**: `src/lib/utils/migrateLabelsToSync.js` (or a sibling helper),\n`src/lib/pages/ImportExport/ImportExport.jsx`\n\nBefore any sync write of `labels`, measure the serialized byte length. If it\nexceeds ~7KB (a margin under the 8,192-byte `QUOTA_BYTES_PER_ITEM`), fall back to\nwriting `labels` to local and surface a warning on the Import/Export page telling\nthe user their groups are too large to sync and recommending an export. Silent\ntruncation or a swallowed `chrome.runtime.lastError` is the one outcome worse than\ntoday's behavior, because it would look like it worked.\n\nAlso handle `chrome.runtime.lastError` on every sync write by falling back to a\nlocal write, so a throttled or quota-exceeded sync never drops a group mutation.\n\n### 7. Pin the extension ID\n\n**File**: `manifest.json`\n\nAdd a top-level `\"key\"` field containing TabCommand's Chrome Web Store public key\n(base64, no PEM header/footer).\n\n**Input required from the user:** the public key must be copied from the Chrome\nWeb Store developer dashboard for the published TabCommand item — it cannot be\nderived from the repo. This step is blocked until that value is supplied.\n\nTwo consequences to carry into the release notes:\n\n- Adding the key changes the current unpacked extension's ID one final time,\n  repartitioning storage. Export groups via the Import/Export page **before**\n  loading the rebuilt extension, and re-import after.\n- Once keyed, the unpacked build and a Web Store install share an ID and cannot\n  both be loaded at once; Chrome will refuse the second.\n\n### 8. Stop the build from deleting the loaded extension directory\n\n**File**: `vite.config.mjs`\n\n`build.outDir` is `build` with `emptyOutDir: true` (`:14-16`), so every\n`npm run dev` and `npm run build` deletes and recreates the directory Chrome has\nloaded. If Chrome reads it mid-rewrite it uninstalls the extension, taking\n`chrome.storage.local` with it — the proximate cause of the incident.\n\nBuild to a scratch directory and sync the result into a stable\n`dist-extension/` that is created once and never deleted wholesale, so the\ndirectory Chrome watches always exists and always contains a valid `manifest.json`.\nUpdate `README.md` / `CONTRIBUTING.md` load instructions to point at the new\ndirectory, and add it to `.gitignore`.\n\n## Reused existing code\n\n- `Chrome` from `src/lib/utils/Chrome/Chrome.js` (glossary entry: `Chrome`,\n  tags `utility,storage,ported-verbatim`) — extended in place; its\n  `get/set/remove` signature and default-hydration rules are preserved verbatim.\n- `KNOWN_KEYS` and `createChromeShim` from\n  `src/lib/utils/chromeShim/chromeShim.js` (glossary entries: `createChromeShim`,\n  `installChromeShim`) — `KNOWN_KEYS` becomes the basis of the area map; the shim\n  must model both areas so dev-server behavior matches the extension.\n- `update`, `getLocalStorage`, `groupTabs`, `handleActiveTabsGroupChanges` from\n  `service_worker.js` (glossary entries of the same names, tags\n  `worker,ported-verbatim,storage` / `tab-groups,labels`).\n- `buildImportUpdates`, `sortLabels`, `resolveLabelUrls` from\n  `src/lib/utils/importExport.js` (glossary entries: `sortLabels`,\n  `resolveLabelUrls`) — the existing export/import path is the recovery mechanism\n  the migration warns users toward; no change to its JSON shape.\n- `groupingLog` from `src/lib/utils/groupingLog.js` and `groupRemovalLog` from\n  `src/lib/utils/groupRemovalLog.js` — existing capped-array breadcrumb helpers;\n  reuse for migration and quota-fallback breadcrumbs rather than adding a new log.\n- `findLabelForUrlKey` from `src/lib/utils/findLabelForUrlKey.js` — the single\n  resolver for \"which label claims this urlKey\", added by the tab-strip fix. It\n  reads `labels` from both `service_worker.js:634` and `:1619`, so it is a\n  consumer of the newly synced key; it is already null-tolerant on both arguments\n  and needs no change.\n\n**Existing-implementation survey.** There is no existing storage-area abstraction,\nno key→area routing, no quota accounting, and no migration or schema-version\nrunner anywhere in the extension. `chrome.storage.sync` and `chrome.storage.session`\nappear nowhere in the codebase — every read and write is `chrome.storage.local`.\nThere is no `chrome.runtime.onInstalled` or `onStartup` handler to hang a migration\noff, which is why Section 5 hooks the existing worker-boot read instead. The\n`\"storage\"` permission in `manifest.json:5` already covers the sync area; no new\npermission is required (`unlimitedStorage` does not raise sync quotas and must not\nbe added in the belief that it does).\n\n**Test coverage in the affected area** (from `.codeyam/test-registry.json`):\n`service_worker.test.js` has 139 registered tests, `src/lib/utils/importExport.test.js`\n14, `src/lib/utils/chromeShim/chromeShim.test.js` 12, and\n`src/lib/utils/Chrome/Chrome.test.js` 7. That last file's cases assert\n`chrome.storage.local.set` / `.get` / `.remove` delegation directly (`:67-75`) and\nwill need updating to the fan-out contract — that is expected churn, not a\nregression.\n\n## Scenarios to Demonstrate\n\n- **Groups survive a simulated uninstall** — populated `labels` in sync, local\n  area cleared, worker reboots and renders every group.\n- **First-run migration** — local holds groups, sync is empty; after boot both\n  hold them and the UI is unchanged.\n- **Migration no-ops when sync already wins** — sync and local hold *different*\n  group sets; sync's set is the one that renders and local is not copied over it.\n- **Mixed-area read** — the Import/Export page loads `labels` (sync) and\n  `previousLabels` (local) in one `Chrome.get` and renders both sections.\n- **Mixed-area write** — an import writes `url-*` records to local and `labels` to\n  sync from one `buildImportUpdates` map; nothing is dropped.\n- **Oversized group set** — `labels` serializes past 7KB; the write falls back to\n  local and the Import/Export page shows the \"too large to sync\" warning.\n- **Sync unavailable** — sync writes fail with `chrome.runtime.lastError`; group\n  edits still persist locally and the user sees no data loss.\n- **Write coalescing under tab churn** — rapid tab open/close/move events that do\n  not mutate `labels` produce zero sync writes.\n- **Empty state** — no groups in either area; the app renders its normal empty\n  state and the migration writes nothing.\n- **Rename collision** — a group renamed to an existing title, exercising the\n  delete-and-recreate path in `src/lib/components/LabelForm/LabelForm.jsx:43-55` across the new area boundary.",
+  "description": "Moved the user's groups (the `labels` map) from `chrome.storage.local` to `chrome.storage.sync`, so they survive the uninstall that destroyed them on 2026-08-12 — including the implicit uninstall Chrome performs when an unpacked extension's directory goes missing. Routing lives in one key→area table (`storageAreas.js`) that `Chrome`, the worker's `update`/`getStorage`, and the dev-server shim all fan out through, so mixed-area reads and writes (`labels` from sync alongside `previousLabels` and the `url-*` records from local) keep working unchanged. `previousLabels` deliberately stays local: it is ten full snapshots of `labels` and would breach sync's 8,192-byte per-item cap on its own.\n\nSync brought three constraints local storage never had, each handled: writes are capped at 120/minute, so a `labels` write byte-identical to the last persisted one is dropped and `recordInGroupTab`'s per-tab write is now conditional on an actual mutation; an item over quota is measured before the write and redirected to local; and a rejected write (signed out, sync disabled) falls back to local. The last two record a `syncStatus` the Import/Export page surfaces as a warning, positioned directly above the Export snapshot it tells the user to copy — silence there would look exactly like a working backup. A one-way-safe migration copies local→sync on boot and never deletes the local copy, so a sync failure degrades to the old behavior instead of losing data. The extension ID is pinned to TabCommand's Web Store key so the unpacked and published builds stop presenting separate storage partitions, and `npm run build` now mirrors into a stable `dist/extension/` instead of letting `emptyOutDir` delete the directory Chrome has loaded — the proximate cause of the incident.\n\nFour defects surfaced during the build, none in the plan. The export crashed after a recovery: `resolveLabelUrls` dereferenced the per-URL record unconditionally, so once groups came back from sync without their local `url-*` records the whole Export panel died — leaving no way to back up the groups just recovered; URLs are now reconstructed from their urlKey, since dropping the member would have been worse (an export that looks complete while silently losing URLs). `LabelCollection` and `Search` both carried `if (areaName !== 'local') return`, which silently swallowed every `labels` change once labels moved to sync — group cards would stop live-updating on rename and the search index would go stale; both now gate per-key through a shared `changedInArea`. The migration also had to run on app boot, not just worker boot: MV3 recycles the worker constantly, so a not-yet-migrated user opening the full-page app first would read an empty sync area and see zero groups. And `navigator.clipboard.writeText` was left unhandled on the copy-your-snapshot action the sync warnings send people to, where it rejects on a hardened profile or non-secure context.\n\nWorth recording for future sessions: the test-attribution engine classified 10 failures as \"inherited pre-existing base debt, not touched by this branch\" and advised against fixing them here. Checking one against `origin/main` showed it passing there — all 10 were change-introduced, and two were the live-update listener bugs above. Trusting the attribution would have shipped them.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/durable-group-storage.md\t.codeyam/plans/completed/durable-group-storage.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/app.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-backup.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-color-preview-while-editing--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-deliberate-same-site-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-guarded-single-member--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-overflowing-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-phantom-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-preview-name-cleared--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-saved-recolor-committed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-title-and-color-preview--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/session-narrative.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/state/command-output/recapture-stale.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/refusal-fingerprints.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/14f796922b40b1e588c021d2e1d8c3e80c239933a8b372c2052829cabc961b3e.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/f34e51e9576b49cf6d4a019bc7ad9dce6f8deb6caef91b28329540c1900efcec.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": ".gitignore",
+      "status": "modified"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "status": "modified"
+    },
+    {
+      "path": "README.md",
+      "status": "modified"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "status": "modified"
+    },
+    {
+      "path": "manifest.json",
+      "status": "modified"
+    },
+    {
+      "path": "package.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/index.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelForm/LabelForm.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Search/Search.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Search/Search.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/Chrome/Chrome.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/Chrome/Chrome.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/importExport.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/importExport.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "vite.config.mjs",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/importexport.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/syncwarning.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-first-run-migration-from-local.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-groups-restored-from-sync-after-uninstall.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-sync-wins-over-stale-local.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-deep-snapshot-history.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-export-after-uninstall-recovery.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-groups-too-large-to-sync.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-snapshot-copied.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-sync-unavailable.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-first-run-migration-from-local--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-first-run-migration-from-local--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-restored-from-sync-after-uninstall--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-restored-from-sync-after-uninstall--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-sync-wins-over-stale-local--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-sync-wins-over-stale-local--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-deep-snapshot-history--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-deep-snapshot-history--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-export-after-uninstall-recovery--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-export-after-uninstall-recovery--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-groups-too-large-to-sync--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-groups-too-large-to-sync--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-copied--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-copied--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-sync-unavailable--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-sync-unavailable--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-groups-too-large--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-groups-too-large--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-sync-unavailable--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-sync-unavailable--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/syncwarning-groups-too-large.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/syncwarning-sync-unavailable.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/audit-split.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/change-origin.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/command-output/analyze-imports.txt",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/command-output/audit.txt",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/command-output/reconcile-registry.txt",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/command-output/refresh-tests.txt",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/command-output/verify-build.txt",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/command-output/wait-for.txt",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/0c4ad90e20652c38103d13a27d2f2b60266a993310ec4d1ce8439b34d6735828.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/200e621153713bd40ef641db7ad71d48c72b1b1d863f6e142ca83f9fcc9cb49b.json",
+      "status": "added"
+    },
+    {
+      "path": "scripts/sync-extension-dir.mjs",
+      "status": "added"
+    },
+    {
+      "path": "scripts/sync-extension-dir.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SyncWarning/SyncWarning.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SyncWarning/SyncWarning.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SyncWarning/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/migrateLabelsToSync.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/migrateLabelsToSync.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/storageAccess.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/storageAccess.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/storageAreas.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/storageAreas.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/syncQuota.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/syncQuota.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - Groups Restored From Sync After Uninstall",
+      "screenshotPath": "home-groups-restored-from-sync-after-uninstall--desktop.png"
+    },
+    {
+      "name": "Home - First Run Migration From Local",
+      "screenshotPath": "home-first-run-migration-from-local--desktop.png"
+    },
+    {
+      "name": "Home - Sync Wins Over Stale Local",
+      "screenshotPath": "home-sync-wins-over-stale-local--desktop.png"
+    },
+    {
+      "name": "Import / Export - Backup",
+      "screenshotPath": "import-export-backup--desktop.png"
+    },
+    {
+      "name": "Import / Export - Groups Too Large To Sync",
+      "screenshotPath": "import-export-groups-too-large-to-sync--desktop.png"
+    },
+    {
+      "name": "Import / Export - Sync Unavailable",
+      "screenshotPath": "import-export-sync-unavailable--desktop.png"
+    },
+    {
+      "name": "Import / Export - Export After Uninstall Recovery",
+      "screenshotPath": "import-export-export-after-uninstall-recovery--desktop.png"
+    },
+    {
+      "name": "Import / Export - Snapshot Copied",
+      "screenshotPath": "import-export-snapshot-copied--desktop.png"
+    },
+    {
+      "name": "Import / Export - Deep Snapshot History",
+      "screenshotPath": "import-export-deep-snapshot-history--desktop.png"
+    },
+    {
+      "name": "SyncWarning - Groups Too Large",
+      "screenshotPath": "syncwarning-groups-too-large--desktop.png"
+    },
+    {
+      "name": "SyncWarning - Sync Unavailable",
+      "screenshotPath": "syncwarning-sync-unavailable--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 852,
+    "passed": 852,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 852,
+        "passed": 852
+      }
+    ]
+  }
+}

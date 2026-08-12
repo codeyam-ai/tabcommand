@@ -31,15 +31,28 @@ export function collectUrlKeys(sortedLabels) {
 // `urlKeys`, returning the labels ready to JSON.stringify into the export. Each
 // url carries url/title/favicon, plus notes only when present. Mutates the
 // passed labels — callers pass the freshly-sorted array.
+//
+// A urlKey with NO per-URL record is expected, not exceptional, now that
+// `labels` lives in `chrome.storage.sync` while the `url-*` records stay local:
+// once an uninstall restores the groups from sync, the local records they point
+// at are gone. The urlKey itself is `url-<the url>`, so the URL — the only part
+// of the record that cannot be re-derived — is recovered from the key, and the
+// title/favicon repopulate on the next visit to the page.
+//
+// Reconstructing beats both alternatives. Dereferencing the missing record threw
+// and took the entire Export panel down, leaving the user no way to back up the
+// groups they had just recovered. Skipping the member would be worse than the
+// crash: the export would look complete while silently dropping URLs from the
+// backup.
 export function resolveLabelUrls(sortedLabels, urlInfoByKey) {
   for (const label of sortedLabels) {
     label.urls = [];
     for (const urlKey of label.urlKeys) {
-      const urlInfo = urlInfoByKey[urlKey];
+      const urlInfo = urlInfoByKey[urlKey] || {};
       const url = {
-        url: urlInfo.url,
-        title: urlInfo.title,
-        favicon: urlInfo.favicon,
+        url: urlInfo.url || urlKey.replace(/^url-/, ''),
+        title: urlInfo.title || '',
+        favicon: urlInfo.favicon || '',
       };
       if (urlInfo.notes) {
         url.notes = urlInfo.notes;

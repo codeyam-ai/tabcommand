@@ -4,10 +4,14 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DragDropContext } from '@hello-pangea/dnd';
 import { installChromeShim } from '../../utils/chromeShim';
+import { readByArea } from '../../utils/storageAccess';
 import LabelCollection from './LabelCollection';
 
 const seed = (key, value) => window.localStorage.setItem(key, JSON.stringify(value));
-const get = (keys) => new Promise((resolve) => chrome.storage.local.get(keys, resolve));
+// Read back through the area router rather than chrome.storage.local directly:
+// `labels` lives in chrome.storage.sync now, so a hardcoded local read would
+// come back empty no matter what the component wrote.
+const get = (keys) => new Promise((resolve) => readByArea(keys, resolve));
 
 // LabelCollection renders Droppable/Draggable, which require a DragDropContext.
 const renderCollection = (props) =>

@@ -1,0 +1,28 @@
+{
+  "name": "Import / Export - Snapshot Copied",
+  "id": "288ffaef-5be3-4178-a3ed-19b24c772223",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}}",
+      "previousLabels": "[{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\"]}}]",
+      "url-https://github.com/codeyam/tabcommand": "{\"url\":\"https://github.com/codeyam/tabcommand\",\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"processes\":{\"samples\":0}}",
+      "url-https://react.dev/learn": "{\"url\":\"https://react.dev/learn\",\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"page\":{\"name\":\"ImportExport\"}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+  "description": "The key action on this page, mid-flight: the user has clicked Copy on a previous snapshot and the button has flipped to its confirmed state. This is the interaction the sync warnings send people to — when groups are not reaching sync, copying a snapshot is the recovery — and it is invisible in a resting capture.",
+  "interactions": [
+    {
+      "action": "click",
+      "text": "Copy"
+    }
+  ]
+}

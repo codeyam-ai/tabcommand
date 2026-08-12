@@ -1,0 +1,22 @@
+{
+  "name": "Import / Export - Sync Unavailable",
+  "id": "986a6d91-77b1-40ba-b73d-ee218a419dc2",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "syncStatus": "{\"status\":\"sync-failed\",\"key\":\"labels\",\"message\":\"Please sign in to Chrome to use chrome.storage.sync\",\"at\":1786545000000}",
+      "url-https://github.com/codeyam/tabcommand": "{\"url\":\"https://github.com/codeyam/tabcommand\",\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"page\":{\"name\":\"ImportExport\"}}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]}}",
+      "previousLabels": "[]",
+      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+  "description": "Sync rejected the write — the user is signed out of Chrome or has extension sync turned off. The group edit still landed locally, so nothing was lost, but the durability guarantee is gone and the page says so in the user’s terms rather than reporting a storage error."
+}

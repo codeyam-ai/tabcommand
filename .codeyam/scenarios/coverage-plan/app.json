@@ -6,7 +6,7 @@
       "dimension": "tracksCursor",
       "value": "true",
       "rationale": "source-derived state tracksCursor=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "tracksCursor",
@@ -18,7 +18,7 @@
       "dimension": "labelsElement",
       "value": "true",
       "rationale": "source-derived state labelsElement=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "labelsElement",
@@ -30,7 +30,7 @@
       "dimension": "addition",
       "value": "true",
       "rationale": "source-derived state addition=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "addition",
@@ -42,7 +42,7 @@
       "dimension": "removal",
       "value": "true",
       "rationale": "source-derived state removal=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "removal",
@@ -54,7 +54,7 @@
       "dimension": "isHome",
       "value": "true",
       "rationale": "source-derived state isHome=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "isHome",

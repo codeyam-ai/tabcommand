@@ -3,10 +3,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { installChromeShim } from '../../utils/chromeShim';
+import { readByArea } from '../../utils/storageAccess';
 import UrlDetails from './UrlDetails';
 
 const urlKey = 'url-https://github.com/codeyam/tabcommand';
-const get = (keys) => new Promise((resolve) => chrome.storage.local.get(keys, resolve));
+// Read back through the area router rather than chrome.storage.local directly:
+// `labels` lives in chrome.storage.sync now, so a hardcoded local read would
+// come back empty no matter what the page wrote.
+const get = (keys) => new Promise((resolve) => readByArea(keys, resolve));
 
 const seedUrl = (extra = {}) =>
   window.localStorage.setItem(

@@ -1,0 +1,12 @@
+{
+  "name": "SyncWarning - Groups Too Large",
+  "id": "294a9666-8e00-4cc1-9a15-d922ff75be50",
+  "url": "/?isolate=SyncWarning",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SyncWarning",
+  "scenarioType": "component",
+  "description": "The quota state. The user's groups serialize past the sync per-item limit, so the write fell back to local storage. The copy names the consequence in the user's terms — will not survive a reinstall — and the action, copy the Export snapshot, rather than the mechanism; QUOTA_BYTES_PER_ITEM is not something to hand a user."
+}

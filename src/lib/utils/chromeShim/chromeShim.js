@@ -7,19 +7,48 @@
 // persistence mirror. The in-memory `store` is the working copy; the JSON string
 // boundary lives entirely inside this shim, so `Chrome.get` consumers always see
 // parsed objects/arrays exactly as the real `chrome.storage` would hand back.
+//
+// The shim models BOTH storage areas, because `labels` now lives in
+// `chrome.storage.sync` (see utils/storageAreas). Without a sync area here the
+// dev server would exercise a different code path than the extension — the
+// migration, the mixed-area reads, and the quota fallback would all be
+// unreachable in the preview.
 
-// The storage keys. Shared so the Chrome abstraction's default lists and the
-// shim's hydration never drift.
-export const KNOWN_KEYS = [
-  'labels',
-  'uxSettings',
-  'autoClosed',
-  'activeTabs',
-  'allUrls',
-  'previousLabels',
-  'theme',
-  'settings',
-];
+import { LOCAL, SYNC, KNOWN_KEYS, areaForKey } from '../storageAreas';
+
+export { KNOWN_KEYS };
+
+// A seeded localStorage key normally lands in whichever area owns it, so every
+// existing scenario seeds unchanged: `labels` goes to sync, `url-*` and
+// `activeTabs` go to local. These prefixes override that, which is what makes
+// the cross-area states seedable at all — "sync holds groups, local is wiped"
+// (the uninstall a user survives) and "local holds groups, sync is empty" (the
+// state the migration converts) are the same key in different areas.
+export const AREA_SEED_PREFIXES = {
+  [`${SYNC}::`]: SYNC,
+  [`${LOCAL}::`]: LOCAL,
+};
+
+// Split a raw localStorage key into the area that owns it and the key the app
+// sees. An unprefixed key routes through the storage-areas table.
+export function resolveSeedKey(rawKey) {
+  for (const [prefix, area] of Object.entries(AREA_SEED_PREFIXES)) {
+    if (rawKey.startsWith(prefix)) {
+      return { area, key: rawKey.slice(prefix.length) };
+    }
+  }
+  return { area: areaForKey(rawKey), key: rawKey };
+}
+
+// The localStorage key a write mirrors back to — the inverse of resolveSeedKey,
+// so a value round-trips into the same area it was written to. A key in its
+// natural area mirrors unprefixed (keeping the seed format stable); a key
+// written to the OTHER area, like the `labels` local fallback after a sync
+// quota rejection, mirrors prefixed so the next boot does not hydrate it as if
+// it were the synced copy.
+export function mirrorKeyFor(area, key) {
+  return areaForKey(key) === area ? key : `${area}::${key}`;
+}
 
 // Resolve the callback from a stub call's arguments regardless of arity — Chrome
 // action APIs put the (optional) callback last, and call sites vary in how many
@@ -35,7 +64,7 @@ function defer(cb, value) {
   if (cb) Promise.resolve().then(() => cb(value));
 }
 
-// Build a fresh shim object backed by a store hydrated from `window.localStorage`.
+// Build a fresh shim object backed by stores hydrated from `window.localStorage`.
 // Exported for unit tests; production code goes through installChromeShim().
 export function createChromeShim() {
   // Hydrate from EVERY localStorage entry, not just KNOWN_KEYS. Each URL object
@@ -44,87 +73,98 @@ export function createChromeShim() {
   // render blank. When localStorage is cleared and seeded per scenario, scanning
   // all keys is exactly the seeded set. KNOWN_KEYS remains the source for the
   // Chrome abstraction's default-hydration lists, not the shim's boot scope.
-  const store = {};
+  const stores = { [LOCAL]: {}, [SYNC]: {} };
   for (let i = 0; i < window.localStorage.length; i++) {
-    const key = window.localStorage.key(i);
-    if (key == null) continue;
-    const raw = window.localStorage.getItem(key);
+    const rawKey = window.localStorage.key(i);
+    if (rawKey == null) continue;
+    const raw = window.localStorage.getItem(rawKey);
     if (raw == null) continue;
+    const { area, key } = resolveSeedKey(rawKey);
     try {
-      store[key] = JSON.parse(raw);
+      stores[area][key] = JSON.parse(raw);
     } catch {
       // Ignore malformed seed values rather than crashing the boot path.
     }
   }
 
   const listeners = [];
-  const dispatch = (changes) => {
+  const dispatch = (changes, areaName) => {
     // Snapshot the list so a listener that detaches mid-dispatch is safe.
-    for (const fn of listeners.slice()) fn(changes, 'local');
+    for (const fn of listeners.slice()) fn(changes, areaName);
   };
 
-  const local = {
-    get: (keys, cb) => {
-      let requested;
-      if (keys == null) requested = Object.keys(store);
-      else if (typeof keys === 'string') requested = [keys];
-      else if (Array.isArray(keys)) requested = keys;
-      else requested = Object.keys(keys);
+  // Both areas behave identically apart from which store they read and write and
+  // which `areaName` their change events carry — exactly the real API's shape.
+  const makeArea = (areaName) => {
+    const store = stores[areaName];
 
-      const results = {};
-      for (const k of requested) {
-        // Hand back a deep COPY, never the live `store[k]` reference. Real
-        // chrome.storage.local serializes/deserializes across a process
-        // boundary, so every get yields a fresh structure that consumers can
-        // freely mutate without corrupting the store. ImportExport's
-        // `sortAndStuff` mutates its result (`delete label.urlKeys`), and under
-        // StrictMode the effect runs twice — sharing the live reference would
-        // leave the second run iterating an already-deleted `urlKeys`.
-        if (Object.prototype.hasOwnProperty.call(store, k)) {
-          results[k] = JSON.parse(JSON.stringify(store[k]));
+    return {
+      get: (keys, cb) => {
+        let requested;
+        if (keys == null) requested = Object.keys(store);
+        else if (typeof keys === 'string') requested = [keys];
+        else if (Array.isArray(keys)) requested = keys;
+        else requested = Object.keys(keys);
+
+        const results = {};
+        for (const k of requested) {
+          // Hand back a deep COPY, never the live `store[k]` reference. Real
+          // chrome.storage serializes/deserializes across a process
+          // boundary, so every get yields a fresh structure that consumers can
+          // freely mutate without corrupting the store. ImportExport's
+          // `sortAndStuff` mutates its result (`delete label.urlKeys`), and under
+          // StrictMode the effect runs twice — sharing the live reference would
+          // leave the second run iterating an already-deleted `urlKeys`.
+          if (Object.prototype.hasOwnProperty.call(store, k)) {
+            results[k] = JSON.parse(JSON.stringify(store[k]));
+          }
         }
-      }
-      defer(cb, results);
-    },
+        defer(cb, results);
+      },
 
-    set: (obj, cb) => {
-      const changes = {};
-      for (const [k, newValue] of Object.entries(obj)) {
-        changes[k] = { oldValue: store[k], newValue };
-        store[k] = newValue;
-        window.localStorage.setItem(k, JSON.stringify(newValue));
-      }
-      dispatch(changes);
-      defer(cb);
-    },
+      set: (obj, cb) => {
+        const changes = {};
+        for (const [k, newValue] of Object.entries(obj)) {
+          changes[k] = { oldValue: store[k], newValue };
+          store[k] = newValue;
+          window.localStorage.setItem(mirrorKeyFor(areaName, k), JSON.stringify(newValue));
+        }
+        dispatch(changes, areaName);
+        defer(cb);
+      },
 
-    remove: (keys, cb) => {
-      const arr = typeof keys === 'string' ? [keys] : keys;
-      const changes = {};
-      for (const k of arr) {
-        changes[k] = { oldValue: store[k], newValue: undefined };
-        delete store[k];
-        window.localStorage.removeItem(k);
-      }
-      dispatch(changes);
-      defer(cb);
-    },
+      remove: (keys, cb) => {
+        const arr = typeof keys === 'string' ? [keys] : keys;
+        const changes = {};
+        for (const k of arr) {
+          changes[k] = { oldValue: store[k], newValue: undefined };
+          delete store[k];
+          window.localStorage.removeItem(mirrorKeyFor(areaName, k));
+        }
+        dispatch(changes, areaName);
+        defer(cb);
+      },
 
-    clear: (cb) => {
-      const changes = {};
-      for (const k of Object.keys(store)) {
-        changes[k] = { oldValue: store[k], newValue: undefined };
-        delete store[k];
-        window.localStorage.removeItem(k);
-      }
-      dispatch(changes);
-      defer(cb);
-    },
+      clear: (cb) => {
+        const changes = {};
+        for (const k of Object.keys(store)) {
+          changes[k] = { oldValue: store[k], newValue: undefined };
+          delete store[k];
+          window.localStorage.removeItem(mirrorKeyFor(areaName, k));
+        }
+        dispatch(changes, areaName);
+        defer(cb);
+      },
+    };
   };
+
+  const local = makeArea(LOCAL);
+  const sync = makeArea(SYNC);
 
   return {
     storage: {
       local,
+      sync,
       onChanged: {
         addListener: (fn) => { listeners.push(fn); },
         removeListener: (fn) => {
@@ -158,8 +198,9 @@ export function createChromeShim() {
         // page's raw per-process table can be demonstrated. With no
         // seed this stays a no-op (the table renders empty), exactly as before.
         addListener: (fn) => {
-          if (typeof fn === 'function' && store.processes && Object.keys(store.processes).length > 0) {
-            defer(fn, store.processes);
+          const processes = stores[LOCAL].processes;
+          if (typeof fn === 'function' && processes && Object.keys(processes).length > 0) {
+            defer(fn, processes);
           }
         },
         removeListener: () => {},
@@ -167,6 +208,9 @@ export function createChromeShim() {
     },
     runtime: {
       getURL: (p) => p,
+      // Present so the sync-write guard's `chrome.runtime.lastError` check has
+      // something to read. The shim never fails a write, so it stays undefined.
+      lastError: undefined,
     },
   };
 }

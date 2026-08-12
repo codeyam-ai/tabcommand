@@ -10,6 +10,9 @@ import { buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP
 import { buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource } from './src/lib/utils/groupMoveLog.js';
 import { needsGroupCall, needsUngroupCall, bucketTabsByWindow } from './src/lib/utils/tabPlacement.js';
 import findLabelForUrlKey from './src/lib/utils/findLabelForUrlKey.js';
+import { areaForKey } from './src/lib/utils/storageAreas.js';
+import { readByArea, writeByArea } from './src/lib/utils/storageAccess.js';
+import { migrateLabelsToSync } from './src/lib/utils/migrateLabelsToSync.js';
 
 let listening = true;
 let removing;
@@ -47,7 +50,7 @@ const GROUPING_LOG_CAP = 200;
 // the async storage round-trip never blocks the caller.
 function debugGroup(event, details) {
   if (DEBUG_GROUPING) console.log(`[TC-GROUP] ${event}`, details);
-  getLocalStorage(['debugGrouping', 'groupingLog'], (result) => {
+  getStorage(['debugGrouping', 'groupingLog'], (result) => {
     if (!DEBUG_GROUPING && !result.debugGrouping) return;
     const groupingLog = appendGroupingLog(
       result.groupingLog,
@@ -69,7 +72,7 @@ function debugGroup(event, details) {
 // Fire-and-forget: the async storage round-trip never blocks the caller, and it
 // only records removals — it never changes removal behavior.
 function recordRemoval(source, details) {
-  getLocalStorage([GROUP_REMOVAL_LOG_KEY], (result) => {
+  getStorage([GROUP_REMOVAL_LOG_KEY], (result) => {
     update({
       [GROUP_REMOVAL_LOG_KEY]: appendGroupingLog(
         result[GROUP_REMOVAL_LOG_KEY],
@@ -91,7 +94,7 @@ function recordRemoval(source, details) {
 // Fire-and-forget: the async storage round-trip never blocks the caller, and it
 // only records additions — it never changes grouping behavior.
 function recordAddition(source, details) {
-  getLocalStorage([GROUP_ADDITION_LOG_KEY], (result) => {
+  getStorage([GROUP_ADDITION_LOG_KEY], (result) => {
     update({
       [GROUP_ADDITION_LOG_KEY]: appendGroupingLog(
         result[GROUP_ADDITION_LOG_KEY],
@@ -121,7 +124,7 @@ function recordAddition(source, details) {
 // re-enter the grouping loop: `storage.onChanged` bails unless `labels` or
 // `activeTabs` changed, and this touches neither.
 function recordMove(source, details) {
-  getLocalStorage([GROUP_MOVE_LOG_KEY], (result) => {
+  getStorage([GROUP_MOVE_LOG_KEY], (result) => {
     update({
       [GROUP_MOVE_LOG_KEY]: appendGroupingLog(
         result[GROUP_MOVE_LOG_KEY],
@@ -337,7 +340,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
   };
 
-  const activeTabs = (await getLocalStorage('activeTabs')).activeTabs || [];
+  const activeTabs = (await getStorage('activeTabs')).activeTabs || [];
 
   if (changeInfo.url) {
     if (checkRemoving()) return true;
@@ -556,7 +559,7 @@ chrome.tabs.onMoved.addListener((tabId, moveInfo) => {
 chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
   removing = tabId;
   autoGroupedTabs.delete(tabId);
-  const activeTabs = (await getLocalStorage('activeTabs')).activeTabs || [];
+  const activeTabs = (await getStorage('activeTabs')).activeTabs || [];
   const oldTabUrl = activeTabs.filter(
     tabUrl => tabUrl.tabKey === `tab-${tabId}`
   )[0];
@@ -579,7 +582,7 @@ async function updateActiveTabs() {
       return;
     }
 
-    getLocalStorage(['activeTabs', 'autoClosed', 'labels'], (result) => {
+    getStorage(['activeTabs', 'autoClosed', 'labels'], (result) => {
       const activeTabs = result.activeTabs || [];
       const autoClosed = result.autoClosed || {};
       // Read straight from storage rather than the module-level `labels`: this
@@ -703,7 +706,7 @@ function pruneAutoClosed(autoClosed, now) {
 // the async chrome.tabs.remove callbacks fire onRemoved -> closeUrl -> updateActiveTabs)
 // guarantees the downstream reconciliation reads our entries rather than clobbering them.
 function autoCloseSweep() {
-  getLocalStorage(['activeTabs', 'autoClosed', 'settings'], (result) => {
+  getStorage(['activeTabs', 'autoClosed', 'settings'], (result) => {
     const activeTabs = result.activeTabs || [];
     const autoClosed = result.autoClosed || {};
     const settings = result.settings || {};
@@ -732,8 +735,35 @@ function autoCloseSweep() {
   });
 }
 
+// The last `labels` value this worker persisted, serialized. `labels` now lives
+// in `chrome.storage.sync`, which enforces MAX_WRITE_OPERATIONS_PER_MINUTE = 120
+// and MAX_WRITE_OPERATIONS_PER_HOUR = 1800 — ceilings the local area never had.
+// `recordInGroupTab` runs per tab from `groupTabs`, which the `storage.onChanged`
+// listener invokes on every `activeTabs` change, and `updateActiveTabs()` fires
+// from eight different tab events. Writing `labels` unchanged on every tab event
+// would breach the per-minute quota within a minute of normal browsing.
+//
+// So a write whose `labels` is byte-identical to the last one persisted is
+// dropped. Dropping it is safe by construction: identical content means storage
+// already holds exactly this value. It also breaks the self-sustaining
+// write -> onChanged -> groupTabs -> write loop that made the churn quadratic.
+let lastPersistedLabels = null;
+
 function update(updates) {
-  chrome.storage.local.set(updates);
+  const outgoing = { ...updates };
+
+  if (Object.prototype.hasOwnProperty.call(outgoing, 'labels')) {
+    const serialized = JSON.stringify(outgoing.labels);
+    if (serialized === lastPersistedLabels) {
+      delete outgoing.labels;
+    } else {
+      lastPersistedLabels = serialized;
+    }
+  }
+
+  if (Object.keys(outgoing).length === 0) return;
+
+  writeByArea(outgoing);
 }
 
 async function newUrl(tabId, url) {
@@ -749,7 +779,7 @@ async function newUrl(tabId, url) {
   return new Promise((resolve, reject) => {
     const updates = {};
     const urlKey = getUrlKey(url);
-    getLocalStorage(['allUrls', 'labels', 'siteVisits', 'deletedUrls', urlKey], (result) => {
+    getStorage(['allUrls', 'labels', 'siteVisits', 'deletedUrls', urlKey], (result) => {
       const allUrls = result.allUrls || [];
 
       // A real visit UN-FORGETS the page. Deleting from History means "forget
@@ -853,7 +883,7 @@ async function recordAccess(tabId) {
   if (!tab || !tab.url || !isTrackableUrl(tab.url)) return;
 
   const urlKey = getUrlKey(tab.url);
-  const result = await getLocalStorage(urlKey);
+  const result = await getStorage(urlKey);
   const record = result[urlKey];
   const visits = (record && record.visits) || [];
   const lastVisit = visits.length ? Math.max(...visits.map(Number)) : 0;
@@ -865,7 +895,7 @@ async function recordAccess(tabId) {
 }
 
 function closeUrl(urlKey, callback) {
-  getLocalStorage(['allUrls', 'deletedUrls'], (result) => {
+  getStorage(['allUrls', 'deletedUrls'], (result) => {
     const allUrls = result.allUrls || [];
     const deletedUrls = result.deletedUrls || {};
     // The page was JUST deleted from History in the popup process, but this
@@ -1062,7 +1092,7 @@ async function tabUpdates(tab, process, updates) {
       resolve({ [urlKey]: urlUpdates(updates[urlKey], tab, process) });
     }
 
-    getLocalStorage(urlKey, (result) => {
+    getStorage(urlKey, (result) => {
       const url = result[urlKey] || { url: tab.url };
       resolve({ [urlKey]: urlUpdates(url, tab, process) });
     });
@@ -1152,8 +1182,24 @@ function validTab(tab) {
 
 let labels = {};
 let activeTabs = [];
-getLocalStorage(['labels', 'activeTabs'], (result) => {
-  labels = result.labels || {};
+// Resolve `labels` through the migration FIRST — it is the only place that reads
+// both areas and decides which copy wins (sync when populated, local otherwise,
+// copying local -> sync when sync is empty). Running it ahead of the bootstrap
+// read means the session always starts from the durable copy, and a first boot
+// after the upgrade backs up the user's existing groups before anything can
+// touch them. `activeTabs` is local and unaffected, so it still comes from the
+// ordinary read.
+migrateLabelsToSync((migration) => {
+  labels = migration.labels || {};
+  // Seed the coalescing memo with what storage now holds, so the first ordinary
+  // tab event after boot doesn't re-persist an identical `labels`.
+  lastPersistedLabels = JSON.stringify(labels);
+  debugGroup('boot: labels migration resolved', {
+    outcome: migration.outcome,
+    groupCount: Object.keys(labels).length
+  });
+});
+getStorage(['activeTabs'], (result) => {
   activeTabs = result.activeTabs || [];
   // Deliberately does NOT call groupTabs here. `activeTabs` is a PERSISTED
   // snapshot, and Chrome tab ids are unique only within a browser session — after
@@ -1171,23 +1217,35 @@ getLocalStorage(['labels', 'activeTabs'], (result) => {
 
 chrome.storage.onChanged.addListener(
   (changes, areaName) => {
-    if (areaName !== 'local') return;
-    if (!changes.labels && !changes.activeTabs) return;
+    // The two keys now live in different areas, so a single change event carries
+    // only one of them. Gate each against ITS OWN area rather than against a
+    // single hardcoded `'local'` — that check would have dropped every `labels`
+    // event once labels moved to sync, leaving the in-memory copy stale.
+    const labelsChanged = areaName === areaForKey('labels') && !!changes.labels;
+    const activeTabsChanged = areaName === areaForKey('activeTabs') && !!changes.activeTabs;
+    if (!labelsChanged && !activeTabsChanged) return;
 
-    if (changes.labels) {
-      labels = changes.labels.newValue;
+    if (labelsChanged) {
+      // Coerce a removal to `{}`. `changes.labels.newValue` is undefined when the
+      // key is removed, and while `findLabelForUrlKey` is null-tolerant by
+      // contract, the bare `labels[group.title]` dereferences in `groupTabs` and
+      // `recordInGroupTab` are not. Cross-area transitions — a sync area that is
+      // unavailable, garbage-collected, or simply not yet populated — make an
+      // absent `labels` materially more likely than it was when everything was
+      // local.
+      labels = changes.labels.newValue || {};
     }
 
-    if (changes.activeTabs) {
+    if (activeTabsChanged) {
       activeTabs = changes.activeTabs.newValue;
       handleActiveTabsGroupChanges(changes.activeTabs);
     }
 
     groupTabs(activeTabs, labels);
 
-    if (changes.labels) {
+    if (labelsChanged) {
       const previous = changes.labels.oldValue;
-      getLocalStorage('previousLabels', (result) => {
+      getStorage('previousLabels', (result) => {
         const previousLabels = result.previousLabels || [];
         if (previousLabels.length >= 10) {
           previousLabels.pop();
@@ -1213,10 +1271,14 @@ function getTabGroup(id) {
   );
 }
 
-function getLocalStorage(query, callback) {
+// Read across both storage areas and hand back ONE merged result. No longer
+// local-only — `labels` comes from `chrome.storage.sync` while everything
+// alongside it in the same query (`activeTabs`, `allUrls`, the `url-*` records)
+// comes from local — hence `getStorage`, not `getLocalStorage`.
+function getStorage(query, callback) {
   return new Promise(
     (resolve, reject) =>
-      chrome.storage.local.get(query, (result) => {
+      readByArea(query, (result) => {
         if (callback) {
           callback(result);
           return;
@@ -1258,7 +1320,7 @@ async function handleActiveTabsGroupChanges(changes) {
 
       if (!oldGroup || !newGroup || newGroup.title === "~~~ CLOSING ~~~") continue;
 
-      const { labels } = await getLocalStorage('labels') || {};
+      const { labels } = await getStorage('labels') || {};
 
       let changed = false;
       let stamped = false;
@@ -1364,7 +1426,7 @@ async function ejectAutoGroupedTab(activeTab, groupTitle) {
 
   if (!activeTab.urlKey || activeTab.urlKey === 'url-') return 'wait';
 
-  const freshLabels = (await getLocalStorage('labels')).labels || {};
+  const freshLabels = (await getStorage('labels')).labels || {};
   if (urlKeyIsMember(freshLabels[groupTitle], activeTab.urlKey)) {
     autoGroupedTabs.delete(tabId);
     return 'kept';
@@ -1406,6 +1468,12 @@ async function ejectAutoGroupedTab(activeTab, groupTitle) {
 function recordInGroupTab(labels, group, activeTab, activeTabs) {
   const label = labels[group.title];
   let stamped = false;
+  // Whether this pass actually CHANGED `labels`. The write at the end used to be
+  // unconditional, so every pass over an already-recorded tab re-persisted an
+  // identical map — harmless against the local area, but `labels` is in sync now
+  // and sync caps writes at 120/minute. This mirrors the `if (changed)` guard
+  // handleActiveTabsGroupChanges already uses.
+  let labelsMutated = false;
   const stamp = (urlKey) => { stamped = stampLabelMembership(activeTab, group.title, urlKey); };
   debugGroup('groupTabs: record in-group tab urlKey into label', {
     tabId: parseTabId(activeTab),
@@ -1422,6 +1490,7 @@ function recordInGroupTab(labels, group, activeTab, activeTabs) {
       color: mapColors(group.color)
     };
     stamp(activeTab.urlKey);
+    labelsMutated = true;
     recordAddition(AdditionSource.WORKER_IN_GROUP_SYNC, {
       labelTitle: group.title,
       urlKeys: [activeTab.urlKey],
@@ -1445,6 +1514,7 @@ function recordInGroupTab(labels, group, activeTab, activeTabs) {
       // different key than it did — so it belongs in the addition trail too,
       // carrying both keys so a rewrite chain is readable. The dedup SPLICE
       // branch (`removed`) is a drop, not an add; it is audited as a removal below.
+      if (mutated) labelsMutated = true;
       if (mutated && !removed) {
         stamp(activeTab.urlKey);
         recordAddition(AdditionSource.WORKER_DRIFT_HEAL, {
@@ -1475,6 +1545,7 @@ function recordInGroupTab(labels, group, activeTab, activeTabs) {
     } else {
       label.urlKeys.push(activeTab.urlKey);
       stamp(activeTab.urlKey);
+      labelsMutated = true;
       recordAddition(AdditionSource.WORKER_IN_GROUP_SYNC, {
         labelTitle: group.title,
         urlKeys: [activeTab.urlKey],
@@ -1493,7 +1564,16 @@ function recordInGroupTab(labels, group, activeTab, activeTabs) {
       });
     }
   }
-  update({ labels: labels, ...(stamped && activeTabs ? { activeTabs } : {}) });
+  // Write only what actually changed. The membership stamp lives on the
+  // `activeTabs` entry and still needs persisting on its own — a stamp with no
+  // label mutation is the common "clicked a URL already filed in this group"
+  // path — so the two are now independent rather than riding one blanket write.
+  const outgoing = {};
+  if (labelsMutated) outgoing.labels = labels;
+  if (stamped && activeTabs) outgoing.activeTabs = activeTabs;
+  if (Object.keys(outgoing).length === 0) return;
+
+  update(outgoing);
 }
 
 async function groupTabs(activeTabs, labels) {

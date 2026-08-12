@@ -3,9 +3,13 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { installChromeShim } from '../../utils/chromeShim';
+import { readByArea } from '../../utils/storageAccess';
 import ImportExport from './ImportExport';
 
-const get = (keys) => new Promise((resolve) => chrome.storage.local.get(keys, resolve));
+// Read back through the area router rather than chrome.storage.local directly:
+// `labels` lives in chrome.storage.sync now, so a hardcoded local read would
+// come back empty no matter what the import wrote.
+const get = (keys) => new Promise((resolve) => readByArea(keys, resolve));
 const seed = (key, value) => window.localStorage.setItem(key, JSON.stringify(value));
 
 // A readonly export textbox whose value contains the given needle.

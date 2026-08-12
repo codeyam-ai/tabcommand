@@ -1,0 +1,23 @@
+{
+  "name": "Import / Export - Groups Too Large To Sync",
+  "id": "4f7aead2-b941-4273-a961-d69aacb6da90",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://react.dev/learn": "{\"url\":\"https://react.dev/learn\",\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "previousLabels": "[]",
+      "url-https://github.com/codeyam/tabcommand": "{\"url\":\"https://github.com/codeyam/tabcommand\",\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"processes\":{\"samples\":0}}",
+      "uxSettings": "{\"page\":{\"name\":\"ImportExport\"}}",
+      "syncStatus": "{\"status\":\"too-large\",\"key\":\"labels\",\"bytes\":9147,\"at\":1786545000000}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\"]}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+  "description": "The quota fallback made visible. The user's groups serialize past the sync per-item limit, so the write fell back to chrome.storage.local and syncStatus recorded it. The page warns that groups are NOT being backed up and points at the Export snapshot directly below as the recovery — the alternative, staying silent, would look exactly like a working backup."
+}
