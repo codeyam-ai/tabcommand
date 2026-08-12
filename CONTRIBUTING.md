@@ -32,11 +32,11 @@ unillustrated.
 ## Building and testing by hand
 
 If you're working without the editor, the standard workflow is fully supported.
-Requires Node.js 22+.
+Requires Node.js 22.22.2+.
 
 ```bash
-# Install dependencies
-npm install
+# Install dependencies (pins the npm version via corepack, then installs)
+npm run setup
 
 # Run the test suite and the linter
 npm test

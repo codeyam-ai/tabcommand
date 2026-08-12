@@ -43,8 +43,8 @@ codeyam-editor editor
 # If the tabcommand repo is not already installed
 git clone https://github.com/codeyam-ai/tabcommand && cd tabcommand
 
-# Install dependencies
-npm install
+# Install dependencies (pins the npm version, then installs)
+npm run setup
 
 # Build tabcommand for installation as a chrome extension
 npm run build
