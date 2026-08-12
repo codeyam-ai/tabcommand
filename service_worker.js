@@ -7,8 +7,10 @@ import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
 import navigatedAwayFromRecordedSlot from './src/lib/utils/navigatedAwayFromRecordedSlot.js';
 import { buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource } from './src/lib/utils/groupRemovalLog.js';
 import { buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource } from './src/lib/utils/groupAdditionLog.js';
+import { buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource } from './src/lib/utils/groupMoveLog.js';
+import { needsGroupCall, needsUngroupCall, bucketTabsByWindow } from './src/lib/utils/tabPlacement.js';
+import findLabelForUrlKey from './src/lib/utils/findLabelForUrlKey.js';
 
-let defaultWindowId;
 let listening = true;
 let removing;
 // Tab ids whose `chrome.tabs.ungroup` is in flight. A navigated tab leaving a
@@ -98,6 +100,64 @@ function recordAddition(source, details) {
       )
     });
   });
+}
+
+// Records an issued tab MOVE to an always-on audit trail — the third sibling of
+// `recordRemoval` / `recordAddition`, and unconditional for the same reason.
+// Those two trail label MEMBERSHIP; neither sees the thing the user actually
+// notices, which is the tab jumping position in the strip. `chrome.tabs.group`
+// and `chrome.tabs.ungroup` reposition a tab on every call, so "TabCommand keeps
+// moving my tabs" is a report about issued calls — and it was undiagnosable
+// without a trail of them.
+//
+// Called ONLY after the `needsGroupCall` / `needsUngroupCall` guards pass, i.e.
+// only where a real move is about to happen. A suppressed no-op leaves no entry,
+// so a quiet steady state reads as an empty trail rather than a guess. Persists
+// to its own `groupMoveLog` key so it is never buried by, or trimmed with, the
+// noisy auto-group breadcrumbs in `groupingLog`:
+//   chrome.storage.local.get('groupMoveLog', console.log)
+// Fire-and-forget: the async storage round-trip never blocks the caller, and it
+// only records moves — it never changes placement behavior. The write cannot
+// re-enter the grouping loop: `storage.onChanged` bails unless `labels` or
+// `activeTabs` changed, and this touches neither.
+function recordMove(source, details) {
+  getLocalStorage([GROUP_MOVE_LOG_KEY], (result) => {
+    update({
+      [GROUP_MOVE_LOG_KEY]: appendGroupingLog(
+        result[GROUP_MOVE_LOG_KEY],
+        buildGroupMoveEntry(source, { ...details, t: Date.now() }),
+        GROUP_MOVE_LOG_CAP
+      )
+    });
+  });
+}
+
+// Record one move entry per tab actually handed to `chrome.tabs.group`. Both
+// grouping branches (create-a-new-group and add-to-an-existing-group) need the
+// identical loop, and a batched Chrome call moves every tab in it — so the trail
+// records per tab, not per call.
+function recordGroupMoves(tabs, toGroupId, labelTitle) {
+  for (const tab of tabs) {
+    recordMove(MoveSource.WORKER_AUTO_GROUP, {
+      action: 'group',
+      tabId: parseTabId(tab),
+      fromGroupId: tab.groupId,
+      toGroupId,
+      labelTitle,
+      urlKey: tab.urlKey
+    });
+  }
+}
+
+// Resolve a group id to its label title, preferring the in-memory `groups` map
+// and falling back to Chrome. The fallback is not an optimization detail: right
+// after an MV3 service-worker restart the map is COLD, and both onUpdated
+// branches that need a title run in exactly that window.
+async function resolveGroupTitle(groupId) {
+  const cached = groups[groupId];
+  if (cached) return cached;
+  const group = await getTabGroup(groupId);
+  return group && group.title;
 }
 
 // Stamp an `activeTabs` entry with the label slot its URL was just filed under.
@@ -268,7 +328,6 @@ if (chrome.alarms) {
 }
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (tab.title === "TabCommand") defaultWindowId = tab.windowId;
   let updates = await tabUpdates(tab);
   
   const checkRemoving = () => {
@@ -299,17 +358,48 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       const isNavigation = samePageKey(oldUrl) !== samePageKey(changeInfo.url);
 
       if (tab.groupId > -1 && isNavigation) {
-        debugGroup('onUpdated: eject grouped tab (navigation)', {
-          tabId: tab.id,
-          oldUrl,
-          newUrl: changeInfo.url,
-          groupId: tab.groupId
-        });
-        pendingUngroups.add(tab.id);
-        chrome.tabs.ungroup(tab.id, () => {
-          void (chrome.runtime && chrome.runtime.lastError);
-          pendingUngroups.delete(tab.id);
-        });
+        // A real navigation ejects the tab from its group — but not when the tab
+        // simply moved to ANOTHER URL the same label already claims. Sites that
+        // rewrite their own path with no user input (auth bounces, redirect
+        // chains, chat/doc apps) hit this constantly, and ejecting there is
+        // pure churn: groupTabs pulls the tab straight back in on the next pass,
+        // so the user watches it pop out and snap back. Resolve the label title
+        // the same way the in-page branch below does.
+        const currentLabelTitle = await resolveGroupTitle(tab.groupId);
+        const stillAMember = urlKeyIsMember(
+          labels[currentLabelTitle],
+          getUrlKey(changeInfo.url)
+        );
+
+        if (stillAMember) {
+          debugGroup('onUpdated: keep grouped tab (navigated to another member URL)', {
+            tabId: tab.id,
+            oldUrl,
+            newUrl: changeInfo.url,
+            label: currentLabelTitle,
+            groupId: tab.groupId
+          });
+        } else if (needsUngroupCall(tab)) {
+          debugGroup('onUpdated: eject grouped tab (navigation)', {
+            tabId: tab.id,
+            oldUrl,
+            newUrl: changeInfo.url,
+            groupId: tab.groupId
+          });
+          recordMove(MoveSource.WORKER_NAVIGATION_EJECT, {
+            action: 'ungroup',
+            tabId: tab.id,
+            fromGroupId: tab.groupId,
+            toGroupId: -1,
+            labelTitle: currentLabelTitle,
+            urlKey: getUrlKey(changeInfo.url)
+          });
+          pendingUngroups.add(tab.id);
+          chrome.tabs.ungroup(tab.id, () => {
+            void (chrome.runtime && chrome.runtime.lastError);
+            pendingUngroups.delete(tab.id);
+          });
+        }
       } else if (tab.groupId > -1 && !isNavigation) {
         // In-page URL change on a grouped tab (e.g. Google Docs rewriting
         // `?tab=t.…` via the History API). The tab stays grouped, but its live
@@ -322,14 +412,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         // where the recorded key is a third `?tab=` variant — but the
         // membership/eject paths still compare exact keys, so samePageKey never
         // becomes the membership test.
-        let labelTitle = groups[tab.groupId];
-        if (!labelTitle) {
-          // Cold `groups` map (common right after a service-worker restart):
-          // resolve the title straight from Chrome, mirroring the groupId === -1
-          // branch below.
-          const group = await getTabGroup(tab.groupId);
-          labelTitle = group && group.title;
-        }
+        const labelTitle = await resolveGroupTitle(tab.groupId);
         const label = labels[labelTitle];
         if (label) {
           const newUrlKey = getUrlKey(changeInfo.url);
@@ -496,12 +579,18 @@ async function updateActiveTabs() {
       return;
     }
 
-    getLocalStorage(['activeTabs', 'autoClosed'], (result) => {
+    getLocalStorage(['activeTabs', 'autoClosed', 'labels'], (result) => {
       const activeTabs = result.activeTabs || [];
       const autoClosed = result.autoClosed || {};
-      
+      // Read straight from storage rather than the module-level `labels`: this
+      // callback can run before that binding is initialized, and the membership
+      // test below only needs a fresh snapshot.
+      const storedLabels = result.labels || {};
+
+      // A Chrome `Tab` has `index`, not `tabIndex` — the old comparator returned
+      // NaN for every pair, so the sort was a silent no-op.
       const newActiveTabs = tabs.sort(
-        (a, b) => a.tabIndex - b.tabIndex
+        (a, b) => a.index - b.index
       );
 
       const updatedActiveTabs = newActiveTabs.filter(validTab).map(
@@ -515,6 +604,11 @@ async function updateActiveTabs() {
             urlKey: getUrlKey(tab.url),
             pinned: tab.pinned,
             groupId: tab.groupId,
+            // Which window the tab lives in. groupTabs needs it to scope its
+            // `chrome.tabGroups.query` — an unscoped query can return a group in
+            // ANOTHER window, and grouping into it physically drags the tab
+            // across windows.
+            windowId: tab.windowId,
             activeAt: (tab.active ? Date.now() : (existingTab ?? {}).activeAt),
             openedAt: (existingTab ?? { openedAt: Date.now() }).openedAt,
             tabCommandPinned: (existingTab ?? {}).tabCommandPinned,
@@ -532,7 +626,22 @@ async function updateActiveTabs() {
 
       for (const activeTab of updatedActiveTabs) {
         if (activeTab.active && autoClosed[activeTab.urlKey]) {
-          chrome.tabs.ungroup(parseInt(activeTab.tabKey.split('-')[1]));
+          // Returning to a page the Closer had closed. Clearing the autoClosed
+          // entry is the point; the ungroup is not. If this URL is a label
+          // member, ejecting it only has groupTabs pull it straight back in on
+          // the next pass — the visible out-and-back jump users report every
+          // time they revisit a closed page. Only eject a non-member.
+          const isMember = !!findLabelForUrlKey(storedLabels, activeTab.urlKey);
+          if (!isMember && needsUngroupCall(activeTab)) {
+            recordMove(MoveSource.WORKER_AUTO_CLOSE_REVISIT, {
+              action: 'ungroup',
+              tabId: parseTabId(activeTab),
+              fromGroupId: activeTab.groupId,
+              toGroupId: -1,
+              urlKey: activeTab.urlKey
+            });
+            chrome.tabs.ungroup(parseTabId(activeTab));
+          }
           delete autoClosed[activeTab.urlKey];
         } else if (activeTab.groupId !== autoClosed.groupId && autoClosed[activeTab.urlKey]) {
           delete autoClosed[activeTab.urlKey];
@@ -1046,7 +1155,18 @@ let activeTabs = [];
 getLocalStorage(['labels', 'activeTabs'], (result) => {
   labels = result.labels || {};
   activeTabs = result.activeTabs || [];
-  groupTabs(activeTabs, labels);
+  // Deliberately does NOT call groupTabs here. `activeTabs` is a PERSISTED
+  // snapshot, and Chrome tab ids are unique only within a browser session — after
+  // a restart those ids refer to different tabs entirely. MV3 wakes this worker
+  // constantly, so grouping from the snapshot means `chrome.tabs.group` /
+  // `chrome.tabs.ungroup` firing at unrelated tabs on the first wake, moving them
+  // with the user doing nothing at all.
+  //
+  // Nothing is lost by dropping it: the module-level `updateActiveTabs()` call
+  // re-reads LIVE tabs and writes `activeTabs`, and that write re-enters
+  // `storage.onChanged` -> `groupTabs` with live tab ids and live group ids. The
+  // only cost is one storage round-trip of latency on the first grouping pass
+  // after a worker wake.
 });
 
 chrome.storage.onChanged.addListener(
@@ -1258,6 +1378,16 @@ async function ejectAutoGroupedTab(activeTab, groupTitle) {
   });
 
   autoGroupedTabs.delete(tabId);
+  if (!needsUngroupCall(activeTab)) return 'ejected';
+
+  recordMove(MoveSource.WORKER_AUTO_GROUP_EJECT, {
+    action: 'ungroup',
+    tabId,
+    fromGroupId: activeTab.groupId,
+    toGroupId: -1,
+    labelTitle: groupTitle,
+    urlKey: activeTab.urlKey
+  });
   pendingUngroups.add(tabId);
   chrome.tabs.ungroup(tabId, () => {
     void (chrome.runtime && chrome.runtime.lastError);
@@ -1367,55 +1497,65 @@ function recordInGroupTab(labels, group, activeTab, activeTabs) {
 }
 
 async function groupTabs(activeTabs, labels) {
-  const groupLabeledTab = async (tabs, label) => {
-    const unpinnedTabIds = [];
-    for (const tab of tabs) {
-      if (!tab.pinned) unpinnedTabIds.push(parseTabId(tab));
-    }
-
+  const groupLabeledTab = (tabs, label) => {
     const labelTitle = label.title;
 
-    chrome.tabGroups.query({ title: labelTitle }, async (groups) => {
-      if (!groups) return;
-      
-      if (groups.length === 0) {
-        // We are creating a NEW Chrome group and putting these tabs in it.
-        debugGroup('groupTabs: chrome.tabs.group -> NEW group', {
-          label: labelTitle,
-          tabIds: unpinnedTabIds
-        });
-        chrome.tabs.group({ tabIds: unpinnedTabIds }, (groupId) => {
-          chrome.tabGroups.update(groupId, {
-            title: labelTitle,
-            color: mapColors(label.backgroundColor)
+    // Bucket by window before querying. `chrome.tabGroups.query({ title })` is
+    // NOT window-scoped, and the old code took `groups[0]` — so with the same
+    // label grouped in two windows, `chrome.tabs.group({ groupId })` physically
+    // DRAGGED tabs into the other window. A label legitimately has one Chrome
+    // group per window; tabs are never pulled across windows.
+    const byWindow = bucketTabsByWindow(tabs);
+
+    for (const [windowId, windowTabs] of byWindow) {
+      const query = windowId == null
+        ? { title: labelTitle }
+        : { title: labelTitle, windowId };
+
+      chrome.tabGroups.query(query, (groups) => {
+        if (!groups) return;
+
+        if (groups.length === 0) {
+          // No Chrome group for this label in this window yet — create one.
+          const creating = windowTabs.filter((tab) => needsGroupCall(tab, undefined));
+          // Never create an empty group.
+          if (creating.length === 0) return;
+
+          const tabIds = creating.map(parseTabId);
+          debugGroup('groupTabs: chrome.tabs.group -> NEW group', {
+            label: labelTitle,
+            windowId,
+            tabIds
           });
-        });
-      } else {
-        if (defaultWindowId && groups[0].windowId !== defaultWindowId) {
-          const existingGroupTabs = activeTabs.filter(
-            t => t.groupId === groups[0].id
-          );
-
-          const existingGroupTabIds = existingGroupTabs.map(
-            t => parseInt(t.tabKey.split('-')[1])
-          );
-
-          await chrome.tabs.remove(existingGroupTabIds);
-
-          for (const tab of existingGroupTabs) {
-            await chrome.tabs.create({ url: tab.urlKey.split('-')[1] });
-          }
+          chrome.tabs.group({ tabIds }, (groupId) => {
+            chrome.tabGroups.update(groupId, {
+              title: labelTitle,
+              color: mapColors(label.backgroundColor)
+            });
+            recordGroupMoves(creating, groupId, labelTitle);
+          });
         } else {
-          // We are adding these tabs to an EXISTING Chrome group.
+          const targetGroupId = groups[0].id;
+          // The idempotence guard. `chrome.tabs.group` is a REPOSITION, not an
+          // assertion: calling it on a tab already in the target group appends it
+          // to the end of that group, firing onMoved -> updateActiveTabs ->
+          // storage.onChanged -> groupTabs -> group again. Filtering to tabs that
+          // are genuinely elsewhere is what lets a steady-state pass issue zero
+          // Chrome calls and damps that loop.
+          const moving = windowTabs.filter((tab) => needsGroupCall(tab, targetGroupId));
+          if (moving.length === 0) return;
+
           debugGroup('groupTabs: chrome.tabs.group -> EXISTING group', {
             label: labelTitle,
-            groupId: groups[0].id,
-            tabIds: unpinnedTabIds
+            windowId,
+            groupId: targetGroupId,
+            tabIds: moving.map(parseTabId)
           });
-          chrome.tabs.group({ tabIds: unpinnedTabIds, groupId: groups[0].id });
+          chrome.tabs.group({ tabIds: moving.map(parseTabId), groupId: targetGroupId });
+          recordGroupMoves(moving, targetGroupId, labelTitle);
         }
-      }
-    });
+      });
+    }
   };
 
   const labelTabIds = {};
@@ -1461,36 +1601,53 @@ async function groupTabs(activeTabs, labels) {
       // (startup-sync path; Chrome's per-tab inheritance is handled above).
       recordInGroupTab(labels, group, activeTab, activeTabs);
 
-      labelTabIds[group.title] ||= [];
-      labelTabIds[group.title].push(activeTab);
+      // Deliberately NOT queued into labelTabIds. Reaching this branch means the
+      // tab is ALREADY inside `group`, so handing it to groupLabeledTab could
+      // only ever reposition it — never place it somewhere new. And on
+      // recordInGroupTab's refuse-append path (the tab merely navigated away from
+      // its recorded slot, so nothing is recorded and state is unchanged) that
+      // reposition repeats on every single pass: the self-sustaining
+      // group -> onMoved -> updateActiveTabs -> storage.onChanged -> groupTabs
+      // loop behind "my tabs keep jumping around". Do not reinstate this as a
+      // "make sure it's grouped" safety net — it is not one.
     } else {
-      let found = false;
-      for (const labelTitle of Object.keys(labels)) {
-        if (labels[labelTitle].urlKeys.indexOf(activeTab.urlKey) > -1) {
-          found = true;
-          // An ungrouped tab's URL matches a label's sticky urlKeys, so we will
-          // auto-add it to that group. If you didn't expect this URL to be a
-          // member, the urlKey got recorded earlier (see the record logs above).
-          debugGroup('groupTabs: auto-group ungrouped tab (urlKey matched label)', {
-            tabId: parseTabId(activeTab),
-            urlKey: activeTab.urlKey,
-            label: labelTitle
-          });
-          // Earliest point the binding is known — this fires when the user clicks a
-          // group row, before Chrome's `chrome.tabs.group` has even landed — so it
-          // closes the window where the confirm-branch stamp above has not run yet.
-          stampsChanged = stampLabelMembership(activeTab, labelTitle, activeTab.urlKey) || stampsChanged;
-          labelTabIds[labelTitle] ||= [];
-          labelTabIds[labelTitle].push(activeTab);
-        }
+      // Exactly ONE destination per URL. This used to be a loop that queued the
+      // tab into EVERY label claiming its urlKey, so a URL filed under two labels
+      // was grouped twice in one pass — into group A, then into group B — and
+      // which one won depended on async tabGroups.query ordering, so it could
+      // differ pass to pass. That is the literal back-and-forth.
+      const labelTitle = findLabelForUrlKey(labels, activeTab.urlKey);
+
+      if (labelTitle) {
+        // An ungrouped tab's URL matches a label's sticky urlKeys, so we will
+        // auto-add it to that group. If you didn't expect this URL to be a
+        // member, the urlKey got recorded earlier (see the record logs above).
+        debugGroup('groupTabs: auto-group ungrouped tab (urlKey matched label)', {
+          tabId: parseTabId(activeTab),
+          urlKey: activeTab.urlKey,
+          label: labelTitle
+        });
+        // Earliest point the binding is known — this fires when the user clicks a
+        // group row, before Chrome's `chrome.tabs.group` has even landed — so it
+        // closes the window where the confirm-branch stamp above has not run yet.
+        stampsChanged = stampLabelMembership(activeTab, labelTitle, activeTab.urlKey) || stampsChanged;
+        labelTabIds[labelTitle] ||= [];
+        labelTabIds[labelTitle].push(activeTab);
       }
 
-      if (!found && activeTab.groupId > -1) {
+      if (!labelTitle && activeTab.groupId > -1 && needsUngroupCall(activeTab)) {
         // Tab is in a group but no label claims its URL — we ungroup it.
         debugGroup('groupTabs: ungroup tab (no matching label)', {
           tabId: parseTabId(activeTab),
           urlKey: activeTab.urlKey,
           groupId: activeTab.groupId
+        });
+        recordMove(MoveSource.WORKER_NO_MATCHING_LABEL, {
+          action: 'ungroup',
+          tabId: parseTabId(activeTab),
+          fromGroupId: activeTab.groupId,
+          toGroupId: -1,
+          urlKey: activeTab.urlKey
         });
         chrome.tabs.ungroup(parseTabId(activeTab));
       }

@@ -1,0 +1,360 @@
+{
+  "summary": "TabCommand was moving users' tabs around the Chrome tab strip with no user input. It never calls chrome.tabs.move, but chrome.tabs.group and chrome.tabs.ungroup both physically reposition tabs, and the service worker issued them unconditionally — re-asserting the desired grouping on every pass instead of acting only when a tab was actually in the wrong place. This session made every placement call idempotent, fixed the four paths that computed the wrong destination in the first place, and added an always-on move audit trail so the next report is provable from the user's own profile.",
+  "changes": [
+    {
+      "title": "Placement calls are now idempotent",
+      "description": "chrome.tabs.group and chrome.tabs.ungroup are repositions, not assertions: Chrome honors them even when the tab is already where the call would put it, appending it to the end of the group or popping it out to the right. Two pure predicates now gate every placement call — never group a tab whose live groupId already equals the target, never ungroup a tab already in no group. This is the primary fix. It makes a steady-state pass issue zero Chrome calls, which is what damps the self-feeding loop (a move fires onMoved, which drives updateActiveTabs, a storage.local.set, storage.onChanged, and another groupTabs pass — and storage.local.set fires onChanged even when the written value is byte-identical, so nothing else broke the cycle). Both predicates compare group ids against -1 explicitly rather than by truthiness, so group id 0 is treated as the valid Chrome group it is.",
+      "files": [
+        "src/lib/utils/tabPlacement.js",
+        "service_worker.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read src/lib/utils/tabPlacement.test.js for the predicates, including the falsy-zero group-id edge, and service_worker.test.js for the steady-state pass that issues no Chrome calls at all."
+        }
+      ],
+      "tests": [
+        {
+          "name": "needsGroupCall › is false when the tab is already in the target group",
+          "file": "src/lib/utils/tabPlacement.test.js",
+          "description": "A tab already in the target group needs no group call — that call would only reposition it.",
+          "status": "passing",
+          "example": {
+            "input": "needsGroupCall({ groupId: 5, pinned: false }, 5)",
+            "output": "false",
+            "note": "Tab already in group 5, target is group 5 — no call, so no reposition."
+          }
+        },
+        {
+          "name": "needsGroupCall › is true when the tab is in a different group",
+          "file": "src/lib/utils/tabPlacement.test.js",
+          "description": "The guard does not over-suppress: a tab genuinely somewhere else still gets moved.",
+          "status": "passing",
+          "example": {
+            "input": "needsGroupCall({ groupId: 3, pinned: false }, 5)",
+            "output": "true"
+          }
+        },
+        {
+          "name": "needsGroupCall › treats group id 0 as a real group rather than as no group",
+          "file": "src/lib/utils/tabPlacement.test.js",
+          "description": "Group id 0 is falsy but valid; comparing by truthiness would re-group that tab every pass.",
+          "status": "passing",
+          "example": {
+            "input": "needsGroupCall({ groupId: 0, pinned: false }, 0)",
+            "output": "false",
+            "note": "A truthiness check would read group 0 as 'no group' and re-group this tab on every pass."
+          }
+        },
+        {
+          "name": "needsUngroupCall › is false when the tab is already in no group",
+          "file": "src/lib/utils/tabPlacement.test.js",
+          "description": "Ungrouping an already-ungrouped tab still moves it in the strip, so the no-op is suppressed.",
+          "status": "passing",
+          "example": {
+            "input": "needsUngroupCall({ groupId: -1 })",
+            "output": "false"
+          }
+        },
+        {
+          "name": "service_worker.js › groupTabs tab placement › issues no chrome calls when every tab is already correctly grouped",
+          "file": "service_worker.test.js",
+          "description": "The steady state: when every tab already sits in its label's group, a pass issues zero Chrome calls, so onMoved never fires and the feedback loop stays quiet.",
+          "status": "passing"
+        },
+        {
+          "name": "service_worker.js › groupTabs tab placement › still auto-groups an ungrouped tab whose urlKey is a member",
+          "file": "service_worker.test.js",
+          "description": "Guards against over-suppression — auto-grouping still works, exactly once.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "A tab already in its group is never re-grouped",
+      "description": "The strongest single explanation of tabs jumping back and forth. groupTabs pushed an in-group tab into the grouping queue after calling recordInGroupTab, even when recordInGroupTab took its refuse-append early return — the path where a tab has merely navigated away from its recorded slot, which deliberately records nothing. Because that return leaves state unchanged, the tab was in exactly the same condition on the next pass, so chrome.tabs.group was called on a tab already in that group forever, Chrome moved it to the end of the group each time, and onMoved re-entered the loop. A tab reaching that branch is by definition already inside the group, so queueing it could only ever reposition it; the queueing was removed outright.",
+      "files": [
+        "service_worker.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read the reproduction test in service_worker.test.js — it was confirmed RED against the pre-fix worker, failing with chrome.tabs.group called once on a tab already in group 5."
+        }
+      ],
+      "tests": [
+        {
+          "name": "service_worker.js › groupTabs › never re-groups a tab that is already in the target group",
+          "file": "service_worker.test.js",
+          "description": "The reproduction test for the refuse-append loop: a tab already inside its group, whose live URL is not yet a recorded member, must never be handed to chrome.tabs.group.",
+          "status": "passing",
+          "example": {
+            "input": "groupTabs([{ tabKey: 'tab-7', urlKey: 'url-https://a.com/apps/123', groupId: 5, windowId: 1, labelTitle: 'Work', labelUrlKey: 'url-https://a.com/apps' }], { Work: { urlKeys: ['url-https://a.com/apps'] } })",
+            "output": "chrome.tabs.group not called",
+            "note": "Against the pre-fix worker this failed with chrome.tabs.group({ tabIds: [7], groupId: 5 }) called once."
+          }
+        },
+        {
+          "name": "service_worker.js › groupTabs tab placement › never relocates an in-group tab to another group",
+          "file": "service_worker.test.js",
+          "description": "Proves the queueing removal specifically, not just the idempotence guard: when the label's Chrome group resolves to a different id than the one the tab sits in, the tab is still not moved.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "Group lookup is scoped per window, and the destructive consolidate branch is gone",
+      "description": "chrome.tabGroups.query is not window-scoped and the code took groups[0], so with the same label grouped in two windows, chrome.tabs.group dragged tabs into the other window. Tabs bound for a label are now bucketed by window and each bucket resolves its own Chrome group, creating one per window as needed — a label may legitimately have one group per window, and no tab crosses windows. Worse than the pull was the branch beneath it: when defaultWindowId was set and differed, the code called chrome.tabs.remove on the user's tabs and re-created them, losing page state and dropping them at the end of the strip. defaultWindowId was only ever assigned when a tab titled TabCommand updated, so it was stale or undefined most of the time and which branch ran was effectively arbitrary. That branch and the variable are deleted.",
+      "files": [
+        "src/lib/utils/tabPlacement.js",
+        "service_worker.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read the window-scoping and no-destroy tests in service_worker.test.js, plus the bucketTabsByWindow cases in src/lib/utils/tabPlacement.test.js covering pinned tabs and entries persisted before windowId existed."
+        }
+      ],
+      "tests": [
+        {
+          "name": "service_worker.js › groupTabs tab placement › scopes the group lookup to each tab window so tabs never cross windows",
+          "file": "service_worker.test.js",
+          "description": "Two windows sharing one label each get their own Chrome group; neither window's tab is moved into the other's.",
+          "status": "passing",
+          "example": {
+            "input": "two member tabs, tab-7 in window 1 and tab-8 in window 2, sharing the label 'Work'",
+            "output": "chrome.tabs.group({ tabIds: [7], groupId: 5 }) and chrome.tabs.group({ tabIds: [8], groupId: 6 })",
+            "note": "Two groups, one per window — never one group pulling both tabs into a single window."
+          }
+        },
+        {
+          "name": "service_worker.js › groupTabs tab placement › never closes and re-creates tabs while grouping",
+          "file": "service_worker.test.js",
+          "description": "Grouping must never destroy a tab — a reintroduction guard on the removed consolidate branch.",
+          "status": "passing"
+        },
+        {
+          "name": "bucketTabsByWindow › splits tabs into one bucket per window",
+          "file": "src/lib/utils/tabPlacement.test.js",
+          "description": "Tabs in two windows resolve to two buckets so each window gets its own group.",
+          "status": "passing",
+          "example": {
+            "input": "bucketTabsByWindow([{ tabKey: 'tab-1', windowId: 1 }, { tabKey: 'tab-2', windowId: 2 }, { tabKey: 'tab-3', windowId: 1 }])",
+            "output": "Map { 1 => [tab-1, tab-3], 2 => [tab-2] }",
+            "note": "Each window resolves its own Chrome group, so no tab is dragged across windows."
+          }
+        },
+        {
+          "name": "bucketTabsByWindow › drops pinned tabs so they never create a bucket",
+          "file": "src/lib/utils/tabPlacement.test.js",
+          "description": "A bucket holding only pinned tabs would otherwise cause an empty Chrome group to be created.",
+          "status": "passing",
+          "example": {
+            "input": "bucketTabsByWindow([{ tabKey: 'tab-1', windowId: 1, pinned: true }, { tabKey: 'tab-2', windowId: 2, pinned: false }])",
+            "output": "Map { 2 => [tab-2] }  // window 1 has no bucket at all"
+          }
+        },
+        {
+          "name": "service_worker.js › groupTabs tab placement › does not create a group when no tab needs to move into it",
+          "file": "service_worker.test.js",
+          "description": "Creating a group for a label whose tabs all need no move would leave an empty group in the strip.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "No grouping from the stale cold-start snapshot",
+      "description": "The load-time handler grouped from activeTabs read straight out of storage. Chrome tab ids are unique only within a browser session, so after a browser restart those persisted ids refer to entirely different tabs — and MV3 wakes the worker constantly, so on the first wake after a restart chrome.tabs.group and chrome.tabs.ungroup fired at unrelated tabs with the user doing nothing at all. The grouping call is dropped from that path; the module-level updateActiveTabs already re-reads live tabs and writes activeTabs, which re-enters storage.onChanged and groups with live tab ids and live group ids. The only cost is one storage round-trip of latency on the first grouping pass after a worker wake.",
+      "files": [
+        "service_worker.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read the cold start grouping test in service_worker.test.js — it loads the worker with a persisted snapshot holding a stale tab id and asserts no Chrome calls are issued."
+        }
+      ],
+      "tests": [
+        {
+          "name": "service_worker.js › cold start grouping › does not group from the persisted snapshot when the worker wakes",
+          "file": "service_worker.test.js",
+          "description": "A persisted activeTabs entry whose tab id now belongs to a different tab must not cause any group or ungroup call on worker wake.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "Revisiting an auto-closed page no longer yanks the tab out of its group",
+      "description": "updateActiveTabs called chrome.tabs.ungroup on the active tab whenever an autoClosed entry existed for its URL. If that URL was a label member, the next grouping pass pulled it straight back in — a visible out-and-back jump every single time the user returned to a page the Closer had closed. The ungroup is now issued only when no label claims the URL; clearing the autoClosed entry, which was the actual point, still happens on both paths.",
+      "files": [
+        "service_worker.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read both auto-closed revisit tests in service_worker.test.js — one proves a member stays put, the other proves a non-member is still ejected."
+        }
+      ],
+      "tests": [
+        {
+          "name": "service_worker.js › updateActiveTabs › does not eject a revisited auto-closed tab whose url is a label member",
+          "file": "service_worker.test.js",
+          "description": "The tab stays in its group and the autoClosed entry is still cleared — only the move is suppressed.",
+          "status": "passing"
+        },
+        {
+          "name": "service_worker.js › updateActiveTabs › still ejects a revisited auto-closed tab that no label claims",
+          "file": "service_worker.test.js",
+          "description": "Guards against over-suppression: a non-member is ejected exactly as before.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "One destination per URL, and a narrower eject on path rewrites",
+      "description": "Two flip-flop sources, both resolved through a single shared helper that answers where a URL belongs. First, the label loop had no break, so a urlKey recorded in two labels was queued into both buckets and grouped twice in one pass — into group A and then group B — with the winner depending on async tabGroups.query ordering, so it could differ pass to pass. Returning the first match makes the destination single and, more importantly, stable across passes. Second, the navigation eject fired on any pathname change, so sites that rewrite their own path with no user input (auth bounces, redirect chains, chat and doc apps) got popped out of the group and, when the new URL was also a member, pulled straight back in; it now checks membership of the new URL first and skips a pointless eject.",
+      "files": [
+        "src/lib/utils/findLabelForUrlKey.js",
+        "service_worker.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read src/lib/utils/findLabelForUrlKey.test.js, especially the doubly-claimed urlKey cases proving the destination is both single and stable, plus the onUpdated navigation eject tests in service_worker.test.js."
+        }
+      ],
+      "tests": [
+        {
+          "name": "findLabelForUrlKey › returns exactly one label when two labels claim the same urlKey",
+          "file": "src/lib/utils/findLabelForUrlKey.test.js",
+          "description": "A URL filed under two labels resolves to one destination instead of being grouped twice per pass.",
+          "status": "passing",
+          "example": {
+            "input": "findLabelForUrlKey({ Work: { urlKeys: ['url-https://shared.com'] }, Reading: { urlKeys: ['url-https://shared.com'] } }, 'url-https://shared.com')",
+            "output": "'Work'",
+            "note": "One destination, not two — the old loop queued the tab into both labels."
+          }
+        },
+        {
+          "name": "findLabelForUrlKey › resolves a doubly-claimed urlKey to the same label on every call",
+          "file": "src/lib/utils/findLabelForUrlKey.test.js",
+          "description": "Single is not enough — a destination that differs between passes is exactly the back-and-forth being fixed, so repeated calls must agree.",
+          "status": "passing",
+          "example": {
+            "input": "the same findLabelForUrlKey call, repeated 5 times",
+            "output": "'Work' every time",
+            "note": "Stability across passes is the property that stops the flip-flop."
+          }
+        },
+        {
+          "name": "service_worker.js › groupTabs tab placement › groups a tab whose urlKey is in two labels exactly once",
+          "file": "service_worker.test.js",
+          "description": "End to end through groupTabs: one Chrome call, not two.",
+          "status": "passing"
+        },
+        {
+          "name": "service_worker.js › onUpdated navigation eject › does not eject when the tab navigates to another url in the same label",
+          "file": "service_worker.test.js",
+          "description": "A path rewrite to another member URL leaves the tab in its group instead of popping it out and snapping it back.",
+          "status": "passing"
+        },
+        {
+          "name": "service_worker.js › onUpdated navigation eject › still ejects when the tab navigates to a url no label claims",
+          "file": "service_worker.test.js",
+          "description": "Guards against over-suppression: a genuine navigation away still ejects the tab.",
+          "status": "passing"
+        }
+      ]
+    },
+    {
+      "title": "Tab-strip sort comparator fixed",
+      "description": "A Chrome Tab exposes index, not tabIndex. The comparator subtracted two undefined values, returned NaN for every pair, and the sort silently did nothing — so activeTabs never actually reflected tab-strip order. Found while reading the surrounding code rather than reported.",
+      "files": [
+        "service_worker.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read the sort test in service_worker.test.js — it feeds three tabs out of order and asserts the persisted list comes back in tab-strip order."
+        }
+      ],
+      "tests": [
+        {
+          "name": "service_worker.js › updateActiveTabs › sorts tabs by their tab-strip index",
+          "file": "service_worker.test.js",
+          "description": "Three tabs supplied out of order are persisted in index order, which the NaN comparator never did.",
+          "status": "passing",
+          "example": {
+            "input": "tabs supplied as index 2 (c.com), index 0 (a.com), index 1 (b.com)",
+            "output": "['url-https://a.com', 'url-https://b.com', 'url-https://c.com']",
+            "note": "The old tabIndex comparator returned NaN, so this list came back unsorted."
+          }
+        }
+      ]
+    },
+    {
+      "title": "Always-on move audit trail",
+      "description": "The existing groupAdditionLog and groupRemovalLog trail label membership; neither records the thing users actually notice, which is the tab jumping position in the strip. Both of those were added after a grouping bug proved undiagnosable without them, and the same was true here. A third trail mirrors them exactly — its own storage key, the same bounded ring buffer, a clock-free entry builder, and a fixed vocabulary naming every code path that can move a tab. Entries are written only where a call is actually issued, after the idempotence guards pass, so a suppressed no-op leaves nothing behind and a quiet steady state reads as an empty trail rather than a guess. Inspect it with chrome.storage.local.get('groupMoveLog', console.log) — no flag, no reload.",
+      "files": [
+        "src/lib/utils/groupMoveLog.js",
+        "service_worker.js"
+      ],
+      "waysToTest": [
+        {
+          "kind": "read-tests",
+          "text": "Read src/lib/utils/groupMoveLog.test.js for the entry shape and cap behavior, and the move trail tests in service_worker.test.js proving an issued move is recorded and a suppressed one is not."
+        }
+      ],
+      "tests": [
+        {
+          "name": "buildGroupMoveEntry › builds an entry carrying source, action, tab, both group ids, label and urlKey",
+          "file": "src/lib/utils/groupMoveLog.test.js",
+          "description": "Every field needed to explain why a tab moved and where it went survives into the entry.",
+          "status": "passing",
+          "example": {
+            "input": "buildGroupMoveEntry('worker:auto-group', { action: 'group', tabId: 42, fromGroupId: -1, toGroupId: 5, labelTitle: 'Work', urlKey: 'url-https://a.com', t: 1000 })",
+            "output": "{ t: 1000, source: 'worker:auto-group', action: 'group', tabId: 42, fromGroupId: -1, toGroupId: 5, label: 'Work', urlKey: 'url-https://a.com' }"
+          }
+        },
+        {
+          "name": "buildGroupMoveEntry › records an ungroup as a move to no group",
+          "file": "src/lib/utils/groupMoveLog.test.js",
+          "description": "An eject is distinguishable from a group-to-group move when reading the trail.",
+          "status": "passing",
+          "example": {
+            "input": "buildGroupMoveEntry('worker:navigation-eject', { action: 'ungroup', tabId: 7, fromGroupId: 3, toGroupId: -1, urlKey: 'url-https://b.com', t: 5 })",
+            "output": "action: 'ungroup', fromGroupId: 3, toGroupId: -1"
+          }
+        },
+        {
+          "name": "groupMoveLog constants › stays bounded at the cap when appended through the shared ring buffer",
+          "file": "src/lib/utils/groupMoveLog.test.js",
+          "description": "A long session cannot grow chrome.storage.local without limit.",
+          "status": "passing"
+        },
+        {
+          "name": "service_worker.js › groupTabs move trail › records an entry for an issued group call",
+          "file": "service_worker.test.js",
+          "description": "A real move leaves an entry naming its source and both group ids.",
+          "status": "passing",
+          "example": {
+            "input": "an ungrouped member tab auto-grouped into group 5",
+            "output": "groupMoveLog entry { action: 'group', source: 'worker:auto-group', tabId: 7, fromGroupId: -1, toGroupId: 5 }"
+          }
+        },
+        {
+          "name": "service_worker.js › groupTabs move trail › records nothing when the placement call is suppressed",
+          "file": "service_worker.test.js",
+          "description": "A suppressed no-op moved nothing, so it leaves no entry — which is what makes a quiet steady state readable.",
+          "status": "passing",
+          "example": {
+            "input": "the same tab, already sitting in group 5",
+            "output": "no groupMoveLog write at all",
+            "note": "A quiet steady state reads as an empty trail rather than being inferred."
+          }
+        }
+      ]
+    }
+  ]
+}

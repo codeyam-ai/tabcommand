@@ -21,6 +21,14 @@ import {
   GROUP_ADDITION_LOG_CAP,
   AdditionSource,
 } from './src/lib/utils/groupAdditionLog.js';
+import {
+  buildGroupMoveEntry,
+  GROUP_MOVE_LOG_KEY,
+  GROUP_MOVE_LOG_CAP,
+  MoveSource,
+} from './src/lib/utils/groupMoveLog.js';
+import { needsGroupCall, needsUngroupCall, bucketTabsByWindow } from './src/lib/utils/tabPlacement.js';
+import findLabelForUrlKey from './src/lib/utils/findLabelForUrlKey.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -98,6 +106,14 @@ function loadWorker(chrome) {
     'GROUP_ADDITION_LOG_KEY',
     'GROUP_ADDITION_LOG_CAP',
     'AdditionSource',
+    'buildGroupMoveEntry',
+    'GROUP_MOVE_LOG_KEY',
+    'GROUP_MOVE_LOG_CAP',
+    'MoveSource',
+    'needsGroupCall',
+    'needsUngroupCall',
+    'bucketTabsByWindow',
+    'findLabelForUrlKey',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
@@ -118,7 +134,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey);
 }
 
 describe('service_worker.js', () => {
@@ -770,6 +786,170 @@ describe('service_worker.js', () => {
       const written = chrome.storage.local.set.mock.calls.at(-1)[0];
       expect(written.activeTabs[0].urlKey).toBe('url-https://a.com');
     });
+
+    // A Chrome Tab exposes `index`, not `tabIndex`. The old comparator subtracted
+    // two undefineds, returned NaN for every pair, and the sort silently did
+    // nothing — so activeTabs never actually reflected tab-strip order.
+    it('sorts tabs by their tab-strip index', () => {
+      chrome.tabs.query.mockImplementation((_q, cb) =>
+        cb([
+          { id: 3, url: 'https://c.com', pinned: false, groupId: -1, index: 2 },
+          { id: 1, url: 'https://a.com', pinned: false, groupId: -1, index: 0 },
+          { id: 2, url: 'https://b.com', pinned: false, groupId: -1, index: 1 },
+        ])
+      );
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ activeTabs: [], autoClosed: {} }));
+
+      fns.updateActiveTabs();
+
+      const written = chrome.storage.local.set.mock.calls.at(-1)[0];
+      expect(written.activeTabs.map((t) => t.urlKey)).toEqual([
+        'url-https://a.com',
+        'url-https://b.com',
+        'url-https://c.com',
+      ]);
+    });
+
+    // Returning to a page the Closer had closed used to ungroup it unconditionally.
+    // When the URL is a label member, groupTabs pulls it straight back in on the
+    // next pass — a visible out-and-back jump on every revisit. Clearing the
+    // autoClosed entry is the point; the eject is not.
+    it('does not eject a revisited auto-closed tab whose url is a label member', () => {
+      chrome.tabs.query.mockImplementation((_q, cb) =>
+        cb([{ id: 1, url: 'https://a.com', pinned: false, groupId: 5, index: 0, active: true }])
+      );
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({
+          activeTabs: [],
+          autoClosed: { 'url-https://a.com': 123 },
+          labels: { Work: { title: 'Work', urlKeys: ['url-https://a.com'] } },
+        })
+      );
+
+      fns.updateActiveTabs();
+
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+      // The autoClosed entry is still cleared — only the move is suppressed.
+      const written = chrome.storage.local.set.mock.calls.at(-1)[0];
+      expect(written.autoClosed['url-https://a.com']).toBeUndefined();
+    });
+
+    // Guards against over-suppression: a revisited auto-closed tab that no label
+    // claims is still ejected, exactly as before.
+    it('still ejects a revisited auto-closed tab that no label claims', () => {
+      chrome.tabs.query.mockImplementation((_q, cb) =>
+        cb([{ id: 1, url: 'https://a.com', pinned: false, groupId: 5, index: 0, active: true }])
+      );
+      chrome.storage.local.get.mockImplementation((_q, cb) =>
+        cb({
+          activeTabs: [],
+          autoClosed: { 'url-https://a.com': 123 },
+          labels: { Work: { title: 'Work', urlKeys: ['url-https://zzz.com'] } },
+        })
+      );
+
+      fns.updateActiveTabs();
+
+      expect(chrome.tabs.ungroup).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('onUpdated navigation eject', () => {
+    // Build a worker whose storage answers the load-time labels/activeTabs read and
+    // the per-url reads onUpdated performs, then hand back its onUpdated listener.
+    const loadForNavigation = ({ labels, recordedUrlKey }) => {
+      const nav = makeChrome();
+      nav.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      nav.storage.local.get.mockImplementation((query, cb) => {
+        if (Array.isArray(query) && query.includes('labels') && query.includes('activeTabs')) {
+          cb({ labels, activeTabs: [] });
+          return;
+        }
+        if (query === 'activeTabs') {
+          cb({
+            activeTabs: [
+              { tabKey: 'tab-7', urlKey: recordedUrlKey, pinned: false, groupId: 5, windowId: 1 },
+            ],
+          });
+          return;
+        }
+        cb({});
+      });
+      const loaded = loadWorker(nav);
+      return { nav, listener: nav.tabs.onUpdated.addListener.mock.calls[0][0], loaded };
+    };
+
+    // Sites that rewrite their own path with no user input (auth bounces, redirect
+    // chains, chat and doc apps) tripped the navigation eject on every rewrite. If
+    // the new URL is ALSO a member of the tab's label, ejecting it only has
+    // groupTabs pull it straight back in — the user watches the tab pop out of the
+    // group and snap back, having touched nothing.
+    it('does not eject when the tab navigates to another url in the same label', async () => {
+      const { nav, listener } = loadForNavigation({
+        labels: {
+          Work: {
+            title: 'Work',
+            urlKeys: ['url-https://a.com/apps', 'url-https://a.com/other'],
+          },
+        },
+        recordedUrlKey: 'url-https://a.com/apps',
+      });
+
+      await listener(
+        7,
+        { url: 'https://a.com/other' },
+        { id: 7, url: 'https://a.com/other', groupId: 5, windowId: 1, title: 'A' }
+      );
+
+      expect(nav.tabs.ungroup).not.toHaveBeenCalled();
+    });
+
+    // Guards against over-suppression: a genuine navigation to a URL no label
+    // claims must still eject the tab, which is the whole point of the eject path.
+    it('still ejects when the tab navigates to a url no label claims', async () => {
+      const { nav, listener } = loadForNavigation({
+        labels: { Work: { title: 'Work', urlKeys: ['url-https://a.com/apps'] } },
+        recordedUrlKey: 'url-https://a.com/apps',
+      });
+
+      await listener(
+        7,
+        { url: 'https://elsewhere.com/page' },
+        { id: 7, url: 'https://elsewhere.com/page', groupId: 5, windowId: 1, title: 'E' }
+      );
+
+      expect(nav.tabs.ungroup).toHaveBeenCalled();
+      expect(nav.tabs.ungroup.mock.calls[0][0]).toBe(7);
+    });
+  });
+
+  describe('cold start grouping', () => {
+    // Chrome tab ids are unique only within a browser session. After a restart the
+    // PERSISTED activeTabs snapshot holds ids that now belong to entirely different
+    // tabs, and MV3 wakes this worker constantly — so grouping from that snapshot
+    // moved unrelated tabs with the user doing nothing at all. The first pass must
+    // wait for live tabs, which updateActiveTabs re-reads and writes.
+    it('does not group from the persisted snapshot when the worker wakes', async () => {
+      const cold = makeChrome();
+      cold.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 5, windowId: 1, title: 'Work' }]));
+      cold.storage.local.get.mockImplementation((query, cb) => {
+        if (Array.isArray(query) && query.includes('labels') && query.includes('activeTabs')) {
+          cb({
+            labels: { Work: { title: 'Work', urlKeys: ['url-https://a.com'] } },
+            // A stale id: tab 99 was a member last session; it is some other tab now.
+            activeTabs: [
+              { tabKey: 'tab-99', urlKey: 'url-https://a.com', pinned: false, groupId: -1, windowId: 1 },
+            ],
+          });
+        }
+      });
+
+      loadWorker(cold);
+      await Promise.resolve();
+
+      expect(cold.tabs.group).not.toHaveBeenCalled();
+      expect(cold.tabs.ungroup).not.toHaveBeenCalled();
+    });
   });
 
   describe('processProcesses', () => {
@@ -999,6 +1179,212 @@ describe('service_worker.js', () => {
         labels
       );
       expect(labels.Work.urlKeys).toContain('url-https://b.com');
+    });
+
+    // A tab already inside its group must never be handed to chrome.tabs.group. On the
+    // refuse-append path (recordInGroupTab returns without recording, because the tab
+    // merely navigated away from its recorded slot) the tab's state is unchanged, so a
+    // group call here repositions it in the tab strip on EVERY pass — the user-visible
+    // "my tabs keep jumping around" loop, fed by onMoved -> updateActiveTabs ->
+    // storage.onChanged -> groupTabs.
+    it('never re-groups a tab that is already in the target group', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 5, windowId: 1, title: 'Work' }]));
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com/apps'] } };
+      await fns.groupTabs(
+        [{
+          tabKey: 'tab-7',
+          urlKey: 'url-https://a.com/apps/123',
+          pinned: false,
+          groupId: 5,
+          windowId: 1,
+          labelTitle: 'Work',
+          labelUrlKey: 'url-https://a.com/apps',
+        }],
+        labels
+      );
+      expect(chrome.tabs.group).not.toHaveBeenCalled();
+    });
+  });
+
+  // Every test here pins one of the paths that moved a tab with NO user input.
+  // chrome.tabs.group and chrome.tabs.ungroup are repositions, not assertions, so
+  // each suppressed call is a tab that stops jumping in the strip.
+  describe('groupTabs tab placement', () => {
+    // The steady state, and the property that damps the whole feedback loop: when
+    // every tab already sits in its label's group, a pass must issue ZERO Chrome
+    // calls. Any call here fires onMoved -> updateActiveTabs -> storage.onChanged
+    // -> groupTabs and the cycle sustains itself.
+    it('issues no chrome calls when every tab is already correctly grouped', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 5, windowId: 1, title: 'Work' }]));
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com'] } };
+
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://a.com', pinned: false, groupId: 5, windowId: 1 }],
+        labels
+      );
+
+      expect(chrome.tabs.group).not.toHaveBeenCalled();
+      expect(chrome.tabs.ungroup).not.toHaveBeenCalled();
+    });
+
+    // A tab already inside a group must never be handed to groupLabeledTab AT ALL,
+    // not merely be caught by the idempotence guard afterwards. If the recording
+    // path still queued it, a label whose Chrome group resolves to a DIFFERENT id
+    // would relocate the tab out of the group it is sitting in.
+    it('never relocates an in-group tab to another group', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      // The label's group in this window resolves to 9, but the tab sits in 5.
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 9, windowId: 1, title: 'Work' }]));
+      const labels = { Work: { title: 'Work', urlKeys: [] } };
+
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://b.com', pinned: false, groupId: 5, windowId: 1 }],
+        labels
+      );
+
+      expect(chrome.tabs.group).not.toHaveBeenCalled();
+    });
+
+    // Guards against over-suppression: an ungrouped tab whose urlKey is a recorded
+    // member is still auto-grouped exactly once. Without this the placement guards
+    // would have silently disabled the feature they were added to fix.
+    it('still auto-groups an ungrouped tab whose urlKey is a member', async () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 5, windowId: 1, title: 'Work' }]));
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com'] } };
+
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://a.com', pinned: false, groupId: -1, windowId: 1 }],
+        labels
+      );
+
+      expect(chrome.tabs.group).toHaveBeenCalledTimes(1);
+      expect(chrome.tabs.group).toHaveBeenCalledWith({ tabIds: [7], groupId: 5 });
+    });
+
+    // Cross-window pull. The title-only tabGroups.query was not window-scoped and
+    // the code took groups[0], so grouping into it physically DRAGGED tabs into
+    // the other window. Each window must resolve its own group.
+    it('scopes the group lookup to each tab window so tabs never cross windows', async () => {
+      chrome.tabGroups.query.mockImplementation((query, cb) => {
+        cb([{ id: query.windowId === 1 ? 5 : 6, windowId: query.windowId, title: 'Work' }]);
+      });
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com', 'url-https://b.com'] } };
+
+      await fns.groupTabs(
+        [
+          { tabKey: 'tab-7', urlKey: 'url-https://a.com', pinned: false, groupId: -1, windowId: 1 },
+          { tabKey: 'tab-8', urlKey: 'url-https://b.com', pinned: false, groupId: -1, windowId: 2 },
+        ],
+        labels
+      );
+
+      const queriedWindows = chrome.tabGroups.query.mock.calls.map((c) => c[0].windowId);
+      expect(queriedWindows).toContain(1);
+      expect(queriedWindows).toContain(2);
+      // Each window's tab goes into THAT window's group, never the other's.
+      expect(chrome.tabs.group).toHaveBeenCalledWith({ tabIds: [7], groupId: 5 });
+      expect(chrome.tabs.group).toHaveBeenCalledWith({ tabIds: [8], groupId: 6 });
+    });
+
+    // The removed consolidate branch closed the user's tabs with chrome.tabs.remove
+    // and re-created them, losing page state and dropping them at the end of the
+    // strip. Grouping must never destroy a tab.
+    it('never closes and re-creates tabs while grouping', async () => {
+      chrome.tabGroups.query.mockImplementation((query, cb) => {
+        cb([{ id: 5, windowId: query.windowId === 2 ? 2 : 1, title: 'Work' }]);
+      });
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com'] } };
+
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://a.com', pinned: false, groupId: -1, windowId: 2 }],
+        labels
+      );
+
+      expect(chrome.tabs.remove).not.toHaveBeenCalled();
+      expect(chrome.tabs.create).not.toHaveBeenCalled();
+    });
+
+    // A urlKey filed under TWO labels used to be queued into both buckets, so the
+    // tab was moved into group A and then into group B in a single pass — and the
+    // winner depended on async query ordering, so it could differ pass to pass.
+    // That is the literal back-and-forth. One destination, one call.
+    it('groups a tab whose urlKey is in two labels exactly once', async () => {
+      chrome.tabGroups.query.mockImplementation((query, cb) => {
+        cb([{ id: query.title === 'Work' ? 5 : 6, windowId: 1, title: query.title }]);
+      });
+      const labels = {
+        Work: { title: 'Work', urlKeys: ['url-https://shared.com'] },
+        Reading: { title: 'Reading', urlKeys: ['url-https://shared.com'] },
+      };
+
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://shared.com', pinned: false, groupId: -1, windowId: 1 }],
+        labels
+      );
+
+      expect(chrome.tabs.group).toHaveBeenCalledTimes(1);
+    });
+
+    // Creating a Chrome group for a label whose tabs all turn out to need no move
+    // would leave an empty group behind in the strip.
+    it('does not create a group when no tab needs to move into it', async () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([]));
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com'] } };
+
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://a.com', pinned: true, groupId: -1, windowId: 1 }],
+        labels
+      );
+
+      expect(chrome.tabs.group).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('groupTabs move trail', () => {
+    // The trail exists so the next "TabCommand moved my tabs" report is provable
+    // from the user's own profile. An issued move must leave an entry naming the
+    // path that made it and where the tab went.
+    it('records an entry for an issued group call', async () => {
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 5, windowId: 1, title: 'Work' }]));
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({}));
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com'] } };
+
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://a.com', pinned: false, groupId: -1, windowId: 1 }],
+        labels
+      );
+
+      const moveWrites = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .filter((w) => w.groupMoveLog);
+      expect(moveWrites.length).toBeGreaterThan(0);
+      const entry = moveWrites.at(-1).groupMoveLog.at(-1);
+      expect(entry.action).toBe('group');
+      expect(entry.source).toBe('worker:auto-group');
+      expect(entry.tabId).toBe(7);
+      expect(entry.fromGroupId).toBe(-1);
+      expect(entry.toGroupId).toBe(5);
+    });
+
+    // A suppressed no-op moved nothing, so it must leave NO entry — that is what
+    // makes a quiet steady state readable as an empty trail rather than guessed at.
+    it('records nothing when the placement call is suppressed', async () => {
+      chrome.tabGroups.get.mockImplementation((id, cb) => cb({ id, title: 'Work', color: 'blue' }));
+      chrome.tabGroups.query.mockImplementation((_q, cb) => cb([{ id: 5, windowId: 1, title: 'Work' }]));
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({}));
+      const labels = { Work: { title: 'Work', urlKeys: ['url-https://a.com'] } };
+
+      await fns.groupTabs(
+        [{ tabKey: 'tab-7', urlKey: 'url-https://a.com', pinned: false, groupId: 5, windowId: 1 }],
+        labels
+      );
+
+      const moveWrites = chrome.storage.local.set.mock.calls
+        .map((c) => c[0])
+        .filter((w) => w.groupMoveLog);
+      expect(moveWrites).toHaveLength(0);
     });
   });
 

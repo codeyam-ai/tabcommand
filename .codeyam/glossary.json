@@ -469,6 +469,12 @@
     "testFile": "src/lib/utils/historyBuckets.test.js"
   },
   {
+    "description": "Splits the tabs bound for one label into per-window buckets so each window resolves its own Chrome group. chrome.tabGroups.query is not window-scoped, so a title-only query can return a group living in another window, and chrome.tabs.group against that group physically drags the tab across windows — the cross-window pull this fixes. A label legitimately has one Chrome group per window. Drops pinned tabs, which matters beyond tidiness: a bucket holding only pinned tabs would otherwise cause an empty Chrome group to be created for that window. Entries persisted by a build predating the windowId field bucket under undefined, where the caller falls back to the unscoped query until updateActiveTabs rewrites them.",
+    "filePath": "src/lib/utils/tabPlacement.js",
+    "name": "bucketTabsByWindow",
+    "testFile": "src/lib/utils/tabPlacement.test.js"
+  },
+  {
     "description": "Pure helper that buckets a site's visit timestamps into per-day counts over a trailing window of SPARK_DAYS days, oldest day first, relative to now. Visits older than the window or in the future are ignored. The Favorites View All page feeds the result to the UsageSparkline so a user sees a site's usage-over-time at a glance and understands why it ranks where it does.",
     "filePath": "src/lib/utils/bucketVisitsByDay.js",
     "name": "bucketVisitsByDay",
@@ -485,6 +491,12 @@
     "filePath": "src/lib/utils/groupAdditionLog.js",
     "name": "buildGroupAdditionEntry",
     "testFile": "src/lib/utils/groupAdditionLog.test.js"
+  },
+  {
+    "description": "Builds one entry for the always-on tab MOVE audit trail — the third sibling of buildGroupAdditionEntry and buildGroupRemovalEntry. Those two trail label membership; neither records the thing users actually notice, which is the tab jumping position in the strip, so a report about tabs moving was undiagnosable without this. Records the source path, whether the call was a group or ungroup, the tab, and the group ids before and after, so a move is readable at a glance. Missing group ids default to -1 and missing label or urlKey normalize to null, keeping serialized entries a stable shape. Kept clock-free — t is caller-supplied — so it is unit-testable without stubbing chrome or Date. Only calls actually issued are recorded, so a placement suppressed by the tabPlacement guards leaves no entry and a quiet steady state reads as an empty trail rather than a guess.",
+    "filePath": "src/lib/utils/groupMoveLog.js",
+    "name": "buildGroupMoveEntry",
+    "testFile": "src/lib/utils/groupMoveLog.test.js"
   },
   {
     "description": "Pure builder for one always-on group-membership removal audit entry. Given a removal source tag and details, returns a uniform record carrying the caller-supplied timestamp t, source, label title, a urlKeys array coerced from a bare key or array, a tabId normalized to null when absent while preserving a real 0, and the label's remaining member count after the removal. Clock-free and IO-free so both runtimes build identical breadcrumbs and it is unit-testable without stubbing chrome or Date.",
@@ -666,6 +678,12 @@
     "filePath": "src/lib/utils/faviconMonogram.js",
     "name": "faviconMonogram",
     "testFile": "src/lib/utils/faviconMonogram.test.js"
+  },
+  {
+    "description": "Resolves which label claims a urlKey, returning the first matching label title or null. The single source of truth for the question two callers ask and must not answer differently: groupTabs picking an ungrouped tab's destination group, and updateActiveTabs testing membership before ejecting a revisited auto-closed tab. Returning the FIRST match is the anti-flip-flop guarantee — the previous loop queued a tab into every label claiming its urlKey, so a URL filed under two labels was grouped twice in one pass, into group A and then group B, with the winner depending on async tabGroups.query ordering and therefore able to differ pass to pass. First-by-Object.keys order is an arbitrary choice of label but a stable one, and stability is the property that stops the alternation. Null-tolerant on both arguments and skips malformed label records so one bad entry cannot break grouping for the rest.",
+    "filePath": "src/lib/utils/findLabelForUrlKey.js",
+    "name": "findLabelForUrlKey",
+    "testFile": "src/lib/utils/findLabelForUrlKey.test.js"
   },
   {
     "description": "Coerces one timestamp candidate to a finite epoch-ms number, or null. Mirrors the Number.isFinite guarding pruneVisits uses so strings, NaN and undefined fall out rather than poisoning the Math.max that historyTimestamp takes over its candidates. Covered by historyTimestamp's junk-input tests.",
@@ -938,6 +956,18 @@
     "testFile": "src/lib/utils/navigatedAwayFromRecordedSlot.test.js"
   },
   {
+    "description": "Idempotence guard answering whether a tab genuinely needs a chrome.tabs.group call to reach a target group. False when the tab is pinned or already sits in the target group, because chrome.tabs.group is a REPOSITION rather than an assertion: Chrome honors it even when the tab is already there, appending it to the end of the group. That unguarded re-assert is both a visible tab move and a self-sustaining loop, since the move fires onMoved which drives updateActiveTabs, a storage.local.set, storage.onChanged and another groupTabs pass. Filtering placement calls through this predicate is what lets a steady-state pass issue zero Chrome calls and damps the cycle. An absent or -1 target means no Chrome group exists for the label yet and one is about to be created, so every unpinned tab needs the call. Compares group ids against -1 explicitly rather than by truthiness, so group id 0 is treated as the valid group it is.",
+    "filePath": "src/lib/utils/tabPlacement.js",
+    "name": "needsGroupCall",
+    "testFile": "src/lib/utils/tabPlacement.test.js"
+  },
+  {
+    "description": "Idempotence guard answering whether a tab genuinely needs a chrome.tabs.ungroup call. False when the tab is already in no group, because ungrouping an ungrouped tab still repositions it in the tab strip — one of the paths behind users reporting that their tabs move while they do nothing. Applied at every worker ungroup site so a suppressed no-op never reaches Chrome and never lands in the move trail. Treats a missing or null group id as no group, but compares against -1 explicitly so group id 0 stays ungroupable.",
+    "filePath": "src/lib/utils/tabPlacement.js",
+    "name": "needsUngroupCall",
+    "testFile": "src/lib/utils/tabPlacement.test.js"
+  },
+  {
     "description": "Registers a newly-visited URL and returns the storage updates. Maintains `allUrls` as a true LRU: the url key is MOVED TO THE FRONT on every visit, not merely inserted when absent, so the list genuinely means recency — the ordering the tail-eviction and every consumer already assume. Keys past MAX_TRACKED_URLS (500) are evicted from the tail and their non-labeled records deleted. A real visit also UN-FORGETS a deleted page: it clears the url's `deletedUrls` tombstone and prunes expired tombstones via pruneDeletedUrls on the same pass, so deleting from History means forget-this rather than block-this and the tombstone map stays bounded by DELETED_URL_TTL_MS. Records the visit twice: on the url-* record (visitCount plus a pruned `visits` array, kept for History and backward compatibility) and, durably, under the site's host in the `siteVisits` map, which the eviction branch never touches — so evicting a url-* key can no longer destroy a site's visit history, and every page of a content site credits the site rather than minting an orphan record. All writes land in one storage set. Gated to real websites via isTrackableUrl; no-ops without a tabId/url.",
     "filePath": "service_worker.js",
     "name": "newUrl",
@@ -947,6 +977,12 @@
       "storage"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Normalizes a tab's group id so a missing or null value reads as Chrome's TAB_GROUP_ID_NONE. Shared by needsGroupCall and needsUngroupCall so both placement predicates agree on what no group means. Its real job is what it deliberately does NOT do: collapse 0 into no group. Group id 0 is falsy but a perfectly valid Chrome group id, and the service worker's older `activeTab.groupId && activeTab.groupId > -1` test mishandles exactly that case — a tab in group 0 would be re-grouped on every pass, or refuse to be ungrouped. Comparing against -1 explicitly instead of by truthiness is what keeps the guards correct at that edge.",
+    "filePath": "src/lib/utils/tabPlacement.js",
+    "name": "normalizeGroupId",
+    "testFile": "src/lib/utils/tabPlacement.test.js"
   },
   {
     "description": "Pure URL-normalization helper that produces a canonical grouping key for de-duplicating cosmetic URL variants. Collapses the scheme so http and https are equivalent, lowercases the host and strips a leading www., strips a trailing slash from the path, and drops the fragment, while PRESERVING the query so genuinely different pages stay distinct. Its host derivation is delegated to siteKey so that host canonicalization — lowercasing and www.-stripping — has exactly one definition shared with the site-level siteVisits store. Falls back to the trimmed raw string for a non-parseable input so callers never throw on a key-derived or malformed value. Now used by rankFavorites only as a fallback grouping key for candidates whose URL yields no site key.",
@@ -1044,9 +1080,21 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Records one move-trail entry per tab actually handed to chrome.tabs.group. Both grouping branches — creating a new Chrome group for a label in a window, and adding to an existing one — need the identical loop, and a single batched Chrome call moves every tab in it, so the trail records per tab rather than per call and a multi-tab group call stays legible as the several moves it really is.",
+    "filePath": "service_worker.js",
+    "name": "recordGroupMoves",
+    "testFile": "service_worker.test.js"
+  },
+  {
     "description": "Records an in-group tab's URL into its group's label, seeding the label with the group's mapped color when it does not exist yet, then persists via update. Runs only for non-auto-grouped tabs such as startup sync of pre-existing Chrome groups.",
     "filePath": "service_worker.js",
     "name": "recordInGroupTab",
+    "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Always-on writer for the tab-move audit trail, the third sibling of recordAddition and recordRemoval and unconditional for the same reason. Reads the current groupMoveLog, appends a buildGroupMoveEntry through the shared appendGroupingLog ring buffer capped at GROUP_MOVE_LOG_CAP, and persists it under its own groupMoveLog key so it is never buried by or trimmed with the noisy debugGrouping breadcrumbs. Called only after the needsGroupCall / needsUngroupCall guards pass, so the trail records real movement and never a suppressed no-op. Fire-and-forget: the async round-trip never blocks the caller and only records moves, never changing placement behavior. The write cannot re-enter the grouping loop because storage.onChanged bails unless labels or activeTabs changed, and this touches neither.",
+    "filePath": "service_worker.js",
+    "name": "recordMove",
     "testFile": "service_worker.test.js"
   },
   {
@@ -1066,6 +1114,12 @@
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "removeUrlFromLabel",
     "testFile": "src/lib/utils/urlDetails.test.js"
+  },
+  {
+    "description": "Resolves a Chrome group id to its label title, preferring the in-memory groups map and falling back to chrome.tabGroups.get. The fallback is not an optimization detail: right after an MV3 service-worker restart that map is cold, and both onUpdated branches needing a title — the navigation-eject membership check and the in-page drift heal — run in exactly that window. Extracted because those two branches of the same conditional had resolved the title with duplicated inline code.",
+    "filePath": "service_worker.js",
+    "name": "resolveGroupTitle",
+    "testFile": "service_worker.test.js"
   },
   {
     "description": "Attaches each label's resolved urls array (url/title/favicon, plus notes only when present) from the per-URL info map and drops urlKeys, returning the labels ready to JSON.stringify into the export.",
