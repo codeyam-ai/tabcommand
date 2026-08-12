@@ -51,6 +51,18 @@
       "status": "covered"
     },
     {
+      "dimension": "labelsChange",
+      "value": "true",
+      "rationale": "source-derived state labelsChange=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "labelsChange",
+      "value": "false",
+      "rationale": "source-derived state labelsChange=false",
+      "status": "covered"
+    },
+    {
       "dimension": "isHome",
       "value": "true",
       "rationale": "source-derived state isHome=true",

@@ -1,0 +1,12 @@
+{
+  "name": "ExportPanel - Nothing To Fall Back To",
+  "id": "97eaaffe-667a-43ae-a27c-dde9b17e1cd0",
+  "url": "/?isolate=ExportPanel&variant=no-history&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ExportPanel",
+  "scenarioType": "component",
+  "description": "A fresh install: a current snapshot exists but there is no history behind it. The Previous heading still renders over an empty list, which is deliberate — it tells the user the undo stack is a thing that exists and will fill, rather than hiding until it does."
+}

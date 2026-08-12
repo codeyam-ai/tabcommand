@@ -1,0 +1,19 @@
+{
+  "name": "SnapshotField - Copy Confirmed",
+  "id": "92d7b941-08ea-4c25-86f0-eedda94d6e6e",
+  "url": "/?isolate=SnapshotField&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SnapshotField",
+  "scenarioType": "component",
+  "description": "The state a resting capture cannot show: the button flipped to its confirmed form for ~1.6s after the click. The console error is the POINT — the capture browser blocks the Clipboard API by permissions policy, which is exactly the rejection this component swallows. The confirmation is deliberately unconditional, so in a hardened profile or a non-secure context where the copy silently failed, the user still sees this and can fall back to selecting the text themselves rather than meeting a page error on the one recovery path this feature points them at.",
+  "interactions": [
+    {
+      "action": "click",
+      "text": "Copy"
+    }
+  ],
+  "expectedConsoleErrors": true
+}

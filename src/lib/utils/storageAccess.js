@@ -27,6 +27,7 @@ import {
   partitionUpdatesByArea,
 } from './storageAreas';
 import { fitsSyncItemQuota, serializedByteLength } from './syncQuota';
+import { resolveLabelsAcrossAreas, LabelsSource } from './labelsPrecedence';
 
 // The key the fallback outcome is recorded under (local area — a diagnostic
 // about sync cannot itself depend on sync working).
@@ -69,31 +70,96 @@ function recordSyncStatus(status, details) {
   });
 }
 
+// Whether a partitioned query asks for `labels` at all. `labels` routes to sync,
+// so the sync side of the partition is the one to interrogate; `null` is the
+// "read everything" form and therefore includes it.
+function queryRequestsLabels(byArea) {
+  const syncQuery = byArea[SYNC];
+  if (syncQuery === null) return true;
+  if (Array.isArray(syncQuery)) return syncQuery.indexOf('labels') > -1;
+  if (syncQuery && typeof syncQuery === 'object') return 'labels' in syncQuery;
+  return false;
+}
+
 // Read `keys` from whichever areas own them and hand the MERGED result to
 // `callback` exactly once. Mirrors `chrome.storage.<area>.get`'s argument forms:
 // a string, an array, a defaults object, or null for "everything".
+//
+// `labels` gets one extra step. `writeByArea` redirects it to the LOCAL area
+// whenever sync refuses the write — over quota, signed out, sync disabled,
+// throttled — so that a group mutation is never dropped. Resolving `labels` from
+// sync alone would make that fallback write-only: the value would sit safely on
+// disk in an area nothing ever reads it back from, and the user would watch
+// their groups revert. So when sync has no groups to offer, local is consulted
+// for a fallback copy before the callback fires.
 export function readByArea(keys, callback) {
-  const byArea = syncAvailable()
+  const withSync = syncAvailable();
+  const byArea = withSync
     ? partitionKeysByArea(keys)
     : { [LOCAL]: keys === undefined ? null : keys };
 
   const areas = Object.keys(byArea);
-  const merged = {};
 
   if (areas.length === 0) {
-    callback(merged);
+    callback({});
     return;
   }
 
+  // Only worth resolving when sync exists AND the caller asked for `labels`. A
+  // local-only host has no split to reconcile, and the ~20 reads that never
+  // touch `labels` must not pay for a second round trip.
+  const resolvesLabels = withSync && queryRequestsLabels(byArea);
+  // The read-everything form already pulls local's copy, so no follow-up read
+  // is needed to see it. Every other form routes `labels` to sync alone.
+  const localAlreadyHasLabels = byArea[LOCAL] === null;
+
+  const perArea = {};
   let pending = areas.length;
+
+  const finish = () => {
+    const merged = {};
+    for (const area of areas) Object.assign(merged, perArea[area] || {});
+
+    if (!resolvesLabels) {
+      callback(merged);
+      return;
+    }
+
+    // The precedence rule itself lives in `labelsPrecedence` so it is one
+    // decision made once, rather than an ordering accident of this function.
+    const resolved = resolveLabelsAcrossAreas(
+      (perArea[SYNC] || {}).labels,
+      (perArea[LOCAL] || {}).labels,
+    );
+
+    if (resolved.source !== LabelsSource.NEITHER) {
+      merged.labels = resolved.labels;
+      callback(merged);
+      return;
+    }
+
+    if (localAlreadyHasLabels) {
+      callback(merged);
+      return;
+    }
+
+    // Costs a second round trip, but only on the degraded path: a healthy sync
+    // read resolves above and never reaches here.
+    chrome.storage[LOCAL].get(['labels'], (localResult) => {
+      const fallback = resolveLabelsAcrossAreas(undefined, (localResult || {}).labels);
+      if (fallback.source === LabelsSource.LOCAL) merged.labels = fallback.labels;
+      callback(merged);
+    });
+  };
+
   for (const area of areas) {
     chrome.storage[area].get(byArea[area], (results) => {
-      Object.assign(merged, results || {});
+      perArea[area] = results || {};
       pending -= 1;
       // Fire once, after the LAST area reports. Callers — notably the mixed-key
       // read on the Import / Export page — are written against a
       // single-callback contract and would render twice otherwise.
-      if (pending === 0) callback(merged);
+      if (pending === 0) finish();
     });
   }
 }
@@ -144,6 +210,19 @@ export function writeByArea(updates) {
         return;
       }
       recordSyncStatus(SyncStatus.OK, {});
+
+      // The other half of the fallback. An earlier refused write may have left a
+      // `labels` copy in local; now that sync has accepted the value, the two
+      // areas must not be allowed to hold DIFFERENT groups, or which one the
+      // user sees depends on which one happened to be read.
+      //
+      // Mirroring rather than deleting is deliberate. `migrateLabelsToSync`
+      // leaves the local copy in place on purpose, as a read-only fallback for
+      // the day sync is unavailable or Chrome garbage-collects the synced data;
+      // deleting it here would quietly remove that net. Writing the SAME value
+      // to both areas keeps the net and makes drift impossible at once — the
+      // precedence rule in `readByArea` then has nothing left to arbitrate.
+      chrome.storage[LOCAL].set(sendable);
     });
   }
 }

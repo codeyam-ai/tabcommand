@@ -1,0 +1,12 @@
+{
+  "name": "ImportMessage - Snapshot Repaired",
+  "id": "d213fe46-b707-406e-98e0-d963f28b6e0e",
+  "url": "/?isolate=ImportMessage&variant=repaired&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ImportMessage",
+  "scenarioType": "component",
+  "description": "The other tone: an import that worked, but only after the snapshot was repaired. It names WHAT was fixed rather than just claiming success, because a silent repair would leave the user believing a damaged backup is healthy. A status rather than an alert — an account of something already done, not something to act on."
+}

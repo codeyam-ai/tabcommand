@@ -1,0 +1,12 @@
+{
+  "name": "SyncWarning - Standing Over The Groups",
+  "id": "7c7d9760-9f0f-4c24-9e5e-e7fd0d15192f",
+  "url": "/?isolate=SyncWarning&variant=on-home",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SyncWarning",
+  "scenarioType": "component",
+  "description": "The same banner away from the Import / Export page, where the snapshot it points at is not on screen. The copy says 'on the Import/Export page' rather than 'below', a Back up now button gets the user there, and a dismiss appears — because a banner parked permanently above the user's groups is a banner they stop reading."
+}

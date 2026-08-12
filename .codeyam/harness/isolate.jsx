@@ -71,6 +71,119 @@ const ISOLATION_PROPS = {
           at: 1786545000000,
         },
       },
+      // The Home placement. Supplying onOpenBackup switches the copy to point AT
+      // the Import / Export page instead of saying "below" — where, on Home,
+      // there is no snapshot — and adds the button to get there; onDismiss adds
+      // the close affordance a banner needs when it sits above the user's groups
+      // rather than on a page they chose to open.
+      'on-home': {
+        status: {
+          status: 'sync-failed',
+          key: 'labels',
+          message: 'Please sign in to Chrome to use chrome.storage.sync',
+          at: 1786545000000,
+        },
+        onOpenBackup: noop,
+        onDismiss: noop,
+      },
+    },
+  },
+
+  // The mono field every snapshot is read from or pasted into. Read-only is the
+  // common case; the Import box is the one that is not, and the two look
+  // identical on purpose so the page reads as one surface.
+  SnapshotBox: {
+    default: {
+      value: '[{"title":"Work","backgroundColor":"#1873E4","position":0,"urls":[{"url":"https://github.com/codeyam/tabcommand","title":"codeyam/tabcommand — GitHub","favicon":""}]}]',
+      readOnly: true,
+    },
+    variants: {
+      // What the user actually stares at before pasting anything.
+      empty: { value: '', readOnly: false, onChange: noop, onKeyDown: noop },
+    },
+  },
+
+  // A snapshot paired with its own Copy button. Copying is the recovery the sync
+  // warnings send people to, so the confirmed state is worth pinning as well as
+  // the resting one — but `copied` is internal, so only the resting state can be
+  // seeded from props; the flipped state is covered by the interaction scenario.
+  SnapshotField: {
+    default: {
+      value: '[{"title":"Reading","backgroundColor":"#8B5CF6","position":1,"urls":[{"url":"https://news.ycombinator.com","title":"Hacker News","favicon":""}]}]',
+    },
+  },
+
+  // What happened to the snapshot the user just pasted. Both tones are worth
+  // pinning because they are the whole point of the change: a failure that used
+  // to go to a console nobody sees, and a repair that used to happen silently.
+  ImportMessage: {
+    default: {
+      tone: 'error',
+      children:
+        'That snapshot could not be read: Expected property name or \'}\' in JSON at position 2 (line 1 column 3).',
+    },
+    variants: {
+      repaired: {
+        tone: 'notice',
+        children:
+          'Restored 2 groups. The snapshot was repaired before importing — it had line breaks inside titles.',
+      },
+      salvaged: {
+        tone: 'notice',
+        children:
+          'Recovered 3 groups. 2 groups were too damaged to read and could not be restored.',
+      },
+    },
+  },
+
+  // The Import half of the recover/backup page. The resting state is the one a
+  // user meets first; the error and repaired variants show where the message
+  // lands — BETWEEN the box and the button, next to the text it refers to.
+  ImportPanel: {
+    default: {
+      value: '',
+      onChange: noop,
+      onImport: noop,
+      error: null,
+      notice: null,
+    },
+    variants: {
+      'unreadable-snapshot': {
+        value: '{ my backup, but mangled ',
+        onChange: noop,
+        onImport: noop,
+        error:
+          'That snapshot could not be read: Expected property name or \'}\' in JSON at position 2 (line 1 column 3).',
+        notice: null,
+      },
+      'repaired-snapshot': {
+        value: '[{"title":"Work","urls":[{"url":"https://github.com/codeyam/tabcommand","title":"codeyam/tabcommand\n- GitHub","favicon":""}]}]',
+        onChange: noop,
+        onImport: noop,
+        error: null,
+        notice:
+          'Restored 2 groups. The snapshot was repaired before importing — it had line breaks inside titles.',
+      },
+    },
+  },
+
+  // The backup half. The Previous stack is what makes the page a recovery tool
+  // rather than a backup button, so the populated state is the default and the
+  // no-history state is the variant.
+  ExportPanel: {
+    default: {
+      current: '[{"title":"Work","backgroundColor":"#1873E4","position":0,"urls":[{"url":"https://github.com/codeyam/tabcommand","title":"codeyam/tabcommand — GitHub","favicon":""}]}]',
+      previous: [
+        '[{"title":"Work","backgroundColor":"#1873E4","position":0,"urls":[{"url":"https://github.com/codeyam/tabcommand","title":"codeyam/tabcommand — GitHub","favicon":""}]},{"title":"Reading","backgroundColor":"#8B5CF6","position":1,"urls":[{"url":"https://news.ycombinator.com","title":"Hacker News","favicon":""}]}]',
+        '[{"title":"Work","backgroundColor":"#1873E4","position":0,"urls":[]}]',
+      ],
+    },
+    variants: {
+      // A fresh install has a current snapshot but nothing to fall back to.
+      'no-history': {
+        current: '[{"title":"Work","backgroundColor":"#1873E4","position":0,"urls":[]}]',
+        previous: [],
+      },
     },
   },
   // The sidebar wordmark introduced by the visual redesign: the 4-color mark plus

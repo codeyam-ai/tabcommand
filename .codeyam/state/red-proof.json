@@ -1,0 +1,18 @@
+{
+  "provenAt": "2026-08-12T20:36:45Z",
+  "paths": [
+    "src/lib/utils/storageAccess.js"
+  ],
+  "tests": {
+    "storageAccess › readByArea returns a labels value that fell back to local": {
+      "withoutFix": "fail",
+      "withFix": "pass"
+    }
+  },
+  "proof": {
+    "verdict": "proven",
+    "flipped": [
+      "storageAccess › readByArea returns a labels value that fell back to local"
+    ]
+  }
+}

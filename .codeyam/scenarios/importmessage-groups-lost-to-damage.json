@@ -1,0 +1,12 @@
+{
+  "name": "ImportMessage - Groups Lost To Damage",
+  "id": "57b84986-c1be-4323-8f91-f0222fe6a4b9",
+  "url": "/?isolate=ImportMessage&variant=salvaged&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ImportMessage",
+  "scenarioType": "component",
+  "description": "The hardest thing this component has to say. A partial recovery looks exactly like a complete one, so the counts are stated plainly in both directions — what came back and what did not. Silence here would be worse than the failure: the user would only discover the missing groups when they went looking for them."
+}

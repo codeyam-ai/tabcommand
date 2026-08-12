@@ -1,10 +1,12 @@
 import './ImportExport.css';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Chrome } from '../../utils/Chrome';
-import { Icon } from '../../components/Icon';
+import { PageHeader } from '../../components/PageHeader';
 import { SyncWarning } from '../../components/SyncWarning';
+import { ImportPanel } from '../../components/ImportPanel';
+import { ExportPanel } from '../../components/ExportPanel';
 import { SYNC_STATUS_KEY } from '../../utils/storageAccess';
 import {
   sortLabels,
@@ -12,61 +14,22 @@ import {
   resolveLabelUrls,
   buildImportUpdates,
 } from '../../utils/importExport';
-
-// A read-only snapshot field with its own Copy button. The button writes the
-// field's value to the clipboard and flips to a green "Copied ✓" for ~1.6s
-// before reverting.
-const SnapshotField = ({ value }) => {
-  const [copied, setCopied] = useState(false);
-  const timer = useRef(null);
-
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  const copy = () => {
-    // `writeText` REJECTS when the clipboard is unavailable or permission is
-    // denied — a headless capture, a hardened profile, a non-secure context.
-    // Unhandled, that rejection surfaces as a page error on the one path this
-    // feature tells users to take when their groups are not reaching sync:
-    // copy the snapshot. Swallow it and still confirm, so the copy degrades to
-    // "select the text yourself" rather than an error the user cannot act on.
-    Promise.resolve(navigator.clipboard?.writeText(value)).catch(() => {});
-    setCopied(true);
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setCopied(false), 1600);
-  };
-
-  return (
-    <div className="ImportExport-field">
-      <textarea className="ImportExport-box" value={value} readOnly={true} />
-      <button
-        type="button"
-        className={`ImportExport-copy${copied ? ' is-copied' : ''}`}
-        onClick={copy}
-      >
-        {copied ? (
-          <>
-            <Icon name="check" size={14} /> Copied ✓
-          </>
-        ) : (
-          <>
-            <Icon name="copy" size={14} /> Copy
-          </>
-        )}
-      </button>
-    </div>
-  );
-};
+import { parseImportSnapshot, describeImport, ImportFailure } from '../../utils/importSnapshot';
 
 // The Import / Export page: a recover/backup view reached from the sidebar
 // "Import/Export" link. It serializes the user's groups (labels + their member
-// URLs) to JSON for Export, shows prior snapshots under Previous, and parses
-// pasted JSON to Import (restore) groups.
-// What to tell the user when their groups are not reaching `chrome.storage.sync`.
+// URLs) to JSON for Export, shows prior snapshots under Previous, and restores
+// groups from a pasted snapshot via Import.
+//
+// The page owns the storage orchestration and nothing else — every visual part
+// of it is a component.
 const ImportExport = ({ onComplete }) => {
   const [importLabels, setImportLabels] = useState("");
   const [exportLabels, setExportLabels] = useState("");
   const [previousLabels, setPreviousLabels] = useState([]);
   const [syncStatus, setSyncStatus] = useState(null);
+  const [importError, setImportError] = useState(null);
+  const [importNotice, setImportNotice] = useState(null);
 
   useEffect(() => {
     let _previousLabels = [];
@@ -99,58 +62,86 @@ const ImportExport = ({ onComplete }) => {
     });
   }, []);
 
+  // Restore the pasted snapshot.
+  //
+  // The old version logged every failure to a console the user cannot see and
+  // then called `onComplete()` unconditionally — so the page closed on failure
+  // exactly as it does on success, and a failed import was indistinguishable
+  // from a successful one that did nothing. Three rules replace that:
+  //
+  //   - Failures are rendered, not logged, and the page STAYS OPEN with the
+  //     pasted text intact. That is what makes a failure recoverable.
+  //   - Success is confirmed from storage. `Chrome.set` is fire-and-forget, so
+  //     "no exception was thrown" does not mean "the groups were written."
+  //   - An import that needed repair, or that lost groups, reports what happened
+  //     and stays on the page so the user actually reads it. Only a clean,
+  //     complete restore closes the page.
   const saveImport = () => {
-    if (!importLabels || !importLabels.length) return;
+    setImportError(null);
+    setImportNotice(null);
 
-    try {
-      Chrome.set('ImportExport1', buildImportUpdates(importLabels));
-    } catch (e) {
-      console.log("Error Importing", e);
+    // An empty paste is not an error — there is nothing to do and nothing to
+    // destroy, so say nothing.
+    if (!importLabels || !importLabels.trim().length) return;
+
+    const parsed = parseImportSnapshot(importLabels);
+    if (!parsed.ok) {
+      if (parsed.failure === ImportFailure.EMPTY) return;
+      setImportError(parsed.message);
+      return;
     }
-    if (onComplete) onComplete();
+
+    let updates;
+    try {
+      updates = buildImportUpdates(parsed.labels);
+    } catch (e) {
+      setImportError(`That snapshot could not be imported: ${e.message}`);
+      return;
+    }
+
+    Chrome.set('ImportExport3', updates);
+
+    Chrome.get('ImportExport4', ['labels'], (result) => {
+      const restored = Object.keys(result.labels || {}).length;
+      if (!restored) {
+        setImportError(
+          'The groups could not be saved. Your snapshot is still in the box '
+          + 'above — copy it somewhere safe and try again.',
+        );
+        return;
+      }
+
+      const notice = describeImport(parsed);
+      if (notice) {
+        // Leaving the page now would take the only account of what was repaired
+        // or lost with it.
+        setImportNotice(notice);
+        return;
+      }
+
+      if (onComplete) onComplete();
+    });
   }
 
   return (
     <div className="ImportExport">
-      <button className="ImportExport-back" onClick={onComplete}>
-        <Icon name="arrowLeft" size={15} /> Home
-      </button>
-
-      <h1 className="ImportExport-h1">Import / Export</h1>
-      <p className="ImportExport-intro">
-        Recover your tab information if a bug ever happens. Paste a saved snapshot
-        into Import to restore your groups, or copy a snapshot below to keep a
-        working backup.
-      </p>
+      <PageHeader
+        title="Import / Export"
+        intro="Recover your tab information if a bug ever happens. Paste a saved snapshot into Import to restore your groups, or copy a snapshot below to keep a working backup."
+        onBack={onComplete}
+      />
 
       <SyncWarning status={syncStatus} />
 
-      <section className="ImportExport-group">
-        <h2 className="ImportExport-eyebrow">Import</h2>
-        <textarea
-          className="ImportExport-box"
-          value={importLabels}
-          onChange={(e) => setImportLabels(e.target.value)}
-          onKeyDown={(event) => {
-            event.stopPropagation();
-          }}
-        />
-        <button className="ImportExport-import-save" onClick={saveImport}>
-          Import
-        </button>
-      </section>
+      <ImportPanel
+        value={importLabels}
+        onChange={setImportLabels}
+        onImport={saveImport}
+        error={importError}
+        notice={importNotice}
+      />
 
-      <section className="ImportExport-group">
-        <h2 className="ImportExport-eyebrow">Export</h2>
-
-        <h3 className="ImportExport-subhead">Current</h3>
-        <textarea className="ImportExport-box" value={exportLabels} readOnly={true} />
-
-        <h3 className="ImportExport-subhead">Previous (most recent first)</h3>
-        {previousLabels.map((previous, index) => (
-          <SnapshotField key={`previousLabels-${index}`} value={previous} />
-        ))}
-      </section>
+      <ExportPanel current={exportLabels} previous={previousLabels} />
     </div>
   );
 }

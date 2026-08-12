@@ -53,6 +53,15 @@
     ]
   },
   {
+    "description": "The backup half of the recover/backup page: the current groups serialized to JSON, and every prior snapshot beneath it. The Previous stack is what makes the page a recovery tool rather than a backup button — when a sync warning appears, the user often needs the snapshot from before whatever went wrong. The current snapshot deliberately has no Copy button while each previous one does: it is the field the warnings point at, so it is the one being read rather than reached for, and the Previous entries are a list where a per-row button is the only way to act on a specific row.",
+    "filePath": "src/lib/components/ExportPanel/ExportPanel.jsx",
+    "name": "ExportPanel",
+    "scenarios": [
+      "exportpanel-with-snapshot-history",
+      "exportpanel-nothing-to-fall-back-to"
+    ]
+  },
+  {
     "description": "Renders a url row's favicon with a graceful fallback: the site's image when available, otherwise a deterministic colored monogram tile (via faviconMonogram). Falls back on image load error too.",
     "filePath": "src/lib/components/Favicon/Favicon.jsx",
     "name": "Favicon",
@@ -145,10 +154,30 @@
     ]
   },
   {
-    "description": "The Import / Export page (entry point for Pages.IMPORTEXPORT in App): a recover/backup view reached from the sidebar Import/Export link. Reads labels (sync), previousLabels and syncStatus (local) in ONE cross-area Chrome.get and renders the Current export (groups serialized to JSON, sorted and url-resolved) plus a read-only Previous textarea per snapshot; the Import textarea + button parse pasted JSON to restore groups, swallowing malformed JSON, then call onComplete to return Home. Renders SyncWarning above the controls when syncStatus shows the user's groups are not reaching sync, positioned so the Export snapshot it tells them to copy is directly below. Pure logic lives in utils/importExport; also covered by the import-export-backup application scenario.",
+    "description": "The Import / Export page (entry point for Pages.IMPORTEXPORT in App): a recover/backup view reached from the sidebar Import/Export link. Reads labels (sync), previousLabels and syncStatus (local) in ONE cross-area Chrome.get, then composes PageHeader, SyncWarning, ImportPanel and ExportPanel — it owns the storage orchestration and no JSX of its own. Import parses the pasted snapshot through parseImportSnapshot, and a failure is RENDERED rather than logged: the page stays open with the pasted text intact, success is confirmed by reading storage back rather than by the absence of an exception, and an import that needed repair or lost groups reports what happened instead of closing. Only a clean, complete restore calls onComplete.",
     "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
     "name": "ImportExport",
     "testFile": "src/lib/pages/ImportExport/ImportExport.test.jsx"
+  },
+  {
+    "description": "What happened to the snapshot the user just pasted. Two tones rather than two components: an import that failed and one that succeeded-but-was-repaired are the same obligation wearing different colors — say what happened, in the same place, in the same shape. A failure is an `alert` because the user must act on it; a repair report is a `status` because it is an account of something already done. Renders nothing without a message, so a caller passes its state straight through without guarding.",
+    "filePath": "src/lib/components/ImportMessage/ImportMessage.jsx",
+    "name": "ImportMessage",
+    "scenarios": [
+      "importmessage-unreadable-snapshot",
+      "importmessage-snapshot-repaired",
+      "importmessage-groups-lost-to-damage"
+    ]
+  },
+  {
+    "description": "Where a saved snapshot is pasted back in to restore the user's groups. Purely presentational — the parse, the write, and the read-back confirmation stay on the page, because whether the groups actually landed is a storage question. What it owns is the arrangement: the message sits BETWEEN the box and the button, so an account of what went wrong appears next to the text it went wrong on rather than below the control that triggered it.",
+    "filePath": "src/lib/components/ImportPanel/ImportPanel.jsx",
+    "name": "ImportPanel",
+    "scenarios": [
+      "importpanel-awaiting-a-snapshot",
+      "importpanel-unreadable-snapshot",
+      "importpanel-snapshot-repaired"
+    ]
   },
   {
     "description": "Global keydown pub/sub over a single document.onkeydown listener: add/remove subscribers and trigger fans an event (real or synthetic) to all of them. Powers Search's Cmd/Ctrl+F focus + Escape close and SearchResults' arrow/enter navigation.",
@@ -331,13 +360,25 @@
     ]
   },
   {
-    "description": "Read-only textarea paired with a copy-to-clipboard button that shows a transient 'Copied' confirmation, used to display an import/export snapshot value.",
-    "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
-    "name": "SnapshotField",
-    "testFile": "src/lib/pages/ImportExport/ImportExport.test.jsx"
+    "description": "The mono text field a snapshot lives in — pasted into for Import, read out of for Export. One component rather than three copies of the same rule, because the Import box, the Current export, and each Previous snapshot are the same object in three roles and have to keep looking identical or the page stops reading as one surface. Read-only is the common case; onKeyDown is passed through rather than assumed because the Import box must stop key events propagating, or the app's type-to-search steals every character of a paste-and-edit.",
+    "filePath": "src/lib/components/SnapshotBox/SnapshotBox.jsx",
+    "name": "SnapshotBox",
+    "scenarios": [
+      "snapshotbox-read-only-snapshot",
+      "snapshotbox-empty-paste-box"
+    ]
   },
   {
-    "description": "The banner telling the user their groups are NOT reaching chrome.storage.sync, rendered above the Import / Export controls so the Export snapshot it points them to sits directly below. Takes a syncStatus record and returns null for the three non-alarming cases — no record, a healthy `ok`, and an unrecognized status from a future version — so it only ever appears when there is something to act on. The copy differs by remedy: an over-quota set needs the user to export and prune, an unavailable sync area needs them to sign in. It names the consequence in the user's terms (will not survive a reinstall) and never the mechanism. It exists because silence here would be worse than the old local-only behavior: a swallowed sync failure looks exactly like a working backup.",
+    "description": "A read-only snapshot with its own Copy button, which flips to a green Copied for ~1.6s before reverting. Laid out as a row rather than stacked because the Previous list holds several and a button under each box would double the list's height. The clipboard write's rejection is deliberately swallowed — writeText rejects in a headless capture, a hardened profile, or a non-secure context, and unhandled it would surface as a page error on the one path this feature tells users to take when their groups are not reaching sync.",
+    "filePath": "src/lib/components/SnapshotField/SnapshotField.jsx",
+    "name": "SnapshotField",
+    "scenarios": [
+      "snapshotfield-copyable-snapshot",
+      "snapshotfield-copy-confirmed"
+    ]
+  },
+  {
+    "description": "The banner telling the user their groups are NOT reaching chrome.storage.sync. Takes a syncStatus record and returns null for the three non-alarming cases — no record, a healthy `ok`, and an unrecognized status from a future version — so it only ever appears when there is something to act on. The copy differs by remedy: an over-quota set needs the user to export and prune, an unavailable sync area needs them to sign in, and it names the consequence in the user's terms rather than the mechanism. Two optional props let the same component stand away from the Import / Export page: onOpenBackup switches the copy to point AT that page (rather than saying 'below', where the snapshot is not) and adds the button to get there, and onDismiss adds the close affordance a banner needs when it sits above the user's groups on Home rather than on a page they chose to open.",
     "filePath": "src/lib/components/SyncWarning/SyncWarning.jsx",
     "name": "SyncWarning",
     "scenarios": [
@@ -436,6 +477,12 @@
     "testFile": "src/lib/utils/storageAreas.test.js"
   },
   {
+    "description": "The line a permissive parse must not cross: returns the parsed value as an importable label list, or null when it is not an export. Keeps the valid labels and counts the dropped ones so a partial document still restores what it can while reporting what it could not. An EMPTY array is rejected rather than imported, because it is indistinguishable from garbage that happened to parse and importing it would clear every group the user currently has.",
+    "filePath": "src/lib/utils/importSnapshot/validateSnapshotShape.js",
+    "name": "asLabelList",
+    "testFile": "src/lib/utils/importSnapshot/validateSnapshotShape.test.js"
+  },
+  {
     "description": "Maps a process's task tab ids back to tabs (chrome.tabs.get) and merges per-url process metrics into the updates object.",
     "filePath": "service_worker.js",
     "name": "associateProcess",
@@ -520,10 +567,16 @@
     "testFile": "src/lib/utils/groupRemovalLog.test.js"
   },
   {
-    "description": "Parses the pasted export JSON and builds the storage updates map: one per-URL object per url-<url> key plus the rebuilt labels map. Throws on malformed JSON so the page swallows it with a console.log, faithful to the reference saveImport.",
+    "description": "Builds the storage updates map from an export: one per-URL object per url-<url> key plus the rebuilt labels map. Accepts either the raw pasted JSON string or an already-parsed, already-validated label list. The page passes the second form, because reading a snapshot a transport medium damaged is a whole escalation ladder rather than one JSON.parse, and because the shape has to be validated BEFORE anything is written.",
     "filePath": "src/lib/utils/importExport.js",
     "name": "buildImportUpdates",
     "testFile": "src/lib/utils/importExport.test.js"
+  },
+  {
+    "description": "Builds the cumulative ladder of repair candidates for a pasted snapshot — the untouched paste at index 0, then each successive transport repair applied on top of the last. Because the caller attempts a parse after each rung, the repair set eventually reported to the user is the SMALLEST one that actually worked rather than everything that could have been applied.",
+    "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
+    "name": "buildRepairCandidates",
+    "testFile": "src/lib/utils/importSnapshot/repairTransportDamage.test.js"
   },
   {
     "description": "Turns the stored labels map into the synchronous half of the Search index: one minisearch document per label (id 'label-<title>' with color), a labelMap of every labeled urlKey to its label title, and a labelColorMap of every label title to its color. Its companion buildUrlDocuments stamps each grouped URL document with urlLabelColor (from labelColorMap) alongside urlLabelTitle, so grouped hits can be headed by their group's color downstream. Pure, so index shaping is testable independent of minisearch/Chrome.",
@@ -681,6 +734,12 @@
     "filePath": "src/lib/utils/describeDragRemoval.js",
     "name": "describeDragRemoval",
     "testFile": "src/lib/utils/describeDragRemoval.test.js"
+  },
+  {
+    "description": "The one-line account of an import that succeeded but was not intact, and null for a clean one. Silent repair would leave a user believing a damaged backup is healthy, and silent PARTIAL recovery is worse still because it looks exactly like a complete restore — so the repairs are named and the lost count is stated plainly. Omits the salvage label when groups were lost, since the count sentence already accounts for that damage and naming it twice reads as two separate problems.",
+    "filePath": "src/lib/utils/importSnapshot/describeImport.js",
+    "name": "describeImport",
+    "testFile": "src/lib/utils/importSnapshot/describeImport.test.js"
   },
   {
     "description": "Dissolves the Chrome tab groups belonging to labels the user just deleted, so no tab survives in a titled group to re-record the label that was removed. Tabs stay open and stay put — chrome.tabs.ungroup only clears membership and never reorders tabs or moves them between windows — so this is a deliberate, user-initiated exception to the no-autonomous-tab-moving guarantee rather than a regression of it. Queries unscoped by window and handles EVERY returned group, since a label legitimately has one Chrome group per window and the deletion removes all of them. Each affected tab is added to pendingUngroups BEFORE the call lands, reusing the record loop's existing in-flight guard to close the window in which a concurrent groupTabs pass would re-record it, and cleared in the callback. A deleted label with no live Chrome group is the common case (its tabs are all closed) and is a silent no-op. Every ungroup is trailed through recordMove under MoveSource.WORKER_LABEL_DELETED.",
@@ -963,6 +1022,12 @@
     "testFile": "src/lib/utils/isTrackableUrl.test.js"
   },
   {
+    "description": "Joins the named repairs into a readable phrase rather than a comma-separated dump, so a snapshot that needed several fixes reads as a sentence. The message it feeds is the only account the user gets of what was wrong with their backup, which is exactly why it should not read like debug output.",
+    "filePath": "src/lib/utils/importSnapshot/describeImport.js",
+    "name": "joinPhrases",
+    "testFile": "src/lib/utils/importSnapshot/describeImport.test.js"
+  },
+  {
     "description": "Internal shim helper: resolves the callback argument from a variadic action-stub call by returning the last argument when it is a function, else undefined. Lets the no-op tabs/tabGroups stubs accept Chrome's varying (props, cb?) / (id, props, cb?) arities.",
     "filePath": "src/lib/utils/chromeShim/chromeShim.js",
     "name": "lastCallback",
@@ -1028,6 +1093,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Finds the brace closing the object that starts at a given index, or -1 when the text runs out first — which IS the truncation signal salvage keys off. String-aware, so a brace inside a page title cannot throw off the depth count and truncate a perfectly good group.",
+    "filePath": "src/lib/utils/importSnapshot/salvageLabels.js",
+    "name": "matchingBrace",
+    "testFile": "src/lib/utils/importSnapshot/salvageLabels.test.js"
+  },
+  {
     "description": "Internal helper of deriveSystemTotals: system memory pressure = (capacity - availableCapacity)/capacity, clamped 0..1. Returns 0 (never NaN) when the info object or capacity is missing.",
     "filePath": "src/lib/utils/deriveSystemTotals.js",
     "name": "memoryUtilization",
@@ -1081,6 +1152,18 @@
     "testFile": "src/lib/utils/tabPlacement.test.js"
   },
   {
+    "description": "Turns non-breaking and zero-width characters into ordinary spaces or drops them. These are the cruel ones: they are invisible, so a user looking at the rejected text can see nothing wrong with it and has no way to guess what to fix. The zero-width set is matched as an alternation rather than a character class, because a class holding the zero-width joiner is exactly the construct that silently splits an emoji sequence in a page title.",
+    "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
+    "name": "normalizeInvisibleCharacters",
+    "testFile": "src/lib/utils/importSnapshot/repairTransportDamage.test.js"
+  },
+  {
+    "description": "Normalizes a single export entry, or returns null when it is not a label at all. The rules come straight from what buildImportUpdates requires — it keys the labels map by title and iterates urls — so an entry missing either would silently produce a partial map rather than an error. Permissive WITHIN a recoverable label: an unusable member row is dropped rather than the whole group discarded, and a group with no members is kept because an empty group the user made still belongs in their backup.",
+    "filePath": "src/lib/utils/importSnapshot/validateSnapshotShape.js",
+    "name": "normalizeLabel",
+    "testFile": "src/lib/utils/importSnapshot/validateSnapshotShape.test.js"
+  },
+  {
     "description": "Pure URL-normalization helper that produces a canonical grouping key for de-duplicating cosmetic URL variants. Collapses the scheme so http and https are equivalent, lowercases the host and strips a leading www., strips a trailing slash from the path, and drops the fragment, while PRESERVING the query so genuinely different pages stay distinct. Its host derivation is delegated to siteKey so that host canonicalization — lowercasing and www.-stripping — has exactly one definition shared with the site-level siteVisits store. Falls back to the trimmed raw string for a non-parseable input so callers never throw on a key-derived or malformed value. Now used by rankFavorites only as a fallback grouping key for candidates whose URL yields no site key.",
     "filePath": "src/lib/utils/normalizeUrl.js",
     "name": "normalizeUrl",
@@ -1091,6 +1174,12 @@
     "filePath": "scripts/sync-extension-dir.mjs",
     "name": "orderedSyncPlan",
     "testFile": "scripts/sync-extension-dir.test.js"
+  },
+  {
+    "description": "Reads a pasted export snapshot as forgivingly as it can be read, escalating through four passes rather than failing: strict JSON.parse, transport-damage repair, relaxed hand-edited syntax, then structural salvage of whatever survives a truncated file. Returns the recovered labels plus the minimal set of repairs that worked, or a typed failure. Validates the SHAPE after parsing so a permissive parse never becomes a permissive import, and on total failure reports the ORIGINAL strict-parse error rather than an offset into a repaired copy that does not exist in what the user pasted.",
+    "filePath": "src/lib/utils/importSnapshot/index.js",
+    "name": "parseImportSnapshot",
+    "testFile": "src/lib/utils/importSnapshot/index.test.js"
   },
   {
     "description": "Extracts the integer Chrome tab id from a `tab-<n>` storage key.",
@@ -1188,13 +1277,19 @@
     "testFile": "src/lib/utils/visitDecay.test.js"
   },
   {
+    "description": "Whether a partitioned read query asks for `labels` at all. `labels` routes to sync, so the sync side of the partition is the one interrogated, and the `null` read-everything form counts as asking for it. This is the gate that keeps the local-fallback resolution off the hot path: the ~20 reads that never touch `labels` must not pay for a second round trip just because one key in the routing table has a fallback.",
+    "filePath": "src/lib/utils/storageAccess.js",
+    "name": "queryRequestsLabels",
+    "testFile": "src/lib/utils/storageAccess.test.js"
+  },
+  {
     "description": "Pure ranking for the Favorites sidebar and View All page. Candidates are rolled up BY SITE via siteKey — the host — rather than per page, so a content site's homepage and its articles become ONE row whose count and sparkline reflect the site's real usage; the row's representative is the most-recent, lowest-index member. This subsumes the old cosmetic-variant collapsing, since http/https/www variants share a host. A group's timestamps are the deduped UNION of the durable `siteVisits[host]` history and the per-record visits its members carry via visitsFor, which preserves the legacy visitCount migration path; union rather than either-or, because right after the upgrade the durable store holds one timestamp while legacy records hold the site's whole history. Both stores record the same visit with the same epoch-ms, so duplicates collapse. SCORING is time-decayed: a currently-open non-pinned tab is discounted by dropping the site's most-recent in-progress visit — applied AFTER the union, so the durable store cannot hand the dropped visit back — sites below qualifyMin are dropped, and survivors sort by decayed score with recency then list position as tiebreaks. SUPPRESSION comes in two levels that must not be confused. The page-level `excludedKeys` / `hiddenKeys` match a member's `urlKey` and serve the genuinely page-level concern of pinned-tab exclusion. The site-level `excludedSites` / `hiddenSites` match a GROUP's key in the qualifying loop: `excludedSites` drops the whole site, `hiddenSites` flags it `isHidden: true` for View All's dimmed Bring back row. Removal is site-level because ROWS are site-level — suppressing a single page key of a multi-page site only demotes the representative, and the row instantly re-forms from that site's next-most-recent page, which is the bug that forced a user to click the same row once per stored page. Callers build the site sets with hiddenSiteKeys, whose normalization mirrors this function's own `siteKey(url) || normalizeUrl(url)` group key.",
     "filePath": "src/lib/utils/rankFavorites.js",
     "name": "rankFavorites",
     "testFile": "src/lib/utils/rankFavorites.test.js"
   },
   {
-    "description": "Reads keys from whichever areas own them and hands the MERGED result to the callback exactly once. The single-callback contract is load-bearing: the Import / Export page reads labels (sync) and previousLabels plus syncStatus (local) in one call and would render twice with partial data otherwise. Degrades to a local-only read when the host exposes no sync area.",
+    "description": "Reads keys from whichever areas own them and hands the MERGED result to the callback exactly once. The single-callback contract is load-bearing: the Import / Export page reads labels (sync) and previousLabels plus syncStatus (local) in one call and would render twice with partial data otherwise. `labels` gets one extra step — writeByArea redirects it to the LOCAL area whenever sync refuses the write, so resolving it from sync alone made that fallback WRITE-ONLY and the user watched their groups revert. When sync offers no groups, local is consulted for a fallback copy before the callback fires; precedence is decided by resolveLabelsAcrossAreas, and the second round trip is only paid on the degraded path. Degrades to a local-only read when the host exposes no sync area.",
     "filePath": "src/lib/utils/storageAccess.js",
     "name": "readByArea",
     "testFile": "src/lib/utils/storageAccess.test.js"
@@ -1254,6 +1349,12 @@
     "testFile": "src/lib/utils/relativeTime.test.js"
   },
   {
+    "description": "Rewrites the JSON a human hand-edited into strict JSON, then drops trailing commas. Reports `changed: false` for text that was already strict so the caller can skip a redundant re-parse rather than reporting a repair that never happened.",
+    "filePath": "src/lib/utils/importSnapshot/relaxJsonSyntax.js",
+    "name": "relaxSyntax",
+    "testFile": "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js"
+  },
+  {
     "description": "Removes keys from whichever areas own them, routing the same way reads and writes do so a Chrome.remove spanning both areas clears both.",
     "filePath": "src/lib/utils/storageAccess.js",
     "name": "removeByArea",
@@ -1284,10 +1385,28 @@
     "testFile": "src/lib/utils/importExport.test.js"
   },
   {
+    "description": "Decides which copy of `labels` wins when the local and sync areas disagree. Sync is authoritative whenever it actually holds groups — it is the copy that survives an uninstall, the entire reason labels moved there — and a local value wins only when sync has none, because it exists solely as the landing site for a refused sync write. Expressed through the same `hasGroups` predicate `decideMigration` applies, so an empty map is treated as the hydrated default rather than an authoritative answer and an empty sync area can never permanently shadow a populated local one. Returns a `{source, labels}` decision so the caller can tell NEITHER apart from 'local won with an empty map'.",
+    "filePath": "src/lib/utils/labelsPrecedence.js",
+    "name": "resolveLabelsAcrossAreas",
+    "testFile": "src/lib/utils/labelsPrecedence.test.js"
+  },
+  {
     "description": "Splits a raw localStorage seed key into the area that owns it and the key the app sees. Unprefixed keys route through the storage-areas table, so every pre-existing scenario seeds unchanged; the `sync::` and `local::` prefixes override that, which is what makes the cross-area states seedable at all — sync populated with local wiped (the uninstall a user survives) and local populated with sync empty (the state the migration converts).",
     "filePath": "src/lib/utils/chromeShim/chromeShim.js",
     "name": "resolveSeedKey",
     "testFile": "src/lib/utils/chromeShim/chromeShim.test.js"
+  },
+  {
+    "description": "Rewrites relaxed JSON into strict JSON: line and block comments dropped, single-quoted strings requoted with inner double quotes escaped, unquoted keys quoted, and the non-JSON literals NaN / Infinity / undefined turned into null. Every rule applies only OUTSIDE a string literal, so a page title containing a URL with a double slash or an apostrophe is copied through verbatim rather than mistaken for syntax. Hand-rolled rather than pulled from a JSON5 dependency because this is a browser extension and the tolerated set is small and fixed.",
+    "filePath": "src/lib/utils/importSnapshot/relaxJsonSyntax.js",
+    "name": "rewriteRelaxedSyntax",
+    "testFile": "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js"
+  },
+  {
+    "description": "The last resort for a snapshot truncated mid-copy: scans for every well-formed label object still readable and returns those plus a count of what was lost, rather than failing whole. Steps INSIDE an object that parsed but is not a label, so an export nested in a wrapper is still recovered. The lost count is what makes a partial restore honest — a silent partial recovery looks exactly like a complete one.",
+    "filePath": "src/lib/utils/importSnapshot/salvageLabels.js",
+    "name": "salvageLabels",
+    "testFile": "src/lib/utils/importSnapshot/salvageLabels.test.js"
   },
   {
     "description": "Reduces a URL to its origin + pathname so the tab-grouping eject path can tell an in-page URL rewrite (query/hash change — keep grouped) apart from a real navigation (different origin/path — eject). Drops the query string and fragment; falls back to the raw input for non-string or unparseable values so they compare equal only when literally identical.",
@@ -1350,6 +1469,12 @@
     "testFile": "src/lib/utils/importExport.test.js"
   },
   {
+    "description": "Replaces raw newlines and tabs INSIDE string literals with the space they displaced, leaving them alone outside a string where they are legal JSON whitespace. This is the confirmed real-world failure: a user's snapshot was hard-wrapped by the medium they pasted it through, putting a literal newline exactly where a space belongs in a page title, and JSON.parse rejected it with a bad-control-character error the user never saw. A CRLF pair collapses to one space because it replaced one space.",
+    "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
+    "name": "spaceOutControlCharacters",
+    "testFile": "src/lib/utils/importSnapshot/repairTransportDamage.test.js"
+  },
+  {
     "description": "The target files the new build no longer produces — a set difference over relative paths. Extracted and pinned by tests because it is the one place a bug would DELETE a file the loaded extension still needs; hashed asset names change every build, so pruning has to happen, but it has to prune only what is genuinely gone.",
     "filePath": "scripts/sync-extension-dir.mjs",
     "name": "staleFiles",
@@ -1383,6 +1508,30 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Converts quotes a word processor autocorrected back to straight ones. Applied last among the transport repairs and only after a strict parse has already failed, because curly quotes are perfectly legal inside a JSON string — a snapshot whose only curly quotes sit in a page title parses on the first pass and never reaches here.",
+    "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
+    "name": "straightenSmartQuotes",
+    "testFile": "src/lib/utils/importSnapshot/repairTransportDamage.test.js"
+  },
+  {
+    "description": "Unwraps a snapshot that arrived inside a markdown code fence, as it does whenever an export is pasted through a chat client or a markdown document. Returns null when there is no fence, so a healthy paste is never reported to the user as having been repaired.",
+    "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
+    "name": "stripCodeFence",
+    "testFile": "src/lib/utils/importSnapshot/repairTransportDamage.test.js"
+  },
+  {
+    "description": "Drops a comma sitting immediately before a closing brace or bracket — the classic hand-edit left behind by deleting the last group. String-aware, so a comma inside a page title is content rather than syntax, and a comma genuinely separating two members survives.",
+    "filePath": "src/lib/utils/importSnapshot/relaxJsonSyntax.js",
+    "name": "stripTrailingCommas",
+    "testFile": "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js"
+  },
+  {
+    "description": "Slices leading or trailing prose away from around an otherwise intact snapshot, from the first structural character to the last. Returns null when the text is already just the snapshot.",
+    "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
+    "name": "stripWrapper",
+    "testFile": "src/lib/utils/importSnapshot/repairTransportDamage.test.js"
+  },
+  {
     "description": "Subscribes to drag-start/drag-end transitions so a list can flush the storage updates it buffered mid-drag. Uses a listener set separate from the hover subscription so flipping one signal never wakes the other's subscribers.",
     "filePath": "src/lib/utils/dragHoverStore.js",
     "name": "subscribeDragActive",
@@ -1393,6 +1542,12 @@
     "filePath": "src/lib/utils/dragHoverStore.js",
     "name": "subscribeDragHover",
     "testFile": "src/lib/utils/dragHoverStore.test.js"
+  },
+  {
+    "description": "Builds the success result every parse pass returns, folding the shape-validation drop count together with any groups lost to salvage into one `lost` total. Both are the same fact to the user — groups that were in the file and did not come back — so the reporting layer should never have to know which pass discarded them.",
+    "filePath": "src/lib/utils/importSnapshot/index.js",
+    "name": "succeed",
+    "testFile": "src/lib/utils/importSnapshot/index.test.js"
   },
   {
     "description": "Summarizes a stored per-URL processes record into the load readout a tab shows: average CPU and private-memory, a severity level (low/medium/high/excessive), and a bar width. Returns null when there is no sampled data so callers render nothing. Shared by the Url tab rows and the Load page LoadUrl cards (extracted from the inline copy that lived in Url).",
@@ -1504,6 +1659,15 @@
     "testFile": "src/lib/hooks/useHistoryRows.test.jsx"
   },
   {
+    "description": "React hook owning the degraded-sync banner state for any surface outside the Import / Export page, where the warning must be dismissible rather than permanently parked above the user's groups. Dismissal is deliberately PER-INCIDENT: it records the `at` of the status record being dismissed, and writeByArea only writes a new record when the status actually changes, so a dismissal holds while sync stays broken and lifts when sync recovers and then fails again. Returns `{status, dismiss}` with status nulled while dismissed.",
+    "filePath": "src/lib/hooks/useSyncStatus.js",
+    "name": "useSyncStatus",
+    "untestabilityReason": {
+      "justification": "Reads chrome.storage through Chrome and subscribes to chrome.storage.onChanged; its behaviour is exercised end to end by the home-groups-survive-a-sync-fallback application scenario.",
+      "kind": "platform-glue"
+    }
+  },
+  {
     "description": "React hook owning the resolved light/dark theme. Resolves from three inputs: the saved themePreference storage key ['system' | 'light' | 'dark', default system], the live OS prefers-color-scheme tracked via matchMedia [dark fallback], and an in-memory temporary override set by the sun/moon toggle. Only the resolved value mirrors to the document element's data-theme attribute, which the CSS token layer keys off so the whole UI re-themes from one place. In system mode an OS day/night transition clears the override; a legacy theme:'light' migrates to a Day preference. Returns [theme, toggleTheme].",
     "filePath": "src/lib/hooks/useTheme.js",
     "name": "useTheme",
@@ -1527,7 +1691,7 @@
     "testFile": "src/lib/utils/rankFavorites.test.js"
   },
   {
-    "description": "Writes an updates map to its keys' owning areas, guarding every sync write two ways sync can refuse one: an over-quota item is measured first and redirected to local, and a rejected write (signed out, sync disabled, throttled) is retried into local off chrome.runtime.lastError. Both record the outcome under syncStatus so a group mutation is never dropped and the degraded state is visible to the user rather than silent.",
+    "description": "Writes an updates map to its keys' owning areas, guarding every sync write two ways sync can refuse one: an over-quota item is measured first and redirected to local, and a rejected write (signed out, sync disabled, throttled) is retried into local off chrome.runtime.lastError. Both record the outcome under syncStatus so a group mutation is never dropped and the degraded state is visible rather than silent. A SUCCESSFUL sync write additionally mirrors the value back into local, so an earlier fallback copy can never linger and leave the two areas holding different groups — mirroring rather than deleting, because migrateLabelsToSync keeps the local copy on purpose as a read-only net for the day sync is unavailable.",
     "filePath": "src/lib/utils/storageAccess.js",
     "name": "writeByArea",
     "testFile": "src/lib/utils/storageAccess.test.js"

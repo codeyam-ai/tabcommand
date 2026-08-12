@@ -1,0 +1,29 @@
+/* The account of what an import did, sitting directly under the box the
+   snapshot is still in — the pasted text is what the user needs in front of
+   them to act on either message.
+
+   A failed import used to log to a console the user cannot see and then close
+   the page, which looked exactly like a success that did nothing. */
+.ImportMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  max-width: 640px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-t1);
+}
+
+.ImportMessage svg {
+  flex: none;
+  margin-top: 3px;
+}
+
+.ImportMessage--error svg {
+  color: var(--c-danger-fg);
+}
+
+.ImportMessage--notice svg {
+  color: var(--c-lime);
+}

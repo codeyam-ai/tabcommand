@@ -1,0 +1,32 @@
+{
+  "name": "Import / Export - Hard-Wrapped Snapshot Repaired",
+  "id": "53e31f71-6d07-44eb-ac32-873088f28443",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "url-https://github.com/codeyam/tabcommand": "{\"url\": \"https://github.com/codeyam/tabcommand\", \"title\": \"codeyam/tabcommand - GitHub\", \"favicon\": \"https://github.githubassets.com/favicons/favicon.svg\", \"processes\": {\"samples\": 0}}",
+      "syncStatus": "{\"status\": \"sync-failed\", \"key\": \"labels\", \"message\": \"Please sign in to Chrome to use chrome.storage.sync\", \"at\": 1786545000000}",
+      "uxSettings": "{\"page\": {\"name\": \"ImportExport\"}}",
+      "local::labels": "{\"Work\": {\"title\": \"Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\"]}}",
+      "previousLabels": "[]"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+  "description": "The confirmed real-world failure, recovered end to end. A user's snapshot was line-wrapped by the medium they pasted it through, putting a literal newline exactly where a space belongs in each page title; JSON.parse rejected it and the user was told nothing. Here the same damage is repaired, the groups are restored, and the page stays open to say WHAT it fixed — a silent repair would leave a damaged backup looking healthy.",
+  "interactions": [
+    {
+      "action": "fill",
+      "selector": ".ImportPanel .SnapshotBox",
+      "value": "[{\"title\": \"Restored Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urls\": [{\"url\": \"https://github.com/codeyam/tabcommand\", \"title\": \"codeyam/tabcommand\n- GitHub\", \"favicon\": \"\"}]}, {\"title\": \"Restored Reading\", \"backgroundColor\": \"#8B5CF6\", \"position\": 1, \"urls\": [{\"url\": \"https://news.ycombinator.com\", \"title\": \"Hacker\nNews\", \"favicon\": \"\"}]}]"
+    },
+    {
+      "action": "click",
+      "text": "Import"
+    }
+  ]
+}

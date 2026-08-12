@@ -236,4 +236,87 @@ describe('storageAccess', () => {
     expect(calls.syncRemove).toEqual([['labels']]);
     expect(syncData.labels).toBeUndefined();
   });
+
+  // THE REPRODUCTION. writeByArea lands a refused labels write in the local area
+  // so the group mutation is never dropped — but readByArea resolved labels from
+  // SYNC alone, so the value sat safely on disk in an area nothing ever read it
+  // back from and the user watched their groups revert. The fallback was
+  // write-only, which is the same as no fallback at all.
+  it('readByArea returns a labels value that fell back to local', () => {
+    const { chrome } = makeChrome({ syncFails: true });
+    globalThis.chrome = chrome;
+
+    writeByArea({ labels: { Work: { title: 'Work', urlKeys: [] } } });
+
+    let out;
+    readByArea(['labels'], (r) => { out = r; });
+
+    expect(out.labels).toEqual({ Work: { title: 'Work', urlKeys: [] } });
+  });
+
+  // Sync stays authoritative when BOTH areas hold groups: it is the copy that
+  // survives an uninstall, which is the entire reason labels moved there. Same
+  // rule decideMigration applies on worker boot, deliberately not a second one.
+  it('readByArea prefers the sync labels when both areas hold groups', () => {
+    const { chrome } = makeChrome({
+      localData: { labels: { Stale: { title: 'Stale' } } },
+      syncData: { labels: { Fresh: { title: 'Fresh' } } },
+    });
+    globalThis.chrome = chrome;
+
+    let out;
+    readByArea(['labels'], (r) => { out = r; });
+
+    expect(out.labels).toEqual({ Fresh: { title: 'Fresh' } });
+  });
+
+  // An EMPTY sync map is the hydrated default, not an authoritative answer. If
+  // it won, an empty sync area would permanently shadow a populated local one.
+  it('readByArea prefers a populated local fallback over an empty sync map', () => {
+    const { chrome } = makeChrome({
+      localData: { labels: { Work: { title: 'Work' } } },
+      syncData: { labels: {} },
+    });
+    globalThis.chrome = chrome;
+
+    let out;
+    readByArea(['labels'], (r) => { out = r; });
+
+    expect(out.labels).toEqual({ Work: { title: 'Work' } });
+  });
+
+  // The healthy path must not pay for the degraded one: when sync answers with
+  // groups there is nothing to reconcile, so no second local read is issued.
+  it('readByArea does not read local for labels when sync has groups', () => {
+    const { chrome, calls } = makeChrome({ syncData: { labels: { Work: {} } } });
+    globalThis.chrome = chrome;
+
+    readByArea(['labels'], () => {});
+
+    expect(calls.localGet).toEqual([]);
+  });
+
+  // The single-callback contract has to survive the extra fallback read too —
+  // the Import / Export page would render twice with partial data otherwise.
+  it('readByArea still fires the callback once when it consults the fallback', () => {
+    const { chrome } = makeChrome({ localData: { previousLabels: [] } });
+    globalThis.chrome = chrome;
+
+    let fired = 0;
+    readByArea(['labels', 'previousLabels'], () => { fired += 1; });
+
+    expect(fired).toBe(1);
+  });
+
+  // The other half of the fallback: once sync accepts the value, the two areas
+  // must not be left holding DIFFERENT groups, or which one the user sees
+  // depends on which one happened to be read.
+  it('writeByArea mirrors a successful sync write into local', () => {
+    const { chrome, localData } = makeChrome({ localData: { labels: { Stale: {} } } });
+    globalThis.chrome = chrome;
+
+    writeByArea({ labels: { Work: { title: 'Work' } } });
+
+    expect(localData.labels).toEqual({ Work: { title: 'Work' } });
+  });
 });

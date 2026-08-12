@@ -31,8 +31,14 @@
   color: var(--c-t1);
 }
 
+/* Capped to a readable measure rather than the full content width. Most page
+   intros are one short sentence and never reach it, but Import / Export's runs
+   to two — and at 13px an uncapped line stretches past 1300px on a wide window,
+   which is where prose stops being readable. */
 .Page-intro {
   margin: 0 0 22px;
+  max-width: 560px;
   color: var(--c-t3);
   font-size: 13px;
+  line-height: 1.55;
 }

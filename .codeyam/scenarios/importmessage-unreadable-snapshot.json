@@ -1,0 +1,12 @@
+{
+  "name": "ImportMessage - Unreadable Snapshot",
+  "id": "916aa505-37ad-4eee-9f97-e162103c0d20",
+  "url": "/?isolate=ImportMessage&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ImportMessage",
+  "scenarioType": "component",
+  "description": "The message that used to not exist. A failed import logged to a console the user cannot see and then closed the page, so it looked exactly like a success that did nothing. Now the parser's own position is reported — and it is the position in what the user pasted, not an offset into a repaired copy that does not exist in front of them. Rendered as an alert, because this is the one the user has to act on."
+}

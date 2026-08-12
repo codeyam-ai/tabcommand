@@ -64,12 +64,19 @@ export function resolveLabelUrls(sortedLabels, urlInfoByKey) {
   return sortedLabels;
 }
 
-// Parse the pasted export JSON and build the storage updates map: one per-URL
-// object per `url-<url>` key plus the rebuilt `labels` map. Throws on malformed
-// JSON so the page can swallow it with a console.log (no user-facing error),
-// exactly as the `saveImport` try/catch does.
+// Build the storage updates map from an export: one per-URL object per
+// `url-<url>` key plus the rebuilt `labels` map.
+//
+// Accepts either the raw pasted JSON string or an already-parsed, already-
+// validated label list. The page takes the second form — `parseImportSnapshot`
+// does the reading, because reading a snapshot that a transport medium damaged
+// is a whole escalation ladder rather than one `JSON.parse`, and because the
+// shape has to be checked BEFORE anything is written. The string form is kept
+// for callers that hold intact JSON and want the parse for free.
 export function buildImportUpdates(importLabels) {
-  const labelsArray = JSON.parse(importLabels);
+  const labelsArray = typeof importLabels === 'string'
+    ? JSON.parse(importLabels)
+    : importLabels;
 
   const updates = {};
   const labels = {};

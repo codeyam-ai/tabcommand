@@ -2,6 +2,7 @@ import './App.css';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Tabs, Labels, LoadMeter, Search, AppBrand, ThemeToggle, Triage, Settings, Favorites, SearchHint } from '../../components';
+import { SyncWarning } from '../../components/SyncWarning';
 import { Load } from '../Load';
 import { ImportExport } from '../ImportExport';
 import { UrlDetails } from '../UrlDetails';
@@ -33,6 +34,7 @@ import { dropTargetIdAtPoint } from '../../utils/dropTargeting';
 import { hasPerTabLoadData } from '../../utils/hasPerTabLoadData';
 import { setDragHover, getDragHover, setDragActive } from '../../utils/dragHoverStore';
 import { useTheme } from '../../hooks/useTheme';
+import { useSyncStatus } from '../../hooks/useSyncStatus';
 
 // A normal drop fires `pointerup` well before @hello-pangea/dnd reports
 // `onDragEnd` (which waits out the drop animation), so the abort net below is
@@ -43,6 +45,11 @@ const DRAG_ABORT_GRACE_MS = 1000;
 const App = () => {
   const [page, setPage] = useState({ name: Pages.HOME });
   const [theme, toggleTheme] = useTheme();
+  // Groups that have stopped reaching sync are worth saying so WHERE THE GROUPS
+  // ARE. The Import / Export page already warns, but only a user who happens to
+  // open it finds out — and the state means "your groups are no longer protected
+  // from the uninstall this feature exists to survive."
+  const { status: syncStatus, dismiss: dismissSyncWarning } = useSyncStatus();
   const [reviewMode, setReviewMode] = useState(false);
   const [counts, setCounts] = useState({ tabs: 0, groups: 0 });
 
@@ -322,12 +329,19 @@ const App = () => {
           <ViewAllFavorites />
         }
         {isHome &&
-          <DragDropContext onDragEnd={handleDrag} onDragStart={handleDragStart}>
-            <div className="App-home">
-              <Labels />
-              <Tabs reviewMode={reviewMode} />
-            </div>
-          </DragDropContext>
+          <div className="App-homeShell">
+            <SyncWarning
+              status={syncStatus}
+              onOpenBackup={() => changePage(Pages.IMPORTEXPORT)}
+              onDismiss={dismissSyncWarning}
+            />
+            <DragDropContext onDragEnd={handleDrag} onDragStart={handleDragStart}>
+              <div className="App-home">
+                <Labels />
+                <Tabs reviewMode={reviewMode} />
+              </div>
+            </DragDropContext>
+          </div>
         }
       </div>
     </div>

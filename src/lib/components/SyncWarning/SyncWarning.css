@@ -22,3 +22,51 @@
   margin-top: 2px;
   color: var(--c-danger-fg);
 }
+
+.SyncWarning-body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Only rendered away from the Import / Export page, where the snapshot the copy
+   tells the user to take is not on screen. */
+.SyncWarning-action {
+  display: block;
+  margin: 8px 0 0;
+  padding: 5px 12px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--c-t1);
+  background: transparent;
+  border: 0.5px solid var(--c-danger-fg);
+  border-radius: var(--r-row);
+  cursor: pointer;
+}
+
+.SyncWarning-action:hover {
+  background: var(--c-danger-fg);
+  color: var(--card-bg);
+}
+
+/* The banner is persistent by design — the groups really are unprotected until
+   this is fixed — so dismissal is per-incident, not permanent: a NEW sync
+   failure raises it again. See useSyncStatus. */
+.SyncWarning-dismiss {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  color: var(--c-t2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.SyncWarning-dismiss svg {
+  margin-top: 0;
+  color: inherit;
+}
+
+.SyncWarning-dismiss:hover {
+  color: var(--c-t1);
+}

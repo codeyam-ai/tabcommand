@@ -21,8 +21,7 @@
         "status": "covered"
       },
       "error": {
-        "status": "n-a",
-        "reason": "local storage reads have no failure path; this view renders no error UI"
+        "status": "added"
       },
       "key-interaction": {
         "status": "added"
@@ -111,8 +110,7 @@
         "status": "covered"
       },
       "error": {
-        "status": "n-a",
-        "reason": "No failure path renders differently on the Home view."
+        "status": "added"
       },
       "key-interaction": {
         "status": "added"

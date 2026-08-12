@@ -1,0 +1,12 @@
+{
+  "name": "ImportPanel - Unreadable Snapshot",
+  "id": "1483086f-49f5-4412-8f01-e4a62c9d1384",
+  "url": "/?isolate=ImportPanel&variant=unreadable-snapshot&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ImportPanel",
+  "scenarioType": "component",
+  "description": "A snapshot damaged past recovery, with the pasted text still sitting in the box. This is the arrangement the panel exists to own: the message lands BETWEEN the box and the button, next to the text it refers to rather than under the control that triggered it, because the pasted text is what the user needs in front of them to recover."
+}

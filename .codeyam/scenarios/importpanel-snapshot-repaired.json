@@ -1,0 +1,12 @@
+{
+  "name": "ImportPanel - Snapshot Repaired",
+  "id": "92eddb6e-51b1-4522-821d-764f83e829ff",
+  "url": "/?isolate=ImportPanel&variant=repaired-snapshot&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ImportPanel",
+  "scenarioType": "component",
+  "description": "The confirmed real-world failure, recovered. The box still shows the snapshot with its titles broken across lines — the damage a hard-wrapping medium inflicted in transit — and the notice below reports that the groups were restored and names the fix."
+}

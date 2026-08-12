@@ -1,6 +1,6 @@
 {
   "name": "Import / Export - Sync Unavailable",
-  "id": "986a6d91-77b1-40ba-b73d-ee218a419dc2",
+  "id": "abf42934-37e7-4d54-9358-d6bdf6a1ff14",
   "url": "/",
   "dimensions": [
     "Desktop"
@@ -8,15 +8,16 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "syncStatus": "{\"status\":\"sync-failed\",\"key\":\"labels\",\"message\":\"Please sign in to Chrome to use chrome.storage.sync\",\"at\":1786545000000}",
       "url-https://github.com/codeyam/tabcommand": "{\"url\":\"https://github.com/codeyam/tabcommand\",\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"processes\":{\"samples\":0}}",
+      "syncStatus": "{\"status\":\"sync-failed\",\"key\":\"labels\",\"message\":\"Please sign in to Chrome to use chrome.storage.sync\",\"at\":1786545000000}",
       "uxSettings": "{\"page\":{\"name\":\"ImportExport\"}}",
-      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]}}",
       "previousLabels": "[]",
-      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+      "local::labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#8B5CF6\",\"position\":1,\"urlKeys\":[\"url-https://news.ycombinator.com\"]}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://news.ycombinator.com": "{\"url\":\"https://news.ycombinator.com\",\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
     }
   },
   "scenarioType": "application",
   "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
-  "description": "Sync rejected the write — the user is signed out of Chrome or has extension sync turned off. The group edit still landed locally, so nothing was lost, but the durability guarantee is gone and the page says so in the user’s terms rather than reporting a storage error."
+  "description": "Sync rejected the write — the user is signed out of Chrome or has extension sync turned off — and the groups are seeded ONLY into the local area (the `local::` prefix), which is exactly where writeByArea lands them when sync refuses. That is the whole point of this scenario now: the Export snapshot below still serializes both groups, because the read path resolves the local fallback instead of asking sync alone. Before the fix this same state rendered an empty export over a warning telling the user to copy it — the durability guarantee gone AND the recovery it pointed at blank."
 }

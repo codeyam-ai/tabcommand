@@ -1,30 +1,40 @@
-⚠️  CODEYAM: stdout is piped through tail/grep — the consumer block-buffers its input to EOF, so this task's `.output` would be empty until the command exits. Liveness is being mirrored to stderr (below) so it stays visible.
-> liveness is mirrored to stderr (this file) because stdout is piped through tail/grep. Run this command BARE instead and block with `codeyam-editor editor wait-for <task .output path printed by the harness>` — a pipe reports the filter's exit code, not the command's. If you piped it to shorten the output, you did not need to: run bare and the command prints a `CODEYAM_FULL_OUTPUT` line naming a file that holds the COMPLETE output, which you can `cat` afterwards (or capture with `tee` if you want both at once).
-{"command":"refresh-tests","elapsed_secs":0,"emitted_at_unix":1786562280,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140}
-{"command":"refresh-tests","elapsed_secs":0,"emitted_at_unix":1786562280,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140}
+> auto-backgrounded — the harness completion notification arrives on its own when this exits; you do NOT need to do anything to receive it, and waiting adds nothing. KEEP WORKING: continue with anything that does not depend on this result — the notification interrupts you when it lands. "Do not poll" does NOT mean "stop working": ending the turn to wait is the one response that is never correct. ONLY if you need the result inside the CURRENT turn, block with: codeyam-editor editor wait-for /tmp/claude-0/-workspace/1d1a9991-3b40-4272-b058-4664626dfa76/tasks/bq2r8szkj.output (ONE call, bare — never piped through `| tail`; its budget is capped to fit the tool-call ceiling, so a long run returns WAIT_FOR STILL_RUNNING in-call and the notification still arrives. Re-issue only on LIKELY_WEDGED; do NOT hand-roll an `until grep … sleep` loop, the harness blocks it). Just want to know it is still alive? Read /tmp/claude-0/-workspace/1d1a9991-3b40-4272-b058-4664626dfa76/tasks/bq2r8szkj.heartbeat — one line, always the newest heartbeat; the output file below stays clean of them. Output too long? You do not need `| tail`: run it bare and read the `CODEYAM_FULL_OUTPUT` line the command prints — it names a file holding the COMPLETE output, which you can `cat` afterwards.
+{"command":"refresh-tests","elapsed_secs":0,"emitted_at_unix":1786567683,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":229420}
+════════════════════════════════════════════════════════════════════
+WARNING: refresh-tests --force is running the ENTIRE test suite.
+════════════════════════════════════════════════════════════════════
+You're at ui step 12: ui-extract-tdd. The full suite is reserved
+for the `finalize` step, where `session-finalize` runs it
+automatically. Running it here is slow and almost always avoidable.
+
+To update the cache for a NEW or RENAMED test, use:
+  codeyam-editor editor refresh-tests --test <name>
+  codeyam-editor editor refresh-tests --changed
+  codeyam-editor editor refresh-tests --runner <name>
+
+If the audit just bailed reporting cache staleness, the documented
+recovery is flag-free `refresh-tests` (no `--force`). See
+`reconcile.txt` for the full guidance.
+
+Proceeding with the full suite anyway.
+════════════════════════════════════════════════════════════════════
+
+warning: about to run the FULL test suite (~958 tests) — this can take many minutes.
+warning: narrow with --changed (current diff), --file <path>, or --test <name> to avoid a full run.
 Running tests via the configured runner command(s) — use these, do not reconstruct runner flags:
   tests  ::  npx vitest run --reporter=json
+note: full re-run requested; merkle-hash optimization skipped
 Test refresh triggered. Waiting for results...
 [   2s] Running runner: tests
-{"command":"refresh-tests","elapsed_secs":10,"emitted_at_unix":1786562290,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[   2s] Running runner: tests"}
-{"command":"refresh-tests","elapsed_secs":10,"emitted_at_unix":1786562290,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[   2s] Running runner: tests"}
 [  12s] Still running: tests
-{"command":"refresh-tests","elapsed_secs":20,"emitted_at_unix":1786562300,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  12s] Still running: tests"}
-{"command":"refresh-tests","elapsed_secs":20,"emitted_at_unix":1786562300,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  12s] Still running: tests"}
 [  22s] Still running: tests
-{"command":"refresh-tests","elapsed_secs":30,"emitted_at_unix":1786562310,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  22s] Still running: tests"}
-{"command":"refresh-tests","elapsed_secs":30,"emitted_at_unix":1786562310,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  22s] Still running: tests"}
 [  32s] Still running: tests
-{"command":"refresh-tests","elapsed_secs":40,"emitted_at_unix":1786562320,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  32s] Still running: tests"}
-{"command":"refresh-tests","elapsed_secs":40,"emitted_at_unix":1786562320,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":101140,"progress":"[  32s] Still running: tests"}
 [  42s] Still running: tests
 [  44s] Tests completed.
-{"failed":0,"passed":7,"skipped":865,"success":true,"total":7}
-All 7 tests passed.
+All 958 tests passed.
+{"failed":0,"passed":958,"skipped":0,"success":true,"total":958}
 
-Partial run — partition caches WERE updated; the full-suite test-cache.json was
-NOT (full-suite hash invariant). If a stale-partition bail sent you here, that
-recovery has landed — re-run the command that bailed.
-Audit gates read the full-suite cache. Flag-free `refresh-tests` updates it but
-is gated until `finalize`. To update the full-suite cache now (e.g. for
-brand-new tests), run: codeyam-editor editor refresh-tests --force
+[warn] per-test-evidence drift: 1 registered tests have no evidence row, 0 evidence rows reference unregistered tests.
+[warn] session-finalize Phase 5 will block until reconciled. Re-run a flag-free
+[warn] `refresh-tests` to cover the missing tests, or `editor remove-test --key <k>`
+[warn] / `editor rename-test --from <old> --to <new>` for orphans.

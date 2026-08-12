@@ -3,52 +3,34 @@
   "surface_kind": "component",
   "states": [
     {
-      "dimension": "importLabels",
-      "value": "empty",
-      "rationale": "source-derived state importLabels=empty",
-      "status": "planned"
-    },
-    {
-      "dimension": "importLabels",
-      "value": "one",
-      "rationale": "source-derived state importLabels=one",
-      "status": "planned"
-    },
-    {
-      "dimension": "importLabels",
-      "value": "many",
-      "rationale": "source-derived state importLabels=many",
-      "status": "planned"
-    },
-    {
       "dimension": "previousLabelsResult",
       "value": "empty",
       "rationale": "source-derived state previousLabelsResult=empty",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "previousLabelsResult",
       "value": "one",
       "rationale": "source-derived state previousLabelsResult=one",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "previousLabelsResult",
       "value": "many",
       "rationale": "source-derived state previousLabelsResult=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "_previousLabels",
       "value": "empty",
       "rationale": "source-derived state _previousLabels=empty",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "_previousLabels",
       "value": "one",
       "rationale": "source-derived state _previousLabels=one",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "_previousLabels",
@@ -60,7 +42,7 @@
       "dimension": "onComplete",
       "value": "true",
       "rationale": "source-derived state onComplete=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "onComplete",
@@ -69,15 +51,15 @@
       "status": "covered"
     },
     {
-      "dimension": "copied",
+      "dimension": "notice",
       "value": "true",
-      "rationale": "source-derived state copied=true",
-      "status": "planned"
+      "rationale": "source-derived state notice=true",
+      "status": "covered"
     },
     {
-      "dimension": "copied",
+      "dimension": "notice",
       "value": "false",
-      "rationale": "source-derived state copied=false",
+      "rationale": "source-derived state notice=false",
       "status": "covered"
     }
   ]

@@ -1,0 +1,12 @@
+{
+  "name": "SnapshotBox - Read Only Snapshot",
+  "id": "47893c41-c0ac-46c5-994c-2e50c0757d02",
+  "url": "/?isolate=SnapshotBox&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SnapshotBox",
+  "scenarioType": "component",
+  "description": "The mono field a snapshot is read out of. One component rather than three copies of the same rule: the Import box, the Current export, and each Previous snapshot are the same object in three roles, and they have to keep looking identical or the page stops reading as one surface."
+}

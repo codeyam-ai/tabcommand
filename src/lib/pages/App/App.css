@@ -155,6 +155,26 @@ body {
   height: 100%;
 }
 
+/* The degraded-sync banner sits ABOVE the group grid, so the grid can no longer
+   claim the full height on its own — it would push its own bottom past the
+   clipped edge of .App-content by exactly the banner's height. The shell owns
+   the height instead and hands the grid whatever the banner leaves. */
+.App-homeShell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.App-homeShell .SyncWarning {
+  margin: 16px 20px 0;
+}
+
+.App-homeShell .App-home {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
 .App-content .App-comingSoon {
   padding: 48px;
   color: var(--text-primary);

@@ -1,0 +1,12 @@
+{
+  "name": "ExportPanel - With Snapshot History",
+  "id": "6e8c380e-1057-47ed-a944-0b10b190d177",
+  "url": "/?isolate=ExportPanel&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ExportPanel",
+  "scenarioType": "component",
+  "description": "The backup half with a real undo stack: the current groups on top, then every prior shape of the set beneath, each with its own Copy button. This is what makes the page a recovery tool rather than a backup button — when a sync warning appears, the user often needs the snapshot from BEFORE whatever went wrong, not the current one."
+}

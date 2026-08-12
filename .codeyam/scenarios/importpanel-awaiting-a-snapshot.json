@@ -1,0 +1,12 @@
+{
+  "name": "ImportPanel - Awaiting A Snapshot",
+  "id": "30710c1b-14ed-4559-bcbd-b18799a6745d",
+  "url": "/?isolate=ImportPanel&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ImportPanel",
+  "scenarioType": "component",
+  "description": "The resting state a user meets first: an empty paste box and the Import button, with no message of any kind. The absence is the point — healthy input never shows a reassuring notice, because a message on every import would make the real ones invisible by making them routine."
+}

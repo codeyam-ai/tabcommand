@@ -1,0 +1,12 @@
+{
+  "name": "SnapshotField - Copyable Snapshot",
+  "id": "d463c433-d862-43b4-b1ec-9ab9c60a8421",
+  "url": "/?isolate=SnapshotField&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SnapshotField",
+  "scenarioType": "component",
+  "description": "A single previous snapshot beside its Copy button. Laid out as a row rather than stacked because the Previous list holds several of these, and a button under each box would double the list's height. Copying is the recovery the sync warnings point at, so the button sits with the row it acts on."
+}

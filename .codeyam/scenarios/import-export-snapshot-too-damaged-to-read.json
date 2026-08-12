@@ -1,0 +1,32 @@
+{
+  "name": "Import / Export - Snapshot Too Damaged To Read",
+  "id": "161adddc-1b1c-426e-83f4-570917a770b0",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "syncStatus": "{\"status\": \"sync-failed\", \"key\": \"labels\", \"message\": \"Please sign in to Chrome to use chrome.storage.sync\", \"at\": 1786545000000}",
+      "local::labels": "{\"Work\": {\"title\": \"Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\"]}}",
+      "previousLabels": "[]",
+      "url-https://github.com/codeyam/tabcommand": "{\"url\": \"https://github.com/codeyam/tabcommand\", \"title\": \"codeyam/tabcommand - GitHub\", \"favicon\": \"https://github.githubassets.com/favicons/favicon.svg\", \"processes\": {\"samples\": 0}}",
+      "uxSettings": "{\"page\": {\"name\": \"ImportExport\"}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
+  "description": "The failure the user could not see. This import used to log to a console and then close the page, so it looked exactly like a success that did nothing. Now the parser's own position is reported, the pasted text stays in the box, and the page stays open — which together are what make the failure recoverable rather than merely survivable.",
+  "interactions": [
+    {
+      "action": "fill",
+      "selector": ".ImportPanel .SnapshotBox",
+      "value": "{ my backup, but mangled "
+    },
+    {
+      "action": "click",
+      "text": "Import"
+    }
+  ]
+}

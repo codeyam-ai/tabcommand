@@ -1,0 +1,887 @@
+{
+  "timestamp": "2026-08-12T21:30:05Z",
+  "title": "A Group Write Is Never Invisible",
+  "type": "feature",
+  "userRequest": "## Summary\n\nA write to `labels` can succeed on disk and still be invisible to the app, and an\nimport can fail without saying so. Both produce the same user experience — \"I did\nthe thing and nothing happened\" — and both are silent by construction.\n\n`writeByArea` redirects `labels` to the **local** area whenever sync refuses the\nwrite (over the 8,192-byte per-item quota, or signed out / sync disabled /\nthrottled). But `readByArea` resolves `labels` from **sync only**, because\n`areaForKey('labels')` is `SYNC`. The fallback is therefore write-only: the value\nis safely on disk in an area nothing ever reads it back from. The user sees their\ngroups revert. This directly contradicts the stated intent of the fallback — *\"a\ngroup mutation is never dropped and the degraded state is visible to the user\nrather than silent.\"*\n\nSeparately, `saveImport` swallows every exception into `console.log` and then\nnavigates away regardless, so a failed import is indistinguishable from a\nsuccessful one that did nothing.\n\n## Key Decisions\n\n- **Fix the read, not the write.** The write-side fallback is correct and worth\n  keeping: landing the value locally is what stops a group mutation from being\n  lost outright. The defect is that `labels` is only ever *read* from sync. The\n  read path must be able to see a local fallback value.\n\n- **Sync stays authoritative when both areas hold `labels`.** A local fallback is\n  by definition the newer write — it only exists because a sync write was\n  refused — but sync is the copy that survives an uninstall, which is the entire\n  reason `labels` moved there. Resolving this precedence is the core decision of\n  this plan and must be made explicitly rather than falling out of whichever\n  `Object.assign` happens to run last in `readByArea`. Whatever the rule, it has\n  to be the same one in `readByArea` and in `migrateLabelsToSync`, which already\n  answers a version of this question with `decideMigration` (sync wins when it\n  `hasGroups`).\n\n- **A degraded write must be visible, not just recorded.** `syncStatus` is\n  already written on the fallback paths and already rendered by `SyncWarning` on\n  the Import/Export page. That is the right mechanism, but it only helps a user\n  who happens to visit that page. A fallback that silently changes where the\n  user's groups live is worth surfacing where the groups are.\n\n- **An import that fails must say so, and must not navigate away.** The current\n  `catch` logs to a console the user cannot see, and `onComplete()` runs\n  unconditionally — so the page closes on failure exactly as it does on success.\n  Keeping the user on the page with the pasted text intact is what makes the\n  failure recoverable.\n\n- **The import parsing itself is not broken — but it should be far more\n  forgiving.** A full round trip through `sortLabels` → `resolveLabelUrls` →\n  `buildImportUpdates` reproduces the correct `labels` map and `url-*` records for\n  a well-formed export, so there is no parsing bug to fix. The defect is that\n  anything less than perfect input is rejected outright and silently. Strictness\n  buys nothing here: this is the user's own backup of their own data, nothing is\n  executed, and no third party is trusted. Recover whatever can be recovered.\n\n- **CONFIRMED root cause of the reported failure: a hard-wrapped snapshot.** A\n  real user snapshot that silently failed to import was recovered and diagnosed.\n  `JSON.parse` rejected it with *\"Bad control character in string literal in JSON\n  at position 356\"* — the text carried **literal newline characters inside string\n  values**, each sitting exactly where a space belongs in a page title\n  (`\"Screen⏎Porch Scope Doc - Google⏎Docs\"`). The export itself is valid:\n  `ImportExport.jsx:78` builds it with `JSON.stringify`, which escapes newlines as\n  `\\n` and emits one line. The corruption is introduced *after* export, by any\n  medium that hard-wraps long lines — pasting the snapshot into an email, a chat,\n  a note, or a document before pasting it back. Replacing the stray newlines with\n  spaces made the same snapshot import cleanly: 5 groups, 14 URL records, 1,712\n  bytes (well under sync's 8,192-byte cap, so quota was never involved).\n\n  This makes the error surface in change 4 the primary fix — the user was given\n  no indication whatsoever — and adds a second, cheap one: a snapshot that fails\n  only because it was line-wrapped is mechanically recoverable, and refusing it\n  outright makes the user's own backup useless to them.\n\n## Implementation\n\n### 1. Let the read path see a local `labels` fallback\n\n**File**: `src/lib/utils/storageAccess.js`\n\n`readByArea` partitions the requested keys by area and merges the per-area\nresults. For `labels` that means a sync read only, so a value written to local by\nthe fallback below is never returned. Make the read able to resolve a local\nfallback, and apply the precedence rule from Key Decisions when both areas hold a\nvalue.\n\nThe single-callback contract must be preserved exactly — the mixed-key read on\nthe Import/Export page relies on it and would render twice otherwise.\n\n### 2. Keep the write-side fallback, and make it self-healing\n\n**File**: `src/lib/utils/storageAccess.js`\n\n`writeByArea` sends `labels` to local in two cases: `fitsSyncItemQuota` fails\n(recorded as `SyncStatus.TOO_LARGE`), or `chrome.storage.sync.set` reports\n`chrome.runtime.lastError` (recorded as `SyncStatus.FAILED`). Keep both.\n\nAdd the missing other half: once a later write succeeds against sync, a stale\nlocal `labels` left behind by an earlier fallback must not linger and shadow — or\nbe shadowed by — the sync copy. Clear or reconcile it, so the two areas cannot\ndrift into a state where the answer depends on which one is read.\n\n### 3. Surface a degraded sync state where the groups are\n\n**Files**: `src/lib/components/SyncWarning/SyncWarning.jsx`,\n`src/lib/pages/ImportExport/ImportExport.jsx`\n\n`SyncWarning` already renders the `syncStatus` record and is already placed above\nthe Export snapshot. Extend its reach so a user whose groups have stopped\nreaching sync finds out without navigating to Import/Export — the state means\n\"your groups are no longer protected from the uninstall this feature exists to\nsurvive,\" which is worth more than a panel they may never open.\n\nKeep it proportionate: a persistent, dismissible indicator, not a modal on every\ngroup edit.\n\n### 4. Make a failed import visible and recoverable\n\n**File**: `src/lib/pages/ImportExport/ImportExport.jsx`\n\n`saveImport` currently does:\n\n```js\ntry { Chrome.set('ImportExport1', buildImportUpdates(importLabels)); }\ncatch (e) { console.log(\"Error Importing\", e); }\nif (onComplete) onComplete();\n```\n\nFour changes:\n\n1. Render the failure in the UI instead of `console.log` — enough for the user to\n   tell \"that isn't valid JSON\" from \"that JSON isn't an export\". Include the\n   parser's own message; `JSON.parse` reports a position, which is what made the\n   real failure diagnosable.\n2. Only call `onComplete()` on success, so a failed import keeps the user on the\n   page with their pasted text intact.\n3. Validate the parsed payload's shape before writing. `buildImportUpdates`\n   (`src/lib/utils/importExport.js:57-80`) assumes an array of labels each with\n   `title` and `urls`; a well-formed JSON document of the wrong shape currently\n   produces a partial or empty `labels` map rather than an error.\n4. **Recover any snapshot that can be recovered — be maximally permissive.**\n   Strictness has no upside here. This text is the user's own backup of their own\n   groups; nothing is executed and nothing is trusted from a third party. The only\n   question worth asking is \"can the groups be recovered from this?\", and if the\n   answer is yes, recover them. Refusing a snapshot on a technicality helps no one\n   and is exactly how a user loses data they had correctly backed up.\n\n   Parse in escalating passes, stopping at the first that yields a usable result:\n\n   1. **Strict `JSON.parse`** — the fast path for an intact snapshot.\n   2. **Transport-damage repair**, for corruption a medium inflicted on a\n      `JSON.stringify` export in transit:\n      - raw newlines (`\\n`, `\\r`, `\\r\\n`) and tabs inside string literals → a\n        space (the confirmed real-world failure; line wrapping replaced spaces)\n      - non-breaking spaces (U+00A0) and zero-width characters\n        (U+200B/200C/200D/FEFF) → a normal space, or dropped\n      - curly/smart quotes (U+201C/201D/2018/2019) → straight `\"` / `'`\n      - surrounding non-JSON wrapper: leading/trailing prose or whitespace, and a\n        markdown code fence (```` ```json ```` … ```` ``` ````)\n   3. **Relaxed JSON syntax**, for a snapshot that was hand-edited along the way:\n      trailing commas, `//` and `/* */` comments, unquoted keys, single-quoted\n      strings, and `NaN`/`Infinity`/`undefined` literals. This is JSON5-shaped\n      tolerance; a vetted small dependency (`json5`, `jsonc-parser`) is\n      acceptable if it beats hand-rolling, but weigh the added bundle against a\n      focused implementation — this is an extension, and the payload is small.\n   4. **Structural salvage**, as the last resort: extract whatever well-formed\n      label objects can be found and import those, rather than failing whole. A\n      snapshot truncated mid-copy — a real and common way backups break — should\n      still restore the groups that survived.\n\n   Two things stay non-negotiable regardless of how permissive the parse is,\n   because neither is about JSON strictness:\n\n   - **Validate the shape after parsing** (see item 3). A permissive parse must\n     not become a permissive *import*: something that parses but is not an export\n     must be rejected, not written as a partial `labels` map.\n   - **Always report what happened.** Say the snapshot was repaired and name what\n     was fixed; on a salvage, say plainly how many groups were recovered and how\n     many were lost. Silent recovery would leave the user believing a damaged\n     backup is healthy, and silent partial recovery is worse — it looks like a\n     complete restore.\n\n   If every pass fails, report the **original** strict-parse error with its\n   position; an error from a repaired copy points at an offset that does not\n   exist in what the user pasted.\n\nConfirm success from storage rather than from the absence of an exception —\n`Chrome.set` is fire-and-forget, so \"no throw\" does not mean \"written.\"\n\n## Reused existing code\n\n- `readByArea`, `writeByArea`, `SyncStatus`, `SYNC_STATUS_KEY` from\n  `src/lib/utils/storageAccess.js` — the fan-out layer this plan corrects.\n- `areaForKey`, `partitionKeysByArea`, `partitionUpdatesByArea` from\n  `src/lib/utils/storageAreas.js` — the routing table; `labels` is its only\n  `SYNC` entry.\n- `fitsSyncItemQuota`, `serializedByteLength` from\n  `src/lib/utils/syncQuota.js` — the pre-write measurement driving `TOO_LARGE`.\n- `decideMigration`, `hasGroups` from `src/lib/utils/migrateLabelsToSync.js` —\n  already encodes a sync-vs-local precedence rule; the read path's rule must\n  agree with it rather than invent a second one.\n- `SyncWarning` from `src/lib/components/SyncWarning/SyncWarning.jsx` — the\n  existing surface for a degraded sync state.\n- `buildImportUpdates`, `sortLabels`, `resolveLabelUrls` from\n  `src/lib/utils/importExport.js` — verified working; reused unchanged except for\n  the shape validation in change 4.\n- `Chrome` from `src/lib/utils/Chrome/Chrome.js` (glossary entry: `Chrome`, tags\n  `utility,storage,ported-verbatim`) — the contract above `storageAccess`; its\n  `get`/`set`/`remove` signature must not change.\n\n**Existing-implementation survey.** There is no readback of a local `labels`\nfallback anywhere: `labels` appears exactly once in `STORAGE_AREAS`\n(`src/lib/utils/storageAreas.js`) and is mapped to `SYNC`, and `readByArea` has no\nspecial case for it. There is no reconciliation or cleanup of a local `labels`\nvalue after a later successful sync write. `SyncWarning` is rendered from exactly\none place (`src/lib/pages/ImportExport/ImportExport.jsx:126`). No import-error UI\nstate exists — `saveImport` has no error state variable at all.\n\n**Test coverage.** `src/lib/utils/storageAccess.test.js` and\n`src/lib/utils/storageAreas.test.js` cover the fan-out;\n`src/lib/utils/migrateLabelsToSync.test.js` covers the precedence rule;\n`src/lib/utils/importExport.test.js` has 14 registered tests over the\nexport/import helpers; `src/lib/pages/ImportExport/ImportExport.test.jsx` covers\nthe page.\n\n## Reproduction Test\n\nA `labels` write that falls back to the local area is never returned by a\nsubsequent read, so the mutation is invisible to the app.\n\n**Target**: `src/lib/utils/storageAccess.test.js` — run with\n`codeyam-editor editor refresh-tests --test <name>`.\n\n```js\n// A labels write redirected to local by the sync fallback must still be\n// readable, or the group mutation is silently invisible to the whole app.\nit('reads back a labels value that fell back to local', (done) => {\n  // Force the fallback: sync.set reports lastError.\n  chrome.storage.sync.set = (_updates, cb) => {\n    chrome.runtime.lastError = { message: 'sync disabled' };\n    cb();\n    chrome.runtime.lastError = undefined;\n  };\n\n  writeByArea({ labels: { Work: { title: 'Work', urlKeys: [] } } });\n\n  readByArea(['labels'], (result) => {\n    expect(result.labels).toEqual({ Work: { title: 'Work', urlKeys: [] } });\n    done();\n  });\n});\n```\n\nStatus: PROPOSED — confirm red at execution. The stub shape is indicative; use\nwhatever `src/lib/utils/storageAccess.test.js` already uses to fake\n`chrome.storage` and `chrome.runtime.lastError`. Expected failure: `readByArea`\nqueries only the sync area for `labels`, which never received the value, so\n`result.labels` is `undefined` and `toEqual` fails.\n\n## Scenarios to Demonstrate\n\n- Groups edited while sync is unavailable — the change appears immediately and\n  persists across a reload.\n- Groups too large for sync's per-item quota — the change appears, and the user\n  is told their groups are no longer protected.\n- Sync recovers after a fallback — groups reconcile to one copy, with no\n  resurrection of a stale value from the other area.\n- Import a valid export — groups appear, page closes.\n- Import malformed JSON — an error is shown with the parser's position, the\n  pasted text is preserved, the page stays open.\n- Import a hard-wrapped snapshot (raw newlines inside titles, as produced by\n  pasting an export through an email or chat client) — the groups are restored\n  and the user is told the snapshot was repaired, with the fix named. This is the\n  confirmed real-world failure; a fixture is available from the recovered user\n  snapshot (5 groups, 14 URLs, 1,712 bytes).\n- Import a snapshot wrapped in a markdown code fence — restored, repair reported.\n- Import a snapshot whose quotes were autocorrected to curly quotes by a word\n  processor — restored, repair reported.\n- Import a snapshot carrying non-breaking or zero-width spaces — restored; the\n  point is that these are invisible, so rejecting without explanation would leave\n  the user with no way to see what was wrong.\n- Import an intact snapshot — the strict parse succeeds and the repair path never\n  runs (no \"repaired\" message on healthy input).\n- Import hand-edited JSON with trailing commas, comments, or single-quoted\n  strings — restored, repair reported.\n- Import a snapshot truncated mid-copy — the groups that survived are restored,\n  and the user is told plainly how many were recovered and how many were lost.\n- Import something that parses but is not an export (an array of numbers, an\n  object) — rejected with a clear error, NOT written as a partial labels map.\n  Permissive parsing must not become permissive importing.\n- Import a snapshot damaged beyond any recovery — the error reports the ORIGINAL\n  strict-parse position, not an offset into a repaired copy.\n- Import well-formed JSON of the wrong shape (e.g. an object, or labels with no\n  `urls`) — an error is shown, and no partial `labels` map is written.\n- Import an empty paste — no write, no error, nothing destroyed.",
+  "description": "A `labels` write that sync refuses is redirected to the local area so a group mutation is never dropped — but `readByArea` resolved `labels` from sync alone, which made that fallback WRITE-ONLY: the value sat safely on disk in an area nothing ever read it back from, and the user watched their groups revert. The read path now consults local for a fallback copy, with the precedence decided once in the new `labelsPrecedence` module (sync wins whenever it actually holds groups, expressed through the same `hasGroups` predicate `decideMigration` uses, so the read path and the migration cannot disagree). A successful sync write now also mirrors back into local, so the two areas can never hold different groups; mirroring rather than deleting keeps the read-only net `migrateLabelsToSync` leaves on purpose.\n\nThe degraded state is now said out loud where the groups are. `SyncWarning` gained two optional props so the same banner can stand on Home: `onOpenBackup` switches the copy to point AT the Import/Export page (rather than saying \"below\", where no snapshot is) and adds a Back up now button, and `onDismiss` adds the close affordance a persistent banner needs. Dismissal is per-incident — it records the `at` of the status record, and `writeByArea` only writes a new record when the status changes, so it holds while sync stays broken and lifts when sync recovers and fails again.\n\nA failed import is finally visible and recoverable. `saveImport` logged every failure to a console the user cannot see and then called `onComplete()` unconditionally, so a failure closed the page exactly as a success did. Now failures render, the page stays open with the pasted text intact, and success is confirmed by READING STORAGE BACK rather than by the absence of an exception (`Chrome.set` is fire-and-forget). Reading the snapshot escalates through four passes instead of failing — strict parse, transport-damage repair, relaxed hand-edited syntax, then structural salvage of a truncated file — with the shape validated AFTER parsing so a permissive parse never becomes a permissive import, and what was repaired or lost always reported. The confirmed real-world failure drove this: a user's snapshot carried literal newlines inside page titles, put there by a medium that hard-wraps long lines, and `JSON.parse` rejected it silently.\n\nThe Import/Export page is now pure composition — `PageHeader` (reused, replacing a duplicated inline back/title/intro trio), `SyncWarning`, and the new `ImportPanel` / `ExportPanel` / `ImportMessage` / `SnapshotField` / `SnapshotBox`. 76 new tests; the reproduction test is `prove-red` PROVEN — it goes red with the fix reverted.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/a-group-write-is-never-invisible.md\t.codeyam/plans/completed/a-group-write-is-never-invisible.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/app.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/importexport.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-sync-unavailable.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-deleted-group-stays-deleted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-first-run-migration-from-local--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-color-preview-in-context--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-restored-from-sync-after-uninstall--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-stable-chrome-footer--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-sync-wins-over-stale-local--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-deep-snapshot-history--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-deep-snapshot-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-export-after-uninstall-recovery--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-export-after-uninstall-recovery--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-groups-too-large-to-sync--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-groups-too-large-to-sync--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-copied--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-copied--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-sync-unavailable--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-sync-unavailable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-favorites--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-favorites--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-history--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-no-intro--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-no-intro--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-groups-too-large--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-sync-unavailable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/analyze-imports.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/audit.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/recapture-stale.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/reconcile-registry.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/refresh-tests.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/verify-build.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/wait-for.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/refusal-fingerprints.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/210ffedef69a2ee03de6b42d3cc4ec5e6cde17645f2ccb9ad050141ba7426b61.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/461671fb2b0ba2e51d9ac62006bc359f399c60b0b4f9fb2b7f5d6077de4dfb7e.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/PageHeader/PageHeader.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/SyncWarning/SyncWarning.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/SyncWarning/SyncWarning.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/importExport.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/storageAccess.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/storageAccess.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/design/offer-declined",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/exportpanel-nothing-to-fall-back-to.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/exportpanel-with-snapshot-history.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-groups-survive-a-sync-fallback.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-hard-wrapped-snapshot-repaired.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-snapshot-too-damaged-to-read.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/importmessage-groups-lost-to-damage.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/importmessage-snapshot-repaired.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/importmessage-unreadable-snapshot.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/importpanel-awaiting-a-snapshot.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/importpanel-snapshot-repaired.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/importpanel-unreadable-snapshot.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-nothing-to-fall-back-to--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-nothing-to-fall-back-to--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-with-snapshot-history--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-with-snapshot-history--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-survive-a-sync-fallback--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-survive-a-sync-fallback--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-hard-wrapped-snapshot-repaired--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-hard-wrapped-snapshot-repaired--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-too-damaged-to-read--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-too-damaged-to-read--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-groups-lost-to-damage--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-groups-lost-to-damage--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-snapshot-repaired--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-snapshot-repaired--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-unreadable-snapshot--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-unreadable-snapshot--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-awaiting-a-snapshot--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-awaiting-a-snapshot--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-snapshot-repaired--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-snapshot-repaired--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-unreadable-snapshot--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-unreadable-snapshot--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotbox-empty-paste-box--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotbox-empty-paste-box--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotbox-read-only-snapshot--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotbox-read-only-snapshot--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotfield-copy-confirmed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotfield-copy-confirmed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotfield-copyable-snapshot--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotfield-copyable-snapshot--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-standing-over-the-groups--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-standing-over-the-groups--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/snapshotbox-empty-paste-box.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/snapshotbox-read-only-snapshot.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/snapshotfield-copy-confirmed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/snapshotfield-copyable-snapshot.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/syncwarning-standing-over-the-groups.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/red-proof.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/a82cc04b4d9f79f1997bcbdd65195af95cd65530c478e9d9f8f0bac5a2497cdd.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/d21a723c95f2dd22a2b4e43ebf943dbfa0d92833065516edcd40a432882bcd2b.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ExportPanel/ExportPanel.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ExportPanel/ExportPanel.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ExportPanel/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ImportMessage/ImportMessage.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ImportMessage/ImportMessage.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ImportMessage/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ImportPanel/ImportPanel.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ImportPanel/ImportPanel.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ImportPanel/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SnapshotBox/SnapshotBox.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SnapshotBox/SnapshotBox.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SnapshotBox/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SnapshotField/SnapshotField.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SnapshotField/SnapshotField.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/SnapshotField/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useSyncStatus.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/describeImport.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/describeImport.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/index.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/relaxJsonSyntax.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/repairTransportDamage.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/repairTransportDamage.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/salvageLabels.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/salvageLabels.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/validateSnapshotShape.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/importSnapshot/validateSnapshotShape.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/labelsPrecedence.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/labelsPrecedence.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - All Groups Deleted Tabs Survive",
+      "screenshotPath": "home-all-groups-deleted-tabs-survive--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Deleted Group Stays Deleted",
+      "screenshotPath": "home-deleted-group-stays-deleted--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - First Run Migration From Local",
+      "screenshotPath": "home-first-run-migration-from-local--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Group Color Preview In Context",
+      "screenshotPath": "home-group-color-preview-in-context--desktop.png"
+    },
+    {
+      "name": "Home - Group Menu Open",
+      "screenshotPath": "home-group-menu-open--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Groups Restored From Sync After Uninstall",
+      "screenshotPath": "home-groups-restored-from-sync-after-uninstall--desktop.png"
+    },
+    {
+      "name": "Home - Groups Survive A Sync Fallback",
+      "screenshotPath": "home-groups-survive-a-sync-fallback--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Stable Chrome Footer",
+      "screenshotPath": "home-stable-chrome-footer--desktop.png"
+    },
+    {
+      "name": "Home - Sync Wins Over Stale Local",
+      "screenshotPath": "home-sync-wins-over-stale-local--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Import / Export - Backup",
+      "screenshotPath": "import-export-backup--desktop.png"
+    },
+    {
+      "name": "Import / Export - Deep Snapshot History",
+      "screenshotPath": "import-export-deep-snapshot-history--desktop.png"
+    },
+    {
+      "name": "Import / Export - Export After Uninstall Recovery",
+      "screenshotPath": "import-export-export-after-uninstall-recovery--desktop.png"
+    },
+    {
+      "name": "Import / Export - Groups Too Large To Sync",
+      "screenshotPath": "import-export-groups-too-large-to-sync--desktop.png"
+    },
+    {
+      "name": "Import / Export - Hard-Wrapped Snapshot Repaired",
+      "screenshotPath": "import-export-hard-wrapped-snapshot-repaired--desktop.png"
+    },
+    {
+      "name": "Import / Export - Snapshot Copied",
+      "screenshotPath": "import-export-snapshot-copied--desktop.png"
+    },
+    {
+      "name": "Import / Export - Snapshot Too Damaged To Read",
+      "screenshotPath": "import-export-snapshot-too-damaged-to-read--desktop.png"
+    },
+    {
+      "name": "Import / Export - Sync Unavailable",
+      "screenshotPath": "import-export-sync-unavailable--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "ExportPanel - Nothing To Fall Back To",
+      "screenshotPath": "exportpanel-nothing-to-fall-back-to--desktop.png"
+    },
+    {
+      "name": "ExportPanel - With Snapshot History",
+      "screenshotPath": "exportpanel-with-snapshot-history--desktop.png"
+    },
+    {
+      "name": "ImportMessage - Groups Lost To Damage",
+      "screenshotPath": "importmessage-groups-lost-to-damage--desktop.png"
+    },
+    {
+      "name": "ImportMessage - Snapshot Repaired",
+      "screenshotPath": "importmessage-snapshot-repaired--desktop.png"
+    },
+    {
+      "name": "ImportMessage - Unreadable Snapshot",
+      "screenshotPath": "importmessage-unreadable-snapshot--desktop.png"
+    },
+    {
+      "name": "ImportPanel - Awaiting A Snapshot",
+      "screenshotPath": "importpanel-awaiting-a-snapshot--desktop.png"
+    },
+    {
+      "name": "ImportPanel - Snapshot Repaired",
+      "screenshotPath": "importpanel-snapshot-repaired--desktop.png"
+    },
+    {
+      "name": "ImportPanel - Unreadable Snapshot",
+      "screenshotPath": "importpanel-unreadable-snapshot--desktop.png"
+    },
+    {
+      "name": "PageHeader - Favorites",
+      "screenshotPath": "pageheader-favorites--desktop.png"
+    },
+    {
+      "name": "PageHeader - History",
+      "screenshotPath": "pageheader-history--desktop.png"
+    },
+    {
+      "name": "PageHeader - No Intro",
+      "screenshotPath": "pageheader-no-intro--desktop.png"
+    },
+    {
+      "name": "SnapshotBox - Empty Paste Box",
+      "screenshotPath": "snapshotbox-empty-paste-box--desktop.png"
+    },
+    {
+      "name": "SnapshotBox - Read Only Snapshot",
+      "screenshotPath": "snapshotbox-read-only-snapshot--desktop.png"
+    },
+    {
+      "name": "SnapshotField - Copy Confirmed",
+      "screenshotPath": "snapshotfield-copy-confirmed--desktop.png"
+    },
+    {
+      "name": "SnapshotField - Copyable Snapshot",
+      "screenshotPath": "snapshotfield-copyable-snapshot--desktop.png"
+    },
+    {
+      "name": "SyncWarning - Groups Too Large",
+      "screenshotPath": "syncwarning-groups-too-large--desktop.png"
+    },
+    {
+      "name": "SyncWarning - Standing Over The Groups",
+      "screenshotPath": "syncwarning-standing-over-the-groups--desktop.png"
+    },
+    {
+      "name": "SyncWarning - Sync Unavailable",
+      "screenshotPath": "syncwarning-sync-unavailable--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 958,
+    "passed": 958,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 958,
+        "passed": 958
+      }
+    ]
+  }
+}

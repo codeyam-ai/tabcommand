@@ -1,0 +1,26 @@
+/* The Export half of the recover/backup page: the current snapshot, then every
+   prior shape of the group set beneath it. The Previous stack is what makes the
+   page a recovery tool rather than a backup button — when a sync warning
+   appears, the user needs not just the current snapshot but the one from before
+   whatever went wrong. */
+.ExportPanel {
+  margin-bottom: 32px;
+  max-width: 560px;
+}
+
+.ExportPanel-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--c-t4);
+  margin: 0 0 12px;
+}
+
+.ExportPanel-subhead {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-t2);
+  margin: 18px 0 8px;
+}

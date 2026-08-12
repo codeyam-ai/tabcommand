@@ -1,0 +1,23 @@
+{
+  "name": "Home - Groups Survive A Sync Fallback",
+  "id": "8b2791de-00e1-470e-bd3f-75eb3eb11568",
+  "url": "/",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "previousLabels": "[]",
+      "uxSettings": "{\"page\":{\"name\":\"Home\"}}",
+      "local::labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#8B5CF6\",\"position\":1,\"urlKeys\":[\"url-https://news.ycombinator.com\"]}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"url\":\"https://github.com/codeyam/tabcommand\",\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"https://github.githubassets.com/favicons/favicon.svg\",\"processes\":{\"samples\":0}}",
+      "syncStatus": "{\"status\":\"sync-failed\",\"key\":\"labels\",\"message\":\"Please sign in to Chrome to use chrome.storage.sync\",\"at\":1786545000000}",
+      "url-https://news.ycombinator.com": "{\"url\":\"https://news.ycombinator.com\",\"title\":\"Hacker News\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"url\":\"https://www.figma.com/file/tabcommand\",\"title\":\"TabCommand UI — Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
+    }
+  },
+  "scenarioType": "application",
+  "pageFilePath": "src/lib/pages/App/App.jsx",
+  "description": "The bug this plan exists to fix, in the state that produced it. `labels` is seeded ONLY into the local area (the `local::` prefix) with sync empty — exactly where writeByArea lands the user's groups when sync refuses the write. The groups render, because readByArea now consults local for a fallback copy instead of resolving `labels` from sync alone. Before the fix this same state rendered an empty grid: the value was safely on disk in an area nothing ever read it back from, and the user watched their groups revert. The banner above the grid is the second half — the degraded state is now visible where the groups are, not only on a page the user may never open."
+}

@@ -70,7 +70,9 @@ follow your Google account. Two one-time consequences:
 - **Export your groups before you load the rebuilt extension.** Pinning the ID
   changes the unpacked build's ID one final time, which gives it a fresh storage
   partition. Open TabCommand → **Import/Export**, copy the Current snapshot, load
-  the new build, then paste it back into Import.
+  the new build, then paste it back into Import. If the snapshot passes through
+  something that hard-wraps long lines on the way — an email, a chat, a note —
+  Import repairs it and tells you what it fixed rather than failing silently.
 - **The unpacked build and a Web Store install can no longer both be loaded.**
   They now share one identity, and Chrome refuses the second. Remove one before
   adding the other.

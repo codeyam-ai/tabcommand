@@ -1,0 +1,12 @@
+{
+  "name": "SnapshotBox - Empty Paste Box",
+  "id": "e6a27bf1-f7fd-4aa2-bc64-2a2086c5533e",
+  "url": "/?isolate=SnapshotBox&variant=empty&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "SnapshotBox",
+  "scenarioType": "component",
+  "description": "The writable role, empty — what a user actually stares at before pasting anything. Identical to the read-only state by design; the only difference is that this one takes keystrokes, and it stops them propagating so the app's type-to-search does not steal every character of a paste-and-edit."
+}

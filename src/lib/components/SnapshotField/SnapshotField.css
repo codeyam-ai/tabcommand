@@ -1,0 +1,40 @@
+/* A snapshot paired with its own Copy button, laid out as a row so the button
+   sits beside the text rather than under it — the Previous list stacks several
+   of these and a button per row below each box would double the list's height. */
+.SnapshotField {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.SnapshotField .SnapshotBox {
+  flex: 1;
+  min-width: 0;
+}
+
+.SnapshotField-copy {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-t2);
+  background: var(--card-bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-row);
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast);
+}
+
+.SnapshotField-copy:hover {
+  color: var(--c-t1);
+}
+
+.SnapshotField-copy.is-copied {
+  color: var(--c-load-light);
+  border-color: var(--c-load-light);
+}

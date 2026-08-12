@@ -86,19 +86,100 @@ describe('ImportExport', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  // a malformed-JSON import is swallowed: nothing is written, but onComplete still fires
-  it('swallows a malformed-JSON import without writing, still calling onComplete', async () => {
+  // An unrecoverable import must SAY SO and keep the user on the page. This
+  // used to log to a console the user cannot see and then call onComplete
+  // anyway, so a failed import closed the page exactly as a successful one did
+  // and was indistinguishable from a success that happened to do nothing.
+  it('shows an error and keeps the page open when the snapshot cannot be read', async () => {
     const onComplete = vi.fn();
     seed('labels', {});
     installChromeShim();
     render(<ImportExport onComplete={onComplete} />);
 
     const importBox = screen.getAllByRole('textbox').find((b) => !b.readOnly);
-    fireEvent.change(importBox, { target: { value: '[{not valid json' } });
+    fireEvent.change(importBox, { target: { value: '{ not valid json at all ' } });
     await userEvent.click(screen.getByRole('button', { name: 'Import' }));
 
-    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy());
+    expect(screen.getByRole('alert').textContent).toContain('could not be read');
+    expect(onComplete).not.toHaveBeenCalled();
+
     const { labels } = await get('labels');
     expect(labels).toEqual({});
+  });
+
+  // The pasted text is the thing the user needs in front of them to recover, so
+  // a failure must not clear it.
+  it('preserves the pasted snapshot after a failed import', async () => {
+    seed('labels', {});
+    installChromeShim();
+    render(<ImportExport onComplete={vi.fn()} />);
+
+    const importBox = screen.getAllByRole('textbox').find((b) => !b.readOnly);
+    fireEvent.change(importBox, { target: { value: '{ mangled ' } });
+    await userEvent.click(screen.getByRole('button', { name: 'Import' }));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy());
+    expect(importBox.value).toBe('{ mangled ');
+  });
+
+  // THE CONFIRMED REAL-WORLD FAILURE: a snapshot hard-wrapped by whatever medium
+  // it was pasted through. It is restored, and the repair is NAMED — a silent
+  // repair would leave the user believing a damaged backup is healthy.
+  it('repairs a hard-wrapped snapshot and reports what it fixed', async () => {
+    const onComplete = vi.fn();
+    seed('labels', {});
+    installChromeShim();
+    render(<ImportExport onComplete={onComplete} />);
+
+    const importBox = screen.getAllByRole('textbox').find((b) => !b.readOnly);
+    fireEvent.change(importBox, {
+      target: { value: '[{"title":"Restored","position":0,"urls":[{"url":"https://r.com","title":"R\nPage","favicon":""}]}]' },
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Import' }));
+
+    await waitFor(() => expect(screen.getByRole('status')).toBeTruthy());
+    expect(screen.getByRole('status').textContent).toContain('line breaks inside titles');
+
+    const { labels } = await get('labels');
+    expect(labels.Restored).toBeTruthy();
+    // Stays open so the account of the repair is actually read.
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  // A permissive parse must not become a permissive import: this reads fine and
+  // is not an export, so it must be refused rather than written as a partial
+  // labels map over the groups the user still has.
+  it('refuses readable JSON that is not an export without writing anything', async () => {
+    const onComplete = vi.fn();
+    seed('labels', { Keep: { title: 'Keep', position: 0, urlKeys: [] } });
+    installChromeShim();
+    render(<ImportExport onComplete={onComplete} />);
+
+    const importBox = screen.getAllByRole('textbox').find((b) => !b.readOnly);
+    fireEvent.change(importBox, { target: { value: '[1, 2, 3]' } });
+    await userEvent.click(screen.getByRole('button', { name: 'Import' }));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy());
+    expect(screen.getByRole('alert').textContent).toContain('not a TabCommand export');
+    expect(onComplete).not.toHaveBeenCalled();
+
+    const { labels } = await get('labels');
+    expect(labels.Keep).toBeTruthy();
+  });
+
+  // An empty paste is not an error. There is nothing to do and nothing to
+  // destroy, so the page must stay silent rather than alarm the user.
+  it('does nothing at all for an empty paste', async () => {
+    const onComplete = vi.fn();
+    seed('labels', {});
+    installChromeShim();
+    render(<ImportExport onComplete={onComplete} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Import' }));
+
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(onComplete).not.toHaveBeenCalled();
   });
 });

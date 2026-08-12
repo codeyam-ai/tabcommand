@@ -1,0 +1,25 @@
+/* The mono text field every snapshot is read from or pasted into. One component
+   rather than three copies of the same rule: the Import box, the Current export
+   box, and each Previous snapshot are the same object in three roles, and they
+   have to keep looking identical or the page stops reading as one surface. */
+.SnapshotBox {
+  display: block;
+  width: 100%;
+  height: 150px;
+  box-sizing: border-box;
+  padding: 12px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--search-text);
+  background: var(--search-bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-row);
+  transition: border-color var(--t-fast);
+}
+
+.SnapshotBox:focus {
+  outline: none;
+  border-color: var(--search-border);
+}
