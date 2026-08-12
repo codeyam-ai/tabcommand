@@ -1,5 +1,5 @@
 // codeyam-generated — DO NOT EDIT.
-// codeyam-editor: 0.1.7  source-sha256: 48342371cbd9448e9b9d1914c27de8f1d32f3aa4561ef4136ea6f04600347faf
+// codeyam-editor: 0.1.7  source-sha256: 5138e61a7b2ddc8e4f2d51115e7fa19642220747ac98c985ab3ce176b43dd4a5
 const {
   hasLoadingMarkers,
   shouldStopWaitingForImages,
@@ -148,20 +148,54 @@ function defaultReadServerState() {
   return JSON.parse(fs.readFileSync(statePath, "utf8"));
 }
 
-// Resolve the `localhost` origin that serves the iframe-harness route. The
-// harness is mounted on the editor's control-api listener, whose port is
-// recorded in `.codeyam/server-state.json` as `controlPort` (the same file the
-// top-level loader already reads for `appPort`). Returns
-// `http://localhost:<controlPort>` — a secure context the nested iframe
-// inherits — or null when the state file is missing/unreadable, in which case
-// the caller falls back to the legacy in-page `setContent` harness.
-// `readStateFile` is injectable so the resolver is unit-testable without disk.
-function resolveHarnessOrigin({ readStateFile = defaultReadServerState } = {}) {
+// Resolve the loopback origin that serves the iframe-harness route. The harness
+// is mounted on the editor's control-api listener, whose port is recorded in
+// `.codeyam/server-state.json` as `controlPort` (the same file the top-level
+// loader already reads for `appPort`). Returns `http://127.0.0.1:<controlPort>`
+// — a secure context the nested iframe inherits, exactly as `localhost` is — or
+// null when the state file is missing/unreadable, in which case the caller falls
+// back to the legacy in-page `setContent` harness. `readStateFile` is injectable
+// so the resolver is unit-testable without disk.
+//
+// The HOST is taken from `targetUrl` — the URL the iframe will load — and only
+// the port comes from server-state. That mirroring is load-bearing, because the
+// two capture modes address the editor by different loopback spellings:
+// `/__codeyam_preview` captures are pinned to `127.0.0.1` (PROXY_CAPTURE_LOOPBACK
+// in handlers.rs, matching the forwarder's own pinning) while direct app-port
+// captures use `localhost`. `localhost` and `127.0.0.1` are DIFFERENT sites to
+// the cookie jar, so whenever the harness host and the iframe host disagree the
+// nested load is cross-site — and the `cy_session` cookie is `SameSite=Lax`,
+// which rides top-level navigations only. It is therefore withheld from the
+// iframe request (and from the `/api/*` calls the framed page makes), and the
+// token-gated routes answer 401 on a non-loopback bind.
+//
+// Hardcoding EITHER spelling only moves the failure between the two modes:
+// `localhost` 401s every `/__codeyam_preview` capture, `127.0.0.1` 401s the
+// framed page's own `/api/scenarios` + `/api/render-environment` calls. Raising
+// the cookie to `SameSite=None` fixes neither — Chromium rejects `None` without
+// `Secure`, and these origins are plain http. Mirroring the target's host is what
+// keeps the harness same-site in both modes, which is also the same-origin model
+// the `/__codeyam_preview` subpath proxy exists to provide.
+//
+// `targetUrl` omitted or unparseable falls back to `127.0.0.1`, the spelling the
+// proxy-route capture (the token-gated one) uses.
+function resolveHarnessOrigin({
+  readStateFile = defaultReadServerState,
+  targetUrl = null,
+} = {}) {
   try {
     const state = readStateFile();
     const port = state && state.controlPort;
     if (typeof port === "number" && port > 0) {
-      return `http://localhost:${port}`;
+      let host = "127.0.0.1";
+      if (targetUrl) {
+        try {
+          host = new URL(targetUrl).hostname || host;
+        } catch (_) {
+          /* unparseable target — keep the proxy-route default */
+        }
+      }
+      return `http://${host}:${port}`;
     }
   } catch (_) {
     /* missing/unreadable state — fall back to setContent */

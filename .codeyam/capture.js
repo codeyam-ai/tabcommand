@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // codeyam-generated — DO NOT EDIT.
-// codeyam-editor: 0.1.7  source-sha256: 4fe4b359c961df71859167234ae09e1151243a35bb377dae755e650555be2d3e
+// codeyam-editor: 0.1.7  source-sha256: ef6a93a53c3713f399320bd8f89b4481cac2ebdd6359057e89d6b79c9a53808f
 
 // Render environment (colorScheme, deviceScaleFactor, userAgent, locale,
 // timezoneId, reduceMotion, forcedColors) is read from config when present
@@ -193,14 +193,40 @@ const {
 // inject it here from the on-box 0600 token file.
 const SESSION_COOKIE = "cy_session";
 
+// The loopback names the editor can be addressed by. A cookie is scoped by
+// HOST, and the jar does NOT treat these as interchangeable: a cookie stored for
+// `localhost` is simply not sent to `127.0.0.1`. That matters because the two
+// token-gated capture routes resolve their origin differently — the harness
+// route via `resolveHarnessOrigin()` (typically `localhost`), the preview-proxy
+// route via `PROXY_CAPTURE_LOOPBACK` in handlers.rs, which is deliberately
+// IPv4-pinned to `127.0.0.1` so it matches the forwarder's own pinning. Scoping
+// the cookie to `localhost` alone therefore authenticated the harness route and
+// left every `/__codeyam_preview` capture with no credential, so `preview-verify`
+// / `preview-interact` / `preview-flow` all 401'd on a non-loopback bind.
+// Emitting one cookie per alias is the fix: same token, same on-box editor,
+// whichever name the capture URL happens to use.
+const LOOPBACK_COOKIE_DOMAINS = ["localhost", "127.0.0.1"];
+
+// Extract the host from an origin string, or null when it is unparseable.
+function originHost(origin) {
+  try {
+    return new URL(origin).hostname;
+  } catch (_) {
+    return null;
+  }
+}
+
 // Build the Playwright cookie array that authenticates the capture context to
 // the editor's token-gated control-API. Reads the on-box `.codeyam/session-token`
-// (0600) and scopes a `cy_session` cookie to `localhost` (localhost cookies are
-// port-agnostic, so the same cookie covers the harness origin on the control
-// port and any `/api` call on the app-proxy port). Returns `[]` — a no-op — when
-// there is no token file (a loopback bind that never persisted one) or no
-// resolvable harness origin, so a laptop capture is completely unaffected.
-// `deps` is injectable so the builder is unit-testable without disk.
+// (0600) and emits a `cy_session` cookie for every host the capture might address
+// the editor by (see `LOOPBACK_COOKIE_DOMAINS`); cookies are port-agnostic, so
+// one per host covers the harness origin on the control port, the preview-proxy
+// route, and any `/api` call on the app-proxy port. A non-loopback harness origin
+// (a cloud tunnel domain) additionally gets its own host, since no loopback alias
+// would match it. Returns `[]` — a no-op — when there is no token file (a
+// loopback bind that never persisted one) or no resolvable harness origin, so a
+// laptop capture is completely unaffected. `deps` is injectable so the builder is
+// unit-testable without disk.
 function buildSessionTokenCookies({
   readTokenFile = () => {
     const p = path.join(process.cwd(), ".codeyam", "session-token");
@@ -211,16 +237,19 @@ function buildSessionTokenCookies({
   try {
     const token = readTokenFile();
     if (!token || !harnessOrigin) return [];
-    return [
-      {
-        name: SESSION_COOKIE,
-        value: token,
-        domain: "localhost",
-        path: "/",
-        httpOnly: true,
-        sameSite: "Lax",
-      },
-    ];
+    const host = originHost(harnessOrigin);
+    const domains = [...LOOPBACK_COOKIE_DOMAINS];
+    // A tunnelled/cloud harness origin is not a loopback alias, so it needs its
+    // own entry or the harness navigation goes out uncredentialed.
+    if (host && !domains.includes(host)) domains.push(host);
+    return domains.map((domain) => ({
+      name: SESSION_COOKIE,
+      value: token,
+      domain,
+      path: "/",
+      httpOnly: true,
+      sameSite: "Lax",
+    }));
   } catch (_) {
     // A missing/unreadable token file must never break capture on a loopback
     // bind where the token isn't required anyway — degrade to no cookie.
@@ -819,9 +848,14 @@ async function runScenarioCheck(
   config,
   { preflight = assertAppPortReachable, harnessOrigin } = {},
 ) {
-  const resolvedHarnessOrigin =
-    harnessOrigin !== undefined ? harnessOrigin : resolveHarnessOrigin();
   const { url, outputPath, width, height, httpMocks = {} } = config;
+  // The harness host mirrors the capture target's host so the framed load stays
+  // SAME-SITE — see `resolveHarnessOrigin`. A cross-site frame withholds the
+  // SameSite=Lax `cy_session` cookie and every token-gated route 401s.
+  const resolvedHarnessOrigin =
+    harnessOrigin !== undefined
+      ? harnessOrigin
+      : resolveHarnessOrigin({ targetUrl: url });
   // Per-scenario capture-check allowances (see `CaptureAllowances` /
   // `ScenarioDefinition` on the Rust side). Default false so the guards keep
   // their strict behavior for every scenario that does not opt in.

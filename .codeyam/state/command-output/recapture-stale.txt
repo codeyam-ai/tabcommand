@@ -1,0 +1,248 @@
+{"command":"recapture-stale","elapsed_secs":0,"emitted_at_unix":1786536972,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632}
+  ▶ Pass 1/3: 83 scenario(s) to recapture (budget unlimited)
+  → Warming dev server at http://127.0.0.1:3000/
+  → Capturing: labelform-new-blank
+  ⟲ Unchanged: labelform-new-blank — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelform-new-group-title-typed
+  ⟲ Unchanged: labelform-new-group-title-typed — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelform-reading
+{"command":"recapture-stale","elapsed_secs":10,"emitted_at_unix":1786536982,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing labelform-reading (3/83)"}
+  ⟲ Unchanged: labelform-reading — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelform-shopping
+  ⟲ Unchanged: labelform-shopping — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelform-social
+  ⟲ Unchanged: labelform-social — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelformcontainer-collapsed
+{"command":"recapture-stale","elapsed_secs":20,"emitted_at_unix":1786536992,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing labelformcontainer-collapsed (6/83)"}
+  ⟲ Unchanged: labelformcontainer-collapsed — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelformcontainer-expanded
+  ⟲ Unchanged: labelformcontainer-expanded — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelformcustomcolor-custom-selected
+  ✓ Recaptured: labelformcustomcolor-custom-selected
+  → Capturing: labelformcustomcolor-derived-color
+{"command":"recapture-stale","elapsed_secs":30,"emitted_at_unix":1786537002,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing labelformcustomcolor-derived-color (9/83)"}
+  ✓ Recaptured: labelformcustomcolor-derived-color
+  → Capturing: labelformcustomcolor-preset-selected
+  ✓ Recaptured: labelformcustomcolor-preset-selected
+  → Capturing: labels-grouped
+  ⟲ Unchanged: labels-grouped — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labels-populated
+{"command":"recapture-stale","elapsed_secs":40,"emitted_at_unix":1786537012,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing labels-populated (12/83)"}
+  ⟲ Unchanged: labels-populated — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labels-selected
+  ⟲ Unchanged: labels-selected — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelsectionheader-many-open-tabs
+{"command":"recapture-stale","elapsed_secs":50,"emitted_at_unix":1786537022,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing labelsectionheader-many-open-tabs (14/83)"}
+  ⟲ Unchanged: labelsectionheader-many-open-tabs — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelsectionheader-open-section
+  ⟲ Unchanged: labelsectionheader-open-section — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: labelsectionheader-single-open-tab
+  ⟲ Unchanged: labelsectionheader-single-open-tab — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: load-meter-high
+{"command":"recapture-stale","elapsed_secs":60,"emitted_at_unix":1786537032,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing load-meter-high (17/83)"}
+  ⟲ Unchanged: load-meter-high — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: load-meter-low
+  ⟲ Unchanged: load-meter-low — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: load-page
+  ⟲ Unchanged: load-page — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: load-stable-chrome-fallback
+{"command":"recapture-stale","elapsed_secs":70,"emitted_at_unix":1786537042,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing load-stable-chrome-fallback (20/83)"}
+  ⟲ Unchanged: load-stable-chrome-fallback — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadmeter-high-load
+  ⟲ Unchanged: loadmeter-high-load — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadmeter-idle
+  ⟲ Unchanged: loadmeter-idle — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadmetercaption-no-data
+{"command":"recapture-stale","elapsed_secs":80,"emitted_at_unix":1786537052,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing loadmetercaption-no-data (23/83)"}
+  ⟲ Unchanged: loadmetercaption-no-data — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadmetercaption-system
+  ⟲ Unchanged: loadmetercaption-system — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadpertabnote-unavailable
+  ⟲ Unchanged: loadpertabnote-unavailable — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadprocesses-active
+{"command":"recapture-stale","elapsed_secs":90,"emitted_at_unix":1786537062,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing loadprocesses-active (26/83)"}
+  ⟲ Unchanged: loadprocesses-active — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadurl-excessive
+  ⟲ Unchanged: loadurl-excessive — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadurl-high-load
+  ⟲ Unchanged: loadurl-high-load — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadurl-high-severity
+{"command":"recapture-stale","elapsed_secs":100,"emitted_at_unix":1786537072,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing loadurl-high-severity (29/83)"}
+  ⟲ Unchanged: loadurl-high-severity — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadurl-idle
+  ⟲ Unchanged: loadurl-idle — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: loadurl-low-load
+  ⟲ Unchanged: loadurl-low-load — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: pageheader-favorites
+{"command":"recapture-stale","elapsed_secs":110,"emitted_at_unix":1786537082,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing pageheader-favorites (32/83)"}
+  ✓ Recaptured: pageheader-favorites
+  → Capturing: pageheader-history
+  ✓ Recaptured: pageheader-history
+  → Capturing: pageheader-no-intro
+  ✓ Recaptured: pageheader-no-intro
+  → Capturing: search-active-results
+{"command":"recapture-stale","elapsed_secs":120,"emitted_at_unix":1786537092,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing search-active-results (35/83)"}
+  ⟲ Unchanged: search-active-results — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: search-empty-query
+{"command":"recapture-stale","elapsed_secs":130,"emitted_at_unix":1786537102,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing search-empty-query (36/83)"}
+{"command":"recapture-stale","elapsed_secs":140,"emitted_at_unix":1786537112,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing search-empty-query (36/83)"}
+{"command":"recapture-stale","elapsed_secs":150,"emitted_at_unix":1786537122,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing search-empty-query (36/83)"}
+  ⟲ Unchanged: search-empty-query — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: searchresults-archived-only
+  ⟲ Unchanged: searchresults-archived-only — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: searchresults-empty
+{"command":"recapture-stale","elapsed_secs":160,"emitted_at_unix":1786537132,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing searchresults-empty (38/83)"}
+  ⟲ Unchanged: searchresults-empty — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: searchresults-grouped-multiple-groups
+  ⟲ Unchanged: searchresults-grouped-multiple-groups — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: searchresults-grouped-single-group
+{"command":"recapture-stale","elapsed_secs":170,"emitted_at_unix":1786537142,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing searchresults-grouped-single-group (40/83)"}
+  ⟲ Unchanged: searchresults-grouped-single-group — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: searchresults-labels-only
+{"command":"recapture-stale","elapsed_secs":180,"emitted_at_unix":1786537152,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing searchresults-labels-only (41/83)"}
+  ⟲ Unchanged: searchresults-labels-only — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: searchresults-many
+  ⟲ Unchanged: searchresults-many — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: searchresults-matches
+{"command":"recapture-stale","elapsed_secs":190,"emitted_at_unix":1786537162,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing searchresults-matches (43/83)"}
+  ⟲ Unchanged: searchresults-matches — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: searchresults-mixed-with-archived
+  ⟲ Unchanged: searchresults-mixed-with-archived — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: settings-auto-close-control
+{"command":"recapture-stale","elapsed_secs":200,"emitted_at_unix":1786537172,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing settings-auto-close-control (45/83)"}
+  ⟲ Unchanged: settings-auto-close-control — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: settings-auto-close-maximum
+  ✓ Recaptured: settings-auto-close-maximum
+  → Capturing: settings-auto-close-off
+{"command":"recapture-stale","elapsed_secs":210,"emitted_at_unix":1786537182,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing settings-auto-close-off (47/83)"}
+  ✓ Recaptured: settings-auto-close-off
+  → Capturing: settings-auto-close-shortest
+  ✓ Recaptured: settings-auto-close-shortest
+  → Capturing: settings-day-mode-accent
+{"command":"recapture-stale","elapsed_secs":220,"emitted_at_unix":1786537192,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing settings-day-mode-accent (49/83)"}
+  ✓ Recaptured: settings-day-mode-accent
+  → Capturing: settings-default
+  ⟲ Unchanged: settings-default — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: settings-group-columns-selected
+{"command":"recapture-stale","elapsed_secs":230,"emitted_at_unix":1786537202,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing settings-group-columns-selected (51/83)"}
+  ✓ Recaptured: settings-group-columns-selected
+  → Capturing: settings-stable-chrome
+  ✓ Recaptured: settings-stable-chrome
+  → Capturing: settingssegment-group-columns-inline
+  ✓ Recaptured: settingssegment-group-columns-inline
+  → Capturing: settingssegment-theme-day-active
+{"command":"recapture-stale","elapsed_secs":240,"emitted_at_unix":1786537212,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing settingssegment-theme-day-active (54/83)"}
+  ✓ Recaptured: settingssegment-theme-day-active
+  → Capturing: settingssegment-theme-system-active
+  ✓ Recaptured: settingssegment-theme-system-active
+  → Capturing: tabs-grouped
+{"command":"recapture-stale","elapsed_secs":250,"emitted_at_unix":1786537222,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing tabs-grouped (56/83)"}
+  ✓ Recaptured: tabs-grouped
+  → Capturing: themetoggle-dark
+  ⟲ Unchanged: themetoggle-dark — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: themetoggle-light
+  ⟲ Unchanged: themetoggle-light — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: triage-comfortable
+{"command":"recapture-stale","elapsed_secs":260,"emitted_at_unix":1786537232,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing triage-comfortable (59/83)"}
+  ✓ Recaptured: triage-comfortable
+  → Capturing: triage-running-hot
+  ✓ Recaptured: triage-running-hot
+  → Capturing: triage-stable-chrome-hidden
+  ⟲ Unchanged: triage-stable-chrome-hidden — recapture pixel-identical to the committed frame; restored committed bytes (no churn)
+  → Capturing: url-active-tab
+{"command":"recapture-stale","elapsed_secs":270,"emitted_at_unix":1786537242,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing url-active-tab (62/83)"}
+  ✓ Recaptured: url-active-tab
+  → Capturing: url-details-edit
+  ✓ Recaptured: url-details-edit
+  → Capturing: url-details-unlabeled
+{"command":"recapture-stale","elapsed_secs":280,"emitted_at_unix":1786537252,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing url-details-unlabeled (64/83)"}
+  ✓ Recaptured: url-details-unlabeled
+  → Capturing: url-dragging
+  ✓ Recaptured: url-dragging
+  → Capturing: url-expanded
+  ✓ Recaptured: url-expanded
+  → Capturing: url-idle
+{"command":"recapture-stale","elapsed_secs":290,"emitted_at_unix":1786537262,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing url-idle (67/83)"}
+  ✓ Recaptured: url-idle
+  → Capturing: url-minimal
+  ✓ Recaptured: url-minimal
+  → Capturing: urlfield-empty
+  ✓ Recaptured: urlfield-empty
+  → Capturing: urlfield-long-title
+{"command":"recapture-stale","elapsed_secs":300,"emitted_at_unix":1786537272,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing urlfield-long-title (70/83)"}
+  ✓ Recaptured: urlfield-long-title
+  → Capturing: urlfield-notes
+  ✓ Recaptured: urlfield-notes
+  → Capturing: urlfield-title
+{"command":"recapture-stale","elapsed_secs":310,"emitted_at_unix":1786537282,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing urlfield-title (72/83)"}
+  ✓ Recaptured: urlfield-title
+  → Capturing: urllabel-long
+  ✓ Recaptured: urllabel-long
+  → Capturing: urllabel-reading
+  ✓ Recaptured: urllabel-reading
+  → Capturing: urllabel-work-chip
+{"command":"recapture-stale","elapsed_secs":320,"emitted_at_unix":1786537292,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing urllabel-work-chip (75/83)"}
+  ✓ Recaptured: urllabel-work-chip
+  → Capturing: usagesparkline-default
+  ✓ Recaptured: usagesparkline-default
+  → Capturing: usagesparkline-dense
+  ✓ Recaptured: usagesparkline-dense
+  → Capturing: usagesparkline-sparse
+{"command":"recapture-stale","elapsed_secs":330,"emitted_at_unix":1786537302,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing usagesparkline-sparse (78/83)"}
+  ✓ Recaptured: usagesparkline-sparse
+  → Capturing: viewallfavorites-empty
+  ✓ Recaptured: viewallfavorites-empty
+  → Capturing: viewallfavorites-open-cue-by-page-identity
+  ✓ Recaptured: viewallfavorites-open-cue-by-page-identity
+  → Capturing: viewallfavorites-removed-site-dimmed
+{"command":"recapture-stale","elapsed_secs":340,"emitted_at_unix":1786537312,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-removed-site-dimmed (81/83)"}
+  ✓ Recaptured: viewallfavorites-removed-site-dimmed
+  → Capturing: viewallfavorites-rich
+  ✓ Recaptured: viewallfavorites-rich
+  → Capturing: viewallfavorites-site-restored-by-bring-back
+{"command":"recapture-stale","elapsed_secs":350,"emitted_at_unix":1786537322,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+  ✓ Recaptured: viewallfavorites-site-restored-by-bring-back
+{"command":"recapture-stale","elapsed_secs":360,"emitted_at_unix":1786537332,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":370,"emitted_at_unix":1786537342,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":380,"emitted_at_unix":1786537352,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":390,"emitted_at_unix":1786537362,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":400,"emitted_at_unix":1786537372,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":410,"emitted_at_unix":1786537382,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":420,"emitted_at_unix":1786537392,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":430,"emitted_at_unix":1786537402,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":440,"emitted_at_unix":1786537412,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":450,"emitted_at_unix":1786537422,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":460,"emitted_at_unix":1786537432,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":470,"emitted_at_unix":1786537442,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":480,"emitted_at_unix":1786537452,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":490,"emitted_at_unix":1786537462,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":500,"emitted_at_unix":1786537472,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":510,"emitted_at_unix":1786537482,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":520,"emitted_at_unix":1786537492,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":530,"emitted_at_unix":1786537502,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":540,"emitted_at_unix":1786537512,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":550,"emitted_at_unix":1786537522,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":560,"emitted_at_unix":1786537532,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":570,"emitted_at_unix":1786537542,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":580,"emitted_at_unix":1786537552,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":590,"emitted_at_unix":1786537562,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":600,"emitted_at_unix":1786537572,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":610,"emitted_at_unix":1786537582,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":620,"emitted_at_unix":1786537592,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":630,"emitted_at_unix":1786537602,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":640,"emitted_at_unix":1786537612,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":650,"emitted_at_unix":1786537622,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":660,"emitted_at_unix":1786537632,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":670,"emitted_at_unix":1786537642,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":680,"emitted_at_unix":1786537652,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":690,"emitted_at_unix":1786537662,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":700,"emitted_at_unix":1786537672,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":710,"emitted_at_unix":1786537682,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":720,"emitted_at_unix":1786537692,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":730,"emitted_at_unix":1786537702,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":740,"emitted_at_unix":1786537712,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":750,"emitted_at_unix":1786537722,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":760,"emitted_at_unix":1786537732,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":770,"emitted_at_unix":1786537742,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"command":"recapture-stale","elapsed_secs":780,"emitted_at_unix":1786537752,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":70632,"progress":"Capturing viewallfavorites-site-restored-by-bring-back (83/83)"}
+{"attempts":1,"budget_expired":false,"collision_isolation":{"collisions_after":0,"collisions_before":0,"isolated":[]},"content_blocked":[],"emptied_by_cross_target":false,"errors":[],"recaptured":40,"resolution_changes":[],"restored_identical":43,"seed_ignored":null,"shared_failure_cause":null,"sidecars_cleaned":0,"skipped":[],"skipped_clean":false,"skipped_count":0,"skipped_cross_target":[],"total":83,"unrecapturable":[],"unrecapturable_project_total":0,"visual_diffs":[]}

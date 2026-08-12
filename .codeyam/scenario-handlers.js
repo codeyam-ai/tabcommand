@@ -1,5 +1,5 @@
 // codeyam-generated — DO NOT EDIT.
-// codeyam-editor: 0.1.7  source-sha256: 5e85a7c75cde96993adfc92e3bf9a570fd836af9fbb2dbfb2651da661d36d12d
+// codeyam-editor: 0.1.7  source-sha256: 40e39b7207a6b9e38a20ea3e7dd8fc56a0dc95abc1fbdf8ae25a575942761e2b
 const { createIssue } = require("./scenario-issues");
 
 // Known substrings that mean the app refused to initialize because it was loaded
@@ -137,6 +137,15 @@ ${webSocketStub}
   `;
 }
 
+// Third mirror of SUPPRESSION_PATTERN in ui/src/hooks/useViteHmrAutoReload.ts
+// and VITE_WS_NOISE_PATTERN in crates/proxy-http/src/error_capture.js. All
+// three surfaces silence the same harness-owned Vite HMR reconnect noise; keep
+// in sync. The capture path is the one that was missing it, which made every
+// preview-flow / preview-interact against a proxy-wrapped route fail its
+// console check on noise the editor itself produces.
+const VITE_WS_NOISE_PATTERN =
+  /vite.*failed to connect to websocket|WebSocket closed without opened/i;
+
 function handleConsoleMessage(message) {
   if (message.type() !== "error") return null;
   const text = message.text();
@@ -145,6 +154,14 @@ function handleConsoleMessage(message) {
   // it is the targeted, actionable signal for the secure-context app class.
   const advisory = insecureContextAdvisory(text);
   if (advisory) return advisory;
+
+  // Vite's reconnect banner ("[vite] failed to connect to websocket." plus the
+  // `(browser) … <--[WebSocket (failing)]--> … (server)` diagram) contains none
+  // of the substrings the ignore list below matches, so it fell through and
+  // vetoed the capture. Matched narrowly — the `vite`-anchored alternative and
+  // the exact-phrase second alternative both leave a genuine app-authored error
+  // mentioning websockets surfacing as a real issue.
+  if (VITE_WS_NOISE_PATTERN.test(text)) return null;
 
   // Ignore known dev-server WebSocket/HMR errors from Vite proxy, plus the
   // crxjs/Vite dynamic-import reload race: dev loaders `import()` the app entry
@@ -221,4 +238,5 @@ module.exports = {
   insecureContextAdvisory,
   INSECURE_CONTEXT_SIGNATURES,
   INSECURE_HOST_ADVISORY_MESSAGE,
+  VITE_WS_NOISE_PATTERN,
 };

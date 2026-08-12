@@ -1,0 +1,96 @@
+{"command":"session-finalize","elapsed_secs":0,"emitted_at_unix":1786537800,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251}
+session-finalize started: 2026-08-12T12:30:00Z, output: /Users/jaredcosulich/workspace/tabcommand/.codeyam/logs/session-finalize.log (PID 49251)
+The final workflow step ('Finalize', step 0) was interrupted before it completed — most likely an OOM/SIGKILL (exit 137) or SIGTERM (143) on this memory-constrained VM, not a logic failure. Your work is committed up to 818c30b. A commit-queue head was held; `feature-complete` will release it as the terminal backstop on the resumed completion.
+
+Re-run the final step to resume: `codeyam-editor editor advance` (or `codeyam-editor editor feature-complete` if advance reports the terminal step).
+Finalizing session — running flag-free test suite + strict audit. This is the only full-suite run for this feature.
+Coverage thresholds … skipped (no runner declares a coverage_path)
+Phase 0/5: session-cleanup …
+Phase 1/5: skipped (--start-from-phase 2)
+Phase 2/5: audit (--gate-mode strict, comprehensive) …
+[   0s] audit: running static checks
+[   2s] audit: rebuilding dependency graph (can take a few minutes on a large project)
+{
+Analyzed 240 files, found 431 import edges, graph has 335 nodes
+  "analyzed": 240,
+  "entityCount": 373,
+  "graphSize": 335,
+  "totalImports": 431
+}
+{"command":"session-finalize","elapsed_secs":10,"emitted_at_unix":1786537810,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":20,"emitted_at_unix":1786537820,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":30,"emitted_at_unix":1786537830,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":40,"emitted_at_unix":1786537840,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":50,"emitted_at_unix":1786537850,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":60,"emitted_at_unix":1786537860,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":70,"emitted_at_unix":1786537870,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":80,"emitted_at_unix":1786537880,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":90,"emitted_at_unix":1786537890,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":100,"emitted_at_unix":1786537900,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":110,"emitted_at_unix":1786537910,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":120,"emitted_at_unix":1786537920,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":130,"emitted_at_unix":1786537930,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":140,"emitted_at_unix":1786537940,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":150,"emitted_at_unix":1786537950,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":160,"emitted_at_unix":1786537960,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":170,"emitted_at_unix":1786537970,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":180,"emitted_at_unix":1786537980,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":190,"emitted_at_unix":1786537990,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":200,"emitted_at_unix":1786538000,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":210,"emitted_at_unix":1786538010,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":220,"emitted_at_unix":1786538020,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":230,"emitted_at_unix":1786538030,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":240,"emitted_at_unix":1786538040,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":250,"emitted_at_unix":1786538050,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":260,"emitted_at_unix":1786538060,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":270,"emitted_at_unix":1786538070,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":280,"emitted_at_unix":1786538080,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":290,"emitted_at_unix":1786538090,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":300,"emitted_at_unix":1786538100,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":310,"emitted_at_unix":1786538110,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":320,"emitted_at_unix":1786538120,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":330,"emitted_at_unix":1786538130,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":340,"emitted_at_unix":1786538140,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":350,"emitted_at_unix":1786538150,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":360,"emitted_at_unix":1786538160,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":370,"emitted_at_unix":1786538170,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":380,"emitted_at_unix":1786538180,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":390,"emitted_at_unix":1786538190,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":400,"emitted_at_unix":1786538200,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":410,"emitted_at_unix":1786538210,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":420,"emitted_at_unix":1786538220,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":430,"emitted_at_unix":1786538230,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":440,"emitted_at_unix":1786538241,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+{"command":"session-finalize","elapsed_secs":450,"emitted_at_unix":1786538251,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 2/5: audit (--gate-mode strict, comprehensive) …"}
+[ 453s] audit: running registry invariant checks
+[ 454s] audit: gather complete
+audit advisories (not blocking): 1 advisory finding(s). Run the printed `refresh-tests --partition <name>` and re-run audit.
+
+## COMPLETED_PLAN_NEVER_LANDED_ADVISORY (1 finding(s)) — Completed plan's implementation never landed at HEAD
+  - filter-dynamic-import-fetch-console-noise (no deliverables manifest; archiving commit c836ac783b977a75a790544559d1a760c5a99388 touched no source (hollow))
+
+  Fix:
+    git mv .codeyam/plans/completed/filter-dynamic-import-fetch-console-noise.md .codeyam/plans/filter-dynamic-import-fetch-console-noise.md && git rm -f .codeyam/plans/completed/filter-dynamic-import-fetch-console-noise.json
+
+  Verify (after the fix, before re-running the full audit):
+    codeyam-editor editor verify-completed-plans --format text
+
+  Note: `filter-dynamic-import-fetch-console-noise` is a legacy completed plan with no deliverables manifest whose archiving commit touched zero source files. This is a needs-review heuristic (non-blocking): some plans legitimately produce only state/config changes. If the implementation was genuinely dropped, re-queue and re-land it.
+
+audit advisories (not blocking): 1 advisory finding(s). Run the printed `refresh-tests --partition <name>` and re-run audit.
+Phase 3/5: analyze-imports …
+{
+Analyzed 240 files, found 431 import edges, graph has 335 nodes
+  "analyzed": 240,
+  "entityCount": 373,
+  "graphSize": 335,
+  "totalImports": 431
+}
+Phase 3.5/5: screenshot coverage …
+Phase 3.5/5: screenshot coverage … 0 stale, 0 missing
+Phase 3.6/5: glossary reconciliation …
+Phase 4/5: verify-build …
+{"command":"session-finalize","elapsed_secs":460,"emitted_at_unix":1786538261,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":49251,"progress":"Phase 4/5: verify-build …"}
+[PASS] eslint (2.50s)
+CODEYAM_VERIFY_BUILD: PASS — 1 check(s) passed
+Phase 5/5: finalize invariants (per-test-evidence + ignore-lists) …
