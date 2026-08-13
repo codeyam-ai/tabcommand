@@ -1,133 +1,15 @@
-⚠️  CODEYAM: stdout is piped through tail/grep — the consumer block-buffers its input to EOF, so this task's `.output` would be empty until the command exits. Liveness is being mirrored to stderr (below) so it stays visible.
-{"command":"reconcile-registry","elapsed_secs":0,"emitted_at_unix":1786567805,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":232475}
-> liveness is mirrored to stderr (this file) because stdout is piped through tail/grep. Run this command BARE instead and block with `codeyam-editor editor wait-for <task .output path printed by the harness>` — a pipe reports the filter's exit code, not the command's. If you piped it to shorten the output, you did not need to: run bare and the command prints a `CODEYAM_FULL_OUTPUT` line naming a file that holds the COMPLETE output, which you can `cat` afterwards (or capture with `tee` if you want both at once).
-{"command":"reconcile-registry","elapsed_secs":0,"emitted_at_unix":1786567805,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":232475}
-## Inherited registry drift (76) — 76 line updates referencing files this branch never touched (pre-existing base drift, cleared by a paydown pass, not this cycle). These rows were ALREADY APPLIED by this run under the same rules as every other row — `--include-inherited` only re-prints them in the `actions` array, so re-running with it registers nothing further and is not a follow-up step.
-auto-apply: 87 action(s) applied; 0 add(s) skipped.
+> auto-backgrounded — the harness completion notification arrives on its own when this exits; you do NOT need to do anything to receive it, and waiting adds nothing. KEEP WORKING: continue with anything that does not depend on this result — the notification interrupts you when it lands. "Do not poll" does NOT mean "stop working": ending the turn to wait is the one response that is never correct. ONLY if you need the result inside the CURRENT turn, block with: codeyam-editor editor wait-for /tmp/claude-0/-workspace/bbdfa599-346b-4dbe-91ce-32de7f328abc/tasks/bajxvti63.output (ONE call, bare — never piped through `| tail`; its budget is capped to fit the tool-call ceiling, so a long run returns WAIT_FOR STILL_RUNNING in-call and the notification still arrives. Re-issue only on LIKELY_WEDGED; do NOT hand-roll an `until grep … sleep` loop, the harness blocks it). Just want to know it is still alive? Read /tmp/claude-0/-workspace/bbdfa599-346b-4dbe-91ce-32de7f328abc/tasks/bajxvti63.heartbeat — one line, always the newest heartbeat; the output file below stays clean of them. Output too long? You do not need `| tail`: run it bare and read the `CODEYAM_FULL_OUTPUT` line the command prints — it names a file holding the COMPLETE output, which you can `cat` afterwards.
+{"command":"reconcile-registry","elapsed_secs":0,"emitted_at_unix":1786625123,"heartbeat":"CODEYAM_CMD_RUNNING","note":"still running","pid":1157155}
 {
   "summary": {
     "realOrphans": 0,
     "stalePhantoms": 0,
     "adds": 0,
     "renames": 0,
-    "updateLines": 87,
+    "updateLines": 0,
     "gateUpdates": 0
   },
-  "actions": [
-    {
-      "kind": "updateLine",
-      "key": "ImportExport › does nothing at all for an empty paste",
-      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 173,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "ImportExport › preserves the pasted snapshot after a failed import",
-      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 113,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "ImportExport › refuses readable JSON that is not an export without writing anything",
-      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 153,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "ImportExport › repairs a hard-wrapped snapshot and reports what it fixed",
-      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 129,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "ImportExport › shows an error and keeps the page open when the snapshot cannot be read",
-      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 93,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "storageAccess › readByArea does not read local for labels when sync has groups",
-      "file": "src/lib/utils/storageAccess.test.js",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 290,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "storageAccess › readByArea prefers a populated local fallback over an empty sync map",
-      "file": "src/lib/utils/storageAccess.test.js",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 275,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "storageAccess › readByArea prefers the sync labels when both areas hold groups",
-      "file": "src/lib/utils/storageAccess.test.js",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 260,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "storageAccess › readByArea returns a labels value that fell back to local",
-      "file": "src/lib/utils/storageAccess.test.js",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 245,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "storageAccess › readByArea still fires the callback once when it consults the fallback",
-      "file": "src/lib/utils/storageAccess.test.js",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 301,
-      "classification": "change-introduced"
-    },
-    {
-      "kind": "updateLine",
-      "key": "storageAccess › writeByArea mirrors a successful sync write into local",
-      "file": "src/lib/utils/storageAccess.test.js",
-      "runner": "tests",
-      "old_line": null,
-      "new_line": 314,
-      "classification": "change-introduced"
-    }
-  ],
-  "inherited": {
-    "total": 76,
-    "counts": {
-      "realOrphans": 0,
-      "stalePhantoms": 0,
-      "adds": 0,
-      "renames": 0,
-      "updateLines": 76,
-      "gateUpdates": 0
-    },
-    "includedInActions": false,
-    "command": "codeyam-editor editor reconcile-registry --include-inherited"
-  },
+  "actions": [],
   "platform_gated_absences": [],
   "runner_gated_absences": []
 }
-  backfilled 87 missing description(s) on existing entr(y/ies) from source comments — no separate `backfill-descriptions` run needed.

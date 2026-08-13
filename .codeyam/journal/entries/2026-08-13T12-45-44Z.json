@@ -1,0 +1,835 @@
+{
+  "timestamp": "2026-08-13T12:45:44Z",
+  "title": "Copy Button On The Current Snapshot",
+  "type": "feature",
+  "userRequest": "## Summary\n\nOn the Import / Export page, every **Previous** snapshot has its own Copy button but the **Current** snapshot does not — copying the backup you most likely want means hand-selecting the JSON out of a read-only textarea. Give Current the same Copy button the Previous entries already have by rendering it through the existing `SnapshotField` component instead of a bare `SnapshotBox`.\n\n## Key Decisions\n\n- **Reuse `SnapshotField` rather than adding a second copy control.** `SnapshotField` already wraps a read-only `SnapshotBox` with a Copy button that flips to a green \"Copied ✓\" for ~1.6s and swallows the `navigator.clipboard.writeText` rejection that occurs in headless captures / non-secure contexts. Reusing it means Current and Previous copy identically, with zero new clipboard code and no new CSS.\n- **Reverse a deliberate decision, so retire its rationale.** The Export panel carries a comment (and a matching glossary description) explaining that Current *deliberately* has no Copy button because it is \"the field the sync warnings point at, so it is the one the user is most likely to be reading rather than reaching for.\" That reasoning no longer holds — the page's own intro tells users to \"copy a snapshot below to keep a working backup,\" and Current is the snapshot a backup should be taken from. The comment must be rewritten in the same edit, or the code and its documented intent will contradict each other.\n- **No layout work.** `SnapshotField` is a flex row (`.SnapshotField`) whose `.SnapshotBox` is `flex: 1`, so Current keeps its full width with the button beside it, matching the Previous rows. Its `margin-bottom: 12px` collapses against the `.ExportPanel-subhead` 18px top margin, so vertical rhythm is unchanged. The Export panel stylesheet needs no edit.\n\n## Implementation\n\n### 1. Render Current through `SnapshotField`\n\n**File**: `src/lib/components/ExportPanel/ExportPanel.jsx`\n\nReplace the `SnapshotBox` rendered under the \"Current\" subhead with `SnapshotField`, passing the same `current` value (`SnapshotField` is already read-only). Drop the now-unused `SnapshotBox` import — `SnapshotField` imports it itself; keep the `SnapshotField` import that the Previous list already uses.\n\nRewrite the component's leading comment: remove the \"The current snapshot deliberately has NO Copy button\" paragraph and replace it with the new intent — every snapshot on the page, current and previous, is copyable in one click, because the page's whole purpose is handing the user a snapshot they can paste somewhere safe. Keep the surviving note that the Previous entries are a list where a per-row button is the only way to act on a specific row. This comment is the source of the glossary description for `ExportPanel`, so the glossary text will follow it.\n\n### 2. Cover the new button in the page test\n\n**File**: `src/lib/pages/ImportExport/ImportExport.test.jsx`\n\nAdd a test asserting the Current snapshot is copyable: seed `labels`, render `ImportExport`, wait for the Current box to serialize, click the Copy button that sits in the same `SnapshotField` as the Current box, and assert the clipboard write was called with the Current snapshot's value. Stub `navigator.clipboard` with a `vi.fn()` in the test (jsdom has no clipboard). The 1.6s \"Copied ✓\" revert is `SnapshotField`'s own behavior and does not need re-testing here.\n\nThe existing tests query by read-only textarea content (`readonlyBoxContaining`), which is unaffected by adding a sibling button, so no existing test needs to change.\n\n### 3. Refresh the ExportPanel scenario descriptions and captures\n\n**File**: `.codeyam/scenarios/exportpanel-with-snapshot-history.json`\n\nIts description says the prior snapshots each have \"its own Copy button,\" implicitly contrasting with a Current that does not. Update it to say every snapshot — current and previous — is copyable, keeping the point that the Previous stack is what makes the page a recovery tool. The desktop screenshots for both `exportpanel-with-snapshot-history` and `exportpanel-nothing-to-fall-back-to` change (a new button appears on Current) and should be re-captured.\n\n## Reused existing code\n\n- `SnapshotField` from `src/lib/components/SnapshotField/SnapshotField.jsx` (glossary entry: `SnapshotField`) — the read-only snapshot + Copy button pair, including the clipboard-rejection swallow and the 1.6s \"Copied ✓\" state. This is the whole feature; nothing new is written.\n- `SnapshotBox` from `src/lib/components/SnapshotBox/SnapshotBox.jsx` (glossary entry: `SnapshotBox`) — still the underlying textarea, now reached through `SnapshotField` instead of directly.\n- `Icon` from `src/lib/components/Icon/Icon.jsx` — used by `SnapshotField` for the `copy` / `check` glyphs; no direct use in the Export panel.\n- Existing-implementation survey: there is **no** separate copy helper, copy hook, or standalone copy-button component anywhere under `src/lib/components` — `SnapshotField` is the only clipboard-writing code in the app (a clipboard grep across the whole source tree hits only that file). So reuse means reusing `SnapshotField` itself, not extracting a shared button.\n- The `readonlyBoxContaining` test helper already in `src/lib/pages/ImportExport/ImportExport.test.jsx` — used to locate the Current box in the new test.\n\n## Scenarios to Demonstrate\n\n- `exportpanel-with-snapshot-history` — Current and several Previous snapshots, every one of them now showing a Copy button in the same row position.\n- `exportpanel-nothing-to-fall-back-to` — fresh install: a Current snapshot with its Copy button and an empty Previous list, proving the button does not depend on history existing.\n- Copy-confirmed state on Current — the button in its green \"Copied ✓\" state immediately after a click (the state `snapshotfield-copy-confirmed` already demonstrates in isolation, now visible on the Current field).\n- Empty Current — the page before storage resolves, where Current is an empty string: the Copy button renders and copying an empty snapshot is a harmless no-op.",
+  "description": "The Current snapshot on Import / Export now has its own Copy button, matching the one every Previous snapshot already had. It gets there by rendering Current through the existing SnapshotField instead of a bare SnapshotBox, so the clipboard write, the green 'Copied' confirmation, and the swallowed writeText rejection are all reused rather than rewritten — no new clipboard code, no new CSS, no layout change. This reverses a deliberate earlier decision that Current should have no Copy button because it was the field the sync warnings pointed at; the page's own intro tells users to copy a snapshot to keep a backup, and Current is the snapshot a backup should be taken from, so the component comment and its glossary description were rewritten in the same change rather than left contradicting the code. One consequence worth recording: the page's first Copy button is now Current's, which silently changed what the existing Import / Export - Snapshot Copied scenario demonstrates — its capture and description were updated to match.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/audit-baseline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/copy-button-on-the-current-snapshot.md\t.codeyam/plans/completed/copy-button-on-the-current-snapshot.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-playwright.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/exportpanel-with-snapshot-history.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/import-export-snapshot-copied.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-ungrouped-drag-hint--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-nothing-to-fall-back-to--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-nothing-to-fall-back-to--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-with-snapshot-history--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-with-snapshot-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-hidden-bring-back--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-monogram-long-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-open-cued--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-drift-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-multi-page-site-removed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-pages-rolled-up-and-cued--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-same-origin-different-path-uncued--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoritesresetcontrol-confirming--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoritesresetcontrol-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-search-engine-dated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-single-entry--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-deletable--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-delete-confirm-armed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-monogram-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-no-timestamp--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-confirming--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-reopen-only--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-deleted-group-stays-deleted--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-first-run-migration-from-local--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-restored-from-sync-after-uninstall--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-survive-a-sync-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-stable-chrome-footer--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-sync-wins-over-stale-local--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-deep-snapshot-history--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-export-after-uninstall-recovery--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-groups-too-large-to-sync--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-hard-wrapped-snapshot-repaired--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-copied--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-too-damaged-to-read--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-sync-unavailable--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-color-preview-while-editing--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-deliberate-same-site-members--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-guarded-single-member--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-overflowing-members--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-preview-name-cleared--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-saved-recolor-committed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-title-and-color-preview--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-empty-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-preset-color--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-group-title-typed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-collapsed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-custom-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-derived-color--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-preset-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-many-open-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-open-section--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-single-open-tab--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-no-data--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-system--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadpertabnote-unavailable--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-excessive--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-severity--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-low-load--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-archived-only--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-multiple-groups--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-single-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-mixed-with-archived--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-maximum--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-off--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-shortest--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-group-columns-inline--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-theme-day-active--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-theme-system-active--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-long-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-notes--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-long--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-work-chip--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-dense--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-sparse--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-removed-site-dimmed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-site-restored-by-bring-back--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/analyze-imports.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/audit.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/recapture-stale.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/reconcile-registry.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/refresh-tests.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/verify-build.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/command-output/wait-for.txt",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/merge-drivers-version",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/red-proof.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/refusal-fingerprints.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/tool-loading-injected.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/0630b95f4a9f2f2a929b7d8132e949668aed39153fc943a0f76d0fde009a3218.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/c49d19476316a22b9442f1cefde5d611e687128d227e18262a0edc995e92041b.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/ExportPanel/ExportPanel.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/exportpanel.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/exportpanel-current-copy-confirmed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/exportpanel-empty-current-before-storage-resolves.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-current-copy-confirmed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-current-copy-confirmed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-empty-current-before-storage-resolves--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-empty-current-before-storage-resolves--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/1cd2806ac73febcb2371564298414779eb7835c0d0900000bbefac090747f754.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/a4ab54bd807ab971c21d984037a7698ed1441c3c62d6171bc916be98f9767adc.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/accf5ec8b4519076f04caf4f1c69fe4f6f813eb848f419b3f4a276e524bb6ffd.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/b48b9d2ac3baed7c1256f7f33697edd349a7da1477d2614b12db6c721dc2f796.json",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "ExportPanel - Current Copy Confirmed",
+      "screenshotPath": "exportpanel-current-copy-confirmed--desktop.png"
+    },
+    {
+      "name": "ExportPanel - Empty Current Before Storage Resolves",
+      "screenshotPath": "exportpanel-empty-current-before-storage-resolves--desktop.png"
+    },
+    {
+      "name": "ExportPanel - Nothing To Fall Back To",
+      "screenshotPath": "exportpanel-nothing-to-fall-back-to--desktop.png"
+    },
+    {
+      "name": "ExportPanel - With Snapshot History",
+      "screenshotPath": "exportpanel-with-snapshot-history--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 959,
+    "passed": 1,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 959,
+        "passed": 1
+      }
+    ]
+  }
+}

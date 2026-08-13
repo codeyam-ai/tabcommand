@@ -451,11 +451,20 @@
       "runner": "tests"
     },
     {
+      "description": "The Current snapshot has its own Copy button, and it copies CURRENT — not the first Previous row. The seeded Previous snapshot is deliberately different content: if Current ever loses its own button again, the only button reachable from the Current box would be a Previous one, and this assertion is what catches that.",
+      "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
+      "format": "vitest",
+      "key": "ImportExport › copies the Current snapshot when its own Copy button is clicked",
+      "line": 68,
+      "registeredAt": "2026-08-13T11:45:27.310202173+00:00",
+      "runner": "tests"
+    },
+    {
       "description": "An empty paste is not an error. There is nothing to do and nothing to destroy, so the page must stay silent rather than alarm the user.",
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › does nothing at all for an empty paste",
-      "line": 173,
+      "line": 209,
       "registeredAt": "2026-08-12T20:49:55Z",
       "runner": "tests"
     },
@@ -464,7 +473,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › imports a valid export, writing labels and per-url objects then calling onComplete",
-      "line": 64,
+      "line": 100,
       "registeredAt": "2026-06-13T10:52:46.158526+00:00",
       "runner": "tests"
     },
@@ -473,7 +482,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › preserves the pasted snapshot after a failed import",
-      "line": 113,
+      "line": 149,
       "registeredAt": "2026-08-12T20:49:55Z",
       "runner": "tests"
     },
@@ -482,7 +491,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › refuses readable JSON that is not an export without writing anything",
-      "line": 153,
+      "line": 189,
       "registeredAt": "2026-08-12T20:49:55Z",
       "runner": "tests"
     },
@@ -500,7 +509,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › repairs a hard-wrapped snapshot and reports what it fixed",
-      "line": 129,
+      "line": 165,
       "registeredAt": "2026-08-12T20:49:55Z",
       "runner": "tests"
     },
@@ -518,7 +527,7 @@
       "file": "src/lib/pages/ImportExport/ImportExport.test.jsx",
       "format": "vitest",
       "key": "ImportExport › shows an error and keeps the page open when the snapshot cannot be read",
-      "line": 93,
+      "line": 129,
       "registeredAt": "2026-08-12T20:49:55Z",
       "runner": "tests"
     },

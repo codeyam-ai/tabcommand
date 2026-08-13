@@ -1,8 +1,6 @@
 {
   "checks": {
-    "SCENARIO_DISTINCT_CAPTURE_COLLISION": [
-      "favorites-open-favorite-cued == favorites-populated"
-    ],
+    "SCENARIO_DISTINCT_CAPTURE_COLLISION": [],
     "silent_uncovered": [
       "popup/popup.js:init",
       "service_worker.js:associateProcess",

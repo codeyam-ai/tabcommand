@@ -60,6 +60,42 @@ describe('ImportExport', () => {
     expect(readonlyBoxContaining('Archive').value).toContain('https://old.com');
   });
 
+  // The Current snapshot has its own Copy button, and it copies CURRENT — not
+  // the first Previous row. The seeded Previous snapshot is deliberately
+  // different content: if Current ever loses its own button again, the only
+  // button reachable from the Current box would be a Previous one, and this
+  // assertion is what catches that.
+  it('copies the Current snapshot when its own Copy button is clicked', async () => {
+    const writeText = vi.fn();
+    // jsdom has no clipboard at all, so there is nothing to spy on — define it.
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    });
+
+    seed('labels', {
+      Work: { title: 'Work', backgroundColor: '#1873E4', position: 0, urlKeys: ['url-https://a.com'] },
+    });
+    seed('url-https://a.com', { url: 'https://a.com', title: 'A site', favicon: '' });
+    seed('url-https://old.com', { url: 'https://old.com', title: 'Old Page', favicon: '' });
+    seed('previousLabels', [
+      { Archive: { title: 'Archive', position: 0, urlKeys: ['url-https://old.com'] } },
+    ]);
+    installChromeShim();
+    render(<ImportExport onComplete={() => {}} />);
+
+    await waitFor(() => expect(readonlyBoxContaining('A site')).toBeTruthy());
+    const current = readonlyBoxContaining('A site');
+
+    // The Copy button that shares a SnapshotField with the Current box.
+    const copy = current.parentElement.querySelector('button');
+    fireEvent.click(copy);
+
+    expect(writeText).toHaveBeenCalledWith(current.value);
+    expect(current.value).toContain('A site');
+    expect(current.value).not.toContain('Old Page');
+  });
+
   // pasting a valid export and clicking Import rebuilds labels + per-url objects and calls onComplete
   it('imports a valid export, writing labels and per-url objects then calling onComplete', async () => {
     const onComplete = vi.fn();

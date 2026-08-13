@@ -8,5 +8,5 @@
   "mocks": {},
   "componentName": "ExportPanel",
   "scenarioType": "component",
-  "description": "The backup half with a real undo stack: the current groups on top, then every prior shape of the set beneath, each with its own Copy button. This is what makes the page a recovery tool rather than a backup button — when a sync warning appears, the user often needs the snapshot from BEFORE whatever went wrong, not the current one."
+  "description": "The backup half with a real undo stack: the current groups on top, then every prior shape of the set beneath. Every snapshot here — current and previous alike — carries its own Copy button, in the same row position, so taking a backup is one click from whichever one the user actually needs. That the Previous stack exists at all is what makes the page a recovery tool rather than a backup button: when a sync warning appears, the user often needs the snapshot from BEFORE whatever went wrong, not the current one."
 }

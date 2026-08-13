@@ -1,0 +1,29 @@
+{
+  "claimStartedAt": "2026-08-13T11:36:35Z",
+  "completedAt": "2026-08-13T12:45:44Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-11",
+    "originId": "f12f9a98-c54c-404e-9b74-cda0c5d540a1",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "copy-button-on-the-current-snapshot",
+    "sessionId": "0e4750f4-dcf3-4941-90c7-d5ecbf7456d6",
+    "startedAt": "2026-08-13T11:36:35Z"
+  },
+  "createdAt": "2026-08-13T11:17:54Z",
+  "deliverables": [
+    ".claude/hooks/editor-pretool-hook.py",
+    ".claude/skills/codeyam-editor/SKILL.md",
+    ".claude/skills/codeyam-plan/SKILL.md",
+    "src/lib/components/ExportPanel/ExportPanel.jsx",
+    "src/lib/pages/ImportExport/ImportExport.test.jsx"
+  ],
+  "journalTimestamp": "2026-08-13T12:45:44Z",
+  "mode": "ui",
+  "planFile": "completed/copy-button-on-the-current-snapshot.md",
+  "slug": "copy-button-on-the-current-snapshot",
+  "title": "Copy Button On The Current Snapshot"
+}

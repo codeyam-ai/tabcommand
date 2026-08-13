@@ -53,12 +53,14 @@
     ]
   },
   {
-    "description": "The backup half of the recover/backup page: the current groups serialized to JSON, and every prior snapshot beneath it. The Previous stack is what makes the page a recovery tool rather than a backup button — when a sync warning appears, the user often needs the snapshot from before whatever went wrong. The current snapshot deliberately has no Copy button while each previous one does: it is the field the warnings point at, so it is the one being read rather than reached for, and the Previous entries are a list where a per-row button is the only way to act on a specific row.",
+    "description": "The backup half of the recover/backup page: the current groups serialized to JSON, and every prior snapshot beneath it. The Previous stack is what makes the page a recovery tool rather than a backup button — when a sync warning appears, the user often needs the snapshot from before whatever went wrong. Every snapshot here, current and previous alike, is copyable in one click, because the whole purpose of the page is handing the user a snapshot they can paste somewhere safe; Current reaches that through the same SnapshotField the Previous rows use rather than a second copy control, so the two behave identically. The Previous entries are a list, where a per-row button is the only way to act on a specific row.",
     "filePath": "src/lib/components/ExportPanel/ExportPanel.jsx",
     "name": "ExportPanel",
     "scenarios": [
       "exportpanel-with-snapshot-history",
-      "exportpanel-nothing-to-fall-back-to"
+      "exportpanel-nothing-to-fall-back-to",
+      "exportpanel-current-copy-confirmed",
+      "exportpanel-empty-current-before-storage-resolves"
     ]
   },
   {

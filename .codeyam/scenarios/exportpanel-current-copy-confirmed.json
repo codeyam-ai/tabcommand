@@ -1,0 +1,19 @@
+{
+  "name": "ExportPanel - Current Copy Confirmed",
+  "id": "2ec2e545-230d-4721-bf33-8ddbe4acb44b",
+  "url": "/?isolate=ExportPanel&variant=no-history&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ExportPanel",
+  "scenarioType": "component",
+  "description": "The moment the new button pays off: Current's own Copy button clicked, flipped to its confirmed form. The fresh-install variant is used deliberately — with no Previous rows there is exactly one Copy button on the page, so the confirmation can only be Current's. The console error is the POINT: the capture browser blocks the Clipboard API by permissions policy, which is exactly the rejection SnapshotField swallows, and the confirmation is unconditional so the user can still fall back to selecting the text.",
+  "interactions": [
+    {
+      "action": "click",
+      "text": "Copy"
+    }
+  ],
+  "expectedConsoleErrors": true
+}

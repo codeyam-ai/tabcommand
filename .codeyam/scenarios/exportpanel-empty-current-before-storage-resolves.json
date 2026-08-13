@@ -1,0 +1,12 @@
+{
+  "name": "ExportPanel - Empty Current Before Storage Resolves",
+  "id": "ecb2f91b-dffb-4d31-8589-0916d71805f9",
+  "url": "/?isolate=ExportPanel&variant=empty-current&theme=light",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ExportPanel",
+  "scenarioType": "component",
+  "description": "The first paint, before the storage read comes back: Current is still the empty string the page initializes it to. The Copy button renders anyway rather than waiting for data — copying an empty snapshot is a harmless no-op, whereas a button that appears once the read lands would shift under a cursor already on its way to it. This is the state that proves the button belongs to the field, not to the data."
+}

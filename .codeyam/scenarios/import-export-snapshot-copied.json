@@ -18,7 +18,7 @@
   },
   "scenarioType": "application",
   "pageFilePath": "src/lib/pages/ImportExport/ImportExport.jsx",
-  "description": "The key action on this page, mid-flight: the user has clicked Copy on a previous snapshot and the button has flipped to its confirmed state. This is the interaction the sync warnings send people to — when groups are not reaching sync, copying a snapshot is the recovery — and it is invisible in a resting capture.",
+  "description": "The key action on this page, mid-flight: the user has clicked Copy on the CURRENT snapshot and the button has flipped to its confirmed state, while the Previous row below still rests at Copy. This is the interaction the sync warnings send people to — when groups are not reaching sync, copying a snapshot is the recovery — and it is invisible in a resting capture. Current is where a backup should be taken from, so it is the button the first click on this page now lands on; until Current got its own Copy button, this same click reached a previous snapshot instead.",
   "interactions": [
     {
       "action": "click",

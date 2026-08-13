@@ -1,10 +1,10 @@
 {
-  "provenAt": "2026-08-12T20:36:45Z",
+  "provenAt": "2026-08-13T11:46:54Z",
   "paths": [
-    "src/lib/utils/storageAccess.js"
+    "src/lib/components/ExportPanel/ExportPanel.jsx"
   ],
   "tests": {
-    "storageAccess › readByArea returns a labels value that fell back to local": {
+    "ImportExport › copies the Current snapshot when its own Copy button is clicked": {
       "withoutFix": "fail",
       "withFix": "pass"
     }
@@ -12,7 +12,7 @@
   "proof": {
     "verdict": "proven",
     "flipped": [
-      "storageAccess › readByArea returns a labels value that fell back to local"
+      "ImportExport › copies the Current snapshot when its own Copy button is clicked"
     ]
   }
 }

@@ -184,6 +184,14 @@ const ISOLATION_PROPS = {
         current: '[{"title":"Work","backgroundColor":"#1873E4","position":0,"urls":[]}]',
         previous: [],
       },
+      // The first paint, before the storage read resolves: `current` is still the
+      // empty string the page initializes it to. The Copy button must render
+      // anyway rather than waiting for data — copying nothing is a harmless
+      // no-op, whereas a button that appears late moves under the cursor.
+      'empty-current': {
+        current: '',
+        previous: [],
+      },
     },
   },
   // The sidebar wordmark introduced by the visual redesign: the 4-color mark plus
