@@ -1,0 +1,32 @@
+{
+  "claimStartedAt": "2026-08-23T14:13:18Z",
+  "completedAt": "2026-08-23T16:03:18Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-13",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "drag-to-reorder-urls-within-a-group",
+    "sessionId": "18a5072b-1ce7-4382-883d-59639bc67ca6",
+    "startedAt": "2026-08-23T14:13:18Z"
+  },
+  "createdAt": "2026-08-23T13:12:58Z",
+  "deliverables": [
+    "package-lock.json",
+    "src/lib/components/LabelCollection/LabelCollection.jsx",
+    "src/lib/pages/App/App.jsx",
+    "src/lib/utils/dragReducer.js",
+    "src/lib/utils/dragReducer.test.js",
+    "src/lib/utils/dropTargeting.js",
+    "src/lib/utils/dropTargeting.test.js",
+    "src/lib/utils/labelDisplayOrder.js",
+    "src/lib/utils/labelDisplayOrder.test.js"
+  ],
+  "journalTimestamp": "2026-08-23T16:03:18Z",
+  "mode": "ui",
+  "planFile": "completed/drag-to-reorder-urls-within-a-group.md",
+  "slug": "drag-to-reorder-urls-within-a-group",
+  "title": "Drag To Reorder Urls Within A Group"
+}

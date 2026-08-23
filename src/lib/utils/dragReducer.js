@@ -8,6 +8,21 @@
 // be ungrouped via `chrome.tabs.ungroup` when a url leaves an active label.
 // Returns `null` for drops with no valid destination (the caller should no-op).
 import { ItemTypes } from '../../Constants';
+import labelDisplayOrder from './labelDisplayOrder';
+
+// `destination.index` counts rows as the group card PAINTS them (open tabs
+// first), which is not the order they sit in `urlKeys`. Translate: find the key
+// currently occupying that displayed slot and insert immediately before it. An
+// index at or past the end — an ambiguous drop, or the last slot — appends,
+// which is also what the service worker does when it files a new member.
+const storageIndexForDisplayIndex = (displayIndex, urlKeys, activeTabs) => {
+  const displayed = labelDisplayOrder(urlKeys, activeTabs);
+  if (!(displayIndex >= 0) || displayIndex >= displayed.length) return urlKeys.length;
+
+  const keyAtSlot = displayed[displayIndex];
+  const storageIndex = urlKeys.indexOf(keyAtSlot);
+  return storageIndex === -1 ? urlKeys.length : storageIndex;
+};
 
 export const applyDrag = (
   { type, source, destination, draggableId },
@@ -33,7 +48,21 @@ export const applyDrag = (
       }
     }
 
-    labels[labelTitle].urlKeys.splice(destination.index, 0, urlKey);
+    // A drop into a group that no longer exists has nowhere to land; no-op
+    // rather than throwing, the same contract as a destination-less drop.
+    const destinationLabel = labels[labelTitle];
+    if (!destinationLabel || !destinationLabel.urlKeys) return null;
+
+    // Computed AFTER the source removal above: for a same-group reorder the
+    // library reports its destination index against the post-removal list, and
+    // that splice has already mutated this very array.
+    const storageIndex = storageIndexForDisplayIndex(
+      destination.index,
+      destinationLabel.urlKeys,
+      activeTabs
+    );
+
+    destinationLabel.urlKeys.splice(storageIndex, 0, urlKey);
   } else if (type === ItemTypes.LABEL_COLLECTION) {
     const sortedLabels = Object.values(labels).sort(
       (a, b) => a.title.localeCompare(b.title)

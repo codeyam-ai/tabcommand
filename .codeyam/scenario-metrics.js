@@ -1,5 +1,5 @@
 // codeyam-generated — DO NOT EDIT.
-// codeyam-editor: 0.1.7  source-sha256: 38a6c6948b0693d3313d5fbe0699cc69cba672c518d8489c55e165a22eb2f066
+// codeyam-editor: 0.1.7  build: a4c5299c7999edde656e5c190ed23ef9d6dd3f7c  source-sha256: 38a6c6948b0693d3313d5fbe0699cc69cba672c518d8489c55e165a22eb2f066
 const LOADING_MARKERS = [
   "Loading scenario...",
   "Loading tests...",

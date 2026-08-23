@@ -467,7 +467,7 @@
     "testFile": "src/lib/utils/groupingLog.test.js"
   },
   {
-    "description": "Pure reducer behind App's onDragEnd: for URL drops moves a urlKey out of the source label and into the destination label at the drop index (reporting active tab ids to ungroup); for LABEL_COLLECTION drops reorders groups by rewriting each label's position. Returns null when there is no destination.",
+    "description": "Pure reducer behind App's onDragEnd. For URL drops it moves a urlKey out of the source label and into the destination label, translating the drop index from the card's DISPLAYED order (open tabs first, via labelDisplayOrder) onto the stored urlKeys order before splicing -- so a row lands where it was dropped rather than at the displayed index's stored position. An index at or past the end appends. Reports the active tab ids to ungroup when a url leaves an active label. For LABEL_COLLECTION drops it reorders groups by rewriting each label's position. Returns null when there is no destination, or when the destination group no longer exists.",
     "filePath": "src/lib/utils/dragReducer.js",
     "name": "applyDrag",
     "testFile": "src/lib/utils/dragReducer.test.js"
@@ -640,6 +640,12 @@
     "testFile": "src/lib/utils/effectiveColumns.test.js"
   },
   {
+    "description": "Whether a viewport point falls inside an element's bounding rect, on both axes. Module-private to dropTargeting, where dropTargetAtPoint uses it to decide whether the cursor is over a card's rows region at all -- a point outside it, over the title bar or the slack below the last row, is an ambiguous drop that appends rather than resolving to a row slot. Exercised through dropTargetAtPoint's tests.",
+    "filePath": "src/lib/utils/dropTargeting.js",
+    "name": "containsPoint",
+    "testFile": "src/lib/utils/dropTargeting.test.js"
+  },
+  {
     "description": "Copies one relative path from the scratch build directory into the stable extension mirror, creating parent directories as needed.",
     "filePath": "scripts/sync-extension-dir.mjs",
     "name": "copyFile",
@@ -748,6 +754,12 @@
     "filePath": "service_worker.js",
     "name": "dissolveDeletedLabelGroups",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Resolves both the group under the cursor and the slot within it as a droppableId plus index, or null when the point is over no group card. The index counts the rows whose vertical midpoint the cursor has passed, excluding the dragged row's own floating clone, and is an index into the card's DISPLAYED order so applyDrag translates it onto stored order. A point outside the rows region -- the title bar, the empty state, the slack below the last row -- is an ambiguous drop and appends rather than landing at the top. Runs during pointer tracking because onDragEnd carries no coordinates and the drop animation has already returned rows to flow by the time it fires.",
+    "filePath": "src/lib/utils/dropTargeting.js",
+    "name": "dropTargetAtPoint",
+    "testFile": "src/lib/utils/dropTargeting.test.js"
   },
   {
     "description": "Resolves the group droppableId under a viewport point via elementFromPoint, so a dragged tab targets whichever group the cursor is over instead of @hello-pangea/dnd's center-based collision. Returns null when the point is over no group card.",
@@ -1028,6 +1040,12 @@
     "filePath": "src/lib/utils/importSnapshot/describeImport.js",
     "name": "joinPhrases",
     "testFile": "src/lib/utils/importSnapshot/describeImport.test.js"
+  },
+  {
+    "description": "Orders a group's urlKeys the way its card paints them: open tabs first, saved-only rows after, preserving stored order within each section via a stable sort. The single definition of that rule, shared by LabelCollection's render and the drag reducer's display-to-storage index translation so the two can never drift apart. Tolerates a null urlKeys or activeTabs, and never mutates the array it is given.",
+    "filePath": "src/lib/utils/labelDisplayOrder.js",
+    "name": "labelDisplayOrder",
+    "testFile": "src/lib/utils/labelDisplayOrder.test.js"
   },
   {
     "description": "Internal shim helper: resolves the callback argument from a variadic action-stub call by returning the last argument when it is a function, else undefined. Lets the no-op tabs/tabGroups stubs accept Chrome's varying (props, cb?) / (id, props, cb?) arities.",
@@ -1508,6 +1526,12 @@
     "filePath": "service_worker.js",
     "name": "stopSystemLoadPolling",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Translates a drop index from the order a group card PAINTS its rows (open tabs first, via labelDisplayOrder) into an index in the stored urlKeys array: finds the key occupying that displayed slot and returns its stored position, so the row is inserted immediately before it. An index at or past the end -- an ambiguous drop, or the last slot -- appends, matching what the service worker does when it files a new member. Module-private to dragReducer and exercised through applyDrag, which is the contract worth pinning; a negative or non-numeric index also appends rather than throwing.",
+    "filePath": "src/lib/utils/dragReducer.js",
+    "name": "storageIndexForDisplayIndex",
+    "testFile": "src/lib/utils/dragReducer.test.js"
   },
   {
     "description": "Converts quotes a word processor autocorrected back to straight ones. Applied last among the transport repairs and only after a strict parse has already failed, because curly quotes are perfectly legal inside a JSON string — a snapshot whose only curly quotes sit in a page title parses on the first pass and never reaches here.",

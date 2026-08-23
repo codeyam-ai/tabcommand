@@ -720,6 +720,27 @@ const ISOLATION_PROPS = {
         backgroundColor: '#1873E4',
         expanded: true,
       },
+      // The same members, COLLAPSED. `expanded: true` renders every row's
+      // pin/edit action bar unconditionally — `(showActions || hover ||
+      // expanded)` in Url — so on an expanded card hovering a row reveals
+      // nothing and a hover scenario captures a frame identical to its resting
+      // one. Collapsed, the action bar is hover-only again, which is the state
+      // the remove-control scenario exists to demonstrate. The remove ✕ itself
+      // is deliberately NOT hover-gated (`showRemove` in Url) and shows on
+      // every row either way.
+      'phantom-members-collapsed': {
+        index: 0,
+        draggable: false,
+        title: 'CodeYam',
+        urlKeys: [
+          'url-https://appstoreconnect.apple.com/apps',
+          'url-https://appstoreconnect.apple.com/apps/123/distribution',
+          'url-https://appstoreconnect.apple.com/apps/123/testflight',
+          'url-https://appstoreconnect.apple.com/apps/123/appstore/versions',
+        ],
+        backgroundColor: '#1873E4',
+        expanded: false,
+      },
       // The same group after the guard: the tab may wander anywhere inside the
       // site, and the group still holds exactly the one page the user filed.
       'guarded-single-member': {

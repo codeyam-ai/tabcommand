@@ -1,0 +1,53 @@
+{
+  "provenAt": "2026-08-23T15:06:19Z",
+  "slug": "drag-to-reorder-urls-within-a-group",
+  "paths": [
+    "src/lib/utils/dragReducer.js"
+  ],
+  "runScope": [
+    "src/lib/utils/dragReducer.js"
+  ],
+  "tests": {
+    "excludes the dragged row from the index count": {
+      "withoutFix": "missing",
+      "withFix": "missing",
+      "established": {
+        "kind": "attestedByHand",
+        "method": "Fault injection, not revert: dropTargetAtPoint is a NEW export, so reverting src/lib/utils/dropTargeting.js deletes the symbol the tests import and only yields a build failure (UNPROVABLE). Instead I neutered the index computation in place to the pre-fix behaviour - multiplying the midpoint row count by 0 so the resolver always reports index 0, which is exactly what App.jsx hardcoded before this fix - then ran the two tests via refresh-tests --test, then restored the line verbatim.",
+        "evidence": "With the fault injected: 2 failed out of 2 - 'dropTargetAtPoint > resolves the index from the row midpoints under the cursor' and 'dropTargetAtPoint > excludes the dragged row from the index count', both attributed change-introduced against base origin/main. With the line restored, refresh-tests --changed reports all 105 tests passing. The two tests are therefore load-bearing on the cursor-to-index computation, not merely compiling against it."
+      }
+    },
+    "lands a cross-group drop at the displayed slot it was dropped on": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    },
+    "maps the displayed drop index onto the stored urlKeys order": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    },
+    "resolves the index from the row midpoints under the cursor": {
+      "withoutFix": "missing",
+      "withFix": "missing",
+      "established": {
+        "kind": "attestedByHand",
+        "method": "Fault injection, not revert: dropTargetAtPoint is a NEW export, so reverting src/lib/utils/dropTargeting.js deletes the symbol the tests import and only yields a build failure (UNPROVABLE). Instead I neutered the index computation in place to the pre-fix behaviour - multiplying the midpoint row count by 0 so the resolver always reports index 0, which is exactly what App.jsx hardcoded before this fix - then ran the two tests via refresh-tests --test, then restored the line verbatim.",
+        "evidence": "With the fault injected: 2 failed out of 2 - 'dropTargetAtPoint > resolves the index from the row midpoints under the cursor' and 'dropTargetAtPoint > excludes the dragged row from the index count', both attributed change-introduced against base origin/main. With the line restored, refresh-tests --changed reports all 105 tests passing. The two tests are therefore load-bearing on the cursor-to-index computation, not merely compiling against it."
+      }
+    }
+  },
+  "proof": {
+    "verdict": "provenByHand",
+    "attested": [
+      "resolves the index from the row midpoints under the cursor",
+      "excludes the dragged row from the index count"
+    ],
+    "method": "Fault injection, not revert: dropTargetAtPoint is a NEW export, so reverting src/lib/utils/dropTargeting.js deletes the symbol the tests import and only yields a build failure (UNPROVABLE). Instead I neutered the index computation in place to the pre-fix behaviour - multiplying the midpoint row count by 0 so the resolver always reports index 0, which is exactly what App.jsx hardcoded before this fix - then ran the two tests via refresh-tests --test, then restored the line verbatim.",
+    "evidence": "With the fault injected: 2 failed out of 2 - 'dropTargetAtPoint > resolves the index from the row midpoints under the cursor' and 'dropTargetAtPoint > excludes the dragged row from the index count', both attributed change-introduced against base origin/main. With the line restored, refresh-tests --changed reports all 105 tests passing. The two tests are therefore load-bearing on the cursor-to-index computation, not merely compiling against it."
+  }
+}

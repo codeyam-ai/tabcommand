@@ -1,5 +1,5 @@
 // codeyam-generated — DO NOT EDIT.
-// codeyam-editor: 0.1.7  source-sha256: a84aee625b706c3a27da82e4ae4fead4048e612fba8c4cd106bd47b1d2d5032b
+// codeyam-editor: 0.1.7  build: a4c5299c7999edde656e5c190ed23ef9d6dd3f7c  source-sha256: b4c5dd5ba71c482b235f84e869d3e0d05ee4e62936386646d7910e726a9979a8
 const {
   hasLoadingMarkers,
   shouldStopWaitingForImages,
@@ -358,6 +358,14 @@ async function collectVisibleTextLength(target) {
 // state rendered correctly in a real browser (verified: computed opacity 0.4 vs
 // 1) and was erased only at capture time. Anything already visible is now left
 // exactly as the app rendered it.
+//
+// The reveal's TRANSFORM half additionally stops at the SVG boundary, because a
+// CSS `transform` overrides the SVG `transform` presentation attribute: inside
+// an `<svg>` it erases the static geometry that CONSTRUCTS the drawing instead
+// of neutralizing an entrance animation, so a revealed SVG node lands on the
+// origin. Invisible SVG nodes are therefore revealed in place — opacity forced,
+// transform left alone. See the loop below for why the boundary is
+// `ownerSVGElement` rather than `closest("svg")`.
 async function forceFinalVisualState(target) {
   return target.evaluate(() => {
     const STYLE_ID = "__codeyam_force_final_state";
@@ -387,6 +395,18 @@ async function forceFinalVisualState(target) {
     // Reveal exactly those, and only those: a fully transparent element shows
     // nothing either way, so forcing it can hide no real state, while an element
     // at any visible opacity is left untouched.
+    //
+    // The transform half of the reveal STOPS at the SVG boundary. A CSS
+    // `transform` overrides the SVG `transform` presentation attribute, so
+    // inside an `<svg>` a forced `transform: none` does not neutralize an
+    // entrance animation — it erases the static rotate/translate/scale that
+    // CONSTRUCTS the drawing, revealing the node collapsed on the origin. The
+    // opacity half is still right there (a node at ~0 shows nothing either
+    // way), so an invisible SVG node is revealed IN PLACE. The boundary test is
+    // `ownerSVGElement` and NOT `closest("svg")`: HTML inside a
+    // `<foreignObject>` is a real HTMLElement with no `ownerSVGElement`, so it
+    // keeps the full reveal — `closest("svg")` would silently strand its
+    // genuine CSS entrance transform.
     if (typeof document.querySelectorAll !== "function") return true;
     const INVISIBLE_EPSILON = 0.01;
     for (const el of document.querySelectorAll("*")) {
@@ -400,8 +420,11 @@ async function forceFinalVisualState(target) {
       const opacity = parseFloat(computed.opacity);
       if (!Number.isFinite(opacity) || opacity > INVISIBLE_EPSILON) continue;
       if (!el.style || typeof el.style.setProperty !== "function") continue;
+      const inSvg =
+        el.ownerSVGElement != null ||
+        (typeof el.tagName === "string" && el.tagName.toLowerCase() === "svg");
       el.style.setProperty("opacity", "1", "important");
-      el.style.setProperty("transform", "none", "important");
+      if (!inSvg) el.style.setProperty("transform", "none", "important");
     }
     return true;
   });

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "derivedFromHash": "d428a25b26f0ede5b67132eaa029cefc1ee70ee5c03e1d3fefd0e9ccfd2afb9c",
+  "derivedAt": "2026-08-23T14:13:52.994918753+00:00",
+  "deliverables": [
+    {
+      "id": "users-can-see-and-manage-their-currently-open",
+      "text": "Users can see and manage their currently open browser tabs from the extension",
+      "status": "open",
+      "resolvedAt": null,
+      "resolvedInFeature": null,
+      "planSlug": null,
+      "note": null,
+      "decidedBy": null
+    },
+    {
+      "id": "users-can-browse-search-and-revisit-their",
+      "text": "Users can browse, search, and revisit their browser history",
+      "status": "open",
+      "resolvedAt": null,
+      "resolvedInFeature": null,
+      "planSlug": null,
+      "note": null,
+      "decidedBy": null
+    },
+    {
+      "id": "users-can-save-and-organize-favorite-urls",
+      "text": "Users can save and organize favorite URLs, including grouping and reordering them",
+      "status": "open",
+      "resolvedAt": null,
+      "resolvedInFeature": null,
+      "planSlug": null,
+      "note": null,
+      "decidedBy": null
+    },
+    {
+      "id": "users-can-label-and-categorize-tabs-urls-so",
+      "text": "Users can label and categorize tabs/URLs so related pages stay together",
+      "status": "open",
+      "resolvedAt": null,
+      "resolvedInFeature": null,
+      "planSlug": null,
+      "note": null,
+      "decidedBy": null
+    },
+    {
+      "id": "users-can-search-across-tabs-history-and",
+      "text": "Users can search across tabs, history, and favorites from one place",
+      "status": "open",
+      "resolvedAt": null,
+      "resolvedInFeature": null,
+      "planSlug": null,
+      "note": null,
+      "decidedBy": null
+    },
+    {
+      "id": "users-can-see-resource-load-information-about",
+      "text": "Users can see resource/load information about their open tabs",
+      "status": "open",
+      "resolvedAt": null,
+      "resolvedInFeature": null,
+      "planSlug": null,
+      "note": null,
+      "decidedBy": null
+    },
+    {
+      "id": "users-can-import-and-export-their-saved-data",
+      "text": "Users can import and export their saved data, with snapshots for backup",
+      "status": "open",
+      "resolvedAt": null,
+      "resolvedInFeature": null,
+      "planSlug": null,
+      "note": null,
+      "decidedBy": null
+    },
+    {
+      "id": "users-can-adjust-extension-settings-including",
+      "text": "Users can adjust extension settings, including light/dark theme",
+      "status": "open",
+      "resolvedAt": null,
+      "resolvedInFeature": null,
+      "planSlug": null,
+      "note": null,
+      "decidedBy": null
+    }
+  ]
+}

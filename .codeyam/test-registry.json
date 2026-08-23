@@ -1963,11 +1963,20 @@
       "runner": "tests"
     },
     {
+      "description": "an ambiguous drop — the title bar, the empty state, below the last row — arrives as an index past the end and must append rather than land on top",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › appends when the drop index is past the end of the group",
+      "line": 165,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
       "description": "moving a url out of a group whose member is not an open tab needs no ungroup",
       "file": "src/lib/utils/dragReducer.test.js",
       "format": "vitest",
       "key": "applyDrag › does not report an ungroup when the moved url has no active tab",
-      "line": 52,
+      "line": 53,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -1976,8 +1985,26 @@
       "file": "src/lib/utils/dragReducer.test.js",
       "format": "vitest",
       "key": "applyDrag › inserts a url dropped from the sidebar into the destination label",
-      "line": 8,
+      "line": 9,
       "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a cross-group drop lands mid-list in a destination whose displayed order differs from its stored order — the same translation, across cards",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › lands a cross-group drop at the displayed slot it was dropped on",
+      "line": 139,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a group card renders open tabs above saved ones, so the drop index the library reports is an index into that DISPLAYED order — reordering the saved rows must move the right key in the stored urlKeys array",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › maps the displayed drop index onto the stored urlKeys order",
+      "line": 100,
+      "registeredAt": "2026-08-23T15:06:55Z",
       "runner": "tests"
     },
     {
@@ -1985,8 +2012,26 @@
       "file": "src/lib/utils/dragReducer.test.js",
       "format": "vitest",
       "key": "applyDrag › moves a url between groups and reports the tab to ungroup",
-      "line": 29,
+      "line": 30,
       "registeredAt": "2026-06-10T20:41:43Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the plain case: with nothing open, displayed and stored order are identical and a reorder is a straight splice — proves the translation is a no-op here",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › reorders an all-saved group without disturbing the stored order",
+      "line": 121,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a drop onto a group that no longer exists is a no-op rather than a throw",
+      "file": "src/lib/utils/dragReducer.test.js",
+      "format": "vitest",
+      "key": "applyDrag › returns null when the destination group is missing",
+      "line": 186,
+      "registeredAt": "2026-08-23T15:06:55Z",
       "runner": "tests"
     },
     {
@@ -1994,7 +2039,7 @@
       "file": "src/lib/utils/dragReducer.test.js",
       "format": "vitest",
       "key": "applyDrag › returns null when there is no destination",
-      "line": 97,
+      "line": 203,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -2003,7 +2048,7 @@
       "file": "src/lib/utils/dragReducer.test.js",
       "format": "vitest",
       "key": "applyDrag › rewrites positions when a group is reordered",
-      "line": 74,
+      "line": 75,
       "registeredAt": "2026-06-10T20:41:43Z",
       "runner": "tests"
     },
@@ -3592,11 +3637,74 @@
       "runner": "tests"
     },
     {
+      "description": "an empty group has no rows and no midpoints, so any drop appends at zero",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetAtPoint › appends at zero for a group with no rows",
+      "line": 162,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a card with no rows region at all still resolves, appending rather than throwing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetAtPoint › appends when the card has no rows region",
+      "line": 175,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "over the title bar the drop is ambiguous, and appending is what makes \"a tab added to a group shows up at the bottom\" true",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetAtPoint › appends when the point is above the rows region, over the title bar",
+      "line": 152,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the dragged row's own clone sits under the cursor by definition, so it is excluded — the count describes the list the row is landing in",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetAtPoint › excludes the dragged row from the index count",
+      "line": 140,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the index counts the rows whose vertical midpoint the cursor has passed",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetAtPoint › resolves the index from the row midpoints under the cursor",
+      "line": 124,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a document without elementFromPoint is tolerated rather than throwing",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetAtPoint › returns null when the document cannot hit-test points",
+      "line": 77,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a point outside every group card is not a drop at all",
+      "file": "src/lib/utils/dropTargeting.test.js",
+      "format": "vitest",
+      "key": "dropTargetAtPoint › returns null when the point is over no group card",
+      "line": 188,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
       "description": "an absent document is tolerated rather than throwing",
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdAtPoint › returns null when no document is available",
-      "line": 66,
+      "line": 72,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3605,7 +3713,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdAtPoint › returns null when no element is under the point",
-      "line": 54,
+      "line": 60,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3614,7 +3722,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdAtPoint › returns null when the document cannot hit-test points",
-      "line": 71,
+      "line": 77,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3623,7 +3731,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdAtPoint › returns null when the element under the point is outside any group",
-      "line": 60,
+      "line": 66,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3632,7 +3740,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdAtPoint › returns the droppableId of the group under the point",
-      "line": 47,
+      "line": 53,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3641,7 +3749,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdFromElement › returns null for a null element",
-      "line": 29,
+      "line": 35,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3650,7 +3758,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdFromElement › returns null when the dropzone has no droppable id attribute",
-      "line": 39,
+      "line": 45,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3659,7 +3767,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdFromElement › returns null when the element has no group dropzone ancestor",
-      "line": 23,
+      "line": 29,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3668,7 +3776,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdFromElement › returns null when the value has no closest method",
-      "line": 34,
+      "line": 40,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -3677,7 +3785,7 @@
       "file": "src/lib/utils/dropTargeting.test.js",
       "format": "vitest",
       "key": "dropTargetIdFromElement › returns the droppableId of the enclosing group dropzone",
-      "line": 16,
+      "line": 22,
       "registeredAt": "2026-06-30T01:24:05Z",
       "runner": "tests"
     },
@@ -4678,6 +4786,69 @@
       "key": "isTrackableUrl › rejects non-website schemes",
       "line": 23,
       "registeredAt": "2026-06-29T19:50:50Z",
+      "runner": "tests"
+    },
+    {
+      "description": "callers hand in the stored array itself, so the helper must not reorder it in place",
+      "file": "src/lib/utils/labelDisplayOrder.test.js",
+      "format": "vitest",
+      "key": "labelDisplayOrder › does not mutate the urlKeys it was given",
+      "line": 54,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the sort is stable, so rows keep their stored order within the Open section",
+      "file": "src/lib/utils/labelDisplayOrder.test.js",
+      "format": "vitest",
+      "key": "labelDisplayOrder › preserves stored order among the open tabs",
+      "line": 18,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "stability again on the other side of the split: saved rows keep their order",
+      "file": "src/lib/utils/labelDisplayOrder.test.js",
+      "format": "vitest",
+      "key": "labelDisplayOrder › preserves stored order among the saved-only rows",
+      "line": 28,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the card paints open tabs above saved-only rows, whatever order they are stored in",
+      "file": "src/lib/utils/labelDisplayOrder.test.js",
+      "format": "vitest",
+      "key": "labelDisplayOrder › puts open tabs ahead of saved-only rows",
+      "line": 8,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty or absent group is tolerated rather than throwing",
+      "file": "src/lib/utils/labelDisplayOrder.test.js",
+      "format": "vitest",
+      "key": "labelDisplayOrder › returns an empty array for an empty or missing group",
+      "line": 48,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "with nothing open the displayed order is exactly the stored order",
+      "file": "src/lib/utils/labelDisplayOrder.test.js",
+      "format": "vitest",
+      "key": "labelDisplayOrder › returns the stored order unchanged when no tab is open",
+      "line": 38,
+      "registeredAt": "2026-08-23T15:06:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an absent activeTabs list is treated as \"nothing is open\" rather than throwing",
+      "file": "src/lib/utils/labelDisplayOrder.test.js",
+      "format": "vitest",
+      "key": "labelDisplayOrder › tolerates a null activeTabs list",
+      "line": 43,
+      "registeredAt": "2026-08-23T15:06:55Z",
       "runner": "tests"
     },
     {

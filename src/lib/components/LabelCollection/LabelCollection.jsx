@@ -25,6 +25,7 @@ import {
 } from '../../utils/dragHoverStore';
 import anchoredMenuCoords from '../../utils/anchoredMenuCoords';
 import groupCardAppearance from '../../utils/groupCardAppearance';
+import labelDisplayOrder from '../../utils/labelDisplayOrder';
 
 // Must match the border-box width in LabelCollectionMenu.css — the menu is
 // positioned in viewport coordinates, so its width has to be known before it is
@@ -354,11 +355,10 @@ const LabelCollection = ({ index, draggable, title, urlKeys, backgroundColor, ex
     }
   }, [menuDisplayed, menuAnchor]);
 
-  const completeUrlKeys = [...currentUrlKeys].sort(
-    (a, b) =>
-      (activeTabs.filter((tab) => tab.urlKey === a).length ? -1 : 1) -
-      (activeTabs.filter((tab) => tab.urlKey === b).length ? -1 : 1)
-  );
+  // Open tabs first, saved-only after. Shared with the drag reducer so the drop
+  // index the library reports against these rows can be mapped back onto the
+  // stored urlKeys order — see labelDisplayOrder.
+  const completeUrlKeys = labelDisplayOrder(currentUrlKeys, activeTabs);
 
   const activeUrls = completeUrlKeys.filter(
     (urlKey => activeTabs.filter((tab) => tab.urlKey === urlKey).length > 0)

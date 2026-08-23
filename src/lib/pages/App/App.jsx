@@ -30,7 +30,7 @@ import {
   GROUP_ADDITION_LOG_CAP,
   AdditionSource
 } from '../../utils/groupAdditionLog';
-import { dropTargetIdAtPoint } from '../../utils/dropTargeting';
+import { dropTargetAtPoint } from '../../utils/dropTargeting';
 import { hasPerTabLoadData } from '../../utils/hasPerTabLoadData';
 import { setDragHover, getDragHover, setDragActive } from '../../utils/dragHoverStore';
 import { useTheme } from '../../hooks/useTheme';
@@ -66,6 +66,13 @@ const App = () => {
 
   // Pending timer for the drag-abort safety net (see handleDragStart).
   const dragAbortTimerRef = useRef(null);
+
+  // The `{ droppableId, index }` resolved from the cursor on the last pointer
+  // move of the in-flight drag. A plain ref, deliberately not the dragHoverStore:
+  // that store's contract is that a drag-time update must not re-render the
+  // subtree holding the dragged row, and this field changes on every mousemove.
+  // A ref has no notification path at all, so it cannot violate it.
+  const cursorDropRef = useRef(null);
 
   useEffect(() => {
     Chrome.get('App1', 'uxSettings', ({ uxSettings }) => {
@@ -129,6 +136,7 @@ const App = () => {
     const labelsElement = document.getElementById('Labels');
     if (labelsElement) labelsElement.classList.remove('Labels-dragging');
     stopHoverTracking();
+    cursorDropRef.current = null;
     setDragActive(false);
   };
 
@@ -143,14 +151,21 @@ const App = () => {
     // overriding @hello-pangea/dnd's center-based destination. If the cursor
     // isn't over any group, there is no drop (a tab released in empty space or
     // back in the sidebar stays put). Keyboard drags keep the library's target.
-    // Read the hover state BEFORE the cleanup below clears it.
+    // Read the hover state and the resolved drop slot BEFORE the cleanup below
+    // clears them. The slot is the position the cursor was actually over; it
+    // used to be hardcoded to 0, which is why a row dragged within a group never
+    // moved and a tab added to a group always landed on top.
     const { cursorActive, dropId: cursorDropId } = getDragHover();
+    const cursorDrop = cursorDropRef.current;
     endDragCleanup();
 
     let result = dragResult;
     if (dragResult.type === ItemTypes.URL && cursorActive) {
       if (!cursorDropId) return;
-      result = { ...dragResult, destination: { droppableId: cursorDropId, index: 0 } };
+      result = {
+        ...dragResult,
+        destination: cursorDrop || { droppableId: cursorDropId, index: 0 }
+      };
     }
 
     if (!result.destination || !result.destination.droppableId) return;
@@ -210,10 +225,15 @@ const App = () => {
 
     const onPointerMove = (event) => {
       const point = (event.touches && event.touches[0]) || event;
-      setDragHover({ cursorActive: true, dropId: dropTargetIdAtPoint(point.clientX, point.clientY) });
+      // One hit-test resolves both the group and the slot within it, so the
+      // highlight and the eventual drop can never disagree about the target.
+      const target = dropTargetAtPoint(point.clientX, point.clientY, { draggedId: info.draggableId });
+      cursorDropRef.current = target;
+      setDragHover({ cursorActive: true, dropId: target ? target.droppableId : null });
     };
 
     if (tracksCursor) {
+      cursorDropRef.current = null;
       setDragHover({ cursorActive: true, dropId: null });
       window.addEventListener('mousemove', onPointerMove);
       window.addEventListener('touchmove', onPointerMove);

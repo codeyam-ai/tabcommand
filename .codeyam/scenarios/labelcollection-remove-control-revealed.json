@@ -1,24 +1,14 @@
 {
   "name": "LabelCollection - Remove Control Revealed",
-  "id": "fced3a62-aa2a-4a2b-9094-f9b78b20e226",
-  "url": "/?isolate=LabelCollection&variant=phantom-members",
+  "id": "fea0c744-0bb1-48e6-96df-c89fc39012c7",
+  "url": "/?isolate=LabelCollection&variant=phantom-members-collapsed",
   "dimensions": [
     "Desktop"
   ],
   "mocks": {},
-  "browserState": {
-    "localStorage": {
-      "uxSettings": "{\"selectedLabel\":\"CodeYam\",\"page\":{\"name\":\"Home\"}}",
-      "url-https://appstoreconnect.apple.com/apps/123/distribution": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "activeTabs": "[{\"urlKey\":\"url-https://appstoreconnect.apple.com/apps/123/distribution\",\"tabKey\":\"tab-311\",\"pinned\":false}]",
-      "url-https://appstoreconnect.apple.com/apps/123/testflight": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://appstoreconnect.apple.com/apps/123/appstore/versions": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://appstoreconnect.apple.com/apps": "{\"title\":\"App Store Connect\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
-    }
-  },
   "componentName": "LabelCollection",
   "scenarioType": "component",
-  "description": "Hovering a group member reveals its per-row action bar, including the remove control this feature changed. The ✕ un-files the page from the group and nothing more — it raises exactly one confirm, about the group, and never offers to delete the page from history. Captured on the phantom-members group so the control is shown against the rows it is most likely to be used on.",
+  "description": "Hovering one saved row of a collapsed group reveals that row's per-row action bar, and only that row's -- the pin/edit controls are gated on `showActions || hover || expanded` in Url, so they appear under the cursor and nowhere else. The remove control is the deliberate exception: `showRemove` is not hover-gated, so the X sits on every row whether or not it is hovered. It un-files the page from the group and nothing more, raising exactly one confirm about the group and never offering to delete the page from history. Captured on the phantom-members group so the control is shown against the rows it is most likely to be used on. This scenario runs on the COLLAPSED variant on purpose: on the expanded card every row's action bar is already open, so a hover frame is indistinguishable from the resting one.",
   "interactions": [
     {
       "action": "hover",

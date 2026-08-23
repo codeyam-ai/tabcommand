@@ -1,5 +1,5 @@
 // codeyam-generated — DO NOT EDIT.
-// codeyam-editor: 0.1.7  source-sha256: f352931494dcc9dfda4ed69e8b04f62ce673e6b3bd8e3141d459d8aa261406f0
+// codeyam-editor: 0.1.7  build: a4c5299c7999edde656e5c190ed23ef9d6dd3f7c  source-sha256: 43bd945437435557cf6d64c9cb7de024e75523c4114fd1233e882a085ce68d77
 const fs = require("fs");
 const path = require("path");
 const { createIssue } = require("./scenario-issues");
@@ -119,11 +119,14 @@ function resolveInteractivityExpectation(stack) {
 // DOM-node properties left by a framework's hydration but never clicks or
 // mutates anything, so it is safe to run before the screenshot is taken.
 //
-// Returns `{ controlCount, frameworkAttached }` where `frameworkAttached` is
-// `true` (runtime demonstrably attached), `false` (framework-owned controls
-// exist but no attachment signal — the dead-hydration case), or `null` (no
-// detector for this framework, OR every interactive control is delegated to a
-// terminal/canvas widget with no hydration marker → cannot judge).
+// Returns `{ controlCount, frameworkAttached, hasPasswordInput }` where
+// `frameworkAttached` is `true` (runtime demonstrably attached), `false`
+// (framework-owned controls exist but no attachment signal — the dead-hydration
+// case), or `null` (no detector for this framework, OR every interactive control
+// is delegated to a terminal/canvas widget with no hydration marker → cannot
+// judge), and `hasPasswordInput` is whether the census contains a
+// `type="password"` input — the un-declared auth-gate signal, read only by the
+// auth-gate guard and deliberately never by the hydration verdict.
 async function collectHydrationState(frame, { framework } = {}) {
   return frame.evaluate((fw) => {
     const SELECTOR =
@@ -203,7 +206,22 @@ async function collectHydrationState(frame, { framework } = {}) {
       frameworkAttached = false;
     }
 
-    return { controlCount: controls.length, frameworkAttached };
+    // A `type="password"` input among the census is the un-declared half of the
+    // in-place auth-gate signal: a route that settles on itself and renders a
+    // password field is a gate whether or not the project declared it. Derived
+    // from the already-collected `controls` rather than a second
+    // `querySelectorAll` so the gate reasons about exactly the set the census
+    // counted — a separate query is free to disagree with it. `SELECTOR`
+    // already admits password inputs via `input:not([type="hidden"])`. The
+    // attribute is matched case-insensitively because `type="PASSWORD"` is
+    // valid HTML.
+    const hasPasswordInput = controls.some(
+      (el) =>
+        el.tagName === "INPUT" &&
+        String(el.getAttribute("type") || "").toLowerCase() === "password",
+    );
+
+    return { controlCount: controls.length, frameworkAttached, hasPasswordInput };
   }, framework || null);
 }
 
@@ -243,12 +261,15 @@ function interpretHydration({
 // no client runtime is expected, collect the in-page state, and interpret it.
 // Never throws — a probe failure must not break an otherwise-good capture.
 //
-// Returns `{ hydrated, issue }`:
+// Returns `{ hydrated, issue, hasPasswordInput }`:
 //   hydrated — `true` (runtime demonstrably attached), `false` (PROVEN dead:
 //     framework-owned controls rendered but nothing attached), or `null`
 //     ("cannot determine" — no client runtime expected, no control to probe, no
 //     detector for the framework, or the probe threw).
 //   issue — the `hydration` issue to surface, or `null` to pass.
+//   hasPasswordInput — the census's password-input flag, or `null` when no
+//     census was taken at all. `null` is not `false`: it is the absence of a
+//     claim, and only a `true` may fire the auth-gate guard downstream.
 //
 // `hydrated` is deliberately three-valued rather than a bare boolean: the
 // capture flow branches a page to `interactionEffect: "unhydrated"` ONLY on a
@@ -258,12 +279,13 @@ async function probeHydrationState(frame, { url, stack } = {}) {
   const descriptor = stack !== undefined ? stack : readStackJson();
   const { expectInteractive, framework } =
     resolveInteractivityExpectation(descriptor);
-  if (!expectInteractive) return { hydrated: null, issue: null };
+  if (!expectInteractive)
+    return { hydrated: null, issue: null, hasPasswordInput: null };
   let state;
   try {
     state = await collectHydrationState(frame, { framework });
   } catch (_) {
-    return { hydrated: null, issue: null };
+    return { hydrated: null, issue: null, hasPasswordInput: null };
   }
   const issue = interpretHydration({
     expectInteractive: true,
@@ -275,7 +297,11 @@ async function probeHydrationState(frame, { url, stack } = {}) {
   // `frameworkAttached` is already the three-valued signal `hydrated` needs —
   // pass it through rather than re-deriving it from the presence of an issue,
   // which would conflate "no issue" (a pass) with "hydrated" (a positive).
-  return { hydrated: state.frameworkAttached, issue };
+  return {
+    hydrated: state.frameworkAttached,
+    issue,
+    hasPasswordInput: state.hasPasswordInput,
+  };
 }
 
 // Sleep for `ms` — a promisified `setTimeout`, so the poll loop yields the
@@ -312,8 +338,11 @@ function sleep(ms) {
 // present for the SSR case this guards; a pure-CSR shell that renders zero
 // controls reads `null` and passes instantly, unchanged from today.
 //
-// Returns `{ hydrated, issue, timedOut, waitedMs }` where `hydrated` is the
-// same three-valued signal `probeHydrationState` returns.
+// Returns `{ hydrated, issue, timedOut, waitedMs, hasPasswordInput }` where
+// `hydrated` is the same three-valued signal `probeHydrationState` returns and
+// `hasPasswordInput` is the same census flag it passes through — `null`
+// whenever no census was taken (a non-interactive stack, or a probe that threw
+// on its very first poll).
 async function waitForHydration(
   frame,
   { url, stack, framework, timeoutMs = 10000, pollIntervalMs = 150 } = {},
@@ -330,11 +359,17 @@ async function waitForHydration(
     resolvedFramework = resolution.framework;
   }
   if (!expectInteractive) {
-    return { hydrated: null, issue: null, timedOut: false, waitedMs: 0 };
+    return {
+      hydrated: null,
+      issue: null,
+      timedOut: false,
+      waitedMs: 0,
+      hasPasswordInput: null,
+    };
   }
 
   const start = Date.now();
-  let state = { controlCount: 0, frameworkAttached: null };
+  let state = { controlCount: 0, frameworkAttached: null, hasPasswordInput: null };
   let timedOut = false;
   for (;;) {
     try {
@@ -344,7 +379,9 @@ async function waitForHydration(
     } catch (_) {
       // Detached frame mid-navigation (or any probe throw): treat as "cannot
       // determine" and pass — a probe failure must never fail a capture.
-      state = { controlCount: 0, frameworkAttached: null };
+      // `hasPasswordInput: null` for the same reason: a throw means no census
+      // was taken, which is not the claim that no password field is present.
+      state = { controlCount: 0, frameworkAttached: null, hasPasswordInput: null };
       break;
     }
     // `true` (attached) and `null` (cannot judge) are both terminal — the
@@ -371,6 +408,7 @@ async function waitForHydration(
     issue,
     timedOut,
     waitedMs: Date.now() - start,
+    hasPasswordInput: state.hasPasswordInput,
   };
 }
 

@@ -1,0 +1,1215 @@
+{
+  "timestamp": "2026-08-23T16:03:18Z",
+  "title": "Drag to reorder urls within a group",
+  "type": "feature",
+  "userRequest": "## Summary\n\nDragging a url row within a group card does nothing, and a url dropped into a group always lands at the top instead of the bottom. Both come from one line: `src/lib/pages/App/App.jsx:153` overrides the drop destination for every mouse drag with a **hardcoded `index: 0`**, discarding the position the user actually dropped at. A second, quieter defect compounds it: `applyDrag` (`src/lib/utils/dragReducer.js:36`) splices into the stored `urlKeys` array at the *displayed* row index, but `LabelCollection` renders a re-sorted list (open tabs first, under the lime \"Open\" header), so for any group mixing open and saved tabs the two index spaces disagree and even the keyboard drag path lands in the wrong slot. This plan resolves a real drop index from the cursor and translates display index → storage index, keeping the Open/Saved split exactly as it is today.\n\n## Key Decisions\n\n- **Keep the Open/Saved section split** (confirmed with the user). The active-first sort at `LabelCollection.jsx:357` and the `LabelSectionHeader label='Open'` block stay. Consequence to state plainly: an **open** tab still cannot be positioned below saved-only rows — the sort re-pins it to the Open section on the next render. If the `MG MGA 1600 roadster` row is currently an open tab, dragging it to the very bottom of the card will still snap back after this fix; it will reorder correctly *within* the Open section, and correctly anywhere in the card once the tab is closed. Fixing that residual requires dropping the split (the alternative the user declined) and can be revisited as its own plan.\n- **Resolve the drop index during pointer tracking, not at drop time.** `onDragEnd` carries no coordinates, and by the time it fires the drop animation has already returned rows to flow, so hit-testing then is unreliable. The existing `onPointerMove` handler (`App.jsx:211`) already hit-tests for the drop *target*; it will resolve the *index* in the same pass and stash both in a ref.\n- **Stash the live index in an App ref, not in `dragHoverStore`.** The store's documented contract is that a drag-time update must not re-render the subtree holding the dragged row. Group cards subscribe with a boolean selector so an index change would in practice bail out, but adding a fast-changing field to that store puts new weight on an invariant whose violation manifests as \"the tab won't drag at all\". A plain ref in `App` has no notification path and no risk.\n- **Default an ambiguous drop to the END of the group, not the start.** When the cursor is over the card's title bar, the empty-state text, or below the last row, the drop appends. This is what makes \"a tab I add to a group shows up at the bottom\" true, and it matches the service worker's own behavior (`service_worker.js:1654` already `push`es new members onto the end).\n- **Put the display↔storage translation inside `applyDrag`, fed by a new shared `labelDisplayOrder` helper.** `applyDrag` already receives `activeTabs`, so it can reconstruct the exact order the card painted. Extracting the sort into one helper means `LabelCollection` and the reducer can never drift apart — today the ordering rule is duplicated implicitly, which is how the mismatch survived.\n\n## Implementation\n\n### 1. Extract the group card's display ordering into a shared helper\n\n**New file**: `src/lib/utils/labelDisplayOrder.js`\n\n`labelDisplayOrder(urlKeys, activeTabs)` returns a new array ordered exactly as a group card paints it: open tabs first, saved-only after, with the relative order inside each section preserved (the existing sort is stable and must stay so). Lift the comparator verbatim from `LabelCollection.jsx:357-361` — behavior must not change, only its home.\n\n### 2. Render from the shared helper\n\n**File**: `src/lib/components/LabelCollection/LabelCollection.jsx`\n\nReplace the inline `completeUrlKeys` sort (line 357) with a call to `labelDisplayOrder(currentUrlKeys, activeTabs)`. `activeUrls` / `inactiveUrls` and the \"Open\" header keep working off that result unchanged — this is a pure refactor with no visible difference, and it is what guarantees the reducer's translation matches what is on screen.\n\n### 3. Translate the drop index from display space to storage space\n\n**File**: `src/lib/utils/dragReducer.js`\n\nIn the `ItemTypes.URL` branch, `destination.index` arrives as an index into the destination card's *displayed* rows. Before the splice at line 36:\n\n- Build the destination label's display order with `labelDisplayOrder`, computed **after** the source removal when source and destination are the same label (`@hello-pangea/dnd` reports a same-list destination index against the post-removal list).\n- Map it: if the display index is at or past the end of that list, append to `urlKeys`; otherwise find the urlKey currently occupying that display slot and insert immediately before it (`urlKeys.indexOf(thatKey)`).\n- Splice at the mapped storage index instead of `destination.index`.\n\nGuard the degenerate inputs already possible today — a missing destination label, an empty `urlKeys`, a `null`/absent `activeTabs` — by falling back to an append rather than throwing. The `ItemTypes.LABEL_COLLECTION` branch is untouched: group cards are not re-sorted between store and screen, so its index space is already correct.\n\n### 4. Resolve a drop index from the cursor\n\n**File**: `src/lib/utils/dropTargeting.js`\n\nAdd `dropTargetAtPoint(x, y, { doc, draggedId })` returning `{ droppableId, index }` (or `null` when the point is outside every group card). It reuses `dropTargetIdFromElement` for the id, then, within that dropzone:\n\n- Collect the row elements via `[data-rfd-draggable-id]` (the attribute `@hello-pangea/dnd` stamps through the `draggableProps` that `Url` spreads onto its root at `Url.jsx:193-197`), skipping the element whose id equals `draggedId` — that node is the floating clone and its rect is under the cursor by definition.\n- The index is the count of remaining rows whose bounding-rect vertical midpoint sits above `y`. A cursor over the title bar therefore yields `0` rows above it — so **clamp that case to the end**: when the point is not inside the `.LabelCollection-urls` region at all, return `index = rows.length`.\n\nKeep `dropTargetIdAtPoint` exported and behaviorally unchanged — it is the cheap id-only path the drop-target highlight uses, and its five existing tests should keep passing untouched.\n\n### 5. Use the resolved index instead of hardcoding zero\n\n**File**: `src/lib/pages/App/App.jsx`\n\n- Add a `cursorDropRef` alongside `hoverCleanupRef` (line 64) holding the most recent `{ droppableId, index }`.\n- In `onPointerMove` (line 211), call `dropTargetAtPoint` once, write the result to `cursorDropRef`, and feed its `droppableId` into the existing `setDragHover` call so the highlight behavior is unchanged.\n- In `handleDrag` (line 153), replace `{ droppableId: cursorDropId, index: 0 }` with the ref's `{ droppableId, index }`, still gated on `cursorDropId` being present so a release in empty space remains a no-op. Reset the ref in `endDragCleanup` so a stale index from the previous drag can never be read.\n- `handleDragStart` seeds the ref to `null` next to the existing `setDragHover({ cursorActive: true, dropId: null })`.\n\n### 6. Cover the ordering rules with tests\n\n**File**: `src/lib/utils/dragReducer.test.js`\n\nAdd the reproduction test below, plus: a reorder inside an all-saved group (display and storage agree — proves no regression), a cross-group drop landing at a mid-list index, and a drop index past the end appending.\n\n**New file**: `src/lib/utils/labelDisplayOrder.test.js` — open-first ordering, stability within each section, empty and no-active-tabs inputs.\n\n**File**: `src/lib/utils/dropTargeting.test.js` — `dropTargetAtPoint`: index from row midpoints, the dragged clone excluded, a point over the title bar resolving to the end, a point outside every card returning `null`.\n\n## Reused existing code\n\n- `applyDrag` from `src/lib/utils/dragReducer.js` (glossary entry: `applyDrag`) — the single reducer behind `onDragEnd`; the translation belongs here rather than in the component.\n- `dropTargetIdFromElement` and `GROUP_DROPZONE_SELECTOR` from `src/lib/utils/dropTargeting.js` — the new resolver reuses both instead of re-deriving the dropzone.\n- `getDragHover` / `setDragHover` / `getDragActive` from `src/lib/utils/dragHoverStore.js` (glossary entries: `getDragHover`, `setDragHover`, `subscribeDragHover`) — read only; the plan deliberately does not extend this store.\n- The active-first comparator currently inline at `src/lib/components/LabelCollection/LabelCollection.jsx:357` — moved, not rewritten.\n- **Existing-implementation survey**: no shared display-ordering helper exists today. `src/lib/utils/` has no `order`/`sort` module, and the only other ordering code is unrelated (`sortLabels` in `src/lib/utils/importExport.js` sorts *groups* by position/title; `src/lib/components/Labels/Labels.jsx:171` repeats that group sort; `src/lib/components/Tabs/Tabs.jsx:96` sorts sidebar tabs by load). The url-within-group ordering rule is implemented in exactly one place, and step 1 is its first extraction.\n\n## Reproduction Test\n\nPins the display-index/storage-index mismatch: in a group mixing an open tab with saved-only rows, dragging a saved row up one slot is a silent no-op because the reducer splices at the displayed index.\n\n**Target**: `src/lib/utils/dragReducer.test.js` — run with `codeyam-editor editor refresh-tests --test applyDrag`.\n\n```js\n  // a group card renders open tabs above saved ones, so the drop index the\n  // library reports is an index into that DISPLAYED order — reordering the\n  // saved rows must move the right key in the stored urlKeys array\n  it('maps the displayed drop index onto the stored urlKeys order', () => {\n    // stored order [a, b, c]; c is open, so the card paints [c, a, b]\n    const labels = { Personal: { title: 'Personal', position: 0, urlKeys: ['url-a', 'url-b', 'url-c'] } };\n    const activeTabs = [{ urlKey: 'url-c', tabKey: 'tab-3' }];\n\n    // drag url-b (displayed index 2) up to displayed index 1, just under url-c\n    const result = applyDrag(\n      {\n        type: ItemTypes.URL,\n        draggableId: '0-LabelCollection-urls-Personal-url-b',\n        source: { droppableId: '0-LabelCollection-urls-Personal', index: 2 },\n        destination: { droppableId: '0-LabelCollection-urls-Personal', index: 1 }\n      },\n      { labels, activeTabs }\n    );\n\n    expect(result.labels.Personal.urlKeys).toEqual(['url-b', 'url-a', 'url-c']);\n  });\n```\n\nStatus: PROPOSED — confirm red at execution. Expected failure: today the reducer removes `url-b` (leaving `['url-a', 'url-c']`) and splices it back at raw index `1`, so it receives `['url-a', 'url-b', 'url-c']` — the array is byte-identical to the input and the card repaints unchanged, which is exactly the \"the row won't move\" symptom.\n\nNote the App-level half of the bug (the hardcoded `index: 0` at `App.jsx:153`) has no unit-level repro — `App.test.jsx` carries no drag coverage, and driving `@hello-pangea/dnd` pointer drags in jsdom is the brittleness `applyDrag` was extracted to avoid. It is pinned instead by the new `dropTargetAtPoint` tests in step 6 plus the scenarios below.\n\n## Scenarios to Demonstrate\n\n- Personal group, mixed open + saved: a saved row dragged from the top of the saved section to the bottom, landing where it was dropped.\n- A tab dragged from the sidebar onto a group's **title bar** — appends to the bottom of the group, not the top.\n- A tab dragged from the sidebar and released precisely between two existing saved rows — lands in that slot.\n- An all-saved group reordered top → bottom (the plain case, display and storage identical).\n- An all-open group reordered within the Open section.\n- An open tab dragged below the saved rows — documents the accepted residual: it returns to the Open section.\n- A tab dragged across groups, dropping at a mid-list position in the destination.\n- Drop released outside every group card — no change to any group.\n- A group with a single url; a group with none (the empty-state drop).",
+  "description": "Dragging a url row within a group card did nothing, and a tab dropped into a group always landed at the top instead of the bottom. Two defects fed it: App.jsx overrode every mouse drop with a hardcoded `index: 0`, discarding where the user actually dropped; and applyDrag spliced that index straight into the stored `urlKeys` array even though a group card paints open tabs first, so for any group mixing open and saved tabs the displayed and stored index spaces disagreed and even the keyboard path landed in the wrong slot. The fix extracts the card's ordering rule into a shared `labelDisplayOrder` helper that both the renderer and the reducer now read, teaches applyDrag to translate a displayed drop index onto stored order before splicing, and adds `dropTargetAtPoint` to resolve a real {droppableId, index} from the cursor during pointer tracking. An ambiguous drop -- over the title bar, the empty state, or the slack below the last row -- appends rather than landing on top, which is what makes 'a tab I add to a group shows up at the bottom' true.\n\nSCOPE VERDICT. Delivered outright: none of the project's eight deliverables close on this cycle -- they are broad capability statements and this was a defect fix inside one of them. Advanced: 'Users can save and organize favorite URLs, including grouping and reordering them' -- the reordering half now works where it was silently broken. Deferred: none. The remaining seven deliverables stay open as future work rather than deferrals; no deliverable was set aside on the agent's own judgment, and no row carries a decidedBy of agent.\n\nACCEPTED RESIDUAL, confirmed with the user at the plan gate: the Open/Saved section split stays, so an open tab dragged below the saved rows still snaps back to the Open section. It reorders correctly within Open, and correctly anywhere once the tab is closed. Removing that residual means dropping the split and is its own plan.\n\nEVIDENCE. 19 new tests across dragReducer, labelDisplayOrder and dropTargeting; full suite 978 passing. The plan's reproduction test is PROVEN red by revert -- 'maps the displayed drop index onto the stored urlKeys order' and 'lands a cross-group drop at the displayed slot it was dropped on' both fail with the fix reverted and pass with it. The two dropTargetAtPoint index tests are AGENT-ATTESTED rather than tool-measured: reverting dropTargeting.js deletes the symbol they import, so a revert can only report UNPROVABLE; redness was established by neutering the index computation to the pre-fix hardcoded 0, observing both tests fail, and restoring the line. That is weaker evidence than a measured verdict and is recorded as a claim.\n\nOUT-OF-SCOPE REPAIRS made to unblock the cycle. (1) `.codeyam/generated/components.ts`, the isolate manifest, was missing from this workspace, so all 42 components captured 'No such component' error frames and 108 distinct scenario pairs collapsed to identical images; regenerated it, which took collisions 108 -> 0. That path is gitignored, so a fresh checkout hits the same gap and the failure is quiet -- routes still answer HTTP 200. (2) `labelcollection-remove-control-revealed` had stopped demonstrating anything: its fixture set `expanded: true`, which renders every row's action bar unconditionally, so hovering revealed nothing and it was pixel-identical to labelcollection-phantom-members. Added a `phantom-members-collapsed` fixture to .codeyam/harness/isolate.jsx, repointed the scenario, and corrected its description -- the remove control is deliberately NOT hover-gated and shows on every row, which the old description got wrong.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/capture.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/editor.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/drag-to-reorder-urls-within-a-group.md\t.codeyam/plans/completed/drag-to-reorder-urls-within-a-group.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-handlers.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-interactivity.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-issues.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-metrics.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-mocks.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-playwright.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/labelcollection.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/labelcollection-remove-control-revealed.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/appbrand-wordmark--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-auto-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-grouped-rows--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-ungrouped-drag-hint--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/emptystate-no-favorites--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/emptystate-no-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-current-copy-confirmed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-empty-current-before-storage-resolves--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-nothing-to-fall-back-to--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/exportpanel-with-snapshot-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-monogram-figma--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favicon-real-favicon--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-hidden-bring-back--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-monogram-long-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoriterow-open-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-all-sites-removed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-drift-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-multi-page-site-removed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-pages-rolled-up-and-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-same-origin-different-path-uncued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoritesresetcontrol-confirming--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favoritesresetcontrol-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-search-engine-dated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-single-entry--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-deletable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-delete-confirm-armed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-monogram-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrow-no-timestamp--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-confirming--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historyrowactions-reopen-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historysection-today--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historysection-undated-rows--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/historysection-visited-not-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-deleted-group-stays-deleted--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-deleted-group-stays-deleted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-first-run-migration-from-local--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-color-preview-in-context--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-color-preview-in-context--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-restored-from-sync-after-uninstall--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-survive-a-sync-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-stable-chrome-footer--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-sync-wins-over-stale-local--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-backup--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-deep-snapshot-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-export-after-uninstall-recovery--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-groups-too-large-to-sync--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-hard-wrapped-snapshot-repaired--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-copied--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-snapshot-too-damaged-to-read--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/import-export-sync-unavailable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-groups-lost-to-damage--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-snapshot-repaired--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importmessage-unreadable-snapshot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-awaiting-a-snapshot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-snapshot-repaired--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/importpanel-unreadable-snapshot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-color-preview-while-editing--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-deliberate-same-site-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-guarded-single-member--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-overflowing-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-phantom-members--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-phantom-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-preview-name-cleared--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-remove-control-revealed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-saved-recolor-committed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-title-and-color-preview--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-bottom-row-flipped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-long-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenuactions-delete-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-empty-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-preset-color--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-group-title-typed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-custom-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-derived-color--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-preset-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-many-open-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-open-section--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelsectionheader-single-open-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-no-data--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmetercaption-system--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadpertabnote-unavailable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadprocesses-active--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-excessive--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-high-severity--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadurl-low-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-favorites--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pageheader-no-intro--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-archived-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-multiple-groups--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-single-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-mixed-with-archived--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-maximum--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-off--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-shortest--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-group-columns-inline--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-theme-day-active--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settingssegment-theme-system-active--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotbox-empty-paste-box--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotbox-read-only-snapshot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotfield-copy-confirmed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/snapshotfield-copyable-snapshot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-groups-too-large--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-standing-over-the-groups--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/syncwarning-sync-unavailable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-dark--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-light--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-stable-chrome-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-long-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-notes--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urlfield-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-long--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/urllabel-work-chip--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-dense--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/usagesparkline-sparse--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-removed-site-dimmed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-site-restored-by-bring-back--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/change-origin.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/finalize-debt.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/56908ce388355f447a967b2fbb0a7cc20f2c56d38bc646cbd66a9c3879a62f90.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/a0d6d5f787b171b84eced80559347503e9e6d258d020c8e2e6cd2bcef7cb79f0.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "package-lock.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/LabelCollection/LabelCollection.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/dragReducer.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/dragReducer.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/dropTargeting.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/dropTargeting.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/project-deliverables.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/home-reorder-lands-one-slot-down.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-reorder-lands-one-slot-down--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-reorder-lands-one-slot-down--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/red-proofs/drag-to-reorder-urls-within-a-group.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/0f05c6b51ed09f922d25b2429d616f60778a40398951f29a5eded8b36bb0b62c.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/7b8a1bbfdb4c684f377ed0b1e73ccb0f78258c4dc2119ce3391d60063d39e9b7.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/labelDisplayOrder.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/labelDisplayOrder.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Home - All Groups Deleted Tabs Survive",
+      "screenshotPath": "home-all-groups-deleted-tabs-survive--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Deleted Group Stays Deleted",
+      "screenshotPath": "home-deleted-group-stays-deleted--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - First Run Migration From Local",
+      "screenshotPath": "home-first-run-migration-from-local--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Group Color Preview In Context",
+      "screenshotPath": "home-group-color-preview-in-context--desktop.png"
+    },
+    {
+      "name": "Home - Group Menu Open",
+      "screenshotPath": "home-group-menu-open--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Groups Restored From Sync After Uninstall",
+      "screenshotPath": "home-groups-restored-from-sync-after-uninstall--desktop.png"
+    },
+    {
+      "name": "Home - Groups Survive A Sync Fallback",
+      "screenshotPath": "home-groups-survive-a-sync-fallback--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Reorder Lands One Slot Down",
+      "screenshotPath": "home-reorder-lands-one-slot-down--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Stable Chrome Footer",
+      "screenshotPath": "home-stable-chrome-footer--desktop.png"
+    },
+    {
+      "name": "Home - Sync Wins Over Stale Local",
+      "screenshotPath": "home-sync-wins-over-stale-local--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Color Preview While Editing",
+      "screenshotPath": "labelcollection-color-preview-while-editing--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Deliberate Same Site Members",
+      "screenshotPath": "labelcollection-deliberate-same-site-members--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Guarded Single Member",
+      "screenshotPath": "labelcollection-guarded-single-member--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Menu Open",
+      "screenshotPath": "labelcollection-menu-open--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Overflowing Members",
+      "screenshotPath": "labelcollection-overflowing-members--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Phantom Members",
+      "screenshotPath": "labelcollection-phantom-members--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Preview Name Cleared",
+      "screenshotPath": "labelcollection-preview-name-cleared--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Remove Control Revealed",
+      "screenshotPath": "labelcollection-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Saved Recolor Committed",
+      "screenshotPath": "labelcollection-saved-recolor-committed--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Title And Color Preview",
+      "screenshotPath": "labelcollection-title-and-color-preview--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 978,
+    "passed": 978,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 978,
+        "passed": 978
+      }
+    ]
+  }
+}

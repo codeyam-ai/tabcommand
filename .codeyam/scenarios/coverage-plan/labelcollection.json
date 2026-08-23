@@ -129,6 +129,42 @@
       "status": "covered"
     },
     {
+      "dimension": "isLocal",
+      "value": "true",
+      "rationale": "source-derived state isLocal=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "isLocal",
+      "value": "false",
+      "rationale": "source-derived state isLocal=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "activeTabsChange",
+      "value": "true",
+      "rationale": "source-derived state activeTabsChange=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "activeTabsChange",
+      "value": "false",
+      "rationale": "source-derived state activeTabsChange=false",
+      "status": "covered"
+    },
+    {
+      "dimension": "labelsChange",
+      "value": "true",
+      "rationale": "source-derived state labelsChange=true",
+      "status": "covered"
+    },
+    {
+      "dimension": "labelsChange",
+      "value": "false",
+      "rationale": "source-derived state labelsChange=false",
+      "status": "covered"
+    },
+    {
       "dimension": "hasTitles",
       "value": "true",
       "rationale": "source-derived state hasTitles=true",
