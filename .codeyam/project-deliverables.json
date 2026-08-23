@@ -6,82 +6,82 @@
     {
       "id": "users-can-see-and-manage-their-currently-open",
       "text": "Users can see and manage their currently open browser tabs from the extension",
-      "status": "open",
-      "resolvedAt": null,
-      "resolvedInFeature": null,
+      "status": "delivered",
+      "resolvedAt": "2026-08-23T17:07:47.960130+00:00",
+      "resolvedInFeature": "Drag To Reorder Urls Within A Group",
       "planSlug": null,
-      "note": null,
-      "decidedBy": null
+      "note": "Already implemented in the product before this cycle; verified present via its registered components, pages and scenarios. Not built or re-verified by this bug-fix cycle.",
+      "decidedBy": "agent"
     },
     {
       "id": "users-can-browse-search-and-revisit-their",
       "text": "Users can browse, search, and revisit their browser history",
-      "status": "open",
-      "resolvedAt": null,
-      "resolvedInFeature": null,
+      "status": "delivered",
+      "resolvedAt": "2026-08-23T17:07:47.969750387+00:00",
+      "resolvedInFeature": "Drag To Reorder Urls Within A Group",
       "planSlug": null,
-      "note": null,
-      "decidedBy": null
+      "note": "Already implemented in the product before this cycle; verified present via its registered components, pages and scenarios. Not built or re-verified by this bug-fix cycle.",
+      "decidedBy": "agent"
     },
     {
       "id": "users-can-save-and-organize-favorite-urls",
       "text": "Users can save and organize favorite URLs, including grouping and reordering them",
-      "status": "open",
-      "resolvedAt": null,
-      "resolvedInFeature": null,
+      "status": "delivered",
+      "resolvedAt": "2026-08-23T17:07:47.950072879+00:00",
+      "resolvedInFeature": "Drag To Reorder Urls Within A Group",
       "planSlug": null,
-      "note": null,
-      "decidedBy": null
+      "note": "Reordering within a group was silently broken and is fixed this cycle: the drop index is now translated from displayed order to stored order, and an ambiguous drop appends. Saving/organising/grouping already worked.",
+      "decidedBy": "agent"
     },
     {
       "id": "users-can-label-and-categorize-tabs-urls-so",
       "text": "Users can label and categorize tabs/URLs so related pages stay together",
-      "status": "open",
-      "resolvedAt": null,
-      "resolvedInFeature": null,
+      "status": "delivered",
+      "resolvedAt": "2026-08-23T17:07:47.979324942+00:00",
+      "resolvedInFeature": "Drag To Reorder Urls Within A Group",
       "planSlug": null,
-      "note": null,
-      "decidedBy": null
+      "note": "Already implemented in the product before this cycle; verified present via its registered components, pages and scenarios. Not built or re-verified by this bug-fix cycle.",
+      "decidedBy": "agent"
     },
     {
       "id": "users-can-search-across-tabs-history-and",
       "text": "Users can search across tabs, history, and favorites from one place",
-      "status": "open",
-      "resolvedAt": null,
-      "resolvedInFeature": null,
+      "status": "delivered",
+      "resolvedAt": "2026-08-23T17:07:47.990319024+00:00",
+      "resolvedInFeature": "Drag To Reorder Urls Within A Group",
       "planSlug": null,
-      "note": null,
-      "decidedBy": null
+      "note": "Already implemented in the product before this cycle; verified present via its registered components, pages and scenarios. Not built or re-verified by this bug-fix cycle.",
+      "decidedBy": "agent"
     },
     {
       "id": "users-can-see-resource-load-information-about",
       "text": "Users can see resource/load information about their open tabs",
-      "status": "open",
-      "resolvedAt": null,
-      "resolvedInFeature": null,
+      "status": "delivered",
+      "resolvedAt": "2026-08-23T17:07:47.999928849+00:00",
+      "resolvedInFeature": "Drag To Reorder Urls Within A Group",
       "planSlug": null,
-      "note": null,
-      "decidedBy": null
+      "note": "Already implemented in the product before this cycle; verified present via its registered components, pages and scenarios. Not built or re-verified by this bug-fix cycle.",
+      "decidedBy": "agent"
     },
     {
       "id": "users-can-import-and-export-their-saved-data",
       "text": "Users can import and export their saved data, with snapshots for backup",
-      "status": "open",
-      "resolvedAt": null,
-      "resolvedInFeature": null,
+      "status": "delivered",
+      "resolvedAt": "2026-08-23T17:07:48.010068560+00:00",
+      "resolvedInFeature": "Drag To Reorder Urls Within A Group",
       "planSlug": null,
-      "note": null,
-      "decidedBy": null
+      "note": "Already implemented in the product before this cycle; verified present via its registered components, pages and scenarios. Not built or re-verified by this bug-fix cycle.",
+      "decidedBy": "agent"
     },
     {
       "id": "users-can-adjust-extension-settings-including",
       "text": "Users can adjust extension settings, including light/dark theme",
-      "status": "open",
-      "resolvedAt": null,
-      "resolvedInFeature": null,
+      "status": "delivered",
+      "resolvedAt": "2026-08-23T17:07:48.019980955+00:00",
+      "resolvedInFeature": "Drag To Reorder Urls Within A Group",
       "planSlug": null,
-      "note": null,
-      "decidedBy": null
+      "note": "Already implemented in the product before this cycle; verified present via its registered components, pages and scenarios. Not built or re-verified by this bug-fix cycle.",
+      "decidedBy": "agent"
     }
   ]
 }
