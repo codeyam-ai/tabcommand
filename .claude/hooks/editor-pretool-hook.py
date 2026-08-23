@@ -33,7 +33,22 @@ The Plan-tab PTY does not set `CODEYAM_EDITOR_ACTIVE`, so this hook is
 silent there by design — Plan-tab commits are always allowed.
 
 Returns exit code 2 to block, 0 to allow. Stderr is fed back to
-Claude as feedback.
+Claude as feedback, and every refusal carries an `Evidence:` line
+stating what was actually observed — the resolved project dir, the
+file consulted, expected versus found — so a block is debuggable
+without reading this source.
+
+Heredoc bodies are elided before any command is lexed
+(`elide_heredoc_bodies`): a commit-message body is data by shell
+semantics, and lexing one as shell turned backticked code spans into
+commands and a single apostrophe into an unterminated quote that
+failed four guards closed at once.
+
+Run with `--explain` to get the verdict and its evidence on STDOUT at
+exit 0, changing nothing: it records no repeat fingerprint and never
+writes to stderr. The flag is read from argv only — never from the
+environment or the event — so nothing on the enforcement path can
+reach it.
 """
 
 import json
@@ -123,6 +138,22 @@ def _slug_label(state, slug):
     return f"slug={slug}"
 
 
+def _commit_gate_phrase(commit_slugs):
+    """Name the slug(s) a refusal should steer the agent toward, rendered
+    for prose ("`commit`", "`assist-wrap`", "`a` / `b`").
+
+    Derived from the active mode's own `commitSlugs` rather than written
+    out, because the literal `commit` is the BUILD flow's gate. An assist
+    session's one approval gate is `assist-wrap`, so a hard-coded
+    "advance until the `commit` slug" told that session to walk toward a
+    slug its 4-step track does not contain. For the build flow the set is
+    `["commit"]` and this renders exactly the previous wording."""
+    slugs = sorted(s for s in (commit_slugs or []) if isinstance(s, str))
+    if not slugs:
+        return "`commit`"
+    return " / ".join(f"`{s}`" for s in slugs)
+
+
 _REFUSAL_LOG = os.path.join(".codeyam", "state", "refusal-fingerprints.json")
 
 # How long a refusal stays "recent" for repeat detection. Long enough to
@@ -198,7 +229,70 @@ def _repeat_notice(count):
     )
 
 
-def block(project_dir, rule, reason, next_action, reference="", detail=""):
+# Read-only explain mode, set ONCE from argv in `main`. Deliberately not an
+# environment variable and not an event field: both are reachable from the
+# enforcement path, and a verdict channel that the thing being judged can
+# switch on is not a diagnostic, it is a bypass. argv belongs to whoever
+# invokes the hook, which for a real PreToolUse call is Claude Code itself.
+_EXPLAIN_MODE = False
+
+
+def explain_requested(argv):
+    """True when `--explain` appears in `argv`.
+
+    Pure, so the one thing that must never be true during enforcement is
+    assertable without running the hook."""
+    return "--explain" in argv
+
+
+def _emit_verdict(verdict, rule, detail, message):
+    """Print an explain-mode verdict to STDOUT and exit 0.
+
+    stdout, not stderr, is deliberate: stderr is the enforcement channel Claude
+    reads as feedback, and an explain run must be inert there. Exit 0 for the
+    same reason — `--explain` answers "what would this do", it never does it."""
+    lines = [f"VERDICT: {verdict}"]
+    if rule:
+        lines.append(f"RULE: {rule}")
+    if detail:
+        lines.append(f"DETAIL: {detail}")
+    if message:
+        lines.append(message)
+    print("\n".join(lines))
+    sys.exit(0)
+
+
+def allow(reason):
+    """Allow the in-flight call — exit 0, silently under enforcement.
+
+    Every allow path in `main` funnels through here so `--explain` can report
+    WHICH allow fired. Under enforcement this is exactly `sys.exit(0)`; the
+    reason string is never printed, so it costs a normal call nothing."""
+    if _EXPLAIN_MODE:
+        _emit_verdict("ALLOWED", "", "", reason)
+    sys.exit(0)
+
+
+def notice(rule, message):
+    """Let the call through, but say something first — exit 0 with the text on
+    stderr.
+
+    The middle verdict between `allow` and `block`, for a call that is safe but
+    costs the caller something they should know about. It is deliberately NOT a
+    refusal: there is no `Next valid action:` contract to satisfy, because
+    nothing needs recovering.
+
+    stderr rather than stdout, and no JSON permission decision: an exit-0 hook
+    that prints a `permissionDecision` would also be *granting* permission for
+    the call, which is a much bigger claim than "here is a pointer" and would
+    silently bypass a prompt the user might otherwise see."""
+    if _EXPLAIN_MODE:
+        _emit_verdict("NOTICE", rule, "", message)
+    print(message, file=sys.stderr)
+    sys.exit(0)
+
+
+def block(project_dir, rule, reason, next_action, reference="", detail="", evidence="", call=""):
     """Emit a phase-gate refusal on the two-line contract and exit 2.
 
     Every refusal this hook emits goes through here, which is what makes
@@ -208,16 +302,45 @@ def block(project_dir, rule, reason, next_action, reference="", detail=""):
     the agent may want AFTER it knows what to do (the list of permitted
     slugs, the rationale); it never substitutes for `next_action`.
 
-    `rule` plus the current slug is the repeat fingerprint; `detail`
-    narrows it when one rule fires for many targets, so refusals on two
-    different files are not conflated into a repeat.
+    `evidence` states what the hook actually OBSERVED — the resolved
+    project dir, the file it consulted, expected versus found. It changes
+    no verdict. Without it the only way to debug a refusal is to read this
+    source, which is what agents did: one spent ~10 tool calls grepping
+    this file to discover its own cwd had drifted, a fact the refusal held
+    and did not print.
+
+    The repeat fingerprint is `rule` + `detail` + the actual `call` + the
+    evidence. Including the call is what stops three DIFFERENT commands
+    refused under one rule from escalating to "this exact call was refused
+    before" — a false statement that punished an agent for varying its
+    approach. Including the evidence resets the counter when the consulted
+    state genuinely changed, so a corrective action is no longer scolded as
+    a repeat.
     """
-    count = _record_refusal(project_dir, f"{rule}\x00{detail}")
-    message = f"{_repeat_notice(count)}BLOCKED: {reason}\nNext valid action: {next_action}"
+    message = f"BLOCKED: {reason}\nNext valid action: {next_action}"
+    if evidence:
+        message = f"{message}\nEvidence: {evidence}"
     if reference:
         message = f"{message}\n{reference}"
-    print(message, file=sys.stderr)
+    if _EXPLAIN_MODE:
+        _emit_verdict("BLOCKED", rule, detail, message)
+    count = _record_refusal(project_dir, "\x00".join((rule, detail, call, evidence)))
+    print(f"{_repeat_notice(count)}{message}", file=sys.stderr)
     sys.exit(2)
+
+
+def resolved_context(project_dir, consulted=""):
+    """The evidence prefix every gate can state: where the hook thinks the
+    project is, and which file it read to decide.
+
+    `project_dir` falls back to `os.getcwd()` when `CLAUDE_PROJECT_DIR` is
+    unset, so a session whose cwd drifted gets judged against the wrong repo
+    and never learns why. Printing it makes that one-line obvious."""
+    source = "CLAUDE_PROJECT_DIR" if os.environ.get("CLAUDE_PROJECT_DIR") else "os.getcwd()"
+    parts = [f"project dir {project_dir} (from {source})"]
+    if consulted:
+        parts.append(f"consulted {consulted}")
+    return "; ".join(parts)
 
 
 def _test_run_block_message(state, slug, info):
@@ -556,24 +679,44 @@ _GREP_VALUE_FLAGS = frozenset("efmABCDd")
 # pipe gating or long-running `codeyam-editor` commands through `tail` / `grep`
 # / `head`".
 #
-# Deliberately NOT every subcommand. The rule's rationale is about the three
-# things a pipe destroys — a meaningful exit code, a liveness heartbeat, and a
-# tail-safe completion trailer — so it covers the commands that HAVE them: the
-# gates whose exit code is a verdict, and the long ones that heartbeat while
-# they run. Piping a small read-only query (`registry-query … | jq .`) loses
-# nothing, and refusing it would make the rule feel arbitrary rather than
+# Deliberately NOT every subcommand. The rule's rationale is about what a pipe
+# destroys, so it covers the commands that have something to lose. Three of the
+# four are properties of the command's own output — a meaningful exit code, a
+# liveness heartbeat, and a tail-safe completion trailer — which is what the
+# gates whose exit code is a verdict and the long ones that heartbeat while they
+# run all carry. Piping a small read-only query (`registry-query … | jq .`)
+# loses nothing, and refusing it would make the rule feel arbitrary rather than
 # earned.
+#
+# The fourth is stronger and is why the `preview` family is listed: a SIDE
+# EFFECT A LATER GATE DEPENDS ON. `preview`, `preview-flow`, `preview-interact`,
+# and `show-results` each write the preview-shown marker
+# (`.codeyam/preview-shown.json`) that `present-interactive` reads before it will
+# allow an `AskUserQuestion`. A downstream `head -1` closes the pipe and SIGPIPEs
+# the process mid-command, so the loss is invisible: the capture succeeds, the
+# screenshots are correct, the body reports `success=true`, and only the gate
+# stays shut. That cost five VM-13 sessions a wall each. The marker write now
+# precedes every stdout write in those commands, which makes the loss
+# unreachable — this entry is defense in depth, not the fix. `preview-nav`
+# writes no marker; it rides along so the rule is "don't pipe the preview
+# family" rather than a four-of-five exception nobody will remember.
 _GATING_SUBCOMMANDS = frozenset(
     (
         "advance",
         "analyze-imports",
         "audit",
         "pre-commit-sync",
+        "preview",
+        "preview-flow",
+        "preview-html",
+        "preview-interact",
+        "preview-nav",
         "push",
         "reconcile-registry",
         "refresh-tests",
         "session-checkpoint",
         "session-finalize",
+        "show-results",
         "verify-build",
         "verify-full-finalize",
         "verify-test-cache",
@@ -653,10 +796,176 @@ def _is_redirection_ampersand(chars, index):
     return index + 1 < len(chars) and chars[index + 1] == ">"
 
 
+# Programs whose heredoc body is DATA — a message, a document, a patch — and
+# never a program. Only these have their bodies elided.
+#
+# An allowlist, not a denylist, because the two directions fail differently. A
+# body fed to `python3 - <<'EOF'` IS the program: eliding it hides the exact
+# incidents the scripted-rewrite guard was built from (a heredoc that read a
+# tracked `.rs` file, ran `str.replace`, and wrote it back). A body fed to
+# `git commit -F -` is prose the shell never lexes. Guessing wrong about an
+# unknown program costs a false positive one way and an evasion path the
+# other, so the unknown program keeps its body.
+_HEREDOC_DATA_CONSUMERS = frozenset(
+    (
+        "cat", "tee", "git", "mail", "mailx", "sendmail", "wc", "sort", "uniq",
+        "head", "tail", "column", "tr", "jq", "less", "more", "diff", "patch",
+        "md5sum", "sha256sum", "base64", "gpg", "curl", "wget",
+    )
+)
+
+
+def _heredoc_consumer(prefix):
+    """The program that will consume the heredoc opened at the end of `prefix`
+    — `git` in `git commit -F - <<'EOF'`, `python3` in `python3 - <<'EOF'`.
+
+    Scans back to the last unquoted separator so only the CURRENT command is
+    considered, then skips the wrappers and leading assignments that do not
+    change which program runs. Deliberately does not reuse `_split_commands`:
+    that routes through `elide_heredoc_bodies`, and calling it from inside the
+    elision would be mutual recursion."""
+    boundary = -1
+    quote = ""
+    escaped = False
+    for index, ch in enumerate(prefix):
+        if escaped:
+            escaped = False
+        elif ch == "\\" and quote != "'":
+            escaped = True
+        elif quote:
+            if ch == quote:
+                quote = ""
+        elif ch in "'\"":
+            quote = ch
+        elif ch in _COMMAND_SEPARATORS:
+            boundary = index
+    for tok in prefix[boundary + 1:].split():
+        if tok in _COMMAND_PREFIXES or _ASSIGNMENT.match(tok):
+            continue
+        return _program_name(tok)
+    return ""
+
+
+def _heredoc_openers(line):
+    """The heredocs `line` opens, as `(delimiter, strip_tabs, elide)` triples in
+    the order the shell will consume their bodies.
+
+    `elide` is False when the consuming program EXECUTES the body rather than
+    reading it as data — see `_HEREDOC_DATA_CONSUMERS`. Such a body is still
+    tracked here, because the hook must know where the heredoc ends to resume
+    scanning correctly on the line after it; it is simply kept rather than
+    dropped.
+
+    Quote-aware, so a literal `<<` inside a string is not an opener. `<<<` is a
+    here-STRING — its operand is the data itself, on the same line, with no body
+    to elide — so it is skipped rather than mistaken for a heredoc."""
+    openers = []
+    quote = ""
+    escaped = False
+    index = 0
+    while index < len(line):
+        ch = line[index]
+        if escaped:
+            escaped = False
+        elif ch == "\\" and quote != "'":
+            escaped = True
+        elif quote:
+            if ch == quote:
+                quote = ""
+        elif ch in "'\"":
+            quote = ch
+        elif ch == "<" and line[index + 1:index + 2] == "<":
+            if line[index + 2:index + 3] == "<":
+                index += 3
+                continue
+            cursor = index + 2
+            strip_tabs = line[cursor:cursor + 1] == "-"
+            if strip_tabs:
+                cursor += 1
+            while cursor < len(line) and line[cursor] in " \t":
+                cursor += 1
+            if line[cursor:cursor + 1] == "\\":
+                cursor += 1
+            delimiter, cursor = _heredoc_delimiter(line, cursor)
+            if delimiter:
+                consumer = _heredoc_consumer(line[:index])
+                openers.append(
+                    (delimiter, strip_tabs, consumer in _HEREDOC_DATA_CONSUMERS)
+                )
+            index = cursor
+            continue
+        index += 1
+    return openers
+
+
+def _heredoc_delimiter(line, cursor):
+    """The delimiter word starting at `cursor`, plus the index just past it.
+
+    Handles the three spellings the shell accepts — `'EOF'`, `"EOF"`, and a
+    bare `EOF`. The quoting only controls whether the BODY is expanded, which
+    is irrelevant here: either way the body is data the shell never lexes as
+    commands, which is the whole reason it is elided."""
+    opener = line[cursor:cursor + 1]
+    if opener in "'\"":
+        end = line.find(opener, cursor + 1)
+        if end == -1:
+            return ("", len(line))
+        return (line[cursor + 1:end], end + 1)
+    end = cursor
+    while end < len(line) and (line[end].isalnum() or line[end] in "_-."):
+        end += 1
+    return (line[cursor:end], end)
+
+
+def elide_heredoc_bodies(command):
+    """`command` with every heredoc BODY removed, leaving the line that opens it
+    — redirects and all — intact.
+
+    A heredoc body is data by shell semantics, exactly as a quoted argument is,
+    and this hook already honours the latter. Without this, a commit message
+    piped through `git commit -F - <<'EOF'` was lexed as shell: a backticked
+    code span in the prose became a command (`` `sed -i` `` read as a scripted
+    rewrite, `` `grep -P` `` as a portability violation, `` `cargo test` `` as a
+    test run), and a single apostrophe opened an unterminated quote that failed
+    four guards closed at once — refusing a commit whose message merely NAMED a
+    source file as a machine-rewrite of it.
+
+    Eliding the body rather than relaxing the tokenizer is the point: the
+    fail-closed contract on a malformed quote stays exactly as strict, because
+    a body the shell never lexes was never the tokenizer's input to begin with.
+    The opening line SURVIVES, so `cat <<'EOF' > src/lib.rs` still trips the
+    scripted-rewrite guard on its redirect, and `git commit -F - <<'EOF'` is
+    still a `git commit`.
+
+    And only a DATA consumer's body is elided. `python3 - <<'EOF'` executes its
+    body, so that body is a program and is kept — eliding it would have blinded
+    the scripted-rewrite guard to the very incidents it was built from."""
+    if "<<" not in command:
+        return command
+    kept = []
+    pending = []
+    for line in command.split("\n"):
+        if pending:
+            delimiter, strip_tabs, elide = pending[0]
+            candidate = line.lstrip("\t") if strip_tabs else line
+            if candidate.rstrip() == delimiter:
+                pending.pop(0)
+            if not elide:
+                kept.append(line)
+            continue
+        kept.append(line)
+        pending.extend(_heredoc_openers(line))
+    return "\n".join(kept)
+
+
 def _split_commands_with_separators(command):
     """`command` split at unquoted shell separators, as `(segment, separator)`
     pairs — the separator being the character that ENDED the segment, or `""`
     for the final one.
+
+    Heredoc bodies are elided first (`elide_heredoc_bodies`) — this is the one
+    seam every command-scanning guard passes through, so eliding here is what
+    makes the whole hook heredoc-aware rather than each predicate separately.
 
     Quote-aware: a separator inside `'…'` or `"…"` is data — a grep pattern, not
     a boundary — and a backslash escapes the next character outside single
@@ -673,7 +982,7 @@ def _split_commands_with_separators(command):
     current = []
     quote = ""
     escaped = False
-    chars = list(command)
+    chars = list(elide_heredoc_bodies(command))
     for index, ch in enumerate(chars):
         if escaped:
             current.append(ch)
@@ -785,6 +1094,108 @@ def _uses_pcre_grep(command):
     return False
 
 
+# git's own options that CONSUME the next argument, so the token after one is a
+# value rather than the subcommand. Without this, `git -C /path commit` reads
+# `/path` as the subcommand and the commit gate never fires.
+_GIT_VALUE_OPTIONS = frozenset(
+    (
+        "-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path",
+        "--super-prefix", "--config-env",
+    )
+)
+
+
+def _git_subcommand(rest):
+    """The subcommand of a `git` invocation — `commit` in `git -C /repo commit
+    -m x`. None when the invocation names no subcommand."""
+    skip = False
+    for tok in rest:
+        if skip:
+            skip = False
+            continue
+        if tok in _GIT_VALUE_OPTIONS:
+            skip = True
+            continue
+        if tok.startswith("-"):
+            continue
+        return tok
+    return None
+
+
+def invokes_git_subcommand(command, subcommand):
+    """True iff `command` actually RUNS `git <subcommand>`.
+
+    Replaces a bare `"git commit" in command` substring test, which read any
+    MENTION of the verb as an invocation: `echo "remember to git commit later"`
+    was refused, and so was a commit whose own message discussed committing.
+    Position-aware for the same reason `_uses_pcre_grep` is — the name is only
+    an invocation when it is the program being run, and `shlex` has already
+    collapsed every quoted region into one token, so a verb inside a message can
+    never be it.
+
+    A shell payload is re-scanned as a command in its own right, so
+    `bash -c "git commit -m x"` is still a commit. Fails closed: a stage that
+    cannot be tokenized counts as a match, the same contract every other guard
+    here carries."""
+    for segment in _split_commands(command):
+        try:
+            tokens = shlex.split(segment, posix=True)
+        except ValueError:
+            return True
+        for index, tok in enumerate(tokens):
+            if _program_name(tok) != "git" or not _in_command_position(tokens, index):
+                continue
+            if _git_subcommand(tokens[index + 1:]) == subcommand:
+                return True
+        payload = _shell_c_payload(tokens)
+        if payload is not None and invokes_git_subcommand(payload, subcommand):
+            return True
+    return False
+
+
+# The `codeyam-editor:editor` spelling reaches the same CLI through the plugin
+# invocation form, so it is one token rather than a program plus a subcommand.
+# Derived from _CODEYAM_CLIS rather than spelled out. commands::apply_cli_name
+# rewrites the canonical plugin-form token into the dev-wrapper one at install
+# time, so a hardcoded pair collapses to a single element on a -dev install and
+# recognition of the canonical spelling is silently lost. Deriving the set keeps
+# the CLI-name list single-sourced, survives that rewrite, and leaves no
+# non-canonical literal for the SHIPPED_AGENT_FILE_NONCANONICAL_CLI_NAME audit
+# invariant to flag — which is why this file needs no allowlist entry.
+_CODEYAM_EDITOR_TOKENS = frozenset(f"{cli}:editor" for cli in _CODEYAM_CLIS)
+
+
+def invokes_codeyam_editor(command):
+    """True iff `command` actually RUNS a `codeyam-editor editor …` subcommand.
+
+    This one gates an ALLOW, not a refusal, which is why it had to change: the
+    substring test it replaces short-circuited the commit, push, code-change and
+    PCRE gates for any command whose TEXT contained the CLI name anywhere —
+    including inside a quoted commit message. `git commit -m "chore: document
+    codeyam-editor editor advance"` was allowed at every slug. Closing that is
+    the same substring-versus-structure fix as `invokes_git_subcommand`, applied
+    in the opposite direction.
+
+    Fails closed the way an allow must: a stage that cannot be tokenized does
+    NOT earn the bypass, so a malformed quote can never buy one."""
+    for segment in _split_commands(command):
+        try:
+            tokens = shlex.split(segment, posix=True)
+        except ValueError:
+            continue
+        for index, tok in enumerate(tokens):
+            if not _in_command_position(tokens, index):
+                continue
+            if _program_name(tok) in _CODEYAM_EDITOR_TOKENS:
+                return True
+            if _program_name(tok) not in _CODEYAM_CLIS:
+                continue
+            rest = tokens[index + 1:]
+            if rest and rest[0] == "editor":
+                return True
+    return False
+
+
 def _pipelines(command):
     """`command` grouped into pipelines — each a list of the stages joined by
     unquoted `|`, in order.
@@ -857,33 +1268,16 @@ def _is_tee_stage(stage):
     return bool(tokens) and tokens[0].rsplit("/", 1)[-1] == "tee"
 
 
-def _exit_code_preserved(command):
-    """True when `command` already keeps the child's exit code across a pipe.
+def _capture_available():
+    """True when the liveness bracket's stream capture is available on this
+    host, which is what makes piping a gating command lossless.
 
-    `set -o pipefail` makes the pipeline report its first failing stage, and a
-    `${PIPESTATUS[0]}` read recovers the first stage's status explicitly. Both
-    are named in the documentation as the sanctioned way to filter anyway, so
-    both have to be honoured — a rule that refused the escape it recommends
-    would just teach agents to route around it.
-
-    Whole-command scoped on purpose: `set -o pipefail` is usually a separate
-    statement ahead of the pipeline, and the `PIPESTATUS` read necessarily
-    comes after it. The `set` itself is still matched in COMMAND POSITION, so
-    `echo remember to set -o pipefail` does not count — otherwise any command
-    could opt out of the rule by mentioning the word."""
-    if "PIPESTATUS" in command:
-        return True
-    for segment in _split_commands(command):
-        try:
-            tokens = shlex.split(segment, posix=True)
-        except ValueError:
-            continue
-        for index, tok in enumerate(tokens):
-            if tok != "set" or not _in_command_position(tokens, index):
-                continue
-            if "pipefail" in tokens[index + 1:]:
-                return True
-    return False
+    The capture is Unix descriptor surgery (`stream_capture.rs`, `#[cfg(unix)]`).
+    Elsewhere `TranscriptGuard::install` returns `None`, so a piped command
+    writes straight to the caller's pipe: its `println!` sites see EPIPE, panic,
+    and the run dies mid-flight with no transcript and no status document to
+    recover from. On those hosts the old refusal is still the right answer."""
+    return os.name == "posix"
 
 
 def piped_gating_command(command):
@@ -902,12 +1296,14 @@ def piped_gating_command(command):
     empty. And the tail-safe completion trailer — the `EXACT_TASK_TITLE`
     hand-off and the `CODEYAM_CMD_COMPLETE` sentinel — gets sliced off.
 
-    The escapes the documentation itself endorses are honoured: `tee`,
-    `set -o pipefail`, and a `${PIPESTATUS[0]}` check each keep the child's
-    exit code, so none of them is refused. `--help` is exempt because a help
-    text has no exit code to lose, no heartbeat, and no trailer."""
-    if _exit_code_preserved(command):
-        return None
+    Only `tee` is exempt, because only `tee` rescues all three: it copies stdout
+    to a file and passes it through unchanged, so the exit code, the heartbeat,
+    and the trailer all survive. `set -o pipefail` and `${PIPESTATUS[0]}` rescue
+    the exit code ALONE and were previously honoured as full exemptions — which
+    let a `reconcile-registry … 2>&1 | tail -30` through on the strength of a
+    `PIPESTATUS` echo and cost the session ten minutes staring at a
+    block-buffered pipe. `--help` is exempt because a help text has no exit code
+    to lose, no heartbeat, and no trailer."""
     for stages in _pipelines(command):
         for index, stage in enumerate(stages[:-1]):
             subcommand = _gating_subcommand(stage)
@@ -919,38 +1315,54 @@ def piped_gating_command(command):
     return None
 
 
-def piped_gating_refusal(subcommand):
-    """The `(reason, next_action)` pair for a refused pipe. Names the three
-    sanctioned escapes, because wanting to shorten a long output is the reason
-    agents reach for `| tail` and the refusal has to answer it."""
+def piped_gating_notice(subcommand):
+    """The advisory text for a piped gating command — allowed, not refused.
+
+    The pipe used to be refused because it destroyed four things. Three are now
+    recovered from disk and the fourth cannot happen: every subcommand in
+    `_GATING_SUBCOMMANDS` runs inside the liveness bracket, where stdout is a
+    pipe the command's own process owns, so a departed filter can no longer
+    SIGPIPE it mid-run. What a pipe still costs is the terminal DISPLAY and the
+    shell-level exit code, and this names where both were written instead.
+
+    Saying it at all — rather than allowing silently — is the point. The
+    pipeline's `$?` is the filter's, and an agent that reads it will believe a
+    failed gate passed. The notice has to arrive BEFORE the command runs,
+    because afterwards the misleading exit code is already in hand."""
     return (
-        f"this pipes `{cli_command()} editor {subcommand}` into a filter. A "
-        f"pipeline's exit code is its LAST stage's, so the filter's success "
-        f"masks the command's failure — a false green on a gate that actually "
-        f"failed. `tail`/`grep` also block-buffer to EOF, hiding the "
-        f"`CODEYAM_CMD_RUNNING` heartbeat so a healthy long command reads as "
-        f"wedged, and they slice off the completion trailer carrying the "
-        f"hand-off and the `CODEYAM_CMD_COMPLETE` sentinel.",
-        f"run it BARE and read the verdict off its own terminal line "
-        f"(`CODEYAM_VERIFY_BUILD: PASS|FAIL`, the `CODEYAM_CMD_COMPLETE` "
-        f"`status`). Output too long is not a reason to pipe — the command "
-        f"prints a `CODEYAM_FULL_OUTPUT` line naming a file with the complete "
-        f"output. If you genuinely need a filter, keep the child's exit code: "
-        f"`| tee out.txt`, a leading `set -o pipefail`, or a "
-        f"`${{PIPESTATUS[0]}}` check.",
+        f"NOTE: `{cli_command()} editor {subcommand}` is piped into a filter. "
+        f"That is allowed — the command runs to completion and every side "
+        f"effect lands — but your shell reports the FILTER's exit code, not the "
+        f"command's, so do not read `$?` as the verdict.\n"
+        f"  Real verdict: .codeyam/state/command-output/{subcommand}.status.json "
+        f"(the `status` field — the same document the "
+        f"`CODEYAM_CMD_COMPLETE` line carries).\n"
+        f"  Full output:  .codeyam/state/command-output/{subcommand}.txt "
+        f"(complete stdout + stderr, unsliced).\n"
+        f"  Still alive?  a backgrounded run's one-line `.heartbeat` sidecar.\n"
+        f"`| tee out.txt` remains the filter that costs you nothing."
     )
 
 
 def write_targets(command):
     """Parse `command` for in-process file-write constructs.
 
-    Returns `(explicit, opaque)`: `explicit` lists the literal paths the
-    command writes to; `opaque` is True when at least one write construct
-    targets a path that cannot be resolved statically — a variable
+    Returns `(explicit, opaque, append_only)`: `explicit` lists the literal
+    paths the command writes to; `opaque` is True when at least one write
+    construct targets a path that cannot be resolved statically — a variable
     (`open(p, "w")`), or an in-place `sed`/`perl` whose file argument is
-    positional."""
+    positional.
+
+    `append_only` is True when every construct found EXTENDS its target
+    (`>>`, `open(p, "a")`) rather than replacing it. Appending is still a
+    write and is still refused, but the refusal owes an accurate account of
+    what the command did, so the distinction has to survive the parse instead
+    of being discarded here. Mixed commands report False — of "this appends"
+    and "this rewrites", the stronger claim is the true one."""
     explicit = []
     opaque = False
+    appending = False
+    truncating = False
 
     for match in _OPEN_CALL.finditer(command):
         args = _call_args(command, match.end() - 1)
@@ -959,6 +1371,10 @@ def write_targets(command):
         mode = _string_literal(args[1])
         if mode is None or not set(mode) & set("wax+"):
             continue
+        if "a" in mode:
+            appending = True
+        else:
+            truncating = True
         literal = _string_literal(args[0])
         if literal:
             explicit.append(literal)
@@ -967,18 +1383,24 @@ def write_targets(command):
 
     for pattern in (_WRITE_TEXT, _NODE_WRITE):
         for match in pattern.finditer(command):
+            truncating = True
             if match.group("path"):
                 explicit.append(match.group("path"))
             else:
                 opaque = True
 
     for match in _SHELL_REDIRECT.finditer(command):
+        if match.group(0).startswith(">>"):
+            appending = True
+        else:
+            truncating = True
         explicit.append(match.group("path"))
 
     if _has_inplace_editor(command):
         opaque = True
+        truncating = True
 
-    return explicit, opaque
+    return explicit, opaque, appending and not truncating
 
 
 def _repo_relative(path, project_dir):
@@ -1048,21 +1470,62 @@ def _path_tokens(command):
     return [m.group(0) for m in _PATHLIKE.finditer(command)]
 
 
-def scripted_source_rewrite_target(command, project_dir):
-    """The git-tracked source file a scripted in-process rewrite would clobber,
-    or None when `command` is not one.
+def _offending_stage(stages):
+    """The first of `stages` that itself carries a write construct, or `""`
+    when none can be attributed.
 
-    A command qualifies only when it BOTH carries a write construct AND that
-    write lands on tracked source. When every write target is a literal path,
-    only those paths are judged. When a target is opaque, it falls back to
-    every tracked source path the command mentions — which is the shape the
-    real incidents took (`p = "…/opencode.rs"` … `open(p, "w")`)."""
-    explicit, opaque = write_targets(command)
+    Best-effort by design, and it must stay that way. `_split_commands` splits
+    on `(`/`)` among others, so an INTERPRETER heredoc — the shape the whole
+    guard was built from — shreds into stages like `open`, `p, "w"`, `.write`,
+    none of which carries a recognisable write on its own. That is fine here
+    (an unattributable stage simply suppresses the compound sentence) and would
+    be catastrophic in the detection itself, which is why detection stays
+    whole-command."""
+    for stage in stages:
+        explicit, opaque, _ = write_targets(stage)
+        if explicit or opaque:
+            return stage.strip()
+    return ""
+
+
+def scripted_rewrite_stage(command, project_dir):
+    """`(tracked_path, stage, stage_count, append_only)` when `command` writes
+    tracked source off-transcript, else None. `stage` is `""` when the
+    offending half cannot be attributed; `append_only` is `write_targets`'
+    construct verdict, carried through so the refusal can describe an append
+    as an append.
+
+    Detection is WHOLE-COMMAND, unchanged: a command qualifies only when it
+    BOTH carries a write construct AND that write lands on tracked source.
+    When every write target is a literal path, only those paths are judged.
+    When a target is opaque, it falls back to every tracked source path the
+    command mentions — which is the shape the real incidents took
+    (`p = "…/opencode.rs"` … `open(p, "w")`, with the assignment and the write
+    on different lines). Narrowing that fallback to a single stage silently
+    disarms the guard on exactly those cases.
+
+    Stage ATTRIBUTION is layered on top so the refusal can name the offending
+    half of a compound command. One session ran `cp <file> <backup> && perl
+    -0pi …`; the whole call was refused, so the backup never happened and the
+    agent lost its safety net without being told — the splitter knew both
+    stages and the refusal named only a file."""
+    explicit, opaque, append_only = write_targets(command)
     if not explicit and not opaque:
         return None
     candidates = _path_tokens(command) if opaque else explicit
     tracked = tracked_source_paths(candidates, project_dir)
-    return tracked[0] if tracked else None
+    if not tracked:
+        return None
+    stages = _split_commands(command)
+    return (tracked[0], _offending_stage(stages), len(stages), append_only)
+
+
+def scripted_source_rewrite_target(command, project_dir):
+    """The git-tracked source file a scripted in-process rewrite would clobber,
+    or None when `command` is not one. The verdict half of
+    `scripted_rewrite_stage`, for callers that need only the path."""
+    found = scripted_rewrite_stage(command, project_dir)
+    return found[0] if found else None
 
 
 # ── line-budget guard ──────────────────────────────────────────────────
@@ -1264,10 +1727,54 @@ def line_budget_violation(tool_name, tool_input, project_dir):
     return (rel, limit, current, projected)
 
 
-def scripted_rewrite_refusal(path):
-    """The `(reason, next_action)` pair for a refused scripted rewrite. Names
-    the path that matched and the three sanctioned alternatives — batching is
-    the reason agents reach for a script, so the refusal has to answer it."""
+def compound_stage_evidence(stage, stage_count):
+    """The sentence a refused COMPOUND command owes: which stage matched, and
+    that nothing ran.
+
+    A refusal is all-or-nothing — the hook returns exit 2 before the shell sees
+    any of it — so the safe half of `cp <backup> && perl -0pi …` is lost too.
+    Saying which half matched, and that the other did NOT run, is the difference
+    between re-issuing the safe half and silently continuing without it.
+
+    Silent when the stage cannot be attributed. An interpreter heredoc splits
+    into many pseudo-stages that are fragments of one program, not commands, so
+    claiming it is an "11-stage compound command" would be worse than saying
+    nothing."""
+    if not stage or stage_count < 2:
+        return ""
+    return (
+        f"this is a {stage_count}-stage compound command and the match is in "
+        f"stage `{stage}`; NOTHING ran — the other stage(s) were refused with "
+        f"it, so re-issue any safe half (a `cp` backup, a `mkdir`) on its own"
+    )
+
+
+def scripted_rewrite_refusal(path, append_only=False):
+    """The `(reason, next_action)` pair for a refused scripted write. Names the
+    path that matched and the sanctioned alternatives — batching is the reason
+    agents reach for a script, so the refusal has to answer it.
+
+    Branches on the CONSTRUCT, not the file. `cat >> file` is refused for the
+    same two reasons a rewrite is (the diff is computed at runtime so it never
+    reaches the transcript, and it bypasses Edit's file-state tracking), but it
+    does not parse the file or self-match generated code, and none of
+    `replace_all` / `rename-symbol` answers "add 100 lines to the end". Calling
+    it a rewrite and offering replace-shaped recoveries left the agent to
+    re-read the file tail and synthesize an anchor by hand — the round trip
+    that made this the most-hit block on the fleet."""
+    if append_only:
+        return (
+            f"this command appends to the tracked source file `{path}`. "
+            f"An append is still a write whose diff is computed at runtime, so "
+            f"the change never appears in the transcript a reviewer reads; and "
+            f"it bypasses the file-state tracking that lets Edit refuse a file "
+            f"that changed underneath it.",
+            f"use the Edit tool anchored on the file's existing final construct: "
+            f"`old_string` is that construct verbatim, `new_string` is that same "
+            f"construct followed by the new content. Batching is not a reason to "
+            f"script — several Edit calls in ONE message run in parallel. Writing "
+            f"to an untracked file, to /tmp, or to the scratchpad is unaffected.",
+        )
     return (
         f"this command machine-rewrites the tracked source file `{path}`. "
         f"A scripted in-process rewrite (`open(p, 'w')`, `.write_text(`, `sed -i`, "
@@ -1282,6 +1789,208 @@ def scripted_rewrite_refusal(path):
         f"an identifier across source + glossary + registry run "
         f"`{cli_command()} editor rename-symbol`. Writing to an untracked file, to "
         f"/tmp, or to the scratchpad is unaffected.",
+    )
+
+
+# --- Recursive-delete guard ------------------------------------------------
+#
+# A recursive delete is the most destructive thing an agent can do to a working
+# tree and the one whose damage is invisible until something else surfaces it.
+# `rm -rf crates/codeyam-editor/.codeyam` was issued in the belief that it was
+# stray generated output; it was 12 git-TRACKED fixture files, and nothing said
+# so until a later `git status`.
+#
+# The mistake was reasonable. `.codeyam/` at the repo root IS internal cache
+# state (it is in `ALWAYS_EXCLUDED_DIRS`), and the same directory name one level
+# down inside a crate is a tracked test fixture. That ambiguity is not going
+# away — which is exactly why the guard keys on git-tracked-ness rather than on
+# a denylist of directories that "look like cache". A denylist is the reasoning
+# that caused the loss. Whether git tracks a file is the fact that actually
+# matters, it is cheap to ask, and it generalizes to every fixture directory in
+# every client project.
+#
+# There is deliberately no bypass flag. A rule an agent can wave away under time
+# pressure is not a guard, and a genuinely intended deletion of tracked files
+# already has a reversible, reviewable spelling: `git rm`.
+#
+# Scope is recursive deletes only. A single `rm <file>` names exactly what it
+# removes and is visible in the transcript; `-r` against a directory is the
+# shape whose blast radius the author cannot see.
+
+_RM_LONG_RECURSIVE = "--recursive"
+
+# The shortest unambiguous abbreviation GNU `rm` accepts for `--recursive`.
+# `--recursive` is the only long option of `rm` beginning with `r`, so getopt
+# resolves `--r` to it.
+_RM_LONG_RECURSIVE_MIN = len("--r")
+
+# Textual last resort when a segment cannot be tokenized. Matches `rm` only in
+# command position (start of segment, or after a separator) so a mention inside
+# an unterminated string is not one.
+_RM_TEXTUAL = re.compile(r"(?:^|[\s;|&(])(?:[^\s;|&]*/)?rm(?=\s)")
+_RM_TEXTUAL_RECURSIVE = re.compile(r"(?:^|\s)-(?:-r|[A-Za-z]*[rR])")
+
+
+def is_recursive_rm_flag(token):
+    """True when `token` is `rm`'s recursive flag in any spelling it accepts:
+    `-r`, `-R`, a short cluster containing either (`-rf`, `-fr`, `-Rf`), or
+    `--recursive` and its unambiguous abbreviations.
+
+    Clustering needs no value-flag stop list the way grep's `-P` does: none of
+    `rm`'s short options takes a value, so every letter in a cluster is a flag
+    and `r` anywhere in one means recursive."""
+    if token.startswith("--"):
+        return (
+            len(token) >= _RM_LONG_RECURSIVE_MIN
+            and _RM_LONG_RECURSIVE.startswith(token)
+        )
+    if not token.startswith("-") or token == "-":
+        return False
+    return any(ch in "rR" for ch in token[1:])
+
+
+def recursive_rm_operands(tokens):
+    """The paths a recursive `rm` in one already-split command would delete, or
+    `[]` when this command is not a recursive `rm`.
+
+    `_in_command_position` is what keeps `grep -rn "rm -rf" .claude/` and
+    `git commit -m "drop rm -rf from the script"` from reading as deletions —
+    in both, `rm` is an argument, and in the second it is not even a token of
+    its own. Everything after a `--` terminator is an operand, including a path
+    that begins with a dash."""
+    for index, tok in enumerate(tokens):
+        if _program_name(tok) != "rm":
+            continue
+        if not _in_command_position(tokens, index):
+            continue
+        recursive = False
+        operands = []
+        end_of_flags = False
+        for arg in tokens[index + 1:]:
+            if end_of_flags:
+                operands.append(arg)
+            elif arg == "--":
+                end_of_flags = True
+            elif arg.startswith("-") and arg != "-":
+                recursive = recursive or is_recursive_rm_flag(arg)
+            else:
+                operands.append(arg)
+        if recursive and operands:
+            return operands
+    return []
+
+
+def tracked_file_count(path, project_dir):
+    """How many git-tracked files live AT or UNDER `path`.
+
+    Deliberately not `tracked_source_paths`: that filters to source suffixes,
+    and the files actually lost here were `.json` fixtures. A delete does not
+    care what a reviewer reads as a diff — every tracked file it removes counts.
+
+    Asked as TWO pathspecs, which is not redundancy. Git's directory-prefix
+    rule — the thing that makes the bare path `fixtures/.codeyam` match every
+    file beneath it — applies only to a LITERAL pathspec. The moment the
+    operand carries a glob the pattern is fnmatched instead, and
+    `crates/*/.codeyam` matches no file at all, because the real entries carry
+    a `/editor.json` tail the pattern does not cover. That is exactly the shape
+    that would wipe the fixture out of every crate at once, so it cannot be the
+    one shape that slips through. Appending `/*` gives the glob case a pattern
+    that does match, and costs the literal case nothing (`ls-files` reports
+    each index entry once however many pathspecs select it).
+
+    Returns 0 when the path escapes the repo, is not pathspec-safe, or git
+    cannot answer. Those are all "this guard has nothing to say", not "this is
+    safe": a path outside the repo is not git's to protect, and a guard that
+    blocked on an unanswerable question would refuse ordinary `rm -rf /tmp/…`
+    and `rm -rf node_modules` on every project where git happens to be
+    unavailable.
+
+    Two shapes are statically undecidable and therefore NOT covered, by
+    construction rather than by oversight: an unexpanded variable
+    (`rm -rf "$BUILD_DIR"`) and a `find … -exec rm -rf {} +` placeholder. In
+    both the operand names no path until the shell or `find` produces one, and
+    refusing on unknowability would refuse the legitimate majority of both
+    shapes. This is the same best-effort boundary `_has_inplace_editor` and
+    `_uses_pcre_grep` draw."""
+    rel = _repo_relative(path, project_dir)
+    if rel is None or not _PATHSPEC_SAFE.match(rel):
+        return 0
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "-z", "--", rel, f"{rel.rstrip('/')}/*"],
+            cwd=project_dir,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except Exception:
+        return 0
+    if result.returncode != 0:
+        return 0
+    return len([p for p in result.stdout.split("\0") if p])
+
+
+def tracked_recursive_rm(command, project_dir):
+    """`(path, tracked_count)` for the first recursive-`rm` target in `command`
+    that git tracks, else None. `tracked_count` is None when the segment could
+    not be tokenized.
+
+    Scoped per split command, so a delete buried in an `&&` chain is seen on its
+    own, and re-entered for a `bash -c` payload — the two shapes that would
+    otherwise hide the operand inside a single opaque token.
+
+    Fails closed on a malformed quote, but only for a segment that textually
+    looks like a recursive `rm`. The blanket fail-closed its sibling predicates
+    use (`_has_inplace_editor` returns True for any untokenizable command) would
+    refuse every mistyped quote in every session; narrowing it to the shape this
+    guard is about keeps the evasion path shut without that cost."""
+    for segment in _split_commands(command):
+        try:
+            tokens = shlex.split(segment, posix=True)
+        except ValueError:
+            if _RM_TEXTUAL.search(segment) and _RM_TEXTUAL_RECURSIVE.search(segment):
+                return (segment.strip(), None)
+            continue
+        for operand in recursive_rm_operands(tokens):
+            count = tracked_file_count(operand, project_dir)
+            if count:
+                return (operand, count)
+        payload = _shell_c_payload(tokens)
+        if payload is not None:
+            nested = tracked_recursive_rm(payload, project_dir)
+            if nested:
+                return nested
+    return None
+
+
+def recursive_rm_refusal(path, tracked_count):
+    """The `(reason, next_action)` pair for a refused recursive delete.
+
+    Names the path, the count, and `git rm -r` — the count is what turns "this
+    looked like build output" into a fact the author can check, and `git rm` is
+    the same deletion in a form that is staged, reviewable, and undoable."""
+    if tracked_count is None:
+        return (
+            f"this command could not be parsed, and it looks like a recursive "
+            f"`rm`: `{path}`. The hook cannot tell whether it would delete "
+            f"git-tracked files, and a recursive delete is not recoverable from "
+            f"the transcript.",
+            "fix the quoting and re-run, so the target can be checked against "
+            "git. If the delete is genuinely aimed at tracked files, run "
+            "`git rm -r <path>` instead.",
+        )
+    return (
+        f"this command recursively deletes `{path}`, which holds "
+        f"{tracked_count} git-tracked file(s). Tracked files are not build "
+        f"output — a directory that looks like cache can be a committed test "
+        f"fixture (`crates/*/.codeyam/` is exactly that, while `.codeyam/` at "
+        f"the repo root is real internal state). Nothing surfaces the loss "
+        f"until a later `git status`.",
+        f"if you mean to delete it, run `git rm -r {path}` — the same removal, "
+        f"staged and reversible (`git restore --staged {path}` then "
+        f"`git checkout -- {path}`) and visible in review. If you meant to clear "
+        f"generated output, name the untracked path directly; untracked paths "
+        f"(`target/`, `node_modules/`, scratch dirs) are not guarded.",
     )
 
 
@@ -1414,6 +2123,10 @@ def inspector_nudge(command):
     whose question genuinely has no inspector. It matters more under the
     wider trigger, not less — a broader net means more false positives,
     which is an argument for keeping the instrument soft."""
+    # Heredoc bodies are elided for the same reason the gates elide them: a
+    # commit message that MENTIONS `.codeyam/glossary.json` is prose, and
+    # nudging it would point at an inspector for a store nothing is reading.
+    command = elide_heredoc_bodies(command)
     if is_inspector_invocation(command):
         return None
     if not is_read_shaped_command(command):
@@ -1438,70 +2151,202 @@ def inspector_nudge(command):
     return None
 
 
+def classify_write_target(file_path, project_dir):
+    """How the slug gate should treat a Write/Edit target: `("outside", None)`,
+    `("editor-state", rel)`, or `("code", rel)`.
+
+    Two bugs of the same shape lived in the substring test this replaces.
+
+    A path OUTSIDE the repository is not a code change at all, so the slug gate
+    has nothing to say about it. It used to refuse one anyway: at
+    `slug=commit`, `Write <scratchpad>/commit-msg.txt` exited 2 while
+    `cat > <scratchpad>/commit-msg.txt <<'EOF'` — the same write, through the
+    shell — was allowed. Agents took the second path and said so. That inverts
+    the very property CLAUDE.md's scripted-rewrite ban exists to protect: a
+    `Write` shows its content as a structured field in the transcript, a
+    heredoc makes a reviewer reconstruct it from a shell string. The
+    neighbouring rule already carves out temp paths and advertises it
+    ("Writing to an untracked file, to /tmp, or to the scratchpad is
+    unaffected"); this gate made that sentence false.
+
+    And because the escape was a SUBSTRING (`"/.codeyam/" in file_path`), it
+    keyed on a LEADING SLASH: `Write .codeyam/editor.json` was refused while
+    `Write /x/.codeyam/editor.json` was allowed. Comparing a normalized
+    repo-relative prefix is what makes the relative spelling — the one actually
+    used — work.
+
+    Repo-membership, not tracked-ness, is the predicate: a brand-new source
+    file at a gate slug IS a code change."""
+    rel = _repo_relative(file_path, project_dir)
+    if rel is None:
+        return ("outside", None)
+    normalized = rel.replace("\\", "/")
+    if normalized.startswith((".codeyam/", ".claude/")):
+        return ("editor-state", normalized)
+    return ("code", normalized)
+
+
+def preview_marker_state(marker_path, step):
+    """`(preview_ok, observed)` for the preview gate — whether the marker at
+    `marker_path` matches `step`, and a human-readable account of what was
+    actually found there.
+
+    The `observed` half is the point. The gate compares a marker step to the
+    current step and used to name neither, so the only way to debug a refusal
+    was to read this source — which is what agents did. The three not-ok
+    states are genuinely different problems (never shown, corrupt, shown at a
+    different step) and want different responses."""
+    if not os.path.exists(marker_path):
+        return (False, "file absent")
+    try:
+        with open(marker_path, "r") as f:
+            marker = json.load(f)
+    except Exception:
+        return (False, "unreadable")
+    found = marker.get("step")
+    return (found == step, f"step {found!r}")
+
+
+def describe_call(tool_name, tool_input):
+    """A short, stable identifier for the call being judged.
+
+    Folded into the repeat fingerprint so two DIFFERENT calls refused under one
+    rule are not reported as "this exact call was refused before" — six of the
+    eleven block sites used to pass only the slug, so three distinct `grep -P`
+    commands escalated to a 3x repeat notice that was simply false."""
+    if tool_name == "Bash":
+        return f"Bash: {tool_input.get('command', '')}"
+    file_path = tool_input.get("file_path", "")
+    return f"{tool_name}: {file_path}" if file_path else tool_name
+
+
 def main():
     """Claude Code PreToolUse hook entry point: read the current
     editor step from `.codeyam/editor-step.json` and either allow or
     block the in-flight tool call based on the active step's rules."""
+    global _EXPLAIN_MODE
+    # Set from argv ONCE, before any rule runs, and never read from the
+    # environment or the event — see `_EXPLAIN_MODE`.
+    _EXPLAIN_MODE = explain_requested(sys.argv[1:])
+
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
 
     # Read the tool use event from stdin
     event = read_event()
     if event is None:
-        sys.exit(0)
+        allow("no parseable PreToolUse event on stdin")
 
     tool_name = event.get("tool_name", "")
     tool_input = event.get("tool_input", {})
+    call = describe_call(tool_name, tool_input)
 
     # Scripted-source-rewrite guard. Unlike every other rule here this one is
     # neither step-scoped nor editor-mode-scoped — the ban on machine-rewriting
     # tracked source holds in every session — so it fires before the
     # `CODEYAM_EDITOR_ACTIVE` short-circuit below.
     if tool_name == "Bash":
-        rewrite_target = scripted_source_rewrite_target(
-            tool_input.get("command", ""), project_dir
-        )
-        if rewrite_target:
-            reason, next_action = scripted_rewrite_refusal(rewrite_target)
+        found = scripted_rewrite_stage(tool_input.get("command", ""), project_dir)
+        if found:
+            rewrite_target, stage, stage_count, append_only = found
+            reason, next_action = scripted_rewrite_refusal(rewrite_target, append_only)
+            evidence = resolved_context(project_dir, "git ls-files")
+            compound = compound_stage_evidence(stage, stage_count)
+            if compound:
+                evidence = f"{evidence}; {compound}"
             block(
                 project_dir,
                 "scripted-rewrite",
                 reason,
                 next_action,
                 detail=rewrite_target,
+                evidence=evidence,
+                call=call,
             )
 
     # Piped-gating-command guard. Neither step-scoped nor editor-mode-scoped,
-    # for the same reason as the guard above: the no-piping rule holds in every
-    # session. It also has to fire before the "always allow codeyam-editor
-    # editor" short-circuit further down, which would otherwise exit 0 on the
-    # very commands this refuses.
+    # for the same reason as the guard above: the rule holds in every session.
+    # It also has to fire before the "always allow codeyam-editor editor"
+    # short-circuit further down, which would otherwise exit 0 silently and
+    # skip the pointer.
+    #
+    # This is an ADVISORY now, not a refusal. Every gating subcommand runs
+    # inside the liveness bracket, which makes a pipe cost the terminal display
+    # and the shell exit code — both recoverable from the two sidecars the
+    # notice names — instead of costing the command. Where the bracket's capture
+    # does not exist, the original harms are all still live and so is the block.
     if tool_name == "Bash":
-        piped = piped_gating_command(tool_input.get("command", ""))
+        command = tool_input.get("command", "")
+        piped = piped_gating_command(command)
         if piped:
-            reason, next_action = piped_gating_refusal(piped)
-            block(project_dir, "piped-gating-command", reason, next_action, detail=piped)
+            if not _capture_available():
+                block(
+                    project_dir,
+                    "piped-gating-command",
+                    f"this pipes `{cli_command()} editor {piped}` into a filter "
+                    f"on a host with no stream capture, so the command writes "
+                    f"straight to your pipe. A filter that stops reading kills "
+                    f"it mid-run, and there is no transcript or status document "
+                    f"to recover the output or the verdict from.",
+                    f"run it BARE and read the verdict off its own terminal line "
+                    f"(`CODEYAM_VERIFY_BUILD: PASS|FAIL`, the "
+                    f"`CODEYAM_CMD_COMPLETE` `status`). `| tee out.txt` is the "
+                    f"one filter that costs nothing.",
+                    detail=piped,
+                    evidence=(
+                        f"`{piped}` is in the gating-subcommand set; "
+                        f"os.name={os.name!r} has no `#[cfg(unix)]` stream "
+                        f"capture; `| tee` not present"
+                    ),
+                    call=call,
+                )
+            notice("piped-gating-command", piped_gating_notice(piped))
+
+    # Recursive-delete guard. Neither step-scoped nor editor-mode-scoped, for
+    # the same reason as the two above: `rm -rf` over tracked files is a loss in
+    # any session, and the damage does not surface until a later `git status`.
+    if tool_name == "Bash":
+        deletion = tracked_recursive_rm(tool_input.get("command", ""), project_dir)
+        if deletion:
+            target, tracked_count = deletion
+            reason, next_action = recursive_rm_refusal(target, tracked_count)
+            block(
+                project_dir,
+                "recursive-delete",
+                reason,
+                next_action,
+                detail=target,
+                evidence=(
+                    f"{resolved_context(project_dir, 'git ls-files')}; "
+                    + (
+                        "segment could not be tokenized"
+                        if tracked_count is None
+                        else f"`git ls-files -- {target}` reports {tracked_count} tracked file(s)"
+                    )
+                ),
+                call=call,
+            )
 
     # Every remaining rule is a workflow-step gate — only enforce in editor mode
     if not os.environ.get("CODEYAM_EDITOR_ACTIVE"):
-        sys.exit(0)
+        allow("CODEYAM_EDITOR_ACTIVE unset — step gates do not apply")
 
     state_path = os.path.join(project_dir, ".codeyam", "editor-step.json")
 
     # No state file = not in editor mode, allow everything
     if not os.path.exists(state_path):
-        sys.exit(0)
+        allow(f"no step state at {state_path} — not in editor mode")
 
     try:
         with open(state_path, "r") as f:
             state = json.load(f)
     except (json.JSONDecodeError, IOError):
-        sys.exit(0)  # Can't read state, don't block
+        allow(f"step state at {state_path} is unreadable — degrading to allow")
 
     step = state.get("step", 0)
     slug = state.get("slug") or ""
 
     if not step:
-        sys.exit(0)
+        allow(f"step state at {state_path} carries no step number")
 
     metadata = load_step_metadata(project_dir)
     mode, mode_table = resolve_mode_table(state, metadata)
@@ -1541,7 +2386,19 @@ def main():
             reason, next_action = _test_run_block_message(
                 state, slug, no_test_slugs.get(slug)
             )
-            block(project_dir, "test-run", reason, next_action, detail=slug)
+            kind = (no_test_slugs.get(slug) or {}).get("kind") or "unclassified"
+            block(
+                project_dir,
+                "test-run",
+                reason,
+                next_action,
+                detail=slug,
+                evidence=(
+                    f"{resolved_context(project_dir, state_path)}; slug `{slug}` "
+                    f"(kind {kind}) is not in testRunSlugs"
+                ),
+                call=call,
+            )
 
         # Inspector nudge. Emitted on stderr and then FALLEN THROUGH from
         # — never `sys.exit`ed on — so the command still runs and every
@@ -1552,35 +2409,26 @@ def main():
         if nudge:
             print(nudge, file=sys.stderr)
 
-        if (
-            "codeyam-editor editor" in command
-            or "codeyam-editor:editor" in command
-            or "codeyam-editor-dev editor" in command
-            or "codeyam-editor-dev:editor" in command
-        ):
-            sys.exit(0)
+        # Position-aware, unlike the substring test it replaces: a command that
+        # merely MENTIONS the CLI — most of all inside a quoted commit message —
+        # used to short-circuit the commit, push, code-change and PCRE gates
+        # below. See `invokes_codeyam_editor`.
+        if invokes_codeyam_editor(command):
+            allow("runs a `codeyam-editor editor` subcommand")
 
     # Always allow reading
     if tool_name in ("Read", "Glob", "Grep", "WebFetch", "WebSearch", "Agent"):
-        sys.exit(0)
+        allow(f"{tool_name} is a read-only tool")
 
     # Always allow task management
     if tool_name in ("TaskCreate", "TaskUpdate", "TaskList", "TaskGet", "Skill", "ToolSearch"):
-        sys.exit(0)
+        allow(f"{tool_name} is workflow/task management")
 
     # Gate AskUserQuestion at preview-required slugs — require preview marker first
     if tool_name == "AskUserQuestion":
         if slug and slug in preview_required_slugs:
             marker_path = os.path.join(project_dir, ".codeyam", "preview-shown.json")
-            preview_ok = False
-            if os.path.exists(marker_path):
-                try:
-                    with open(marker_path, "r") as f:
-                        marker = json.load(f)
-                    if marker.get("step") == step:
-                        preview_ok = True
-                except Exception:
-                    pass
+            preview_ok, observed = preview_marker_state(marker_path, step)
 
             if not preview_ok:
                 hint = _preview_hint(mode, project_dir)
@@ -1589,11 +2437,22 @@ def main():
                     "preview-required",
                     f"This step ({_slug_label(state, slug)}) requires showing "
                     f"the live preview before asking the user for confirmation.",
-                    f"run `{hint}`, then call AskUserQuestion.",
+                    f"run `{hint}`, then call AskUserQuestion. If you ALREADY "
+                    f"ran it and it reported success: check whether you piped "
+                    f"it into `head`/`tail`/`grep`. That closes the pipe early "
+                    f"and SIGPIPEs the command, so the capture and the "
+                    f"screenshots succeed but the marker write is lost — the "
+                    f"one failure whose every visible signal says it worked. "
+                    f"Re-run it bare (no pipe).",
                     detail=slug,
+                    evidence=(
+                        f"{resolved_context(project_dir, marker_path)}; marker "
+                        f"holds {observed}, this step is {step}"
+                    ),
+                    call=call,
                 )
 
-        sys.exit(0)
+        allow("AskUserQuestion with the preview requirement satisfied")
 
     # Check Write/Edit to non-.codeyam files
     if tool_name in ("Write", "Edit"):
@@ -1614,6 +2473,8 @@ def main():
                     "<link rel=\"preconnect\"> + <link href> pair), then re-apply "
                     "this edit without the `@import url(...)` line.",
                     detail=file_path,
+                    evidence=f"`@import url` found in the {tool_name} payload for {file_path}",
+                    call=call,
                 )
 
         # A line-budgeted file is checked BEFORE the `.claude/` short-circuit
@@ -1631,11 +2492,20 @@ def main():
                 reason,
                 next_action,
                 detail=rel,
+                evidence=(
+                    f"{resolved_context(project_dir, rel)}; budget {limit} lines, "
+                    f"currently {current}, this edit makes it {projected}"
+                ),
+                call=call,
             )
 
-        # Always allow .codeyam/ and .claude/ files (editor state)
-        if "/.codeyam/" in file_path or "/.claude/" in file_path:
-            sys.exit(0)
+        # Target-path model, replacing a pair of substring tests — see
+        # `classify_write_target` for the two bugs that lived here.
+        placement, normalized_target = classify_write_target(file_path, project_dir)
+        if placement == "outside":
+            allow(f"{file_path} resolves outside {project_dir} — not a code change")
+        if placement == "editor-state":
+            allow(f"{normalized_target} is editor state, writable at every slug")
         # Empty allowlist means the cache is missing/stale (e.g. a v1
         # cache after a binary downgrade) — degrade to "allow" rather
         # than brick the session. An empty `slug` means the state file
@@ -1675,6 +2545,12 @@ def main():
                 f"then make this edit.",
                 reference=f"Code changes are allowed at slugs: {allowed}.",
                 detail=f"{slug}\x00{file_path}",
+                evidence=(
+                    f"{resolved_context(project_dir, state_path)}; target "
+                    f"resolves to `{normalized_target}` INSIDE the repo; slug "
+                    f"`{slug}` is not in codeChangeSlugs"
+                ),
+                call=call,
             )
 
     # Check Bash commands for git commit/push
@@ -1698,9 +2574,16 @@ def main():
                 "developer's laptop. The rule applies on every platform.",
                 "use the Grep tool instead — it wraps ripgrep and honors "
                 "PCRE syntax on both platforms.",
+                evidence=f"a PCRE flag was found on a `grep` in command position in: {command}",
+                call=call,
             )
 
-        if "git commit" in command:
+        # Each of these three used to be a bare `"git <verb>" in command`
+        # substring test, so a mere MENTION of the verb was refused —
+        # `echo "remember to git commit later"` at a plan slug, and any commit
+        # whose own message discussed committing. `invokes_git_subcommand`
+        # asks whether the verb is what the command RUNS.
+        if invokes_git_subcommand(command, "commit"):
             if slug and commit_slugs and slug not in commit_slugs and not staged_paths_are_plans_only(project_dir):
                 allowed = ", ".join(sorted(commit_slugs))
                 block(
@@ -1709,13 +2592,18 @@ def main():
                     f"git commit is only allowed at slug(s): {allowed}. "
                     f"You are at {_slug_label(state, slug)}.",
                     "keep following the workflow — `codeyam-editor editor advance` "
-                    "until the `commit` slug, which commits for you. To read what "
+                    f"until the {_commit_gate_phrase(commit_slugs)} slug, which commits for you. To read what "
                     "a later slug requires without moving the workflow pointer, run "
                     "`codeyam-editor editor step --show --slug <slug>`.",
                     reference="Plan-file commits (.codeyam/plans/*.md) are allowed at any step.",
                     detail=slug,
+                    evidence=(
+                        f"{resolved_context(project_dir, state_path)}; `git commit` "
+                        f"is in command position; staged set is not plans-only"
+                    ),
+                    call=call,
                 )
-        elif "git add" in command:
+        elif invokes_git_subcommand(command, "add"):
             if (
                 slug
                 and commit_slugs
@@ -1729,14 +2617,20 @@ def main():
                     "git-add",
                     f"git add is only allowed at slug(s): {allowed}. "
                     f"You are at {_slug_label(state, slug)}.",
-                    "leave staging to the workflow — the `commit` slug runs "
+                    f"leave staging to the workflow — the {_commit_gate_phrase(commit_slugs)} slug runs "
                     "`codeyam-editor editor stage-feature`, which stages this for you.",
                     reference="Plan-file commits (.codeyam/plans/*.md) are allowed at any step, "
                     "and `git add` is permitted while a rebase/merge is paused mid-operation.",
                     detail=slug,
+                    evidence=(
+                        f"{resolved_context(project_dir, state_path)}; `git add` is in "
+                        f"command position; paths are not plans-only; no rebase/merge "
+                        f"is paused"
+                    ),
+                    call=call,
                 )
 
-        if "git push" in command:
+        if invokes_git_subcommand(command, "push"):
             if slug and push_slugs and slug not in push_slugs:
                 allowed = ", ".join(sorted(push_slugs))
                 block(
@@ -1747,10 +2641,15 @@ def main():
                     "keep advancing to the `push` slug, which runs "
                     "`codeyam-editor editor push` with the queue held.",
                     detail=slug,
+                    evidence=(
+                        f"{resolved_context(project_dir, state_path)}; `git push` is "
+                        f"in command position; slug `{slug}` is not in pushSlugs"
+                    ),
+                    call=call,
                 )
 
     # Allow everything else
-    sys.exit(0)
+    allow("no gate matched this call")
 
 
 if __name__ == "__main__":

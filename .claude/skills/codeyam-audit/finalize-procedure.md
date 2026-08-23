@@ -149,10 +149,48 @@ first failure:
 codeyam-editor editor audit --format json
 ```
 
-Read every `failures[]` entry and the `attribution[]` array together. Group
-findings by invariant id and by the commit that introduced them. Fixing blind,
-one failure at a time, wastes finalize cycles — each full `session-finalize`
-is the expensive loop you are trying to run *once*.
+Read every `failures[]` entry and the `attribution[]` array together. Each
+attribution row is `{invariantId, item, introducedIn, causedByHead,
+causedByBranchDrift, causedByForeignClone}` and joins back to a finding on
+`(invariantId, item)`. Rows appear only for items whose introducing commit
+resolved, so an item with no row is "not attributable", not "attributed to
+nothing" — the same thing the text renderer means when it omits the `★`
+marker. Note `--findings-only` deliberately omits the array; the default
+`--format json` is what carries it.
+
+**Read `cacheFreshness` BEFORE you quote the user a number.** The same
+document carries a `cacheFreshness` sibling —
+`{green, stale, red, nonGreenPartitions[], cacheDependentFindings}` — and it
+is present on every projection (`--format json`, `--findings-only`,
+`--summary-only --format json`), green or not, so its absence means an old
+binary, never a green cache. When `nonGreenPartitions` is non-empty, the
+finding count is an **upper bound, not a debt estimate**:
+`cacheDependentFindings` of the total are derived from runner output or
+coverage those partitions produce, and they dissolve on a refresh. Measured
+on `editor-improvements-73` (2026-08-17): 39 findings on a cold cache — 112
+`REGISTRY_ENTRY_RUNNER_OUTPUT_EMPTY`, 114 `REGISTRY_TEST_NOT_WIRED`, 22
+`PLATFORM_GATE_MISMATCH`, 106 `UNCOVERED_GLOSSARY_ENTRY`, 111
+`GLOSSARY_ENTRY_LACKS_TEST` — became **5** after a flag-free `refresh-tests`
+and nothing else.
+
+So: if `nonGreenPartitions` is non-empty, warm the cache with
+`codeyam-editor editor refresh-tests` and re-run the audit before sizing the
+run in front of the user. Quoting the cold number mis-prices the spend the
+user is being asked to authorize — which is the whole point of surfacing a
+count here. The text renderer says the same thing in a banner at the top and
+bottom of the body; `cacheFreshness` is the machine-readable form so you
+never have to parse the prose.
+
+Budget for it: resolving attribution walks `git log` per file touched by a
+finding, so on a large repo with accumulated drift this run takes minutes,
+not seconds — the same cost `--format text` and the `advance` audit gate
+already pay. It is a backgrounded long command like any other; wait on the
+completion sentinel rather than assuming it hung. When you only need the
+verdict and the missing-\* arrays, `--findings-only` is the fast path.
+
+Group findings by invariant id and by the commit that introduced them. Fixing
+blind, one failure at a time, wastes finalize cycles — each full
+`session-finalize` is the expensive loop you are trying to run *once*.
 
 ---
 
@@ -167,6 +205,12 @@ revert:
 - `DEPENDENCY_GRAPH_STALE` / `PARTITION_NEEDS_REFRESH` staleness-sweep
   warnings — deferred work, discharged by `session-finalize`'s reconcile, not
   something to fix by hand mid-session.
+- Every finding under a non-green partition — see `cacheFreshness` in step 2.
+  `REGISTRY_ENTRY_RUNNER_OUTPUT_EMPTY`, `REGISTRY_TEST_NOT_WIRED`,
+  `PLATFORM_GATE_MISMATCH`, `UNCOVERED_GLOSSARY_ENTRY` and
+  `GLOSSARY_ENTRY_LACKS_TEST` are computed from runner emission, so a cold
+  cache manufactures them by the hundred. Warm the cache; do not fix them by
+  hand.
 
 > GOTCHA — **a git hook invoking a flag the binary doesn't have.** When a
 > commit or push dies on something like `error: unexpected argument '--check'
