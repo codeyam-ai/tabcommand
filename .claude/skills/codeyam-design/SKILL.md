@@ -106,16 +106,30 @@ Every slot — anchored, exploratory, off-catalog — threads tone / palette / t
 
 ## Step 3 — declare the count, then generate N mockups across the tiers
 
-**Resolve the control port FIRST — never hardcode 14199.** Every API call below (the tab-switch POST, the Step 3b lint GET, the Step 5 tab-switch, the Step 6 selection POST) must target the project's *live* editor control port, not a fixed `14199`. Under the Project Launcher the questionnaire's editor runs on a **launcher-allocated dynamic port** recorded in `.codeyam/server-state.json`; `14199` is the launcher's *selector* SPA, which returns the SPA shell (**HTTP 200 + HTML**) for any `/api/*` route — so a call aimed there silently no-ops or reports a phantom success. Resolve the port once, before the first API call, and reuse it everywhere. Mirror the precedence the rest of the editor uses (`server-state.json` `controlPort` → `CODEYAM_CONTROL_PORT` env → `14199` default) with a plain file read — do **not** call any `codeyam-editor editor …` command (forbidden during design):
+**Resolve the control port FIRST — never hardcode 14199.** Every API call below (the tab-switch POST, the Step 3b lint GET, the Step 5 tab-switch, the Step 6 selection POST) must target the project's *live* editor control port, not a fixed `14199`. Resolve it once, before the first API call, and reuse it everywhere.
+
+**The project's own `.codeyam/editor.json` `proxy.controlPort` is the answer.** It is a per-project value derived from the project directory, it is committed, and the launcher now prefers it when spawning an editor — so it is stable across restarts and is what a project comes back on. Read it first, letting the gitignored `.codeyam/editor.local.json` override it (that is the layering the rest of the editor uses). `.codeyam/server-state.json` is a *confirmation* that a server is currently running on that port, not the source of the port: it is written only when a project is opened and is **deleted on graceful shutdown**, so it is absent exactly when you are looking for a server that is not up. Use it to check liveness, never to answer "what port do I open?". Use a plain file read — do **not** call any `codeyam-editor editor …` command (forbidden during design):
 
 ```bash
-# Resolve the live editor control port — NOT a hardcoded 14199.
-PORT=$(python3 -c "import json,os; \
-print(json.load(open('.codeyam/server-state.json')).get('controlPort') \
-or os.environ.get('CODEYAM_CONTROL_PORT') or 14199)" 2>/dev/null || echo 14199)
+# Resolve the control port — NOT a hardcoded 14199.
+# Precedence: editor.local.json > editor.json > server-state.json > env > 14199.
+PORT=$(python3 -c "import json,os
+def get(p,*k):
+    try:
+        v=json.load(open(p))
+    except Exception:
+        return None
+    for x in k:
+        if not isinstance(v,dict): return None
+        v=v.get(x)
+    return v
+print(get('.codeyam/editor.local.json','proxy','controlPort')
+   or get('.codeyam/editor.json','proxy','controlPort')
+   or get('.codeyam/server-state.json','controlPort')
+   or os.environ.get('CODEYAM_CONTROL_PORT') or 14199)" 2>/dev/null || echo 14199)
 ```
 
-Use `http://localhost:$PORT` in every `curl` below. If any design-API response comes back as the SPA shell (an HTML body starting with `<!DOCTYPE`/`<html` instead of the expected JSON), the resolved port is pointing at the launcher selector — re-resolve, and if it still returns HTML, ask the user for the editor port. Never report success on a response you didn't confirm is JSON.
+Use `http://localhost:$PORT` in every `curl` below. **A wrong port now announces itself:** an `/api/*` route that is not served returns `404` with a JSON body carrying `role` — `"launcher"` if you reached the cross-project selector, `"editor"` (plus `projectDir`) if you reached a *different* project's editor. Read `role` and re-resolve; if the port still does not answer as this project's editor, ask the user for it. An HTML body starting with `<!DOCTYPE`/`<html` from an `/api/*` call means you are talking to a build that predates that 404 — treat it exactly the same way. Never report success on a response you didn't confirm is JSON.
 
 **Write the target manifest FIRST, before any HTML.** The UI uses this to render placeholder cards for every upcoming slot so the right pane fills in immediately. Write `.codeyam/design/project_mockups/target.json` with exactly:
 
@@ -257,6 +271,18 @@ For **fresh redesign slots**, weigh the rating and comment to decide whether to 
 **Slot/file hygiene when swapping systems or tiers.** The numeric prefix (`NN-`) must stay so the card holds its slot, but the stem changes when the system changes (or becomes `offcatalog`). When you change a slot's system or tier, **delete the old `NN-*.html` before writing the new one** — the UI matches a slot by `NN-` prefix and would show two cards for one slot if both files exist.
 
 Keep all guidance about placeholder imagery, inline-only assets, and atomic writes — these apply to tweaked and redesigned mockups alike. After regenerating, post a short note summarizing what was kept/tweaked vs. redesigned, referencing the specific feedback it addressed. The preview is already on the Mockups tab, so no further tab-switch here.
+
+## Step 5b: tweak when asked
+
+A message that starts with `Tweak:` comes from the Plan tab's "Tweak these designs" button while the designs are open in the preview. It is a conversational change to the designs already on screen, not a new round. It ends with a note naming the round, each design by the number shown on its card, the selected design, and the directory the files live in.
+
+- **Resolve every reference against that note.** "The second one", "the slate one", "the selected one" each map to a real file. If a reference is genuinely ambiguous, ask one short question before writing anything.
+- **Change only what the request names, in place.** Keep each edited file's `NN-` prefix and tier. Leave every other design untouched: do not discard or regenerate them, and do not ask which to keep. That question belongs to the `Iterate:` flow above, not this one.
+- **A request that applies to no design in particular** ("make the accent warmer") applies to every design in the round.
+- **A request that combines designs** ("the first one's layout with the third's palette") edits the design it names as the base. If it names none, ask which one to change.
+- **An empty request** means the user has not said what to change yet. Ask, and wait.
+- Switch the preview to the Mockups tab with the same `editor-design-active-tab` POST as Step 5 before writing, and keep the atomic-write, inline-asset, and lint rules.
+- Afterwards, reply with one line per changed design naming what changed, then invite the next tweak. **A tweak never locks a design in.** Selection stays with Step 6.
 
 ## Step 6 — handle the selection
 

@@ -166,67 +166,190 @@ _REPEAT_WINDOW_SEC = 600
 # state — an unbounded file would grow for the life of the branch.
 _REFUSAL_LOG_MAX = 40
 
+# How many times a RULE must have been refused — ever, across sessions and
+# across differing arguments — before its block announces itself as a
+# recurring trap. Three, because the measured shape is one refusal per
+# session (the journal-timestamp guard fired in five separate sessions,
+# exactly once in each), so by the third the agent is rediscovering
+# something the project already documents.
+_RULE_RECURRENCE_MIN = 3
 
-def _record_refusal(project_dir, fingerprint, now=None):
-    """Record `fingerprint` and return how many times it has been refused
-    inside the window, INCLUDING this one. 1 means first refusal.
+# Cap on the per-rule aggregate. Unlike `entries` this half IS durable — it
+# has to outlive the session to see a cross-session repeat at all — so what
+# bounds it is the hook's closed set of rule names, not a time window.
+_RULE_LOG_MAX = 64
+
+
+def _ordinal(n):
+    """`3` -> "3rd". Pure, so the 11/12/13 exceptions are assertable
+    without emitting a refusal."""
+    if n % 100 in (11, 12, 13):
+        suffix = "th"
+    else:
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+    return f"{n}{suffix}"
+
+
+def _capped_rules(rules):
+    """The per-rule aggregate trimmed to the most recently seen rules.
+
+    The map is keyed on the hook's own closed set of rule names, so it is
+    already small in practice. The cap makes boundedness a property of the
+    file rather than of the caller — a rule name that ever becomes dynamic
+    must not be able to grow this file for the life of the branch.
+    """
+    if len(rules) <= _RULE_LOG_MAX:
+        return rules
+    ordered = sorted(rules.items(), key=lambda kv: kv[1].get("lastAt", 0))
+    return dict(ordered[-_RULE_LOG_MAX:])
+
+
+def _load_refusal_log(path, now):
+    """Read the refusal log at `path` as `(entries, rules)`.
+
+    `entries` is the windowed fingerprint list with everything older than
+    `_REPEAT_WINDOW_SEC` already dropped; `rules` is the durable per-rule
+    aggregate. Malformed rows are discarded individually rather than
+    condemning the whole file, so one bad entry cannot reset every count.
+
+    A bare JSON list is the pre-`rules` shape. Reading it as `entries`
+    keeps an existing log's debounce working across the upgrade instead
+    of silently resetting every count to 1 the first time a refusal is
+    recorded by a newer hook.
+
+    Unreadable, absent, or corrupt degrades to `([], {})` — which renders
+    exactly today's message — because this only decorates a refusal that
+    is being emitted anyway and must never turn one into a crash.
+    """
+    try:
+        with open(path) as f:
+            loaded = json.load(f)
+    except Exception:
+        return [], {}
+
+    raw_entries = loaded.get("entries") if isinstance(loaded, dict) else loaded
+    raw_rules = loaded.get("rules") if isinstance(loaded, dict) else None
+
+    entries = []
+    if isinstance(raw_entries, list):
+        entries = [
+            e
+            for e in raw_entries
+            if isinstance(e, dict)
+            and isinstance(e.get("at"), (int, float))
+            and now - e["at"] <= _REPEAT_WINDOW_SEC
+        ]
+
+    rules = {}
+    if isinstance(raw_rules, dict):
+        rules = {
+            name: agg
+            for name, agg in raw_rules.items()
+            if isinstance(agg, dict) and isinstance(agg.get("count"), int)
+        }
+
+    return entries, rules
+
+
+def _record_refusal(project_dir, fingerprint, rule=None, now=None):
+    """Record a refusal and return `(call_count, rule_count)`, both
+    INCLUDING this one. `(1, 1)` means a first refusal on either tier.
+
+    Two tiers, two windows, deliberately. `call_count` counts this exact
+    `fingerprint` inside `_REPEAT_WINDOW_SEC` — the retry loop, where the
+    agent re-issues a call that was just refused. `rule_count` counts
+    `rule` with no time filter at all, because the mistake it exists to
+    catch has the opposite shape: it recurs ACROSS sessions, with
+    different arguments each time, so no windowed count of identical
+    calls can ever see it.
+
+    Durable and bounded at once. The `entries` half keeps its window and
+    its cap and stays a debounce hint; the per-rule aggregate is keyed on
+    the hook's closed set of rule names, so it is bounded by that set
+    rather than by how long the branch lives.
 
     Best-effort by construction: this only decorates a message that is
     being emitted anyway, so an unreadable or unwritable log must never
-    turn a clean refusal into a crash. Every failure path returns 1,
-    which renders exactly today's message.
+    turn a clean refusal into a crash. Every failure path returns
+    `(1, 1)`, which renders exactly today's message.
     """
     now = time.time() if now is None else now
     # The scripted-rewrite guard fires before the editor-mode short-circuit,
     # so this runs in non-codeyam repos too. Never CREATE `.codeyam/` as a
     # side effect of refusing something — no project state, no repeat log.
     if not os.path.isdir(os.path.join(project_dir, ".codeyam")):
-        return 1
+        return 1, 1
     path = os.path.join(project_dir, _REFUSAL_LOG)
-    entries = []
-    try:
-        with open(path) as f:
-            loaded = json.load(f)
-        if isinstance(loaded, list):
-            entries = [
-                e
-                for e in loaded
-                if isinstance(e, dict)
-                and isinstance(e.get("at"), (int, float))
-                and now - e["at"] <= _REPEAT_WINDOW_SEC
-            ]
-    except Exception:
-        entries = []
+    entries, rules = _load_refusal_log(path, now)
 
     count = sum(1 for e in entries if e.get("fingerprint") == fingerprint) + 1
     entries.append({"fingerprint": fingerprint, "at": now})
 
+    rule_count = 1
+    if rule:
+        prior = rules.get(rule)
+        rule_count = (prior["count"] if prior else 0) + 1
+        rules[rule] = {
+            "count": rule_count,
+            "firstAt": prior.get("firstAt", now) if prior else now,
+            "lastAt": now,
+        }
+
     try:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
-            json.dump(entries[-_REFUSAL_LOG_MAX:], f)
+            json.dump(
+                {
+                    "entries": entries[-_REFUSAL_LOG_MAX:],
+                    "rules": _capped_rules(rules),
+                },
+                f,
+            )
     except Exception:
         pass
-    return count
+    return count, rule_count
 
 
-def _repeat_notice(count):
+def _repeat_notice(count, rule_count=1):
     """The line that leads a repeated refusal, or "" on the first one.
+
+    Two tiers, and the exact-call one wins whenever both apply — it is
+    both the more specific and the more urgent statement.
 
     Agents re-issued identical refused calls within seconds — four in a
     row at `backend-journal`. A block that reads the same the second time
     gives no signal that the state has not moved, so the retry looks as
     reasonable as the first attempt. Saying so explicitly is the cheapest
     thing that distinguishes them.
+
+    The second tier catches the shape the first cannot see at all: one
+    refusal per session, across sessions, with different arguments each
+    time. Measured across 20 build sessions, guardrails refused 16 times
+    and `ALREADY REFUSED` rendered ZERO times, while the
+    journal-timestamp guard alone fired in five separate sessions. For an
+    agent meeting that rule for the first time the accusatory wording
+    would simply be false, and reusing it would train agents to discount
+    the line — so this tier is informational: the rule is a known
+    recurring trap, and the canonical path below is worth reading once
+    rather than rediscovering.
     """
-    if count < 2:
-        return ""
-    return (
-        f"ALREADY REFUSED ({count}x in the last "
-        f"{_REPEAT_WINDOW_SEC // 60} minutes): this exact call was refused "
-        f"before and nothing has changed since. Re-issuing it will be "
-        f"refused again — take the next valid action below instead.\n"
-    )
+    if count >= 2:
+        return (
+            f"ALREADY REFUSED ({count}x in the last "
+            f"{_REPEAT_WINDOW_SEC // 60} minutes): this exact call was refused "
+            f"before and nothing has changed since. Re-issuing it will be "
+            f"refused again — take the next valid action below instead.\n"
+        )
+    if rule_count >= _RULE_RECURRENCE_MIN:
+        return (
+            f"RECURRING GUARDRAIL ({_ordinal(rule_count)} time in this "
+            f"project): this rule has blocked a call {rule_count} times here, "
+            f"typically once each in a different session — so it is a known "
+            f"recurring trap rather than a first encounter. The next valid "
+            f"action below is the canonical path; it is worth reading once "
+            f"rather than rediscovering.\n"
+        )
+    return ""
 
 
 # Read-only explain mode, set ONCE from argv in `main`. Deliberately not an
@@ -316,16 +439,28 @@ def block(project_dir, rule, reason, next_action, reference="", detail="", evide
     approach. Including the evidence resets the counter when the consulted
     state genuinely changed, so a corrective action is no longer scolded as
     a repeat.
+
+    The reason carries a leading `guardrail, not a breakage —` clause because
+    the agent is not the only reader. Every one of these refusals is rendered
+    into the client's Build tab in red, and a bare `BLOCKED: this pipes a
+    gating command into a filter` reads to a watching human as the system
+    falling over, when it is in fact the system doing precisely its job. On
+    the sessions that were measured, 13 of 71 red results were guardrails
+    working exactly as designed. The clause is deliberately INSIDE the reason
+    rather than on a line above it, so the `BLOCKED: ` first-token contract
+    that agents and `is_recovery_contract` grep for is left untouched.
     """
-    message = f"BLOCKED: {reason}\nNext valid action: {next_action}"
+    message = f"BLOCKED: guardrail, not a breakage — {reason}\nNext valid action: {next_action}"
     if evidence:
         message = f"{message}\nEvidence: {evidence}"
     if reference:
         message = f"{message}\n{reference}"
     if _EXPLAIN_MODE:
         _emit_verdict("BLOCKED", rule, detail, message)
-    count = _record_refusal(project_dir, "\x00".join((rule, detail, call, evidence)))
-    print(f"{_repeat_notice(count)}{message}", file=sys.stderr)
+    count, rule_count = _record_refusal(
+        project_dir, "\x00".join((rule, detail, call, evidence)), rule
+    )
+    print(f"{_repeat_notice(count, rule_count)}{message}", file=sys.stderr)
     sys.exit(2)
 
 
@@ -689,8 +824,9 @@ _GREP_VALUE_FLAGS = frozenset("efmABCDd")
 # earned.
 #
 # The fourth is stronger and is why the `preview` family is listed: a SIDE
-# EFFECT A LATER GATE DEPENDS ON. `preview`, `preview-flow`, `preview-interact`,
-# and `show-results` each write the preview-shown marker
+# EFFECT A LATER GATE DEPENDS ON. `preview`, `preview-flow`, `preview-html`,
+# `preview-interact`, `preview-verify`, and `show-results` each write the
+# preview-shown marker
 # (`.codeyam/preview-shown.json`) that `present-interactive` reads before it will
 # allow an `AskUserQuestion`. A downstream `head -1` closes the pipe and SIGPIPEs
 # the process mid-command, so the loss is invisible: the capture succeeds, the
@@ -699,21 +835,39 @@ _GREP_VALUE_FLAGS = frozenset("efmABCDd")
 # precedes every stdout write in those commands, which makes the loss
 # unreachable — this entry is defense in depth, not the fix. `preview-nav`
 # writes no marker; it rides along so the rule is "don't pipe the preview
-# family" rather than a four-of-five exception nobody will remember.
+# family" rather than an exception nobody will remember. `preview-show` writes
+# none either, and that one is deliberate rather than incidental: it is
+# read-only on the live pane (it broadcasts no nav and captures nothing), so it
+# reports where a preview WOULD render without ever rendering one — marking off
+# it would open the gate on a frame no user ever saw.
+# `preview_gate::marker_writing_command_sources()` is the enforced twin of this
+# enumeration; a new writer must join both.
 _GATING_SUBCOMMANDS = frozenset(
     (
         "advance",
         "analyze-imports",
         "audit",
+        # The two terminal steps. Neither is slow in the ordinary case, and that
+        # is exactly why they belong here: each POSTs to a handler that shells
+        # out to git, so each CAN block, and each is the LAST command of its
+        # flow — so a block strands the whole cycle with nothing left to report
+        # it. Unwrapped, `feature-complete` hung for ten minutes emitting no
+        # heartbeat and no status document, which is indistinguishable from
+        # working. Membership here is what buys the liveness signal.
+        "feature-complete",
+        "plan-complete",
         "pre-commit-sync",
         "preview",
         "preview-flow",
         "preview-html",
         "preview-interact",
         "preview-nav",
+        "preview-verify",
         "push",
         "reconcile-registry",
         "refresh-tests",
+        "scenario-matrix",
+        "scenario-taxonomy",
         "session-checkpoint",
         "session-finalize",
         "show-results",
@@ -1322,8 +1476,20 @@ def piped_gating_notice(subcommand):
     recovered from disk and the fourth cannot happen: every subcommand in
     `_GATING_SUBCOMMANDS` runs inside the liveness bracket, where stdout is a
     pipe the command's own process owns, so a departed filter can no longer
-    SIGPIPE it mid-run. What a pipe still costs is the terminal DISPLAY and the
-    shell-level exit code, and this names where both were written instead.
+    SIGPIPE it mid-run. What a pipe still costs is the terminal DISPLAY, the
+    shell-level exit code, and — when the run is auto-backgrounded — the
+    COMPLETION NOTIFICATION. This names where each was written instead.
+
+    That third cost is the one this notice used to get wrong, by claiming a
+    pipe cost "exactly two things". A filter that outlives the command holds the
+    pipeline open, so the harness task never exits and no notification is ever
+    going to fire; the command meanwhile finished and wrote its verdict.
+    Observed 2026-08-23 on a `session-checkpoint` piped through `grep | tail`:
+    verdict on disk in 343s, agent still waiting hours later, because "no
+    notification yet" is indistinguishable from "still running" unless something
+    says otherwise. The root leak that produced it is fixed, but any long-lived
+    process the command leaves behind can hold a pipe open, so the agent still
+    needs to know the verdict does not depend on the notification.
 
     Saying it at all — rather than allowing silently — is the point. The
     pipeline's `$?` is the filter's, and an agent that reads it will believe a
@@ -1336,11 +1502,170 @@ def piped_gating_notice(subcommand):
         f"command's, so do not read `$?` as the verdict.\n"
         f"  Real verdict: .codeyam/state/command-output/{subcommand}.status.json "
         f"(the `status` field — the same document the "
-        f"`CODEYAM_CMD_COMPLETE` line carries).\n"
+        f"`CODEYAM_CMD_COMPLETE` line carries). Authoritative the moment the "
+        f"command finishes, whether or not a notification ever arrives.\n"
         f"  Full output:  .codeyam/state/command-output/{subcommand}.txt "
         f"(complete stdout + stderr, unsliced).\n"
         f"  Still alive?  a backgrounded run's one-line `.heartbeat` sidecar.\n"
+        f"  If backgrounded: a filter that outlives the command holds the task "
+        f"open, so the completion notification may NEVER fire. Do not read "
+        f"\"no notification yet\" as \"still running\" — check the status "
+        f"document above.\n"
         f"`| tee out.txt` remains the filter that costs you nothing."
+    )
+
+
+# `pgrep` flags that consume the NEXT argv element. Without these the value
+# would be mistaken for the pattern operand — `pgrep -f -u root foo` would
+# report `root`, and the self-match test would then run against the wrong text.
+_PGREP_VALUE_FLAGS = frozenset("dPuUgGstF")
+_PGREP_LONG_VALUE_FLAGS = frozenset(
+    (
+        "--delimiter",
+        "--parent",
+        "--euid",
+        "--uid",
+        "--group",
+        "--session",
+        "--terminal",
+        "--pgroup",
+        "--pidfile",
+        "--ns",
+        "--nslist",
+    )
+)
+
+# One `pgrep` invocation, up to the next command boundary. `|` is a boundary so
+# a `| grep -v $$` filter is not swallowed into the flag scan.
+_PGREP_CALL = re.compile(r"\bpgrep\b([^;|&\n()]*)")
+
+# A wait loop, in the two halves that have to BOTH be present. The keyword
+# alone matches `for f in *.rs` on one line of a longer command; the body alone
+# matches a `do`/`done` belonging to something else.
+_LOOP_KEYWORD = re.compile(r"\b(?:while|until|for)\b")
+_LOOP_BODY = re.compile(r"\bdo\b.*\bdone\b", re.DOTALL)
+
+
+def _pgrep_full_pattern(segment):
+    """Return the pattern operand of a `pgrep` call that scans FULL argv.
+
+    `None` when the call does not scan argv at all (no `-f`/`--full`), when it
+    is anchored to the program name (`-x`/`--exact`, which cannot match a
+    shell's long command line and is therefore already one of the fixes), or
+    when there is no pattern to read."""
+    try:
+        tokens = shlex.split(segment, posix=True)
+    except ValueError:
+        return None
+    full = False
+    exact = False
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "--":
+            index += 1
+            break
+        if token[:1] in (">", "<") or (token[:1].isdigit() and ">" in token):
+            index += 1
+            continue
+        if token.startswith("--"):
+            name = token.split("=", 1)[0]
+            if name == "--full":
+                full = True
+            elif name == "--exact":
+                exact = True
+            elif name in _PGREP_LONG_VALUE_FLAGS and "=" not in token:
+                index += 1
+            index += 1
+            continue
+        if token.startswith("-") and len(token) > 1:
+            letters = token[1:]
+            if "f" in letters:
+                full = True
+            if "x" in letters:
+                exact = True
+            if letters[-1] in _PGREP_VALUE_FLAGS:
+                index += 1
+            index += 1
+            continue
+        break
+    if not full or exact or index >= len(tokens):
+        return None
+    return tokens[index]
+
+
+def self_matching_pgrep_loop(command):
+    """Return the pattern of a wait loop whose `pgrep -f` will match itself.
+
+    `pgrep -f` scans every process's FULL command line, and the polling loop is
+    itself a process whose command line contains the pattern — because the
+    pattern is written inside it. So the loop finds itself, the condition never
+    goes false, and it never exits. Observed 2026-08-25: a session sat in
+    `until ! pgrep -f 'codeyam-editor editor commit'; do sleep 20; done`
+    waiting on a commit that had already finished, because the only process
+    still matching was the waiter.
+
+    Three conditions, and each one earns its place:
+
+    - A LOOP. A one-shot `pgrep -f` self-matches too, but it returns a wrong
+      answer once; a loop never terminates. Only the second is worth a notice.
+    - `-f` WITHOUT `-x`. `-x` matches the program name, which a shell's long
+      command line can never equal — that is one of the fixes, not the hazard.
+    - THE PATTERN ACTUALLY MATCHES THE COMMAND TEXT. This is what makes the
+      rule discriminating rather than a blanket ban on `pgrep -f` in a loop: it
+      lets the classic bracket trick through. `pgrep -f '[c]odeyam-editor'`
+      contains no literal `codeyam-editor` run for its own regex to find, so it
+      does not self-match, and it is correctly not flagged.
+
+    A command that already excludes its own pid (`$$`) is likewise left alone —
+    the author has seen this problem and handled it."""
+    if not command or "pgrep" not in command:
+        return None
+    if not _LOOP_KEYWORD.search(command) or not _LOOP_BODY.search(command):
+        return None
+    if "$$" in command:
+        return None
+    for match in _PGREP_CALL.finditer(command):
+        pattern = _pgrep_full_pattern(match.group(1))
+        if not pattern:
+            continue
+        try:
+            if re.search(pattern, command):
+                return pattern
+        except re.error:
+            # Not a valid regex to Python. `pgrep` would reject it too, but the
+            # substring test still answers the question that matters.
+            if pattern in command:
+                return pattern
+    return None
+
+
+def self_matching_pgrep_notice(pattern):
+    """The advisory text for a self-matching wait loop — allowed, not refused.
+
+    A notice rather than a block because nothing is destroyed and nothing needs
+    recovering: the command is safe, it simply will not finish. It has to
+    arrive BEFORE the command runs, because afterwards the agent is inside a
+    loop that never returns and has no turn left in which to read anything.
+
+    `wait-for` leads because it is this repo's sanctioned answer — it blocks to
+    completion in one call and its exit code is trustworthy. The two `pgrep`
+    repairs follow for the case where polling is genuinely what you want."""
+    return (
+        f"NOTE: this loop polls with `pgrep -f {pattern!r}`, and `pgrep -f` "
+        f"matches against each process's FULL command line — including this "
+        f"loop's own. The pattern is written inside the loop, so `pgrep` finds "
+        f"the loop itself, the condition never goes false, and it never "
+        f"exits.\n"
+        f"  Best:  do not poll at all. `{cli_command()} editor wait-for "
+        f"<task-id>` blocks to completion in ONE call and returns the real "
+        f"verdict — or just keep working and let the harness completion "
+        f"notification re-invoke you.\n"
+        f"  Or:    match the program NAME instead of the argv: `pgrep -x "
+        f"<name>`.\n"
+        f"  Or:    exclude yourself: `pgrep -f {pattern!r} | grep -v $$`.\n"
+        f"Observed 2026-08-25: a session waited on a commit that had already "
+        f"finished, because the only process still matching was the waiter."
     )
 
 
@@ -2022,11 +2347,15 @@ _INSPECTOR_BY_STORE = [
     (".codeyam/state/finalize-debt.json", "finalize-debt"),
     (".codeyam/dependency-graph.json", "deps-imports / deps-imported-by"),
     (".codeyam/test-registry.json", "registry-query"),
+    (".codeyam/per-test-evidence.json", "evidence-query"),
+    (".codeyam/project-deliverables.json", "deliverables"),
     (".codeyam/editor.local.json", "config-show --source"),
+    (".codeyam/scenarios/coverage-plan", "scenario-coverage-plan"),
     (".codeyam/scenarios/_shared", "shared-data"),
     (".codeyam/editor-step.json", "step"),
     (".codeyam/glossary.json", "glossary-find / glossary-list"),
-    (".codeyam/editor.json", "config-show"),
+    (".codeyam/editor.json", "config-query (testRunners / staticChecks) / config-show"),
+    (".codeyam/stack.json", "project-info"),
     (".codeyam/scenarios", "scenarios / scenario-explain"),
     (".codeyam/test-cache", "test-cache-query"),
     (".codeyam/journal", "journal-find"),
@@ -2151,6 +2480,339 @@ def inspector_nudge(command):
     return None
 
 
+# ── scripted state-read guard ──────────────────────────────────────────
+#
+# `inspector_nudge` above is the SOFT, editor-mode-only pointer: it fires on
+# any read verb touching `.codeyam/` and it only ever advises. This guard is
+# the narrow, always-on companion for the one shape that keeps recurring —
+# a command that PARSES a `.codeyam/` store as JSON.
+#
+# The measurement that motivates it: across 12 autonomous sessions agents
+# hand-parsed `.codeyam/` state with ad-hoc `json.load` heredocs 84 times in
+# 10 of the 12, producing 12 `JSONDecodeError` crashes. `journal-commit-message`
+# scored ZERO uses against 34 hand-rolls and 36 hardcoded timestamps — and it
+# was already documented by name in the very CLAUDE.md table whose other
+# commands enjoy healthy adoption. Prose has now failed twice on that one, so
+# it gets the mechanical instrument instead.
+#
+# Two verdicts, and the split is deliberate:
+#
+#   NOTICE for a mapped store — reading state by hand is wasteful, not
+#   incorrect, and a block would strand a legitimate one-off inspection.
+#   Same asymmetry `inspector_nudge` reasons from.
+#
+#   BLOCK for the two cases where there is no reading under which the
+#   result is TRUSTWORTHY. Parsing `state/command-output/*` is parsing a
+#   live tee of two interleaved streams — not a document, and no
+#   brace-matcher makes it one (one session wrote four successive
+#   brace-balancing heredocs against it before giving up). Building a commit
+#   body from a hand-named journal entry silently attributes another
+#   feature's description, which is precisely what the command's own entry
+#   resolution exists to prevent.
+#
+# It fires BEFORE the `CODEYAM_EDITOR_ACTIVE` short-circuit, unlike
+# `inspector_nudge`: a commit body carrying the wrong feature's description
+# is just as wrong outside the editor workflow as inside it.
+
+# JSON-parsing constructs. Deliberately narrower than `_READ_VERB` — this
+# guard has a blocking half, so it keys on the construct that makes the
+# result untrustworthy rather than on reading in general.
+_JSON_PARSE_CALL = re.compile(r"\b(?:json\.loads?|JSON\.parse)\s*\(")
+
+# `jq` in COMMAND POSITION, mirroring `_READ_VERB`'s shape: a `jq` mentioned
+# inside a filter string is not a parse of anything.
+_JQ_INVOCATION = re.compile(
+    r"""(?:\A|[\n;|&`(]|\$\()\s*
+        (?:[A-Za-z_][A-Za-z_0-9]*=\S*\s+)*
+        (?:(?:sudo|command|time|xargs)\s+)*
+        jq\b
+    """,
+    re.VERBOSE,
+)
+
+# The transcript sidecar. Kept out of `_INSPECTOR_BY_STORE` on purpose: that
+# table maps a store to the command that ANSWERS questions about it, and
+# nothing answers questions about this file — the recovery is to re-run the
+# original command differently, which is a refusal's job, not a pointer's.
+_COMMAND_OUTPUT_STORE = ".codeyam/state/command-output"
+
+# The scope is the FILE, not the directory, and that distinction is the whole
+# point. The untrustworthiness is a property of one file shape — the `<cmd>.txt`
+# tee of stdout AND stderr — never of the store that holds it. Its sibling
+# `<cmd>.status.json` is a single clean JSON document, and reading it is the
+# DOCUMENTED recovery after piping a command: `piped_gating_notice` hands the
+# agent that exact path as `Real verdict: …`. A directory-prefix match therefore
+# had this file refusing the read its own sibling guard prescribes — caught by
+# dogfooding one command after the guard shipped, when `push` printed the
+# sidecar path and reading it was blocked in the same session that added the
+# block. Two guards in one file giving opposite instructions about one file.
+#
+# `<task>.heartbeat` is the same shape of read (a one-line liveness sidecar
+# CLAUDE.md also directs agents to) and lives outside this directory, so it was
+# never caught — but keying on the transcript rather than on a filename
+# exception is what keeps it, and any future sidecar, correct by construction.
+#
+# Do NOT re-widen this to a `in command` membership test on the store.
+_COMMAND_OUTPUT_TRANSCRIPT = re.compile(
+    re.escape(_COMMAND_OUTPUT_STORE) + r"/[^/\s'\"]+\.txt\b"
+)
+
+# The HARNESS's own persisted tool-result transcript — the file Claude Code
+# writes whenever a command's output exceeds the inline budget, and hands back
+# as "Full output saved to: …/tool-results/<id>.txt". It is the same shape as
+# the command-output tee above (both streams, bounded, written for a human),
+# so it fails a scripted parse the same way, and agents reach for it for the
+# same reason.
+#
+# Keyed on the `tool-results/<id>.txt` FILE, on the same terms and for the same
+# reason as `_COMMAND_OUTPUT_TRANSCRIPT` above: match the file, never the
+# directory it lives in. The lookbehind keeps `my-tool-results/x.txt` out.
+#
+# Deliberately NOT anchored on the `~/.claude/projects/` prefix, because that
+# prefix is not stable: it is `/root/.claude/…` in a fleet container,
+# `/Users/<name>/.claude/…` on a laptop, and anywhere at all under
+# `CLAUDE_CONFIG_DIR`. The `tool-results/` segment is the part that does not
+# move.
+_HARNESS_TOOL_RESULT_TRANSCRIPT = re.compile(
+    r"(?<![\w.-])tool-results/[^/\s'\"]+\.txt\b"
+)
+
+_HARNESS_TOOL_RESULTS_STORE = "tool-results"
+
+# A journal entry named by a literal timestamp — the `<eyeballed-from-ls>`
+# shape. A journal read that does NOT name one is an ordinary search and
+# stays a notice pointing at `journal-find`.
+#
+# Kept out of `_INSPECTOR_BY_STORE` for the same reason `_COMMAND_OUTPUT_STORE`
+# is, plus one specific to it: adding a `.codeyam/journal/entries` row ahead of
+# `.codeyam/journal` would re-point `matching_inspector` — and therefore
+# `inspector_nudge`, which is not what this change is about — at
+# `journal-commit-message` for every journal read, including the searches
+# `journal-find` genuinely answers. `test_matching_inspector_maps_the_journal_store`
+# pins that mapping, and it is pinning the right thing.
+_HAND_NAMED_JOURNAL_ENTRY = re.compile(r"\.codeyam/journal/entries/20\d\d-")
+
+_JOURNAL_ENTRIES_STORE = ".codeyam/journal/entries"
+
+
+def parses_json(command):
+    """True when `command` parses JSON in process — a python/node parse call,
+    or `jq` in command position.
+
+    Pure and side-effect free so the construct test is assertable separately
+    from the store mapping it gates."""
+    return bool(_JSON_PARSE_CALL.search(command) or _JQ_INVOCATION.search(command))
+
+
+def parses_command_output_transcript(command):
+    """True when `command` names the command-output TRANSCRIPT — a
+    `.codeyam/state/command-output/<cmd>.txt` path.
+
+    Deliberately narrower than the store it lives in. The `.txt` tee is the
+    unparseable file; the `<cmd>.status.json` sidecar beside it is a single
+    clean JSON document that `piped_gating_notice` tells the agent to read.
+    Both are named from the same `<cmd>` stem in the same directory, so the
+    SUFFIX is the only thing that separates them — which is why the predicate
+    keys on it and not on the directory prefix.
+
+    Pure and side-effect free, and named rather than inlined into
+    `scripted_state_read_target`, so the boundary between the two files is
+    assertable directly instead of through a refusal's message text."""
+    return bool(_COMMAND_OUTPUT_TRANSCRIPT.search(command))
+
+
+def parses_harness_tool_result(command):
+    """True when `command` names the harness's own tool-result TRANSCRIPT — a
+    `…/tool-results/<id>.txt` path.
+
+    The file-shaped counterpart to `parses_command_output_transcript`, and
+    narrow for the same reason: it matches the `<id>.txt` capture itself, never
+    the session directory holding it, so a future sibling written beside it is
+    not swept in by a directory-prefix match — the boundary that had the
+    command-output guard refusing the read of the `.status.json` its own other
+    guard prescribes.
+
+    Pure and side-effect free, and named rather than inlined into
+    `scripted_state_read_target`, so the boundary is assertable directly
+    instead of through a refusal's message text."""
+    return bool(_HARNESS_TOOL_RESULT_TRANSCRIPT.search(command))
+
+
+def writes_into_codeyam(command):
+    """True when `command` WRITES to a `.codeyam/` path, or writes somewhere
+    this parser cannot resolve.
+
+    The exclusion that keeps the guard off the sanctioned path: CLAUDE.md
+    explicitly blesses rewriting `.json` through a parser, and a heredoc that
+    builds a scenario file reads its neighbours to do so. Judging such a
+    command on its `json.load` alone would refuse the very construct the
+    project asks for.
+
+    Scoped to `.codeyam/` targets rather than to writes in general, so an
+    ordinary `… > out.json` capture of a hand-parse is still seen. An opaque
+    target counts, because a write this parser could not resolve may well be
+    the scenario write."""
+    explicit, opaque, _ = write_targets(command)
+    if opaque:
+        return True
+    return any(".codeyam/" in path for path in explicit)
+
+
+def scripted_state_read_target(command):
+    """The `(kind, store, inspector)` a scripted JSON parse of codeyam state
+    touches, or None when `command` is not one.
+
+    `kind` is `"command-output"`, `"harness-tool-result"` or `"journal-entry"`
+    for the three blocking cases, `"inspectable"` for a mapped store that only
+    warrants a pointer. `inspector` is None for every blocking kind: each
+    carries its recovery in `scripted_state_read_refusal` rather than in the
+    shared store table, so none of them perturbs what `matching_inspector`
+    reports.
+
+    All three blocking cases are tested BEFORE the table lookup AND before the
+    write exclusion. Order is the whole mechanism, twice over.
+
+    Before the table, because a hand-named journal entry also matches the
+    broader `.codeyam/journal` row, and letting the table win would downgrade
+    a misattributed commit body to a pointer.
+
+    Before the write exclusion, because the canonical failure WRITES: it reads
+    a journal entry and writes the commit body out. When that output path is a
+    variable rather than a literal, `write_targets` reports it opaque, and an
+    exclusion applied first would suppress the block on precisely the shape
+    the guard exists for. The exclusion protects the sanctioned scenario
+    write, which is a `.codeyam/scenarios/` write — never a parse of the
+    command-output tee, never a regex carved out of the harness's own capture
+    of one, and never a commit body built from an eyeballed timestamp. No
+    blocking case has a reading under which the result is trustworthy,
+    whatever else the command does with it.
+
+    Pure and side-effect free — the verdict is separated from the message
+    that reports it so the mapping is assertable without going through
+    message text, exactly as `matching_inspector` is.
+
+    Heredoc bodies are elided on the same terms every other guard elides
+    them: `elide_heredoc_bodies` keeps an EXECUTING body (`python3 - <<'EOF'`
+    is a program) and drops a DATA one, so a commit message that quotes a
+    `json.load(...)` line as prose — this feature's own plan file does — is
+    not read as a parse of anything."""
+    command = elide_heredoc_bodies(command)
+    if is_inspector_invocation(command):
+        return None
+    if not parses_json(command):
+        return None
+    if parses_command_output_transcript(command):
+        return ("command-output", _COMMAND_OUTPUT_STORE, None)
+    if parses_harness_tool_result(command):
+        return ("harness-tool-result", _HARNESS_TOOL_RESULTS_STORE, None)
+    if _HAND_NAMED_JOURNAL_ENTRY.search(command):
+        return ("journal-entry", _JOURNAL_ENTRIES_STORE, None)
+    if writes_into_codeyam(command):
+        return None
+    matched = matching_inspector(command)
+    if not matched:
+        return None
+    store, inspector = matched
+    return ("inspectable", store, inspector)
+
+
+def scripted_state_read_refusal(kind):
+    """The `(reason, next_action)` pair for a refused scripted state read.
+
+    Branches on the KIND, not the store, because the three blocking cases fail
+    for unrelated reasons and want unrelated recoveries — one re-runs the
+    original command with a different flag, one points at a document already on
+    disk, and one swaps to a command that resolves the entry itself."""
+    if kind == "command-output":
+        return (
+            f"this parses `{_COMMAND_OUTPUT_STORE}/<cmd>.txt`, which is a live "
+            f"TEE of stdout AND stderr in arrival order. The JSON document sits "
+            f"interleaved with narrative lines, so the file is not a JSON "
+            f"document and no brace-matcher or regex rescue can make it one — "
+            f"one session wrote four successive brace-balancing heredocs "
+            f"against it before giving up.",
+            f"if you only need the VERDICT, read the sibling "
+            f"`{_COMMAND_OUTPUT_STORE}/<cmd>.status.json` — one clean JSON "
+            f"document carrying the same `status` the `CODEYAM_CMD_COMPLETE` "
+            f"line does, already on disk. That read is NOT blocked and needs no "
+            f"re-run, which matters when the original command was a `push`, a "
+            f"`commit`, or a `session-finalize`. If you need the full document "
+            f"instead, re-run the ORIGINAL command with `--format json` and "
+            f"redirect stdout ALONE (`{cli_command()} editor <command> "
+            f"--format json > report.json`). Under `--format json` the marker "
+            f"lines move to stderr, the narrative falls silent, and terminal "
+            f"output bounding is disabled, so the redirect is exact and "
+            f"complete.",
+        )
+    if kind == "harness-tool-result":
+        return (
+            f"this carves a document out of a `tool-results/<id>.txt` file — "
+            f"the HARNESS's own persisted capture of a command's terminal "
+            f"output, saved because that output was too large to show inline. "
+            f"It holds both streams in arrival order and is bounded for a "
+            f"human reader, so it is not a JSON document: a brace-matcher or "
+            f"an `rfind`/`re.search` over it either throws or silently returns "
+            f"a FRAGMENT, and the fragment is the worse outcome because "
+            f"nothing about it looks wrong.",
+            f"read the document itself — it is almost certainly already on "
+            f"disk and needs no re-run. Any `--format json` run of a wrapped "
+            f"command also writes "
+            f"`{_COMMAND_OUTPUT_STORE}/runs/<cmd>-<runId>.json`: the stdout "
+            f"document ALONE, no stderr narrative, not terminal-bounded, and "
+            f"keyed on the RUN so a later narrower re-run cannot clobber it. "
+            f"The command named that exact path on its own "
+            f"`CODEYAM_FULL_OUTPUT: … — PARSEABLE:` line, so `cat` what the "
+            f"pointer printed. If you only need ONE finding rather than the "
+            f"whole document, recompute it cheaply instead of mining a large "
+            f"one: `{cli_command()} editor audit --only <INVARIANT_ID> "
+            f"--format json` (pass `--only ?` to list the ids), or the "
+            f"read-only query surface for the store in question "
+            f"(`registry-query`, `evidence-query`, `glossary-list`, "
+            f"`scenarios --format entries`, …), each of which emits one clean "
+            f"document with its rows under `entries`.",
+        )
+    return (
+        f"this builds on a journal entry named by a LITERAL timestamp. The "
+        f"entry matching the active feature is not necessarily the one whose "
+        f"filename was read off an `ls`, so this can silently land on another "
+        f"feature's entry — you read that feature's fields believing they are "
+        f"this one's, or you commit its description as this feature's body. "
+        f"Either way the wrong entry is invisible in the result, which is why "
+        f"the filename is not the selector and entry resolution exists.",
+        f"pick by what you are doing with it — both resolve the ACTIVE "
+        f"feature's entry, so neither needs a timestamp. TO READ THE ENTRY: "
+        f"`{cli_command()} editor journal-show` prints its title, type, "
+        f"description, and references; `--format json` emits the standard "
+        f"query-surface envelope, so "
+        f"`{cli_command()} editor journal-show --format json` parses with the "
+        f"same `entries` key as every other read-only surface. TO BUILD THE "
+        f"COMMIT: `{cli_command()} editor journal-commit-message` prints the "
+        f"finished message on stdout and nothing else, so "
+        f"`{cli_command()} editor journal-commit-message | git commit -F -` "
+        f"needs no temp file; add `--trailer '<line>'` (repeatable) for "
+        f"`Co-Authored-By:` / `Claude-Session:` lines. Both take "
+        f"`--entry <path>` to override the resolution deliberately, and both "
+        f"report on stderr which entry they chose and why.",
+    )
+
+
+def scripted_state_read_notice(store, inspector):
+    """The pointer text for a scripted parse of a store that has an inspector.
+
+    Distinct from `inspector_nudge`'s wording because the caller's problem is
+    distinct: they are not merely reading the store, they are re-deriving its
+    SCHEMA, and the answer is that the inspector emits one clean document
+    under `--format json`."""
+    return (
+        f"NOTE: this hand-parses {store} — an internal codeyam state store whose "
+        f"schema is internal and moves, so a parse that is right today reads wrong "
+        f"the day the shape changes. `{cli_command()} editor {inspector}` answers "
+        f"the question directly and emits ONE clean JSON document under "
+        f"`--format json`, with the row set always under `entries`. Not blocking; "
+        f"your command still runs."
+    )
+
+
 def classify_write_target(file_path, project_dir):
     """How the slug gate should treat a Write/Edit target: `("outside", None)`,
     `("editor-state", rel)`, or `("code", rel)`.
@@ -2207,6 +2869,68 @@ def preview_marker_state(marker_path, step):
     return (found == step, f"step {found!r}")
 
 
+# The commands that WRITE the preview-shown marker, mirroring
+# `preview_gate::marker_writing_command_sources`
+# (crates/codeyam-editor/src/commands/editor/preview_gate.rs). Keep the two in
+# agreement. Naming them turns "which command counts as showing a preview?"
+# from a guess into a lookup — `recapture-stale` renders a preview and still
+# writes no marker.
+#
+# `preview-verify` used to sit on that non-marking side and no longer does. It
+# runs the same navigate+capture `preview` does and then asserts three gates
+# over the result, so it was the STRONGEST evidence available that a preview
+# had been shown while still leaving this gate shut — four sessions across four
+# VMs each answered that by paying a redundant `preview` run whose only product
+# was the marker. Anything moved between the two sides here must move in
+# `marker_writing_command_sources` in the same change.
+MARKER_WRITING_COMMANDS = (
+    "preview",
+    "preview-flow",
+    "preview-html",
+    "preview-interact",
+    "preview-verify",
+    "show-results",
+)
+
+
+def preview_required_next_action(observed, step, hint):
+    """The `Next valid action:` text for a preview-gate refusal, routed by the
+    discriminant [`preview_marker_state`] already returned.
+
+    Its three not-ok states are different problems, and this gate used to emit
+    ONE narrative for all of them: a pipe/SIGPIPE story that is provably not the
+    cause on POSIX, where every marker-writing command runs under
+    `run_with_liveness` (so it never sees EPIPE) and writes the marker before its
+    first stdout write (pinned by `marker_is_written_before_any_stdout`). An
+    agent hit it with an ABSENT marker, believed it, and copied the false
+    diagnosis into its transcript. Each arm now describes the state it is in.
+
+    The pipe warning survives only in the `unreadable` arm — a truncated marker
+    is the one state where a severed write still explains the symptom, and
+    `stream_capture` is `#[cfg(unix)]`, so a non-POSIX host can still reach it."""
+    marking = ", ".join(f"`{c}`" for c in MARKER_WRITING_COMMANDS)
+    if observed == "file absent":
+        return (
+            f"no preview has been shown at THIS step. The marker is cleared on "
+            f"every `advance`, and only {marking} write it — `recapture-stale` "
+            f"shows a preview but does NOT mark it. Run "
+            f"`{hint}`, then call AskUserQuestion."
+        )
+    if observed == "unreadable":
+        return (
+            f"the marker exists but does not parse, so a write was cut short "
+            f"mid-file. Check whether you piped `{hint}` into `head`/`tail`/"
+            f"`grep`: that closes the pipe early and SIGPIPEs the command, so the "
+            f"capture and the screenshots succeed but the marker write is lost. "
+            f"Re-run it bare (no pipe)."
+        )
+    return (
+        f"a preview was shown, but at a different step — the marker holds "
+        f"{observed} and this is step {step}. Advancing clears it, so re-show it "
+        f"HERE: run `{hint}`, then call AskUserQuestion."
+    )
+
+
 def describe_call(tool_name, tool_input):
     """A short, stable identifier for the call being judged.
 
@@ -2260,6 +2984,37 @@ def main():
                 next_action,
                 detail=rewrite_target,
                 evidence=evidence,
+                call=call,
+            )
+
+    # Scripted state-read guard. Neither step-scoped nor editor-mode-scoped,
+    # for the same reason as the guard above: a commit body carrying another
+    # feature's description is just as wrong outside the editor workflow, and
+    # a parse of the command-output tee is just as impossible. It also has to
+    # fire before the "always allow codeyam-editor editor" short-circuit
+    # further down, which would otherwise exit 0 and skip both verdicts.
+    #
+    # `inspector_nudge` — the softer, editor-mode-only pointer — is reached
+    # much further down and never doubles up with this: `notice` and `block`
+    # both exit, so a command judged here never reaches it.
+    if tool_name == "Bash":
+        state_read = scripted_state_read_target(tool_input.get("command", ""))
+        if state_read:
+            kind, store, inspector = state_read
+            if kind == "inspectable":
+                notice("scripted-state-read", scripted_state_read_notice(store, inspector))
+            reason, next_action = scripted_state_read_refusal(kind)
+            block(
+                project_dir,
+                "scripted-state-read",
+                reason,
+                next_action,
+                detail=store,
+                evidence=(
+                    f"the command parses JSON (`json.load`/`JSON.parse`/`jq`) and "
+                    f"names `{store}`; no `.codeyam/` write construct present, so "
+                    f"this is a read"
+                ),
                 call=call,
             )
 
@@ -2325,6 +3080,20 @@ def main():
                 ),
                 call=call,
             )
+
+    # Self-matching-pgrep guard. Neither step-scoped nor editor-mode-scoped,
+    # for the same reason as the guards above: a wait loop that polls for its
+    # own argv hangs in any session, and it hangs silently — an agent inside
+    # one has no turn left in which to notice.
+    #
+    # It sits LAST among the unscoped guards deliberately. `notice` exits 0, so
+    # whichever verdict fires first is the only one emitted, and an advisory
+    # about a command that merely will not finish must never displace a refusal
+    # about a command that destroys something.
+    if tool_name == "Bash":
+        pgrep_pattern = self_matching_pgrep_loop(tool_input.get("command", ""))
+        if pgrep_pattern:
+            notice("self-matching-pgrep", self_matching_pgrep_notice(pgrep_pattern))
 
     # Every remaining rule is a workflow-step gate — only enforce in editor mode
     if not os.environ.get("CODEYAM_EDITOR_ACTIVE"):
@@ -2437,13 +3206,7 @@ def main():
                     "preview-required",
                     f"This step ({_slug_label(state, slug)}) requires showing "
                     f"the live preview before asking the user for confirmation.",
-                    f"run `{hint}`, then call AskUserQuestion. If you ALREADY "
-                    f"ran it and it reported success: check whether you piped "
-                    f"it into `head`/`tail`/`grep`. That closes the pipe early "
-                    f"and SIGPIPEs the command, so the capture and the "
-                    f"screenshots succeed but the marker write is lost — the "
-                    f"one failure whose every visible signal says it worked. "
-                    f"Re-run it bare (no pipe).",
+                    preview_required_next_action(observed, step, hint),
                     detail=slug,
                     evidence=(
                         f"{resolved_context(project_dir, marker_path)}; marker "
@@ -2592,7 +3355,14 @@ def main():
                     f"git commit is only allowed at slug(s): {allowed}. "
                     f"You are at {_slug_label(state, slug)}.",
                     "keep following the workflow — `codeyam-editor editor advance` "
-                    f"until the {_commit_gate_phrase(commit_slugs)} slug, which commits for you. To read what "
+                    f"until the {_commit_gate_phrase(commit_slugs)} slug, which commits for you. "
+                    "If this commit genuinely belongs OUTSIDE the workflow (re-triggering a "
+                    "stalled deploy, a release pass), advancing the whole workflow is not a "
+                    "route to that goal — run `codeyam-editor editor commit --out-of-workflow "
+                    '-m "<msg>"` instead (add `--allow-empty` for an empty commit). It runs the '
+                    "static-check and test-cache gates itself before committing, and is the "
+                    "gated replacement for `git commit --no-verify`, which skips every gate. "
+                    "To read what "
                     "a later slug requires without moving the workflow pointer, run "
                     "`codeyam-editor editor step --show --slug <slug>`.",
                     reference="Plan-file commits (.codeyam/plans/*.md) are allowed at any step.",

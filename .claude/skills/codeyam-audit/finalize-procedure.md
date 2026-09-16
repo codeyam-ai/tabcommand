@@ -138,6 +138,47 @@ known up front rather than discovered at the finalize wall.
 > per-step gate does **not** mean `session-finalize` will pass. Treat a green
 > session as "the diff is clean," never as "the branch is finalize-ready."
 
+**Converge the binary AND the server before anything routed through the
+server.** These are two build surfaces, not one. `rebuild-self` rebuilds and
+swaps the *binary*, so your next CLI invocation runs new code; the editor
+**server** is a separate long-lived process that keeps executing whatever build
+it booted with until it is restarted. Test runs, gate runs and preview captures
+are routed through the server, so a stale server does not make them slow — it
+makes their conclusions **invalid**. Measured: a 25-minute `refresh-tests` warm
+produced a completely void result because the server was running a build that
+predated 61 edited files.
+
+Read the state before you spend anything on it — the probe never builds, swaps,
+or restarts:
+
+```bash
+codeyam-editor editor rebuild-self --check
+```
+
+Treat any verdict other than `current` as **blocking for server-routed work**:
+
+| Verdict | What it means here |
+|---|---|
+| `current` | Binary and aliases agree with the source. Proceed. |
+| `stale` | A source edit (or a failed post-swap restart) is not in the binary. Run `rebuild-self` — read the stderr guidance, which names the recovery that fits. |
+| `rebuild-in-flight` | A detached worker is still building. Run `rebuild-self` to re-attach; do not start a second build. |
+| `aliases-diverged` | The binary is current but the role hardlinks point at a previous generation — usually after a bare `cargo install --force`. A plain `rebuild-self` relinks them on its already-current fast path without recompiling. |
+
+Then make sure the *server* picked the new binary up:
+
+```bash
+codeyam-editor editor restart-server
+```
+
+> GOTCHA — **`--defer-restart` is the wrong choice whenever the next step
+> routes through the server.** It swaps the binary and deliberately skips the
+> bounce, which is exactly the state that yields a void warm. It exists to
+> protect a session *hosted by the PTY broker* — i.e. one that would be dropped
+> by the bounce. A laptop session usually is not hosted that way, so check
+> whether this session actually descends from the server before assuming it
+> needs protecting. Choosing `--defer-restart` to be safe, on a session that was
+> never at risk, guarantees the one outcome you were trying to avoid.
+
 ---
 
 ## 2. See the whole failure set at once — no fail-fast
@@ -181,12 +222,59 @@ count here. The text renderer says the same thing in a banner at the top and
 bottom of the body; `cacheFreshness` is the machine-readable form so you
 never have to parse the prose.
 
-Budget for it: resolving attribution walks `git log` per file touched by a
-finding, so on a large repo with accumulated drift this run takes minutes,
-not seconds — the same cost `--format text` and the `advance` audit gate
-already pay. It is a backgrounded long command like any other; wait on the
-completion sentinel rather than assuming it hung. When you only need the
-verdict and the missing-\* arrays, `--findings-only` is the fast path.
+Budget for it: on a scenario-heavy repo this run takes minutes, not seconds.
+It is a backgrounded long command like any other; wait on the completion
+sentinel rather than assuming it hung.
+
+**Finish your source edits BEFORE you warm the cache.** The warm is only
+durable until the next source edit: touching one tracked file re-stales the
+partition that owns it, and a stale partition is what step 4a's
+`reconcile-registry --auto-apply` pre-flight pays a full package test run to
+rediscover. That makes the warm **order-sensitive with respect to step 4**,
+which nothing above says and the natural reading gets backwards — warm, size
+the run, *then* start fixing is the expensive sequence. Measured on
+`editor-improvements-78` (2026-08-31): a 31-minute warm left all 20
+partitions green, **one** added comment line in
+`crates/codeyam-editor/src/commands/editor/pre_commit_sync.rs` invalidated
+it, and the next `--auto-apply` spent 55 minutes re-running partitions to
+learn nothing had changed.
+
+Keep warming before you quote a count — that instruction is correct and
+load-bearing, and a cold count mis-prices the run. Just do the step-4b
+judgment edits you already know you are making first, so the warm you pay
+for is the warm that survives. When an edit after the warm is unavoidable,
+re-check freshness before the pre-flight rather than assuming the warm
+still holds:
+
+```bash
+codeyam-editor editor test-status
+```
+
+**`--findings-only` is a smaller ANSWER, not a faster run — do not reach for
+it to save time.** It skips the per-file `git log` attribution walk and the
+per-entity evidence projection, and that is genuinely all it skips. Measured
+on codeyam-editor itself (1745 scenarios, a ~21-minute audit), attribution was
+**5s — 0.4% of the run**. An agent that picks `--findings-only` expecting a
+fast path waits essentially the full time and learns to distrust the docs,
+which costs more than the minutes. Pick it when you want the compact
+projection: the verdict, the missing-\* arrays, and a name+count summary.
+
+The lever that actually moves wall-clock is `--concurrency`, because the bulk
+of an audit is the per-scenario screenshot scan — one PNG decoded and
+perceptually hashed per captured scenario. It defaults to one thread per core;
+pass `--concurrency 1` to force the sequential path when you are debugging a
+run whose findings look wrong. Findings are identical at every setting.
+
+Which stage is slow is not a thing to guess at — `--timings` reports it:
+
+```
+codeyam-editor editor audit --timings --format text     # table on stderr
+codeyam-editor editor audit --timings --format json     # `timings` block in the document
+```
+
+Read the `unattributed` row as well as the named stages: a large one means the
+instrumentation is pointed at the wrong place, which is itself the finding.
+A stage reporting `calls: 2` is doing its work twice.
 
 Group findings by invariant id and by the commit that introduced them. Fixing
 blind, one failure at a time, wastes finalize cycles — each full
@@ -211,6 +299,48 @@ revert:
   `GLOSSARY_ENTRY_LACKS_TEST` are computed from runner emission, so a cold
   cache manufactures them by the hundred. Warm the cache; do not fix them by
   hand.
+
+**A cost being documented is not evidence the cost is correct.** Everything
+in this band is churn you should stop chasing — but the inverse error is
+just as expensive, and it wears the docs as camouflage: you recognise a slow
+command's shape from `CLAUDE.md`, confirm it is healthy, and let it run,
+because the duration was written down as *expected* rather than as a
+*symptom*. Documentation records what a command does today, not that today's
+behaviour is right. When a command's own progress output says the work it
+just did was unnecessary — a partition reporting `already fresh` after
+paying a multi-minute test run for it — that is a defect to report, not a
+duration to absorb. This file already makes the argument one layer down for
+the RSS runaway (two sessions let `reconcile-registry` reach 2 GB because
+"this one is slow" was in the docs); it holds for wall-clock too.
+
+> GOTCHA — **`UNCOVERED_GLOSSARY_ENTRY` has TWO causes, and they want
+> opposite actions.** A zero-hit reading means the entity's own instrumented
+> lines recorded no hits. That happens when nothing tests it — the real debt
+> — and it *also* happens when LLVM **inlined** a small function into its
+> callers, so the hits landed on the caller's lines and the entity's own
+> symbol reads zero even though its code ran and its tests passed.
+>
+> The discriminator is in the same LCOV the finding came from: **did a test
+> that references this entity itself record hits?** If yes, the entity was
+> inlined. Measured 2026-09-04 on `session_finalize_log.rs` — `last_run_slice`
+> read zero hits beside four tests that each ran, as did `run_id_of`,
+> `format_warm_note`, `build_finalize_log_document` and
+> `reject_impossible_combination`. The coverage data was healthy: 68.5% of
+> functions project-wide carried hits.
+>
+> The audit now draws this distinction for you and lists the inlined entries
+> in their own `— inlining-suspect (a covering test ran; not debt) —` group,
+> excluded from the zero-hit count. **Neither resolution for a genuinely
+> uncovered entry applies to that group:** do not write a duplicate test for
+> something already tested, and — the expensive one — do not record an
+> `untestabilityReason`. A `trivial-wrapper` / `platform-glue` claim
+> permanently marks a *tested* function as owing no test, and nothing
+> downstream ever revisits it. One session came within a step of doing that
+> to eight entries before noticing their tests had run.
+>
+> Entries outside that group are unchanged and are the real debt. If you are
+> triaging by hand on an older binary, check for a covering test that ran
+> before you choose between "write a test" and "mark untestable".
 
 > GOTCHA — **a git hook invoking a flag the binary doesn't have.** When a
 > commit or push dies on something like `error: unexpected argument '--check'
@@ -265,6 +395,77 @@ Apply the failures whose fix is unambiguous and scripted. These have a
 
 Re-run `codeyam-editor editor audit --format json` after the mechanical pass so
 the remaining set is only the judgment calls.
+
+> GOTCHA — **`reconcile-registry --auto-apply` is order-sensitive with your
+> source edits, and getting the order wrong costs the better part of an
+> hour.** Read-only `reconcile-registry` is a ~20-second command here. Under
+> `--auto-apply` *only*, it first runs a stale-partition pre-flight, and in
+> its eviction shape that is **one package-scoped `cargo test` per stale
+> partition, run one at a time** — so its cost is set by how many partitions
+> are stale when it starts, which is set by which files you edited since the
+> warm.
+>
+> Measured on `editor-improvements-78` (2026-08-31): all 20 partitions green
+> after a 31-minute warm, then a single one-line description comment added to
+> one file, then `--auto-apply` spent **55 minutes** in the pre-flight — and
+> **10 of the 11 partitions it ran reported "already fresh"** after paying
+> 144–429 seconds each. One edited file re-invalidated the cache and bought
+> nearly a whole-workspace re-run to rediscover that nothing had changed.
+>
+> Two orderings avoid it entirely, and at least one is always available:
+> run reconcile **before** you make step-4b judgment edits, or finish those
+> edits **before** the step-2 warm (see "Finish your source edits BEFORE you
+> warm the cache"). When neither is possible, make the price visible before
+> you pay it rather than after — `codeyam-editor editor test-status` is
+> cheap and answers "is the warm still valid?" directly, and the count of
+> non-green partitions it reports is the number of package test runs the
+> pre-flight is about to spend.
+>
+> While it runs, the pre-flight announces its run count and prints
+> per-partition progress with elapsed time. Read that output as a claim to
+> check, not a progress bar to wait out: a partition reporting `already
+> fresh` after a full run is the tool telling you the run was wasted.
+
+> GOTCHA — **Finish every REGISTRY change before the warm, for the same
+> reason you finish every SOURCE edit before it — and this one is the more
+> expensive of the two, because it is self-sustaining.** The rule above is
+> about the source Merkle hash; a registry change is a second, independent
+> way to invalidate a partition, and `reconcile-registry` producing one is
+> not an accident but its normal output. Any add, remove, or line-drift
+> update moves the affected runner's **registry digest**, and Phase 1
+> refuses cache reuse for every partition whose stamped digest no longer
+> matches — no source file need be touched, so `test-status` can report the
+> partition green while Phase 1 re-runs it anyway.
+>
+> The loop is what makes it costly. A broad registry change invalidates many
+> partitions at once, which collapses Phase 1 from a scoped re-run into a
+> **full-suite** one — and in a full-suite run the `cargo-ignored` runner
+> reliably exceeds its 1800s floor, because it owns tests that spawn real
+> editor servers and they stretch badly under fan-out. A killed runner
+> stores no results, so the finalize fails having proved nothing. The
+> natural next move — fix what the audit found, re-run — changes the
+> registry again and re-enters the loop.
+>
+> Measured on this repo, 2026-09-08: the loop's lap was a **4584s failure**.
+> Finishing all registry changes first, re-warming so the digests matched,
+> and only then finalizing was a **695.7s pass** — Phase 1 scoped itself to
+> the single partition whose digest had moved, and `cargo-ignored` was never
+> re-run at all. Same branch, same work, one seventh the wall-clock.
+>
+> The cheap pre-check is `codeyam-editor editor verify-test-cache`, which
+> answers "do the digests still line up?" before you pay for a run.
+> `codeyam-editor editor test-status` prices it: it reports the digest-
+> invalidated partitions as a fraction of the total (`1 of 20` is a scoped
+> re-run; `9 of 20` is the full-suite run that times out), so the cost of
+> the next finalize is visible in advance rather than discovered at 4584s.
+>
+> Do NOT respond to the timeout by raising `cargo-ignored`'s timeout. The
+> floor is already 1800s, raising a number to escape a contention problem is
+> what `scripts/check-ci-timeout-floors.sh` exists to stop, and the runner's
+> `auto` timeout cannot adapt its way out either — it is
+> `lastSuccessfulRunSecs + headroom`, and a persistently-failing advisory
+> test in that runner means no run is ever recorded successful, so only the
+> floor is ever in play. Fix the ordering instead.
 
 > GOTCHA — **Platform-gate drift can only be reconciled AFTER a full
 > `refresh-tests`, so do not hand-run `reconcile-registry` for it here.**
@@ -369,6 +570,131 @@ wants current evidence and screenshots.
 > A pure-backend / non-visual stack has no screenshots to refresh; this step is
 > a no-op there. Don't fabricate visual evidence for a stack that has none.
 
+> **A large sweep is not necessarily a two-hour sweep — `--concurrency` is the
+> knob.** `recapture-stale` dispatches one capture at a time by default, which
+> on a 1,700-scenario corpus measured ~7,400s (just over two hours) at ~4.4s
+> each. Pass `codeyam-editor editor recapture-stale --concurrency <N>` to keep
+> N in flight (or set `scenarios.recaptureConcurrency` in `.codeyam/editor.json`
+> as a project default, since the right value is a property of the machine's
+> cores and memory, not of any one run).
+>
+> Raising it is safe because the editor server takes its capture gate
+> EXCLUSIVELY for any capture that mutates shared state — one that seeds,
+> restarts the dev server, resets a sandbox or container, drives a shared
+> simulator, **or scripts streams or transcripts** (those overlay the scenario's
+> script onto the server's single shared mock engine for the whole render). Such
+> captures never overlap however many are dispatched; only captures that mutate
+> nothing share the gate.
+>
+> That list is exhaustive rather than illustrative, and it is worth knowing why:
+> the stream/transcript channel was MISSING until 2026-08-30, and its absence is
+> what let a `--concurrency 4` sweep screenshot one scenario showing a different
+> scenario's scripted transcript. So do not reason from "my scenarios don't
+> seed, therefore concurrency is free" — reason from the list. If you add a
+> capture path that touches server-side shared state, it needs a channel in
+> `crates/control-api/src/capture_lock_mode.rs::CaptureMutationInputs` before it
+> is safe to run concurrently.
+>
+> The real cost of too high a value is memory — every capture spawns its own
+> browser — so raise it in steps and watch. Native-simulator stacks are pinned
+> to 1 (one shared device) and ignore the flag, and a content-collection stack
+> sees little gain because nearly every capture there is exclusive either way.
+>
+> **A capture the server leaves unanswered under concurrency is retried once,
+> serially, before it is ever reported — so do NOT read a timeout at the end of
+> a sweep as a broken scenario.** Both unanswered shapes are retried: a transport
+> failure (the server did not answer, or not with the capture contract) and a
+> per-slug timeout (the budget elapsed before it answered). Neither is a verdict
+> about the scenario; a budget elapsing says the server was too slow. The re-ask
+> is sequential on purpose, because the likeliest cause is the sweep's own
+> fan-out — measured on a 1,740-scenario sweep, three slugs timed out at
+> `--concurrency 4` and all three captured in 37s when re-run serially, with no
+> code or config change. A slug that goes unanswered TWICE keeps its outcome and
+> is reported honestly, so a genuinely uncapturable scenario is never masked.
+>
+> The JSON reports `captures_recovered_by_retry` for exactly this. Non-zero means
+> the run hit that saturation and absorbed it — the signal that a lower
+> `--concurrency` would have captured the same corpus in one pass. Without it, a
+> rescued run looks identical to one that never needed rescuing.
+>
+> Two consequences for reading the output. The JSON reports `concurrency`
+> (requested) and `effective_concurrency` (used) — read the latter, since a
+> native stack reports a request it did not honor. And it reports the cost in
+> two parts, which is the part worth internalizing:
+>
+> - `capture_seconds` — the capture loop alone. **This is the only number that
+>   shrinks when you raise concurrency.**
+> - `elapsed_seconds` — the whole invocation, which also includes the
+>   collision-isolation post-pass. That post-pass re-hashes every screenshot in
+>   the project, so it is a FIXED whole-project cost regardless of how many
+>   scenarios this run captured. A measured 4-scenario run spent ~40s capturing
+>   and ~1,090s there.
+>
+> So when you re-price a quoted estimate (e.g. `finalize-preview`'s "budget
+> roughly N minute(s) from this project's last M capture(s)" — derived from
+> *serial* timings), divide the **capture** portion by the effective
+> concurrency and leave the fixed portion alone. Dividing `elapsed_seconds`
+> wholesale is the same class of mis-pricing this reporting exists to stop.
+>
+> **`--concurrency` is not the only wall. `recapture-stale` also carries a
+> default 300-second budget, and on a large sweep that is the one you hit
+> first.** Concurrency changes how much gets captured *before* the budget
+> elapses; it does not change *whether* the sweep finishes. Reading the
+> paragraphs above and tuning only `--concurrency` therefore still leaves you
+> short — measured: 1,789 stale, **132 captured**, exit `2`. A sweep you intend
+> to complete wants the budget lifted explicitly:
+>
+> ```bash
+> codeyam-editor editor recapture-stale --concurrency <N> --max-seconds 0
+> ```
+>
+> `--max-seconds 0` disables the wall. Set both together — they are one decision
+> about a large sweep, not two independent knobs.
+>
+> Distinguish the two outcomes rather than guessing: a budget bail sets
+> **`budget_expired: true`** on the stdout JSON and lists every uncaptured slug
+> under `skipped`. That is an *unfinished* run, not a failed one — the captures
+> it did make are good, and nothing was left worse than it was found. Do not
+> investigate it as a capture failure (which is what the GOTCHA below covers);
+> re-run it with the budget lifted.
+
+> **`--concurrency` and `--max-seconds` bound different things, and a large
+> sweep needs you to get both right.** Concurrency shrinks how long the captures
+> take; the budget bounds how long the run is ALLOWED to take. They are easy to
+> read as one lever and they are not: under a budget too small for the work,
+> raising concurrency changes only how many scenarios get captured before the
+> same wall, never whether the sweep finishes. Following the concurrency advice
+> above and no more is exactly how a reader still gets cut off.
+>
+> The budget used to be a flat 300 seconds whenever you did not name one —
+> chosen before the command had any idea how much work it had found. Measured
+> 2026-09-03 on this repo: 1,789 scenarios stale, a default-budget run captured
+> **132** and skipped **1,657**, printing
+> `⏱ Budget expired after 300s — skipping 1657 remaining slug(s)` and exiting
+> `2`. The same set drained in one pass with `--max-seconds 0`. Five minutes
+> bought nothing but the number.
+>
+> **Omitting `--max-seconds` is now the right default**, and it is no longer the
+> trap: the budget is sized from the stale set the run discovers, at this
+> project's measured capture rate, divided by the concurrency actually in use —
+> with headroom, and never below 300s, so a small touch-up behaves exactly as it
+> did. The startup line names the budget and where it came from:
+>
+> ```
+>   ▶ 1789 scenario(s) to recapture (budget 2952s, derived from 1789 stale
+>     scenario(s) at 4.4s each across 4 concurrent capture(s))
+> ```
+>
+> Read that line. It is there so a mis-sized run can be stopped in its first
+> seconds rather than discovered at the wall.
+>
+> A value you pass is still authoritative — an explicit `--max-seconds 300`
+> still stops at 300 and still exits `2`, because a caller who names a budget
+> means it. So prefer omitting the flag on a full sweep, and reach for an
+> explicit budget only when you deliberately want a time-boxed partial paydown
+> (which is what the `finalize-debt` advice offers it for). `--max-seconds 0`
+> remains unlimited.
+
 > GOTCHA — **a recapture that fails everything is ONE cause, not N.** When
 > `recapture-stale` fails every capture (or most of them), treat it as a single
 > environmental cause until proven otherwise — unrelated scenarios do not
@@ -411,6 +737,27 @@ codeyam-editor editor presentability-scan
 codeyam-editor editor readme-sync
 ```
 
+**A `readme-sync` that exits `2` with `BLOCKED:` is a finding to act on, not a
+step to skip past.** It means the README's gallery or how-to block holds content
+codeyam-editor did not write — someone curated by typing between the markers —
+and the sync refused rather than destroying it. Do NOT work around it by
+reverting their edit or by deleting the markers (removing them makes the next
+sync *append* a second, generated gallery). Read the `Next valid action:` line
+and follow it: move that prose outside the markers, or move the curation into
+`.codeyam/readme-gallery.json` — scaffold one with `codeyam-editor editor
+readme-gallery-init`, which names scenarios by slug so their screenshots keep
+refreshing. Surface it to the user when the right home for their words is not
+obvious; it is their writing, and this refusal exists because a routine sync
+once destroyed a hand-curated gallery with no warning.
+
+**`Debug logging: not scanned` is NOT a pass.** It means this stack declared no
+`debugLogPatterns` and has no built-in default, so the logging pass never ran
+and an empty candidate list is an absence of evidence, not evidence of
+cleanliness. Configure `debugLogPatterns` in `.codeyam/stack.json` (or add a
+built-in default for the stack's framework token) and re-run before treating
+presentability as clean. `Debug logging: none` is the line that means clean;
+under `--format json` the same distinction is `debug_log_patterns_source`.
+
 Then **assertively** remove the clearly-dead docs and debug log lines the scan
 surfaces — but **ask the user about anything uncertain** before deleting it.
 The scan only ever *lists* candidates; the judgment (and the deletion) is
@@ -426,7 +773,35 @@ there — revert that one removal and re-run.
 
 ## 7. Commit → finalize → the merge-ready gate
 
-This is the one expensive loop; run it *once*, cleanly.
+This is the expensive loop; still aim to run it *once*, cleanly — but two
+properties now make its cost proportional to the change rather than flat.
+
+**The cheap gates fail fast.** `verify-build` and the cross-target build run
+as a hoisted `Phase 0.5/5` pre-flight, ahead of the ~35-minute full suite,
+and their positions at Phase 4 / 4b become a no-op re-check. So a
+cargo-fmt, clippy, tsc, windows-portability, shell-tests, date-rot or
+cross-target failure surfaces in minutes instead of surfacing at minute 57
+of an otherwise-passing run.
+
+**A re-run after a small fix is no longer full price.** Each phase records a
+fingerprint of the inputs it actually consumes, and a later run skips a
+phase whose fingerprint is unchanged, logging `Phase N/5: skipped (inputs
+unchanged since <sha> at <time>)`. A one-file post-CI test fix therefore
+re-runs the phases that file affects and re-stamps the marker, instead of
+paying the whole hour again purely to move `lastFullFinalizeSha`. A
+fingerprint that cannot be computed counts as *changed*, so the failure
+direction is always "do the work".
+
+This does **not** relax the marker-stamp trap below — `verify-full-finalize`
+remains the only authority on merge-readiness. It also does not change what
+`--start-from-phase` means: that still skips by operator assertion rather
+than by evidence, and still cannot advance the marker.
+
+Nor is it a licence to run the loop repeatedly. The saving is per *phase*; the
+cost is per *cycle*, and a cheaper re-run is still a whole cycle — a
+`pre-commit-sync` claim, a finalize, and a push. What keeps the count at one is
+batching the fixes that trigger it: see 8a's *land the whole set in ONE commit*
+before you fix the first red check.
 
 ```bash
 # Stop fast-intent so finalize stamps the real marker, not a deferred one.
@@ -461,6 +836,40 @@ codeyam-editor editor session-finalize 2>&1 | tee /tmp/codeyam-audit-finalize.lo
 > `tee`'d file. Do NOT hand-roll an `until grep … sleep` poll loop, and don't regex
 > English success strings. (Same wait-for-the-notification model as the editor
 > SKILL.md and the step hook's background-work block — one model, not two.)
+
+> GOTCHA — **the on-disk log spans EVERY run, so grepping it answers the wrong
+> question.** Separately from the `tee`'d file above, finalize always writes
+> `.codeyam/logs/session-finalize.log`. That file is deliberately append-only —
+> the history is useful, and comparing this run's phase timings against the last
+> one is a real workflow — so a `grep BLOCKED:` or `grep 'Next valid action:'`
+> over it returns **the union of every run this branch has ever done**, most of
+> it historical and none of it labelled as such. This is the same shape as the
+> `<cmd>.txt` warning in CLAUDE.md, where a narrower re-run replaces a wider
+> one's output: in both cases the file you get is not the file you meant.
+>
+> It reads exactly like a live problem. A previous run's `fleet-ready.test.sh
+> mutated the repository under test` bail — carrying a repository-state delta
+> naming a branch that no longer existed — was once read as live damage to the
+> current checkout, and several minutes went into verifying `core.bare`, the
+> reflog, and every ref before it turned out to predate the session by days.
+>
+> Ask for the run you actually mean:
+>
+> ```bash
+> codeyam-editor editor finalize-log --last-run      # just the newest run
+> ```
+>
+> Read-only, exits `0` on an absent or empty log, and takes `--format text|json`
+> like the other query surfaces. Under JSON, `count` is the slice's line count
+> and `total` the whole log's, and the `runId` sibling is the join key — it
+> matches the `runId` on
+> `.codeyam/state/command-output/session-finalize.status.json`, so you can prove
+> the slice and the verdict describe the same run rather than trusting a bare
+> `status`. Every run that started emits a closing `CODEYAM_FINALIZE_RUN_END`
+> marker carrying `ok`, `failed`, or `refused` (a blocked precondition, such as
+> the dirty-tree gate, that returns before the phases run). So a slice with NO
+> closing marker means the run never finished at all — still in flight, or
+> killed.
 
 > GOTCHA — **the per-test-evidence union-clobber.** If the finalize's evidence
 > phase reports a large `per-test-evidence` "missing" / "out of sync" count
@@ -537,6 +946,35 @@ With the branch pushed and merge-ready:
   8b below; this is not optional polish, it is the difference between the merge
   publishing a binary and publishing nothing.
 
+**A 5xx from an outward write is not evidence the write failed. Read the
+resource back before retrying.** A `502` says the *response* did not make it
+back to you; it says nothing about whether the server acted. Every outward
+action this section gates — opening a PR, merging one, pushing a tag, creating a
+release — is one where a blind retry is more expensive than the original
+failure, because the retry is not idempotent.
+
+Both halves of that happened in a single session, and both writes had **already
+succeeded**:
+
+| Write | What it returned | What a blind retry would have done |
+|---|---|---|
+| `gh pr create` | HTTP 502 | Opened a **duplicate PR** for the same branch |
+| `gh pr merge --squash` | HTTP 502 | Attempted a **second merge** on a just-merged branch |
+
+So the rule, for any write this procedure gates:
+
+```bash
+# Do NOT re-run the write. Read the resource back first.
+gh pr list --head "$(git branch --show-current)" --json number,state,url
+gh pr view <n> --json state,mergedAt,mergeCommit
+```
+
+If the resource is already in the state the write intended, the write
+succeeded — report it as done and move on. Only retry once a read has actually
+confirmed the write did not land. This generalizes past `gh`: treat *any* 5xx on
+an outward action as "verdict unknown, go and look", never as "it failed, do it
+again".
+
 ### 8a. Red CI is not done — investigate before you classify
 
 **A red test is a red test. `verify-full-finalize` exiting 0 locally is
@@ -567,6 +1005,45 @@ failure signature matches first.
 skill's job, not an outward action — the default is "root-cause and fix."
 Surface to the user only a genuine fork (approach A vs B with real ripple), as a
 real decision, never as a defer.
+
+**Land the whole set in ONE commit — a post-finalize commit un-stamps the
+branch.** A CI run reports *every* failure it found, so the complete set is in
+front of you before you fix the first one. Investigate all of them (steps 1–3
+above, per red check), then land the fixes together. The reason is mechanical
+rather than stylistic: `session-finalize` stamps `lastFullFinalizeSha` at the
+HEAD it verified, and a commit made after that stamp moves HEAD past it — the
+branch stops being merge-ready and `editor push` blocks with `Next valid action:
+codeyam-editor editor session-finalize`. One fix per commit therefore buys one
+whole finalize cycle per fix. Measured on `editor-improvements-76`: that loop
+ran five times, 35–47 minutes each even with section 7's phase fingerprinting
+skipping unchanged phases, for three fixes a single CI run had already reported
+and that could have shipped in one commit.
+
+**What a cycle actually costs, so the advice above is a price rather than an
+exhortation.** On `editor-improvements-80` the same loop ran five times and cost
+roughly **34, 85, 50, 87 and 50 minutes** — call it an hour a fix, with the
+worst case near an hour and a half. Two things follow.
+
+The spread is not noise, and it is the reason the cheap runs were cheap: phase
+fingerprinting skipped the phases nothing had touched. On the 34-minute run,
+Phase 1 reused **20 green partition caches** instead of re-running **35,841
+tests**. So a batched fix set does not merely save you *n − 1* runs — it keeps
+the runs it does cost in the cheap band, because a commit that touches one area
+leaves the other phases' fingerprints intact. Interleaving unrelated fixes
+across separate commits is what dirties every phase and prices each cycle at the
+top of that range.
+
+And an hour is long enough that the batching decision is worth making
+deliberately *before* the first fix, not discovered at the second. When CI hands
+you three failures, the choice is between roughly one hour and roughly four.
+
+> GOTCHA — **the queue tenure does not survive the push.** Every re-finalize
+> needs a fresh `codeyam-editor editor pre-commit-sync` first. The tenure claimed
+> for the previous finalize was released when `editor push` completed, so
+> `session-finalize` bails immediately with `Commit queue: finalize ran without
+> holding the queue head`. That message says what it is — *"this is a recovery,
+> not an error"* — so re-claim and re-run instead of investigating it as a
+> failure.
 
 **The flake bar — "flake" requires proof of non-determinism.** A check may be
 labeled a flake ONLY when it **passed on a re-run with no code change**, OR it
@@ -615,10 +1092,11 @@ re-running, or repair one entry with `register-test … --clear-platform-gate`.
 
 A squash merge concatenates **every** branch commit message into the merge
 commit's body, and GitHub Actions honors a skip token **anywhere** in that
-message — not just on the subject line. Plan commits always carry `[skip ci]`,
-correctly, because a plan file changes no source. So the default
-`gh pr merge --squash` lands that token on the primary branch and silently skips
-the entire `cicd` workflow for the merge commit.
+message — not just on the subject line. So ANY branch commit carrying `[skip ci]`
+— a plan commit made on `main` before the branch was cut, a cherry-pick, a
+hand-written one — makes the default `gh pr merge --squash` land that token on
+the primary branch and silently skip the entire `cicd` workflow for the merge
+commit.
 
 Nothing announces it. On 2026-08-09 PR #100 merged as `6baba063b` with no CI run
 at all: no `codeyam-editor-binary:main-6baba063b` was published, no cloud image
@@ -638,8 +1116,15 @@ honors (`[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]`, `[actions skip]`,
 `***NO_CI***`), and it avoids `sed -i`, whose in-place flag differs between BSD
 and GNU — the merge is run from laptops and cloud VMs alike.
 
-**Do NOT stop `/codeyam-plan` emitting `[skip ci]`.** The token is right on the
-original plan-only commit. The defect is it *escaping into a squash body*.
+**Do NOT stop `/codeyam-plan` emitting `[skip ci]`.** The token is right on a
+plan-only commit that targets `main`, which is the only case that emits it —
+`/codeyam-plan` and `/review-session` both OMIT it on a branch, where it would
+suppress the open PR's own run. The defect is it *escaping into a squash body*.
+
+**That branch exception does not make the strip step above unnecessary.** It
+narrows who emits the token, not who can carry one: a branch commit that picked
+one up from any source must still not reach a squash body, so compose the merge
+body with `ci-skip-token.sh --strip` regardless.
 
 **After merging, confirm the merge commit actually got a run:**
 
@@ -648,9 +1133,10 @@ codeyam-editor editor verify-primary-branch-ci
 ```
 
 Exit `0` means a run exists. Exit `2` names the sha and the one command that
-recovers it (`gh workflow run cicd --ref main`). A `gh` that cannot answer, or a
-non-GitHub remote, reports unknown/not-applicable and exits `0` — this check
-never turns a network hiccup into a red gate.
+recovers it (`gh workflow run cicd --ref main`). A `gh` that cannot answer, a
+non-GitHub remote, or a repo that defines no workflows at all reports
+unknown/not-applicable and exits `0` — this check never turns a network hiccup,
+or a project that simply has no CI, into a red gate.
 
 ---
 
