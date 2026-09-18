@@ -165,3 +165,9 @@ ui/
 .claude/hooks/__pycache__/
 .claude/settings.local.json
 docker-compose.cloud.yml
+
+# Crash dumps. A core file is written wherever the process died, so it lands at
+# the repo root; they run to gigabytes and would otherwise be swept in by any
+# "stage everything untracked" pass and stored in history permanently.
+core
+core.*
