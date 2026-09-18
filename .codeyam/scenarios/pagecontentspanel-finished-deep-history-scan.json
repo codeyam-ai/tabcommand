@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsPanel - Finished Deep History Scan",
+  "id": "47214905-3784-4e34-9c23-3c05c3801d28",
+  "url": "/?isolate=PageContentsPanel&variant=complete",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsPanel",
+  "scenarioType": "component",
+  "description": "The widest and most expensive configuration the panel offers: the 50-page recent-history scope with deep scan switched on, finished at 50 / 50. The readout reads 'Finished' rather than 'Scanned' once the run ends, and this is the state where the controls are most likely to wrap onto a second line."
+}

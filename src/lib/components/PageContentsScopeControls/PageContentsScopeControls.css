@@ -1,0 +1,46 @@
+.PageContentsScopeControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.PageContentsScopeControls-scope {
+  padding: 5px 8px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-row);
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.PageContentsScopeControls-button {
+  padding: 5px 12px;
+  border: 1px solid var(--brand-command);
+  border-radius: var(--r-row);
+  background-color: transparent;
+  color: var(--brand-command);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color var(--t-fast), color var(--t-fast);
+}
+
+.PageContentsScopeControls-button:hover {
+  background-color: var(--brand-command);
+  color: var(--app-bg);
+}
+
+.PageContentsScopeControls-deep,
+.PageContentsScopeControls-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.PageContentsScopeControls-deep {
+  cursor: pointer;
+}

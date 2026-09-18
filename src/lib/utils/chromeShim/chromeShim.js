@@ -162,6 +162,16 @@ export function createChromeShim() {
   const sync = makeArea(SYNC);
 
   return {
+    // Marks this object as the dev shim rather than the browser's own `chrome`.
+    // The content scan reads it to decide whether a page's text can be fetched
+    // over the network at all: from the dev server there is no extension origin
+    // and no host permission, so a real `fetch` of notion.so is refused before
+    // it leaves the page, and every closed-URL scope would demo as zero hits.
+    __shim: true,
+    // The seeded corpus behind both the fetched and the live tiers, exposed so
+    // `devPageText` can serve it without reaching into storage itself.
+    __pageTexts: () => stores[LOCAL].pageTexts || {},
+
     storage: {
       local,
       sync,
@@ -214,19 +224,63 @@ export function createChromeShim() {
     // state, and `request` flips a not-granted scenario to granted live — which
     // is what makes the toggle demonstrable in the preview instead of being
     // permanently stuck on whichever half was seeded.
+    // A request carries `permissions` (api names) and/or `origins` (host
+    // patterns) and both halves must be held for `contains` to answer true —
+    // page-content search asks for `scripting` AND `<all_urls>`, and a scenario
+    // that seeded only the api name should not render as fully granted.
+    // Origins are kept in their own seeded list so the two can be seeded apart.
     permissions: {
       contains: (query, cb) => {
         const granted = stores[LOCAL].grantedPermissions || [];
+        const grantedOrigins = stores[LOCAL].grantedOrigins || [];
         const wanted = (query && query.permissions) || [];
-        defer(cb, wanted.every((p) => granted.indexOf(p) > -1));
+        const wantedOrigins = (query && query.origins) || [];
+        defer(cb, (
+          wanted.every((p) => granted.indexOf(p) > -1) &&
+          wantedOrigins.every((o) => grantedOrigins.indexOf(o) > -1)
+        ));
       },
       request: (query, cb) => {
         const granted = stores[LOCAL].grantedPermissions || [];
+        const grantedOrigins = stores[LOCAL].grantedOrigins || [];
         const wanted = (query && query.permissions) || [];
+        const wantedOrigins = (query && query.origins) || [];
+
+        // A scenario seeds `denyPermissions` to demonstrate the refusal path.
+        // Without it there would be no way to show what the page does when the
+        // user says no, since the shim has no dialog to say no in.
+        if (stores[LOCAL].denyPermissions) {
+          defer(cb, false);
+          return;
+        }
+
         const next = Array.from(new Set([...granted, ...wanted]));
+        const nextOrigins = Array.from(new Set([...grantedOrigins, ...wantedOrigins]));
         stores[LOCAL].grantedPermissions = next;
+        stores[LOCAL].grantedOrigins = nextOrigins;
         window.localStorage.setItem('grantedPermissions', JSON.stringify(next));
+        window.localStorage.setItem('grantedOrigins', JSON.stringify(nextOrigins));
         defer(cb, true);
+      },
+    },
+
+    // The injection API behind reading an OPEN tab's text. There are no real
+    // tabs here, so the shim resolves the tabId back to the urlKey it belongs to
+    // (via the seeded `activeTabs`, whose `tab-<id>` keys are the same ids the
+    // app derives) and serves that page's seeded text from `pageTexts`.
+    //
+    // It returns the same `[{ result }]` frame array the real API does, so the
+    // caller's unwrapping is exercised rather than mocked around. A page with no
+    // seeded text yields an empty string — the same thing a real blank page
+    // gives — so "scanned but did not match" is demonstrable too.
+    scripting: {
+      executeScript: (injection, cb) => {
+        const tabId = injection && injection.target && injection.target.tabId;
+        const activeTabs = stores[LOCAL].activeTabs || [];
+        const tab = activeTabs.find((t) => t && t.tabKey === `tab-${tabId}`);
+        const texts = stores[LOCAL].pageTexts || {};
+        const result = (tab && texts[tab.urlKey]) || '';
+        defer(cb, [{ result }]);
       },
     },
 

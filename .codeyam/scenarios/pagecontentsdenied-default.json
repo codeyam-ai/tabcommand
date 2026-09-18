@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsDenied - Default",
+  "id": "d8dfbcfb-2f38-4da1-912b-036ed6f2c56d",
+  "url": "/?isolate=PageContentsDenied",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsDenied",
+  "scenarioType": "component",
+  "description": "What the panel says after the user declines the permission prompt. It states what still works — titles and notes are searched as before — rather than framing a reasonable choice as a problem, and carries an Ask again button because the browser only re-shows the prompt on a fresh user gesture."
+}

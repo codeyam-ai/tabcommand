@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsSnippet - Default",
+  "id": "a307fd9f-f3b1-4fde-90a3-5a36fb5cdd96",
+  "url": "/?isolate=PageContentsSnippet",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsSnippet",
+  "scenarioType": "component",
+  "description": "The matched excerpt with the query called out, isolated from its row. This is the sibling of NotesSnippet and the difference is deliberate: a note snippet quotes something the user wrote and has seen, so one line suffices, while this quotes prose they only read — so it gets a sentence and a two-line clamp."
+}

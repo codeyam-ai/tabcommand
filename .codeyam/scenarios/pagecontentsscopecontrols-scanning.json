@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsScopeControls - Scanning",
+  "id": "b7f7d08d-bf88-49ed-95c2-014d46236c72",
+  "url": "/?isolate=PageContentsScopeControls&variant=scanning",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsScopeControls",
+  "scenarioType": "component",
+  "description": "Mid-scan over one group: the button has flipped to Cancel and both the scope select and the deep-scan checkbox are disabled. Locking them is the point — a run that could be re-scoped underneath itself would finish reporting a total from one scope and results from another."
+}

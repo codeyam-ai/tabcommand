@@ -1,0 +1,8 @@
+/* The row's layout comes from the page's shared `.FullSearch-row*` rules; its
+   two distinctive pieces style themselves in PageContentsTierBadge.css and
+   PageContentsSnippet.css. Nothing is left for this file but the row's own
+   spacing, which the shell already provides — kept as the row's stylesheet so
+   the component owns a place to put row-level rules when it needs one. */
+.PageContentsRow {
+  align-items: center;
+}

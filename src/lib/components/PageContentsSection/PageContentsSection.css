@@ -1,0 +1,7 @@
+/* Full width below the two result columns rather than inside them: a content hit
+   carries a two-line excerpt, so these rows are roughly twice the height of
+   every other row on the page and would make one column tower over the other. */
+.FullSearch-section-pageContents {
+  max-width: 1180px;
+  display: block;
+}

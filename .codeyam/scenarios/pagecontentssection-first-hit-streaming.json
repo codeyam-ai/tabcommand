@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsSection - First Hit Streaming",
+  "id": "5ae3079d-57ed-4bdb-b399-7ed05a5c49de",
+  "url": "/?isolate=PageContentsSection&variant=streaming",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsSection",
+  "scenarioType": "component",
+  "description": "One result, mid-scan. Hits stream into the section as they land instead of waiting for the whole run, because the slowest page in a scan of sixty would otherwise set how long the page shows nothing. A user who searched for a phrase they read this morning can find it and stop there."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsScopeControls - Before Opting In",
+  "id": "639ea71c-e065-47c8-a853-6e9e7f99ec2d",
+  "url": "/?isolate=PageContentsScopeControls",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsScopeControls",
+  "scenarioType": "component",
+  "description": "The controls row as a first-time user meets it: scope defaulted to Open tabs, the Search page contents button, the off-by-default deep-scan checkbox, and the note saying the button asks permission to read the sites you visit. The note is shown only while the grant is outstanding — this is the one control here that summons a browser dialog."
+}

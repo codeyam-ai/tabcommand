@@ -50,6 +50,70 @@ const noop = () => {};
 const FAV_NOW = 1782486000000;
 const D = 86400000;
 
+// The groups the Page contents scope picker offers, in their stored shape — the
+// picker lists one entry per group between the fixed scopes, so it needs real
+// groups to render the state a user actually sees.
+const PAGE_CONTENT_LABELS = {
+  Work: { title: 'Work', backgroundColor: '#1873E4', position: 0 },
+  Reading: { title: 'Reading', backgroundColor: '#1F8E43', position: 1 },
+  Shopping: { title: 'Shopping', backgroundColor: '#E47415', position: 2 },
+};
+
+// Four page-content hits for the query "quota", one per extraction tier plus a
+// long one. The snippets are pre-split the way `matchPageText` returns them
+// (`before` / `match` / `after`) so the isolated row renders the same markup the
+// real scan produces, without a scan having to run.
+const PAGE_CONTENT_HITS = [
+  {
+    urlKey: 'url-https://developer.chrome.com/docs/extensions/reference/tabs/',
+    url: 'https://developer.chrome.com/docs/extensions/reference/tabs/',
+    title: 'chrome.tabs | Chrome Extensions',
+    favicon: '',
+    tier: 'live',
+    snippet: {
+      before: 'Each write to storage.sync counts against the ',
+      match: 'quota',
+      after: ', and exceeding it rejects the write rather than truncating it.',
+    },
+  },
+  {
+    urlKey: 'url-https://stackoverflow.com/questions/78912345/chrome-storage-local-quota',
+    url: 'https://stackoverflow.com/questions/78912345/chrome-storage-local-quota',
+    title: 'chrome.storage.local quota exceeded — Stack Overflow',
+    favicon: '',
+    tier: 'fetched',
+    snippet: {
+      before: 'I keep hitting the 5MB ',
+      match: 'quota',
+      after: ' on storage.local even though my data looks small.',
+    },
+  },
+  {
+    urlKey: 'url-https://www.notion.so/codeyam/Roadmap',
+    url: 'https://www.notion.so/codeyam/Roadmap',
+    title: 'Roadmap – Notion',
+    favicon: '',
+    tier: 'deep',
+    snippet: {
+      before: 'Q3: raise the sync ',
+      match: 'quota',
+      after: ' ceiling before the group-sharing beta ships.',
+    },
+  },
+  {
+    urlKey: 'url-https://developer.mozilla.org/en-US/docs/Web/API',
+    url: 'https://developer.mozilla.org/en-US/docs/Web/API',
+    title: 'Web APIs — Reference documentation for every interface the browser exposes | MDN',
+    favicon: '',
+    tier: 'fetched',
+    snippet: {
+      before: 'Storage APIs are subject to a per-origin ',
+      match: 'quota',
+      after: ' that the browser may evict under pressure, and the exact limit varies by engine, by available disk, and by whether the origin has been granted persistent storage by the user.',
+    },
+  },
+];
+
 const ISOLATION_PROPS = {
   // The banner shown when the user's groups are NOT reaching chrome.storage.sync.
   // Both states are worth pinning because their COPY differs by remedy: an
@@ -1848,10 +1912,207 @@ const ISOLATION_PROPS = {
     default: {},
   },
 
-  PageContentsSlot: {
-    // No props and one state — the dimmed footnote naming what the page cannot
-    // search yet, and why.
+  PageContentsPanel: {
+    // Before opting in: the scope picker, the button, and the note naming the
+    // browser prompt the button will summon. The note is the state's whole
+    // point — it is the only warning the user gets before a permission dialog.
+    default: {
+      scope: 'openTabs',
+      onScopeChange: noop,
+      deep: false,
+      onDeepChange: noop,
+      labels: PAGE_CONTENT_LABELS,
+      granted: false,
+      denied: false,
+      scanning: false,
+      progress: null,
+      onStart: noop,
+      onCancel: noop,
+    },
+    variants: {
+      // The user said no. The panel states what still works rather than what
+      // they withheld, and offers the gesture that can ask again — the prompt
+      // only reappears on a fresh click.
+      denied: {
+        scope: 'openTabs',
+        onScopeChange: noop,
+        deep: false,
+        onDeepChange: noop,
+        labels: PAGE_CONTENT_LABELS,
+        granted: false,
+        denied: true,
+        scanning: false,
+        progress: null,
+        onStart: noop,
+        onCancel: noop,
+      },
+      // Mid-scan: the button has become Cancel, the scope and deep-scan controls
+      // are locked so the run cannot be re-scoped underneath itself, and the bar
+      // plus the count answer "how much longer" and "is it really looking".
+      scanning: {
+        scope: 'label:Work',
+        onScopeChange: noop,
+        deep: false,
+        onDeepChange: noop,
+        labels: PAGE_CONTENT_LABELS,
+        granted: true,
+        denied: false,
+        scanning: true,
+        progress: { scanned: 23, total: 60 },
+        onStart: noop,
+        onCancel: noop,
+      },
+      // Finished, with deep scan on and the history scope selected — the widest
+      // and most expensive configuration the panel offers, and the one whose
+      // controls are most likely to wrap.
+      complete: {
+        scope: 'history',
+        onScopeChange: noop,
+        deep: true,
+        onDeepChange: noop,
+        labels: PAGE_CONTENT_LABELS,
+        granted: true,
+        denied: false,
+        scanning: false,
+        progress: { scanned: 50, total: 50 },
+        onStart: noop,
+        onCancel: noop,
+      },
+    },
+  },
+
+  PageContentsScopeControls: {
+    // Before opting in: the note naming the browser prompt the button will
+    // summon is the state's whole point.
+    default: {
+      scope: 'openTabs',
+      onScopeChange: noop,
+      deep: false,
+      onDeepChange: noop,
+      labels: PAGE_CONTENT_LABELS,
+      granted: false,
+      denied: false,
+      scanning: false,
+      onStart: noop,
+      onCancel: noop,
+    },
+    variants: {
+      // Mid-scan: the button is Cancel and the scope + deep controls are locked,
+      // so the run cannot be re-scoped underneath itself.
+      scanning: {
+        scope: 'label:Work',
+        onScopeChange: noop,
+        deep: false,
+        onDeepChange: noop,
+        labels: PAGE_CONTENT_LABELS,
+        granted: true,
+        denied: false,
+        scanning: true,
+        onStart: noop,
+        onCancel: noop,
+      },
+      // Granted, with the widest scope and deep scan on — the note is gone,
+      // having said what it needed to.
+      'granted-deep': {
+        scope: 'history',
+        onScopeChange: noop,
+        deep: true,
+        onDeepChange: noop,
+        labels: PAGE_CONTENT_LABELS,
+        granted: true,
+        denied: false,
+        scanning: false,
+        onStart: noop,
+        onCancel: noop,
+      },
+    },
+  },
+
+  PageContentsDenied: {
+    // One state, and the copy IS the component: it says what still works rather
+    // than what the user withheld, and carries the only route back to the prompt.
+    default: { onRetry: noop },
+  },
+
+  PageContentsProgress: {
+    // Mid-scan, where the bar answers "how much longer".
+    default: { scanned: 23, total: 60, scanning: true },
+    variants: {
+      // Finished, where the verb changes because the same numbers left under
+      // "Scanned" would read as though the run stopped early.
+      finished: { scanned: 50, total: 50, scanning: false },
+      // The first frame, before any page has come back.
+      starting: { scanned: 0, total: 60, scanning: true },
+      // A scope that resolved to nothing: 0 / 0 must render an empty bar rather
+      // than `width: NaN%`.
+      empty: { scanned: 0, total: 0, scanning: false },
+    },
+  },
+
+  PageContentsTierBadge: {
+    // Live — read from the open tab, in the green that already means "open now".
+    default: { tier: 'live' },
+    variants: {
+      // Fetched — page source only, no scripts run. Neutral.
+      fetched: { tier: 'fetched' },
+      // Deep — the only tier that loaded a page. Warm, because it has a cost.
+      deep: { tier: 'deep' },
+    },
+  },
+
+  PageContentsSnippet: {
+    // The excerpt with the matched phrase called out — the row's whole
+    // justification, and the only evidence the hit is the passage the user meant.
+    default: { snippet: PAGE_CONTENT_HITS[0].snippet },
+    variants: {
+      // Long enough to need the two-line clamp.
+      long: { snippet: PAGE_CONTENT_HITS[3].snippet },
+    },
+  },
+
+  PageContentsEmpty: {
+    // What a finished scan with no hits says. Shown rather than omitted, because
+    // "no section" and "a section that found nothing" answer different questions.
     default: {},
+  },
+
+  PageContentsRow: {
+    // A live-tier hit: read from a tab that is open right now, so the text is
+    // what the user can see on screen at this moment.
+    default: {
+      result: PAGE_CONTENT_HITS[0],
+      onActivate: noop,
+    },
+    variants: {
+      // Fetched: read from the page source without running its scripts. The
+      // badge is what makes a thin result honest rather than mysterious.
+      fetched: { result: PAGE_CONTENT_HITS[1], onActivate: noop },
+      // Deep: the only tier that loaded a page, behind the off-by-default
+      // checkbox.
+      deep: { result: PAGE_CONTENT_HITS[2], onActivate: noop },
+      // A long title beside a long excerpt — the excerpt clamps at two lines
+      // while the title ellipsizes on one.
+      'long-excerpt': { result: PAGE_CONTENT_HITS[3], onActivate: noop },
+    },
+  },
+
+  PageContentsSection: {
+    // The finished section: hits from all three tiers at once, so the badges
+    // read against each other rather than in isolation.
+    default: {
+      results: PAGE_CONTENT_HITS,
+      scanned: true,
+      onActivate: noop,
+    },
+    variants: {
+      // A scan that found nothing. It says so rather than rendering nothing,
+      // because "no section" and "a section that found nothing" answer
+      // different questions and only one of them means the search was done.
+      'no-hits': { results: [], scanned: true, onActivate: noop },
+      // The first hit, mid-scan — results stream in rather than waiting for the
+      // whole scan, so the page is useful before it is finished.
+      streaming: { results: PAGE_CONTENT_HITS.slice(0, 1), scanned: true, onActivate: noop },
+    },
   },
 };
 

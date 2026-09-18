@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsTierBadge - Fetched",
+  "id": "166098d0-2cda-427b-abad-ec4caba499b9",
+  "url": "/?isolate=PageContentsTierBadge&variant=fetched",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsTierBadge",
+  "scenarioType": "component",
+  "description": "The neutral middle tier: the page was read from its source without running its scripts. This badge is what makes a thin or missing result honest rather than mysterious — for a site the user is signed in to, what the server sends an anonymous fetch is a different page than the one they remember reading."
+}

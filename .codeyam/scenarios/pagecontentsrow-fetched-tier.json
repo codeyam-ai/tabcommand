@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsRow - Fetched Tier",
+  "id": "fe1b2705-b03a-416a-b5dc-ad6084dff049",
+  "url": "/?isolate=PageContentsRow&variant=fetched",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsRow",
+  "scenarioType": "component",
+  "description": "A closed URL read from its page source without running its scripts — cheap, loads nothing, and sees only what the server sends an anonymous visitor. The neutral FETCHED badge is what makes a thin result honest rather than mysterious: for a signed-in app this is a different page than the one the user remembers reading."
+}

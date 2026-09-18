@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsPanel - Permission Denied",
+  "id": "b225da00-ab76-4d6b-b699-dc67b024f955",
+  "url": "/?isolate=PageContentsPanel&variant=denied",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsPanel",
+  "scenarioType": "component",
+  "description": "The user said no to the permission prompt. The panel states what still works — titles and notes are still searched — rather than scolding them for withholding, and offers an Ask again button because Chrome only re-shows the prompt on a fresh click. Declining is a reasonable choice and the page keeps working."
+}

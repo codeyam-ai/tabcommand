@@ -121,8 +121,11 @@ required, and states the limits on its use — that combination is what gets a
 justification accepted on the first pass. Vague one-liners ("needed for the
 extension to work") are the most common cause of a rejection round-trip.
 
-**TabCommand requests no host permissions, has no content scripts, and uses no
-`scripting` permission.** That's a strong review story — say so if given the chance.
+**At install time TabCommand requests no host permissions and has no content
+scripts.** Host access and `scripting` are OPTIONAL — they are requested at
+runtime, only if the user runs a page-content search, and the extension works
+fully without them. That's still a strong review story — say so if given the
+chance, and be precise about the "optional, on demand" part.
 
 ### `tabs`
 
@@ -140,8 +143,10 @@ onUpdated, onRemoved, onMoved, onActivated, onReplaced) so the dashboard stays
 in sync when the user changes tabs outside the extension.
 
 Tab titles and URLs are used only to display and organize tabs locally on the
-user's device. TabCommand does not read page content, does not inject scripts,
-and does not transmit browsing activity anywhere. Without this permission the
+user's device. This permission reads no page content and injects no scripts —
+reading page text is a separate, optional capability the user turns on for
+themselves (see the scripting and host-permission justifications). TabCommand
+does not transmit browsing activity anywhere. Without this permission the
 extension cannot function at all.
 ```
 
@@ -210,6 +215,57 @@ otherwise modify browsing history. Revoking the permission in Chrome's settings
 turns the feature off and the rest of search continues to work unchanged.
 ```
 
+### `scripting` (optional)
+
+Declared under `optional_permissions`, alongside the `<all_urls>` host access
+below. Neither is requested at install, so the install-time warning list is
+unchanged.
+
+```
+TabCommand's Full Search page can search the TEXT INSIDE the user's own pages,
+not just their titles — for the common case where someone remembers a phrase they
+read but not the title of the page they read it on. To search an open tab,
+TabCommand runs one small script in that tab that reads document.body.innerText
+and returns it. That is the entire injected script: it reads visible text and
+returns it. It writes nothing to the page, changes nothing on it, and adds no
+persistent content script.
+
+This permission is optional and is requested at runtime, at the moment the user
+first clicks "Search page contents"; a user who never clicks it is never asked.
+The text is searched on the user's device and discarded — only a short excerpt
+around the match is held, in memory, until the user leaves the page. Nothing is
+stored and nothing is transmitted. Revoking the permission in Chrome's settings
+turns the feature off and the rest of search continues to work unchanged.
+```
+
+### `<all_urls>` host permission (optional)
+
+Declared under `optional_host_permissions`, requested at runtime together with
+`scripting`. This is the broadest host grant Chrome offers, so the justification
+has to be explicit about why a narrower one will not do.
+
+```
+The same page-content search needs to read pages the user has CLOSED — the ones
+in their groups and their recent history — which cannot be read from a tab
+because no tab is open. For those, TabCommand fetches the page and parses the
+text out of the response.
+
+The host pattern is <all_urls> because the pages a user wants to search are
+whatever pages that user happens to have saved; TabCommand has no fixed list of
+sites and cannot predict them, so no narrower pattern would cover the feature.
+The permission is optional and requested at runtime, only when the user first
+runs a page-content search — a user who never runs one is never asked, and the
+install-time permission warnings are unchanged for everyone.
+
+Access is used only to read text for a search the user just asked for. A scan is
+bounded: it covers only the scope the user picked, at most 100 pages, with a
+per-page timeout, and the user can cancel it. The text is matched on the device
+and discarded; only the excerpt shown in the results survives, in memory, until
+the user leaves the page. Nothing is written to any page, nothing is stored, and
+nothing is sent to TabCommand or any third party. Revoking the permission in
+Chrome's settings turns the feature off and leaves the rest of search working.
+```
+
 ### `system.cpu`
 
 ```
@@ -247,11 +303,21 @@ remotely-hosted scripts and uses no eval() or new Function().
 *(Verified: no `eval` / `new Function` anywhere in the shipped bundle, and no
 remote script tags.)*
 
-## TabCommand makes zero network requests  (v0.16 and later)
+## TabCommand makes no network requests of its own
 
-As of **0.16**, the extension makes **no network requests at all** — verified by
-loading the app with a request interceptor attached and observing zero
+The extension contacts **no server of ours and no third party, ever** — verified
+by loading the app with a request interceptor attached and observing zero
 non-local requests.
+
+**One correction since page-content search shipped:** the claim used to be "no
+network requests at all", and that is no longer literally true. When — and only
+when — the user runs a page-content search over closed URLs, TabCommand fetches
+those pages directly, from the user's own device, because that is the only way to
+read a page that is not open. Those requests go to the sites the user already
+chose to save; none go to us, none carry user data, and none happen unless the
+user clicks the button and has granted the optional host permission. Say it that
+way rather than repeating the old absolute — a reviewer who sees a fetch after
+reading "zero network requests" will treat the whole listing as unreliable.
 
 Earlier builds fetched Roboto and IBM Plex from `fonts.googleapis.com` and an
 (unused) Font Awesome stylesheet from `cdnjs.cloudflare.com`. Those were
@@ -285,6 +351,16 @@ true rather than nearly true.
 > **not** use `https://codeyam.com/privacy` — that is the company/website policy
 > and it describes analytics and device identifiers that TabCommand does not
 > collect, which would contradict the "no data collected" declaration above.
+
+> ⚠️ **OWED: the hosted privacy page is out of date as of page-content search.**
+> `PRIVACY.md` in this repo has been updated to say that page text is read only
+> when the user runs a content search, locally, and is never transmitted. The
+> page at `https://codeyam.com/tabcommand/privacy` still carries the old "It does
+> not read page content" sentence, which is now false for a user who turns the
+> feature on. That page lives in a DIFFERENT repo (`codeyam-local`,
+> `dashboard/app/routes/tabcommand.privacy.tsx`) so it cannot be fixed from here —
+> it must be updated there before this version is submitted. A store listing whose
+> linked policy contradicts the requested permissions is a rejection.
 
 ## Three certification checkboxes (Privacy tab)
 

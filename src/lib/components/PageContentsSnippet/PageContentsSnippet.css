@@ -1,0 +1,22 @@
+/* Spans the row on its own line, the way the notes snippet does, but clamped to
+   TWO lines rather than one: a sentence of prose needs the extra line before it
+   stops being readable, and this excerpt is the only proof the user gets that
+   the hit is the passage they remembered. */
+.PageContentsSnippet {
+  flex-basis: 100%;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The same called-out treatment NotesSnippet gives a matched term, so "this is
+   the bit you searched for" reads identically wherever it appears. */
+.PageContentsSnippet span {
+  color: var(--brand-command);
+  font-weight: 600;
+}

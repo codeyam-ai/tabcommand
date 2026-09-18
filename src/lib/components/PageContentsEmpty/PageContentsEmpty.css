@@ -1,0 +1,5 @@
+.PageContentsEmpty {
+  padding: 9px 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+}

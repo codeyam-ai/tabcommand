@@ -2,7 +2,8 @@
    their own styling: the query field in FullSearchInput.css, the chips in
    FullSearchFilterChips.css, the tinted title band and group sub-headers in
    FullSearchSection.css, the badge and pencil in FullSearchRow.css, the toggle
-   in ChromeHistoryToggle.css, and the footnote in PageContentsSlot.css. The
+   in ChromeHistoryToggle.css, the scan controls in PageContentsPanel.css and
+   the content hits in PageContentsSection.css / PageContentsRow.css. The
    shared `Page-*` chrome lives in PageHeader.css and the empty line in
    EmptyState.css. */
 .FullSearch {
@@ -54,6 +55,7 @@
 .FullSearch-section-notes         { --section-accent: #cf9f1c; --section-band: rgba(207, 159, 28, 0.16); }
 .FullSearch-section-openTabs      { --section-accent: #1e9e57; --section-band: rgba(30, 158, 87, 0.14); }
 .FullSearch-section-chromeHistory { --section-accent: #c2278a; --section-band: rgba(194, 39, 138, 0.14); }
+.FullSearch-section-pageContents  { --section-accent: #8a6a4f; --section-band: rgba(138, 106, 79, 0.16); }
 
 /* ── The row shell ─────────────────────────────────────────────────────── */
 /* Shared by the URL row and the label row, so it lives with the page rather

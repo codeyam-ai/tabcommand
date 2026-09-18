@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsRow - Deep Tier",
+  "id": "62869ebb-e2cb-4367-bbdb-040b52d193a4",
+  "url": "/?isolate=PageContentsRow&variant=deep",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsRow",
+  "scenarioType": "component",
+  "description": "The only tier that actually loaded a page: the fetched text came back an empty shell, so the page was opened in a background tab, read once its own scripts had run, and closed again. It is warm-coloured and behind an off-by-default checkbox because it is the one tier with a cost the user should opt into."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsEmpty - Default",
+  "id": "4ae6d471-af38-48a8-919c-0ed7931fc408",
+  "url": "/?isolate=PageContentsEmpty",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsEmpty",
+  "scenarioType": "component",
+  "description": "The line a finished scan with no hits renders. It is shown rather than omitted because 'no section' and 'a section that found nothing' answer different questions and only the second means the search was done. The second sentence names the likeliest reason — a page read without loading it sees only what the site sends before its scripts run."
+}

@@ -1,0 +1,20 @@
+/* Outlined, uppercase and mono — the same visual family as the Open badge, so
+   the two read as annotations on the row rather than as competing labels. The
+   hue carries the meaning: live is the green already used for "this is open
+   right now", fetched is neutral, and deep is warm because it is the only tier
+   that loaded anything. */
+.PageContentsTierBadge {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: default;
+}
+
+.PageContentsTierBadge-live { color: var(--c-lime-fg); }
+.PageContentsTierBadge-fetched { color: var(--text-muted); }
+.PageContentsTierBadge-deep { color: #cf9f1c; }

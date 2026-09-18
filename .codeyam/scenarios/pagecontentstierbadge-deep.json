@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsTierBadge - Deep",
+  "id": "11ecc50b-7180-40ed-9bed-3e04c8a49dd6",
+  "url": "/?isolate=PageContentsTierBadge&variant=deep",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsTierBadge",
+  "scenarioType": "component",
+  "description": "The warm tier, and the only one that actually loaded a page: the fetched text came back an empty shell, so the page was opened in a background tab, read once its own scripts had run, and closed again. Coloured apart from the other two because it is the one tier with a cost the user opts into."
+}

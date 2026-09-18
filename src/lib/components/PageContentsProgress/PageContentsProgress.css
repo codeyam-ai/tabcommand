@@ -1,0 +1,34 @@
+.PageContentsProgress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  max-width: 760px;
+}
+
+.PageContentsProgress-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background-color: var(--c-raised);
+  overflow: hidden;
+}
+
+/* The page-contents accent, stated literally rather than inherited: the
+   `FullSearch-section-pageContents` class that defines `--section-accent` sits
+   on the SECTION, which is a sibling of the panel this bar lives in, so the
+   variable never reaches here. An earlier `var(--section-accent, --brand-command)`
+   fallback rendered a finished bar as a heavy black rule that read as a divider. */
+.PageContentsProgress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background-color: #8a6a4f;
+  transition: width var(--t-fast);
+}
+
+.PageContentsProgress-count {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}

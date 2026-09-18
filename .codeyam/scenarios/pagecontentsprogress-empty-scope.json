@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsProgress - Empty Scope",
+  "id": "fc2b6874-9857-4ef8-84e9-1ee9f892d493",
+  "url": "/?isolate=PageContentsProgress&variant=empty",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsProgress",
+  "scenarioType": "component",
+  "description": "The 0 / 0 case, which a scope resolving to no scannable pages produces. It exists as its own scenario because the naive width expression is 0/0 = NaN, which reaches the style attribute as 'width: NaN%', is ignored, and freezes the bar at whatever the last scan left. Here the track renders empty, as it should."
+}

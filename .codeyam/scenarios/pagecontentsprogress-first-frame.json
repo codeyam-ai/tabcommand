@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsProgress - First Frame",
+  "id": "c542b8dd-c6ff-414f-9421-9a6d0608bb4e",
+  "url": "/?isolate=PageContentsProgress&variant=starting",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsProgress",
+  "scenarioType": "component",
+  "description": "The instant a scan begins: the total is known but nothing has come back, so the bar is empty at 0 / 60. This is the frame that tells the user the click registered, and it is why progress is set before the first page is read rather than after."
+}

@@ -1,0 +1,787 @@
+{
+  "timestamp": "2026-09-18T13:11:54Z",
+  "title": "Website Content Search",
+  "type": "feature",
+  "userRequest": "## Summary\n\nAdd website content search to the Full Search page. After the user clicks **\"Search page contents\"**, TabCommand loads the pages in a chosen scope and searches their text for the query. The scope is one of: open tabs, one group, all grouped URLs, or recent history. Matches stream into a new **\"Page contents\"** section, each with a text snippet around the hit and a progress bar showing how many pages have been scanned. Today TabCommand has no host permissions and reads no page content, and its store listing makes a point of this. So the capability is strictly opt-in: host access is requested at runtime as an optional permission, and nothing changes for users who never turn it on.\n\n## Key Decisions\n\n- **Optional host permissions, requested on first use.** Add `\"optional_host_permissions\": [\"<all_urls>\"]` and `\"optional_permissions\": [\"scripting\"]`, and call `chrome.permissions.request` when the user first clicks \"Search page contents\". The install-time permission warnings stay exactly as they are today. That keeps the store-listing claim at `store/store-listing.md:124` (\"no host permissions… no scripting\") true for the default install, but the listing needs a new optional-permission section.\n- **Two extraction strategies, used in tiers:**\n  1. **Open tabs:** run `chrome.scripting.executeScript` on the live tab to get `document.body.innerText`. This is instant, sees JS-rendered content, and loads nothing new.\n  2. **Closed URLs (groups and history):** call `fetch(url)` from the extension page and parse the response with `DOMParser` to get the text. This is cheap and needs no tabs, but it misses content that only exists after JavaScript renders the page. If the fetch yields almost no text (below a threshold, e.g. 200 characters), optionally fall back to opening a background tab, which is inactive and outside the user's window groups. The fallback runs `executeScript` there and then closes the tab. It is behind a \"Deep scan (loads pages)\" checkbox, off by default.\n  \n  Also considered: an `offscreen` document. It still can't run a page's own JavaScript for cross-origin pages, so it adds nothing over fetch + DOMParser.\n- **Bounded, cancellable, local.** At most 4 pages run at once, with a per-page timeout, a Cancel button, and a hard cap on the number of pages per scan (e.g. 100). Results live only in memory for the page session. A persisted text cache is left for a follow-up because of the size limits on `chrome.storage.local`. Nothing leaves the device.\n- **Login-walled pages** return whatever `fetch` gets back, and may not match. The deep-scan tier uses the user's real session. Label the snippets with which tier produced them.\n- **Privacy copy must change.** `PRIVACY.md` line 19 says \"It does not read page content\", which becomes false once the feature is enabled. Update it to: reads page content only when you run a content search, locally, never transmitted. Then flag the external codeyam.com/tabcommand/privacy page for the same edit.\n\n## Implementation\n\n### 1. Manifest\n\n**File**: `manifest.json`: add `optional_host_permissions: [\"<all_urls>\"]` and add `scripting` to `optional_permissions` (the full-search plan adds that key for `history`).\n\n### 2. Content-scan engine\n\n**New file**: `src/lib/utils/pageContentScan.js` (+ test)\n\n`scanPages({ targets, query, concurrency, deep, signal, onResult, onProgress })`:\n- Each target is `{ urlKey, url, tabId? }`.\n- A target with a `tabId` uses `executeScript`. The rest use fetch + `DOMParser`, with the optional deep tab fallback.\n- Matching is case-insensitive over the text, with snippets built by `searchNotesSnippet`.\n- Aborting via the `AbortSignal` cancels any in-flight fetches and closes deep-scan tabs.\n\nKeep the matching and snippet logic as a pure function (`matchPageText(text, query)`) so it can be unit tested.\n\n### 3. Full Search integration\n\n**File**: `src/lib/pages/FullSearch/FullSearch.jsx` (created by the full-search plan)\n\n- A \"Page contents\" panel with: a scope select (Open tabs · a group · All grouped URLs · Recent history, 50 most recent), a Deep scan checkbox, and a Search / Cancel button.\n- A progress readout (\"Scanned 23 / 60\").\n- A new \"Page contents\" chip and section. Each hit shows the favicon, the title, the snippet, and a tier badge (live / fetched / deep).\n- Targets come from `activeTabs`, `labels[].urlKeys`, and `allUrls`.\n\n### 4. Dev shim\n\n**File**: `src/lib/utils/chromeShim/chromeShim.js`: add `scripting.executeScript` and `permissions` stubs that return canned page text, so scenarios can show a scan in progress, finished with results, and denied.\n\n### 5. Store and privacy\n\n**File**: `store/store-listing.md`: add justifications for the optional `<all_urls>` host permission and the optional `scripting` permission. Reword the \"no host permissions\" line to \"no host permissions at install\".\n\n**File**: `PRIVACY.md`: update the page-content sentence. Also flag the external privacy page.\n\n## Reused existing code\n\n- `searchNotesSnippet` from `src/lib/utils/searchNotesSnippet.js` (glossary: `searchNotesSnippet`), for content snippets\n- `Chrome.get` from `src/lib/utils/Chrome`, for `activeTabs` / `labels` / `allUrls`\n- Shim patterns in `src/lib/utils/chromeShim/chromeShim.js`\n- The Full Search page and `segmentFullSearchResults` from the prerequisite plan\n\n## Scenarios to Demonstrate\n\n- Before opting in: the \"Search page contents\" button with an explanation of the permission prompt\n- Permission denied: an inline message and a retry button\n- Scan in progress: the progress bar, with partial results streaming in\n- Scan complete with hits across open tabs and fetched pages, showing the tier badges\n- Scan complete with no hits\n- A scan cancelled partway through",
+  "description": "Full Search can now search the TEXT INSIDE pages, not just their titles, notes and group names — the case where someone remembers a phrase they read but not the page they read it on. The user picks a scope (open tabs, one group, all grouped URLs, or the 50 most recent history entries), clicks 'Search page contents', and matches stream into a new Page contents section with the sentence that matched and a badge naming how that page's text was read: live from an open tab, fetched from page source, or deep — opened in a background tab, behind an off-by-default checkbox. Reading page text needs host access TabCommand deliberately does not hold at install: `<all_urls>` and `scripting` are declared optional and requested at the moment of first use, so install-time permission warnings are unchanged and a user who never turns it on is never asked. Scans are bounded (4 at a time, 100 pages max, per-page timeout), cancellable, and entirely local — text is read, matched and discarded; only the excerpt survives, in memory, until the page is left.\n\nSCOPE VERDICT — delivered in full, nothing deferred. All 8 project deliverables were already resolved before this cycle began (in 'Drag To Reorder Urls Within A Group'), so this cycle had no open deliverable to close and deferred none. Every item in the plan landed, including the two documentation obligations: PRIVACY.md now states that page content is read only on request, locally, and never transmitted, and store/store-listing.md gained justifications for both optional permissions. Two claims in the listing had become FALSE and were corrected rather than left standing — 'TabCommand requests no host permissions and uses no scripting permission' (now 'at install time; both are optional and requested at runtime') and 'makes zero network requests at all' (now scoped: no requests to us or any third party, but a content scan over closed URLs does fetch those pages directly from the user's device).\n\nTwo deviations from the plan, both deliberate. The plan specified reusing `searchNotesSnippet` for excerpt windowing; its ~18/24-character window is tuned for a one-line note fragment and cut page prose mid-word ('t to a per-origin quota'), visible in the first capture, so `matchPageText` now does its own word-boundary windowing and the reuse was dropped. And the `PageContentsSlot` placeholder the page carried — the dimmed footnote naming what could not be searched yet — was removed along with its scenario and glossary entry rather than kept, since the feature it named now exists.\n\nOne bug found and fixed while testing: `htmlToText` used `textContent`, which joins nodes with no separator, so `<p>the quota</p><p>Exceeded</p>` read back as 'quotaExceeded'. That both garbled excerpts and could MANUFACTURE a match spanning text no reader ever saw as adjacent. Block elements now contribute a space.\n\nOWED BEFORE SUBMISSION, and it cannot be done from this repo: the hosted privacy page at codeyam.com/tabcommand/privacy still carries the old 'It does not read page content' sentence, which is now false for a user who enables the feature. It lives in the codeyam-local repo (dashboard/app/routes/tabcommand.privacy.tsx) and is flagged in store/store-listing.md. A listing whose linked policy contradicts its requested permissions is a rejection.\n\n9 components (PageContentsPanel / ScopeControls / Denied / Progress / Section / Row / TierBadge / Snippet / Empty), 1 hook, 8 utils, 28 scenarios, 76 new tests. Whole suite green at 1146.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/website-content-search.md\t.codeyam/plans/completed/website-content-search.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearch-no-matches.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearch-rich-results.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsslot-default.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-chrome-history-included--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-empty-query--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-no-matches--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-no-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-rich-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-rich-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-single-match--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-single-match--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsslot-default--desktop.png",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsslot-default--desktop.png.hash",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/state/finalize-debt.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/c730908a06df17cd8b900821d7ff271ea8a5140de80b53ff4080283d1d11792a.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/d622c22eab0ff28b078bc3c7b2cb6434a93692612b62b7be872a4591f165e48d.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "PRIVACY.md",
+      "status": "modified"
+    },
+    {
+      "path": "manifest.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/PageContentsSlot/PageContentsSlot.css",
+      "status": "deleted"
+    },
+    {
+      "path": "src/lib/components/PageContentsSlot/PageContentsSlot.jsx",
+      "status": "deleted"
+    },
+    {
+      "path": "src/lib/components/PageContentsSlot/index.js",
+      "status": "deleted"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/FullSearch/FullSearch.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/FullSearch/FullSearch.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/countFullSearchSections.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/countFullSearchSections.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "store/store-listing.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearch-page-contents-ready-to-scan.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsdenied-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsempty-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentspanel-before-opting-in.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentspanel-finished-deep-history-scan.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentspanel-permission-denied.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentspanel-scanning.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsprogress-empty-scope.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsprogress-finished.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsprogress-first-frame.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsprogress-scanning.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsrow-deep-tier.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsrow-fetched-tier.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsrow-live-tier.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsrow-long-title-and-excerpt.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsscopecontrols-before-opting-in.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsscopecontrols-granted-with-deep-scan.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsscopecontrols-scanning.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentssection-first-hit-streaming.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentssection-mixed-tiers.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentssection-no-hits.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentssnippet-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentssnippet-two-line-clamp.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentstierbadge-deep.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentstierbadge-fetched.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentstierbadge-live.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-page-contents-ready-to-scan--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-page-contents-ready-to-scan--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsdenied-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsdenied-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsempty-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsempty-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentspanel-before-opting-in--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentspanel-before-opting-in--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentspanel-finished-deep-history-scan--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentspanel-finished-deep-history-scan--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentspanel-permission-denied--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentspanel-permission-denied--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentspanel-scanning--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentspanel-scanning--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsprogress-empty-scope--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsprogress-empty-scope--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsprogress-finished--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsprogress-finished--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsprogress-first-frame--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsprogress-first-frame--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsprogress-scanning--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsprogress-scanning--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsrow-deep-tier--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsrow-deep-tier--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsrow-fetched-tier--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsrow-fetched-tier--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsrow-live-tier--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsrow-live-tier--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsrow-long-title-and-excerpt--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsrow-long-title-and-excerpt--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsscopecontrols-before-opting-in--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsscopecontrols-before-opting-in--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsscopecontrols-granted-with-deep-scan--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsscopecontrols-granted-with-deep-scan--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsscopecontrols-scanning--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsscopecontrols-scanning--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssection-first-hit-streaming--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssection-first-hit-streaming--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssection-mixed-tiers--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssection-mixed-tiers--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssection-no-hits--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssection-no-hits--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssnippet-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssnippet-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssnippet-two-line-clamp--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentssnippet-two-line-clamp--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentstierbadge-deep--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentstierbadge-deep--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentstierbadge-fetched--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentstierbadge-fetched--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentstierbadge-live--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentstierbadge-live--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/472921cd27cfe9e9ada7c2aae42938c8e261b173584b6d0062cce0466b29efd4.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/9c2892219d64ae84bb64a154c805d1d62671ac74359270372e3efbb5310a1945.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsDenied/PageContentsDenied.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsDenied/PageContentsDenied.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsDenied/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsEmpty/PageContentsEmpty.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsEmpty/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsPanel/PageContentsPanel.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsPanel/PageContentsPanel.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsPanel/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsProgress/PageContentsProgress.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsProgress/PageContentsProgress.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsProgress/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsRow/PageContentsRow.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsRow/PageContentsRow.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsRow/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsScopeControls/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSection/PageContentsSection.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSection/PageContentsSection.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSection/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSnippet/PageContentsSnippet.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSnippet/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsTierBadge/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/usePageContentSearch.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/devPageText.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/devPageText.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/htmlToText.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/htmlToText.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/isThinPageText.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/isThinPageText.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/matchPageText.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/matchPageText.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/pageContentScan.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/pageContentScan.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/pageContentTargets.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/pageContentTargets.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/scanProgressPercent.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/scanProgressPercent.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/scanScopeOptions.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/scanScopeOptions.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "FullSearch - Chrome History Included",
+      "screenshotPath": "fullsearch-chrome-history-included--desktop.png"
+    },
+    {
+      "name": "FullSearch - Empty Query",
+      "screenshotPath": "fullsearch-empty-query--desktop.png"
+    },
+    {
+      "name": "FullSearch - No Matches",
+      "screenshotPath": "fullsearch-no-matches--desktop.png"
+    },
+    {
+      "name": "FullSearch - Page Contents Ready To Scan",
+      "screenshotPath": "fullsearch-page-contents-ready-to-scan--desktop.png"
+    },
+    {
+      "name": "FullSearch - Rich Results",
+      "screenshotPath": "fullsearch-rich-results--desktop.png"
+    },
+    {
+      "name": "FullSearch - Single Match",
+      "screenshotPath": "fullsearch-single-match--desktop.png"
+    },
+    {
+      "name": "PageContentsDenied - Default",
+      "screenshotPath": "pagecontentsdenied-default--desktop.png"
+    },
+    {
+      "name": "PageContentsEmpty - Default",
+      "screenshotPath": "pagecontentsempty-default--desktop.png"
+    },
+    {
+      "name": "PageContentsPanel - Before Opting In",
+      "screenshotPath": "pagecontentspanel-before-opting-in--desktop.png"
+    },
+    {
+      "name": "PageContentsPanel - Finished Deep History Scan",
+      "screenshotPath": "pagecontentspanel-finished-deep-history-scan--desktop.png"
+    },
+    {
+      "name": "PageContentsPanel - Permission Denied",
+      "screenshotPath": "pagecontentspanel-permission-denied--desktop.png"
+    },
+    {
+      "name": "PageContentsPanel - Scanning",
+      "screenshotPath": "pagecontentspanel-scanning--desktop.png"
+    },
+    {
+      "name": "PageContentsProgress - Empty Scope",
+      "screenshotPath": "pagecontentsprogress-empty-scope--desktop.png"
+    },
+    {
+      "name": "PageContentsProgress - Finished",
+      "screenshotPath": "pagecontentsprogress-finished--desktop.png"
+    },
+    {
+      "name": "PageContentsProgress - First Frame",
+      "screenshotPath": "pagecontentsprogress-first-frame--desktop.png"
+    },
+    {
+      "name": "PageContentsProgress - Scanning",
+      "screenshotPath": "pagecontentsprogress-scanning--desktop.png"
+    },
+    {
+      "name": "PageContentsRow - Deep Tier",
+      "screenshotPath": "pagecontentsrow-deep-tier--desktop.png"
+    },
+    {
+      "name": "PageContentsRow - Fetched Tier",
+      "screenshotPath": "pagecontentsrow-fetched-tier--desktop.png"
+    },
+    {
+      "name": "PageContentsRow - Live Tier",
+      "screenshotPath": "pagecontentsrow-live-tier--desktop.png"
+    },
+    {
+      "name": "PageContentsRow - Long Title And Excerpt",
+      "screenshotPath": "pagecontentsrow-long-title-and-excerpt--desktop.png"
+    },
+    {
+      "name": "PageContentsScopeControls - Before Opting In",
+      "screenshotPath": "pagecontentsscopecontrols-before-opting-in--desktop.png"
+    },
+    {
+      "name": "PageContentsScopeControls - Granted With Deep Scan",
+      "screenshotPath": "pagecontentsscopecontrols-granted-with-deep-scan--desktop.png"
+    },
+    {
+      "name": "PageContentsScopeControls - Scanning",
+      "screenshotPath": "pagecontentsscopecontrols-scanning--desktop.png"
+    },
+    {
+      "name": "PageContentsSection - First Hit Streaming",
+      "screenshotPath": "pagecontentssection-first-hit-streaming--desktop.png"
+    },
+    {
+      "name": "PageContentsSection - Mixed Tiers",
+      "screenshotPath": "pagecontentssection-mixed-tiers--desktop.png"
+    },
+    {
+      "name": "PageContentsSection - No Hits",
+      "screenshotPath": "pagecontentssection-no-hits--desktop.png"
+    },
+    {
+      "name": "PageContentsSnippet - Default",
+      "screenshotPath": "pagecontentssnippet-default--desktop.png"
+    },
+    {
+      "name": "PageContentsSnippet - Two Line Clamp",
+      "screenshotPath": "pagecontentssnippet-two-line-clamp--desktop.png"
+    },
+    {
+      "name": "PageContentsTierBadge - Deep",
+      "screenshotPath": "pagecontentstierbadge-deep--desktop.png"
+    },
+    {
+      "name": "PageContentsTierBadge - Fetched",
+      "screenshotPath": "pagecontentstierbadge-fetched--desktop.png"
+    },
+    {
+      "name": "PageContentsTierBadge - Live",
+      "screenshotPath": "pagecontentstierbadge-live--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 1146,
+    "passed": 1146,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 1146,
+        "passed": 1146
+      }
+    ]
+  }
+}

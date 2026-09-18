@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsProgress - Scanning",
+  "id": "a1cb271c-e059-4b96-87aa-8c78064b336f",
+  "url": "/?isolate=PageContentsProgress",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsProgress",
+  "scenarioType": "component",
+  "description": "A scan in flight at 23 of 60: the bar answers how much longer at a glance, the literal count answers whether it really looked at everything. Both are present because they are read at different moments, and the verb is 'Scanned' while the run is live."
+}

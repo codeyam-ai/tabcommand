@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsScopeControls - Granted With Deep Scan",
+  "id": "26a253f1-43f3-4bed-a751-f913d9f56bd6",
+  "url": "/?isolate=PageContentsScopeControls&variant=granted-deep",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsScopeControls",
+  "scenarioType": "component",
+  "description": "The permission is held and the widest, most expensive configuration is selected: the 50-page recent-history scope with deep scan switched on. The permission note is gone, having said what it needed to — it is shown only while the grant is outstanding, the same rule the Chrome history toggle follows."
+}

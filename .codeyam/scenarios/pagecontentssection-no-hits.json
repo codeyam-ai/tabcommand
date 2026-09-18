@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsSection - No Hits",
+  "id": "646b2cb5-2917-4a9f-8192-f299e93f88ed",
+  "url": "/?isolate=PageContentsSection&variant=no-hits",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsSection",
+  "scenarioType": "component",
+  "description": "A scan that finished and found nothing. It renders the band with a zero count and says so explicitly, rather than rendering nothing at all: 'no section' and 'a section that found nothing' answer different questions, and only the second one means the search was actually done. The line also names the likely reason — pages read without loading them see only what the site sends before its scripts run."
+}

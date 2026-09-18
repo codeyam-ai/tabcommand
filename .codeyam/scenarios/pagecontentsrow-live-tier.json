@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsRow - Live Tier",
+  "id": "7840bc8d-b036-4b78-be6c-649dbaebce47",
+  "url": "/?isolate=PageContentsRow",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsRow",
+  "scenarioType": "component",
+  "description": "A hit read from a tab that is open right now, so the text is what the user can see on screen at this moment. The LIVE badge carries the same green the Open badge uses elsewhere on the page, because it is saying a related thing: this page is already loaded. The excerpt shows the matched word in context, which is the row's whole justification."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsTierBadge - Live",
+  "id": "568e1966-8eab-4717-a2ab-310fecb44f04",
+  "url": "/?isolate=PageContentsTierBadge",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsTierBadge",
+  "scenarioType": "component",
+  "description": "The badge on its own, in the live tier. Outlined, uppercase and mono so it reads as an annotation on a row rather than as a competing label, and it carries the same green the Open badge uses — because it says a related thing: this page is already loaded. The three tiers in context are shown by the PageContentsRow scenarios."
+}

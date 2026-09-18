@@ -13,12 +13,14 @@ import {
   FullSearchLabelRow,
   FullSearchHint,
   ChromeHistoryToggle,
-  PageContentsSlot,
+  PageContentsPanel,
+  PageContentsSection,
 } from '../../components';
 import { Chrome } from '../../utils/Chrome';
 import { useSearchIndex } from '../../hooks/useSearchIndex';
 import { useActiveTabs } from '../../hooks/useActiveTabs';
 import { useChromeHistorySearch } from '../../hooks/useChromeHistorySearch';
+import { usePageContentSearch } from '../../hooks/usePageContentSearch';
 import { usePersistedPageQuery } from '../../hooks/usePersistedPageQuery';
 import { useListKeyboardNav } from '../../hooks/useListKeyboardNav';
 import segmentFullSearchResults from '../../utils/segmentFullSearchResults';
@@ -46,6 +48,11 @@ const FILTERS = [
 ];
 
 const CHROME_HISTORY_CHIP = { key: 'chromeHistory', label: 'Chrome history' };
+
+// Appended only once a scan has actually run. Unlike Chrome history — whose chip
+// appears as soon as the source is switched on — there is no standing "page
+// contents" result set to filter down to until the user has asked for one.
+const PAGE_CONTENTS_CHIP = { key: 'pageContents', label: 'Page contents' };
 
 // Full Search: every match for a query, with nothing capped and nothing hidden.
 //
@@ -75,6 +82,8 @@ const FullSearch = ({ initialQuery = '' }) => {
     toggle: toggleChromeHistory,
   } = useChromeHistorySearch(query, indexedUrls);
 
+  const pageContents = usePageContentSearch(query, { activeTabs });
+
   // Re-runs when the query changes AND when the index finishes a rebuild: the
   // page can mount with a query already in hand, before the index holds a single
   // document, so without `indexVersion` it would render an empty result set and
@@ -85,8 +94,8 @@ const FullSearch = ({ initialQuery = '' }) => {
   );
 
   const counts = useMemo(
-    () => countFullSearchSections(results, chromeHits),
-    [results, chromeHits]
+    () => countFullSearchSections(results, chromeHits, pageContents.results),
+    [results, chromeHits, pageContents.results]
   );
 
   const { sections, flatRows } = useMemo(
@@ -106,6 +115,13 @@ const FullSearch = ({ initialQuery = '' }) => {
       return;
     }
     openUrlKey(hit.id, searchHitHref(hit), { newTab: !!meta });
+  }, []);
+
+  // Page-content results are not part of `flatRows`, so they sit outside the
+  // keyboard walk and open through their own handler. They are plain URLs — no
+  // group to jump to, no label branch — so this is the whole of it.
+  const activatePageContent = useCallback((result, meta) => {
+    if (result) openUrlKey(result.urlKey, result.url, { newTab: !!meta });
   }, []);
 
   const blurInput = useCallback(() => {
@@ -150,7 +166,21 @@ const FullSearch = ({ initialQuery = '' }) => {
       : <FullSearchRow key={key} {...shared} isOpen={openKeys.has(hit.id)} onEdit={editUrl} />;
   };
 
-  const chips = chromeHistoryActive ? [...FILTERS, CHROME_HISTORY_CHIP] : FILTERS;
+  // A scan that has started is enough to earn the chip — `progress` is set
+  // before the first page comes back, so the chip appears with the section
+  // rather than popping in later once a hit happens to land.
+  const scanned = !!pageContents.progress;
+
+  const chips = [
+    ...FILTERS,
+    ...(chromeHistoryActive ? [CHROME_HISTORY_CHIP] : []),
+    ...(scanned ? [PAGE_CONTENTS_CHIP] : []),
+  ];
+
+  // Page contents is its own section, so a chip that narrows to one of the index
+  // sections must hide it — and the Page contents chip must hide them.
+  const showIndexSections = filter !== 'pageContents';
+  const showPageContents = filter === 'all' || filter === 'pageContents';
 
   return (
     <div className="FullSearch">
@@ -179,11 +209,37 @@ const FullSearch = ({ initialQuery = '' }) => {
 
       {!query && <FullSearchHint />}
 
-      {query && !flatRows.length && <EmptyState message={`No matches for "${query}".`} />}
+      {query && !flatRows.length && !scanned && (
+        <EmptyState message={`No matches for "${query}".`} />
+      )}
 
-      {query && <FullSearchResults sections={sections} renderRow={renderRow} />}
+      {query && showIndexSections && (
+        <FullSearchResults sections={sections} renderRow={renderRow} />
+      )}
 
-      {query && <PageContentsSlot />}
+      {query && (
+        <PageContentsPanel
+          scope={pageContents.scope}
+          onScopeChange={pageContents.setScope}
+          deep={pageContents.deep}
+          onDeepChange={pageContents.setDeep}
+          labels={pageContents.labels}
+          granted={pageContents.granted}
+          denied={pageContents.denied}
+          scanning={pageContents.scanning}
+          progress={pageContents.progress}
+          onStart={pageContents.start}
+          onCancel={pageContents.cancel}
+        />
+      )}
+
+      {query && showPageContents && (
+        <PageContentsSection
+          results={pageContents.results}
+          scanned={scanned}
+          onActivate={activatePageContent}
+        />
+      )}
     </div>
   );
 };

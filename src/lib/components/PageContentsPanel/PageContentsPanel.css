@@ -1,0 +1,9 @@
+/* The panel sits directly above the Page contents section and shares its full
+   width, so the controls and the results they produce read as one block rather
+   than as a toolbar that happens to be nearby. The pieces inside own their own
+   styling — the controls row in PageContentsScopeControls.css, the refusal in
+   PageContentsDenied.css, the bar and count in PageContentsProgress.css. */
+.PageContentsPanel {
+  max-width: 1180px;
+  margin-bottom: 10px;
+}

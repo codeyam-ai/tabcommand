@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsProgress - Finished",
+  "id": "3ce1350b-8c01-4168-8c59-646e33339a50",
+  "url": "/?isolate=PageContentsProgress&variant=finished",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsProgress",
+  "scenarioType": "component",
+  "description": "A completed scan at 50 / 50. The verb flips from Scanned to Finished, which is the whole reason the wording is stateful: the same numbers left under 'Scanned' after the run ends read as though it stopped early rather than as though it covered everything."
+}

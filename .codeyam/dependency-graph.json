@@ -404,6 +404,7 @@
         "src/lib/components/index.js",
         "src/lib/components/Favorites/Favorites.jsx",
         "src/lib/components/HistoryRow/HistoryRow.jsx",
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx",
         "src/lib/components/SearchResults/SearchResults.jsx",
         "src/lib/components/LoadUrl/LoadUrl.jsx",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx",
@@ -1396,29 +1397,256 @@
       ],
       "importedBy": []
     },
-    "src/lib/components/PageContentsSlot": {
+    "src/lib/components/PageContentsDenied": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js",
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsDenied/PageContentsDenied.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsDenied/PageContentsDenied.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsDenied/PageContentsDenied.jsx": {
+      "imports": [
+        "src/lib/components/PageContentsDenied/PageContentsDenied.css"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsDenied/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsDenied/index.js": {
+      "imports": [
+        "src/lib/components/PageContentsDenied/PageContentsDenied.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsEmpty": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js",
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsEmpty/PageContentsEmpty.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx": {
+      "imports": [
+        "src/lib/components/PageContentsEmpty/PageContentsEmpty.css"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsEmpty/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsEmpty/index.js": {
+      "imports": [
+        "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsPanel": {
       "imports": [],
       "importedBy": [
         "src/lib/components/index.js"
       ]
     },
-    "src/lib/components/PageContentsSlot/PageContentsSlot.css": {
+    "src/lib/components/PageContentsPanel/PageContentsPanel.css": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/PageContentsSlot/PageContentsSlot.jsx"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx"
       ]
     },
-    "src/lib/components/PageContentsSlot/PageContentsSlot.jsx": {
+    "src/lib/components/PageContentsPanel/PageContentsPanel.jsx": {
       "imports": [
-        "src/lib/components/PageContentsSlot/PageContentsSlot.css"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.css",
+        "src/lib/components/PageContentsScopeControls",
+        "src/lib/components/PageContentsDenied",
+        "src/lib/components/PageContentsProgress"
       ],
       "importedBy": [
-        "src/lib/components/PageContentsSlot/index.js"
+        "src/lib/components/PageContentsPanel/index.js"
       ]
     },
-    "src/lib/components/PageContentsSlot/index.js": {
+    "src/lib/components/PageContentsPanel/index.js": {
       "imports": [
-        "src/lib/components/PageContentsSlot/PageContentsSlot.jsx"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsProgress": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js",
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsProgress/PageContentsProgress.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsProgress/PageContentsProgress.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsProgress/PageContentsProgress.jsx": {
+      "imports": [
+        "src/lib/components/PageContentsProgress/PageContentsProgress.css",
+        "src/lib/utils/scanProgressPercent.js"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsProgress/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsProgress/index.js": {
+      "imports": [
+        "src/lib/components/PageContentsProgress/PageContentsProgress.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsRow": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js",
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsRow/PageContentsRow.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsRow/PageContentsRow.jsx": {
+      "imports": [
+        "src/lib/components/PageContentsRow/PageContentsRow.css",
+        "src/lib/components/Favicon",
+        "src/lib/components/PageContentsTierBadge",
+        "src/lib/components/PageContentsSnippet",
+        "src/lib/utils/hostLabel.js"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsRow/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsRow/index.js": {
+      "imports": [
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsScopeControls": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js",
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx": {
+      "imports": [
+        "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css",
+        "src/lib/utils/scanScopeOptions.js"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsScopeControls/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsScopeControls/index.js": {
+      "imports": [
+        "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsSection": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsSection/PageContentsSection.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsSection/PageContentsSection.jsx": {
+      "imports": [
+        "src/lib/components/PageContentsSection/PageContentsSection.css",
+        "src/lib/components/PageContentsRow",
+        "src/lib/components/PageContentsEmpty"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsSection/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsSection/index.js": {
+      "imports": [
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsSnippet": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js",
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsSnippet/PageContentsSnippet.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx": {
+      "imports": [
+        "src/lib/components/PageContentsSnippet/PageContentsSnippet.css"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsSnippet/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsSnippet/index.js": {
+      "imports": [
+        "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsTierBadge": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js",
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.css": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx"
+      ]
+    },
+    "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx": {
+      "imports": [
+        "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.css",
+        "src/lib/utils/pageContentScan.js"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsTierBadge/index.js"
+      ]
+    },
+    "src/lib/components/PageContentsTierBadge/index.js": {
+      "imports": [
+        "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx"
       ],
       "importedBy": []
     },
@@ -1985,7 +2213,15 @@
         "src/lib/components/FullSearchRow",
         "src/lib/components/FullSearchLabelRow",
         "src/lib/components/ChromeHistoryToggle",
-        "src/lib/components/PageContentsSlot"
+        "src/lib/components/PageContentsPanel",
+        "src/lib/components/PageContentsScopeControls",
+        "src/lib/components/PageContentsDenied",
+        "src/lib/components/PageContentsProgress",
+        "src/lib/components/PageContentsSection",
+        "src/lib/components/PageContentsRow",
+        "src/lib/components/PageContentsTierBadge",
+        "src/lib/components/PageContentsSnippet",
+        "src/lib/components/PageContentsEmpty"
       ],
       "importedBy": []
     },
@@ -2056,6 +2292,24 @@
         "src/lib/utils/KeyDown.js",
         "src/lib/utils/event.js",
         "src/lib/hooks/useListKeyboardNav.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/hooks/usePageContentSearch.js": {
+      "imports": [
+        "src/lib/utils/Chrome",
+        "src/lib/utils/pageContentScan.js",
+        "src/lib/utils/pageContentTargets.js"
+      ],
+      "importedBy": [
+        "src/lib/hooks/usePageContentSearch.test.jsx",
+        "src/lib/pages/FullSearch/FullSearch.jsx"
+      ]
+    },
+    "src/lib/hooks/usePageContentSearch.test.jsx": {
+      "imports": [
+        "src/lib/utils/chromeShim",
+        "src/lib/hooks/usePageContentSearch.js"
       ],
       "importedBy": []
     },
@@ -2200,6 +2454,7 @@
         "src/lib/hooks/useSearchIndex.js",
         "src/lib/hooks/useActiveTabs.js",
         "src/lib/hooks/useChromeHistorySearch.js",
+        "src/lib/hooks/usePageContentSearch.js",
         "src/lib/hooks/usePersistedPageQuery.js",
         "src/lib/hooks/useListKeyboardNav.js",
         "src/lib/utils/segmentFullSearchResults.js",
@@ -2461,6 +2716,7 @@
       "imports": [],
       "importedBy": [
         "src/lib/hooks/useSyncStatus.js",
+        "src/lib/hooks/usePageContentSearch.js",
         "src/lib/hooks/usePersistedPageQuery.js",
         "src/lib/hooks/useSearchIndex.js",
         "src/lib/hooks/useChromeHistorySearch.js",
@@ -2600,6 +2856,7 @@
     "src/lib/utils/chromeShim": {
       "imports": [],
       "importedBy": [
+        "src/lib/hooks/usePageContentSearch.test.jsx",
         "src/lib/hooks/usePersistedPageQuery.test.jsx",
         "src/lib/hooks/useTheme.test.jsx",
         "src/lib/hooks/useActiveTabs.test.jsx",
@@ -2757,6 +3014,19 @@
       "imports": [
         "src/lib/utils/describeDragRemoval.js",
         "src/Constants.jsx"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/devPageText.js": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/devPageText.test.js",
+        "src/lib/utils/pageContentScan.js"
+      ]
+    },
+    "src/lib/utils/devPageText.test.js": {
+      "imports": [
+        "src/lib/utils/devPageText.js"
       ],
       "importedBy": []
     },
@@ -3039,7 +3309,8 @@
       "imports": [],
       "importedBy": [
         "src/lib/hooks/useHistoryRows.js",
-        "src/lib/utils/historyTimestamp.test.js"
+        "src/lib/utils/historyTimestamp.test.js",
+        "src/lib/utils/pageContentTargets.js"
       ]
     },
     "src/lib/utils/historyTimestamp.test.js": {
@@ -3051,6 +3322,7 @@
     "src/lib/utils/hostLabel.js": {
       "imports": [],
       "importedBy": [
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx",
         "src/lib/utils/hostLabel.test.js"
       ]
@@ -3058,6 +3330,19 @@
     "src/lib/utils/hostLabel.test.js": {
       "imports": [
         "src/lib/utils/hostLabel.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/htmlToText.js": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/htmlToText.test.js",
+        "src/lib/utils/pageContentScan.js"
+      ]
+    },
+    "src/lib/utils/htmlToText.test.js": {
+      "imports": [
+        "src/lib/utils/htmlToText.js"
       ],
       "importedBy": []
     },
@@ -3213,6 +3498,19 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/isThinPageText.js": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/isThinPageText.test.js",
+        "src/lib/utils/pageContentScan.js"
+      ]
+    },
+    "src/lib/utils/isThinPageText.test.js": {
+      "imports": [
+        "src/lib/utils/isThinPageText.js"
+      ],
+      "importedBy": []
+    },
     "src/lib/utils/isTrackableUrl.js": {
       "imports": [],
       "importedBy": [
@@ -3269,6 +3567,19 @@
     "src/lib/utils/loadLevel.test.js": {
       "imports": [
         "src/lib/utils/loadLevel.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/matchPageText.js": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/pageContentScan.js",
+        "src/lib/utils/matchPageText.test.js"
+      ]
+    },
+    "src/lib/utils/matchPageText.test.js": {
+      "imports": [
+        "src/lib/utils/matchPageText.js"
       ],
       "importedBy": []
     },
@@ -3336,6 +3647,42 @@
       "imports": [
         "src/lib/utils/chromeShim",
         "src/lib/utils/openUrlKey.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/pageContentScan.js": {
+      "imports": [
+        "src/lib/utils/htmlToText.js",
+        "src/lib/utils/matchPageText.js",
+        "src/lib/utils/devPageText.js",
+        "src/lib/utils/isThinPageText.js"
+      ],
+      "importedBy": [
+        "src/lib/hooks/usePageContentSearch.js",
+        "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx",
+        "src/lib/utils/pageContentScan.test.js"
+      ]
+    },
+    "src/lib/utils/pageContentScan.test.js": {
+      "imports": [
+        "src/lib/utils/pageContentScan.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/pageContentTargets.js": {
+      "imports": [
+        "src/lib/utils/historyTimestamp.js"
+      ],
+      "importedBy": [
+        "src/lib/hooks/usePageContentSearch.js",
+        "src/lib/utils/scanScopeOptions.test.js",
+        "src/lib/utils/pageContentTargets.test.js",
+        "src/lib/utils/scanScopeOptions.js"
+      ]
+    },
+    "src/lib/utils/pageContentTargets.test.js": {
+      "imports": [
+        "src/lib/utils/pageContentTargets.js"
       ],
       "importedBy": []
     },
@@ -3417,6 +3764,35 @@
     "src/lib/utils/samePageKey.test.js": {
       "imports": [
         "src/lib/utils/samePageKey.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/scanProgressPercent.js": {
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsProgress/PageContentsProgress.jsx",
+        "src/lib/utils/scanProgressPercent.test.js"
+      ]
+    },
+    "src/lib/utils/scanProgressPercent.test.js": {
+      "imports": [
+        "src/lib/utils/scanProgressPercent.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/scanScopeOptions.js": {
+      "imports": [
+        "src/lib/utils/pageContentTargets.js"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx",
+        "src/lib/utils/scanScopeOptions.test.js"
+      ]
+    },
+    "src/lib/utils/scanScopeOptions.test.js": {
+      "imports": [
+        "src/lib/utils/scanScopeOptions.js",
+        "src/lib/utils/pageContentTargets.js"
       ],
       "importedBy": []
     },
@@ -4141,6 +4517,7 @@
         "src/lib/components/index.js::__file_root__",
         "src/lib/components/Favorites/Favorites.jsx::__file_root__",
         "src/lib/components/HistoryRow/HistoryRow.jsx::__file_root__",
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__",
         "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
         "src/lib/components/LoadUrl/LoadUrl.jsx::__file_root__",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx::__file_root__",
@@ -5336,36 +5713,315 @@
         "src/lib/components/SearchResults/SearchResults.jsx::__file_root__"
       ]
     },
-    "src/lib/components/PageContentsSlot/PageContentsSlot.css::__file_root__": {
-      "filePath": "src/lib/components/PageContentsSlot/PageContentsSlot.css",
+    "src/lib/components/PageContentsDenied/PageContentsDenied.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsDenied/PageContentsDenied.css",
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/PageContentsSlot/PageContentsSlot.jsx::__file_root__"
+        "src/lib/components/PageContentsDenied/PageContentsDenied.jsx::__file_root__"
       ]
     },
-    "src/lib/components/PageContentsSlot/PageContentsSlot.jsx::__file_root__": {
-      "filePath": "src/lib/components/PageContentsSlot/PageContentsSlot.jsx",
+    "src/lib/components/PageContentsDenied/PageContentsDenied.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsDenied/PageContentsDenied.jsx",
       "name": "__file_root__",
       "imports": [
-        "src/lib/components/PageContentsSlot/PageContentsSlot.css::__file_root__"
+        "src/lib/components/PageContentsDenied/PageContentsDenied.css::__file_root__"
       ],
       "importedBy": []
     },
-    "src/lib/components/PageContentsSlot/index.js::__file_root__": {
-      "filePath": "src/lib/components/PageContentsSlot/index.js",
+    "src/lib/components/PageContentsDenied/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsDenied/index.js",
       "name": "__file_root__",
       "imports": [
-        "src/lib/components/PageContentsSlot/PageContentsSlot.jsx::__file_root__"
+        "src/lib/components/PageContentsDenied/PageContentsDenied.jsx::__file_root__"
       ],
       "importedBy": []
     },
-    "src/lib/components/PageContentsSlot::__file_root__": {
-      "filePath": "src/lib/components/PageContentsSlot",
+    "src/lib/components/PageContentsDenied::__file_root__": {
+      "filePath": "src/lib/components/PageContentsDenied",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js::__file_root__",
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsEmpty/PageContentsEmpty.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsEmpty/PageContentsEmpty.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsEmpty/PageContentsEmpty.css::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsEmpty/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsEmpty/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsEmpty::__file_root__": {
+      "filePath": "src/lib/components/PageContentsEmpty",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js::__file_root__",
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsPanel/PageContentsPanel.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsPanel/PageContentsPanel.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsPanel/PageContentsPanel.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsPanel/PageContentsPanel.css::__file_root__",
+        "src/lib/components/PageContentsScopeControls::__file_root__",
+        "src/lib/components/PageContentsDenied::__file_root__",
+        "src/lib/components/PageContentsProgress::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsPanel/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsPanel/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsPanel::__file_root__": {
+      "filePath": "src/lib/components/PageContentsPanel",
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
         "src/lib/components/index.js::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsProgress/PageContentsProgress.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsProgress/PageContentsProgress.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsProgress/PageContentsProgress.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsProgress/PageContentsProgress.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsProgress/PageContentsProgress.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsProgress/PageContentsProgress.css::__file_root__",
+        "src/lib/utils/scanProgressPercent.js::scanProgressPercent"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsProgress/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsProgress/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsProgress/PageContentsProgress.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsProgress::__file_root__": {
+      "filePath": "src/lib/components/PageContentsProgress",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js::__file_root__",
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsRow/PageContentsRow.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsRow/PageContentsRow.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsRow/PageContentsRow.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsRow/PageContentsRow.css::__file_root__",
+        "src/lib/components/Favicon::__file_root__",
+        "src/lib/components/PageContentsTierBadge::__file_root__",
+        "src/lib/components/PageContentsSnippet::__file_root__",
+        "src/lib/utils/hostLabel.js::hostLabel"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsRow/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsRow/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsRow::__file_root__": {
+      "filePath": "src/lib/components/PageContentsRow",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js::__file_root__",
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css::__file_root__",
+        "src/lib/utils/scanScopeOptions.js::scanScopeOptions"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsScopeControls/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsScopeControls/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsScopeControls::__file_root__": {
+      "filePath": "src/lib/components/PageContentsScopeControls",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js::__file_root__",
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsSection/PageContentsSection.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsSection/PageContentsSection.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsSection/PageContentsSection.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsSection/PageContentsSection.css::__file_root__",
+        "src/lib/components/PageContentsRow::__file_root__",
+        "src/lib/components/PageContentsEmpty::__file_root__"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsSection/index.js::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsSection/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsSection/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsSection::__file_root__": {
+      "filePath": "src/lib/components/PageContentsSection",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsSnippet/PageContentsSnippet.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsSnippet/PageContentsSnippet.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsSnippet/PageContentsSnippet.css::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsSnippet/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsSnippet/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsSnippet::__file_root__": {
+      "filePath": "src/lib/components/PageContentsSnippet",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js::__file_root__",
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.css::__file_root__": {
+      "filePath": "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.css",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx::__file_root__": {
+      "filePath": "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.css::__file_root__",
+        "src/lib/utils/pageContentScan.js::__file_root__"
+      ],
+      "importedBy": [
+        "src/lib/components/PageContentsTierBadge/index.js::__file_root__"
+      ]
+    },
+    "src/lib/components/PageContentsTierBadge/index.js::__file_root__": {
+      "filePath": "src/lib/components/PageContentsTierBadge/index.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/components/PageContentsTierBadge::__file_root__": {
+      "filePath": "src/lib/components/PageContentsTierBadge",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/index.js::__file_root__",
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__"
       ]
     },
     "src/lib/components/PageHeader/PageHeader.css::__file_root__": {
@@ -6083,7 +6739,15 @@
         "src/lib/components/FullSearchRow::__file_root__",
         "src/lib/components/FullSearchLabelRow::__file_root__",
         "src/lib/components/ChromeHistoryToggle::__file_root__",
-        "src/lib/components/PageContentsSlot::__file_root__"
+        "src/lib/components/PageContentsPanel::__file_root__",
+        "src/lib/components/PageContentsScopeControls::__file_root__",
+        "src/lib/components/PageContentsDenied::__file_root__",
+        "src/lib/components/PageContentsProgress::__file_root__",
+        "src/lib/components/PageContentsSection::__file_root__",
+        "src/lib/components/PageContentsRow::__file_root__",
+        "src/lib/components/PageContentsTierBadge::__file_root__",
+        "src/lib/components/PageContentsSnippet::__file_root__",
+        "src/lib/components/PageContentsEmpty::__file_root__"
       ],
       "importedBy": []
     },
@@ -6210,6 +6874,35 @@
         "src/lib/utils/KeyDown.js::__file_root__",
         "src/lib/utils/event.js::event",
         "src/lib/hooks/useListKeyboardNav.js::useListKeyboardNav"
+      ],
+      "importedBy": []
+    },
+    "src/lib/hooks/usePageContentSearch.js::__file_root__": {
+      "filePath": "src/lib/hooks/usePageContentSearch.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/Chrome::__file_root__",
+        "src/lib/utils/pageContentScan.js::__file_root__",
+        "src/lib/utils/pageContentScan.js::pageContentScan",
+        "src/lib/utils/pageContentTargets.js::__file_root__",
+        "src/lib/utils/pageContentTargets.js::pageContentTargets"
+      ],
+      "importedBy": []
+    },
+    "src/lib/hooks/usePageContentSearch.js::usePageContentSearch": {
+      "filePath": "src/lib/hooks/usePageContentSearch.js",
+      "name": "usePageContentSearch",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__"
+      ]
+    },
+    "src/lib/hooks/usePageContentSearch.test.jsx::__file_root__": {
+      "filePath": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/chromeShim::__file_root__",
+        "src/lib/hooks/usePageContentSearch.js::usePageContentSearch"
       ],
       "importedBy": []
     },
@@ -6400,6 +7093,7 @@
         "src/lib/hooks/useSearchIndex.js::useSearchIndex",
         "src/lib/hooks/useActiveTabs.js::useActiveTabs",
         "src/lib/hooks/useChromeHistorySearch.js::useChromeHistorySearch",
+        "src/lib/hooks/usePageContentSearch.js::usePageContentSearch",
         "src/lib/hooks/usePersistedPageQuery.js::usePersistedPageQuery",
         "src/lib/hooks/useListKeyboardNav.js::useListKeyboardNav",
         "src/lib/utils/segmentFullSearchResults.js::segmentFullSearchResults",
@@ -6760,6 +7454,7 @@
       "imports": [],
       "importedBy": [
         "src/lib/hooks/useSyncStatus.js::__file_root__",
+        "src/lib/hooks/usePageContentSearch.js::__file_root__",
         "src/lib/hooks/usePersistedPageQuery.js::__file_root__",
         "src/lib/hooks/useSearchIndex.js::__file_root__",
         "src/lib/hooks/useChromeHistorySearch.js::__file_root__",
@@ -6923,6 +7618,7 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
+        "src/lib/hooks/usePageContentSearch.test.jsx::__file_root__",
         "src/lib/hooks/usePersistedPageQuery.test.jsx::__file_root__",
         "src/lib/hooks/useTheme.test.jsx::__file_root__",
         "src/lib/hooks/useActiveTabs.test.jsx::__file_root__",
@@ -7035,6 +7731,14 @@
       "imports": [
         "src/lib/utils/describeDragRemoval.js::describeDragRemoval",
         "src/Constants.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/devPageText.test.js::__file_root__": {
+      "filePath": "src/lib/utils/devPageText.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/devPageText.js::devPageText"
       ],
       "importedBy": []
     },
@@ -7390,6 +8094,22 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/htmlToText.js::htmlToText": {
+      "filePath": "src/lib/utils/htmlToText.js",
+      "name": "htmlToText",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/pageContentScan.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/htmlToText.test.js::__file_root__": {
+      "filePath": "src/lib/utils/htmlToText.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/htmlToText.js::htmlToText"
+      ],
+      "importedBy": []
+    },
     "src/lib/utils/humanReadableNumber.test.js::__file_root__": {
       "filePath": "src/lib/utils/humanReadableNumber.test.js",
       "name": "__file_root__",
@@ -7635,6 +8355,32 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/isThinPageText.js::__file_root__": {
+      "filePath": "src/lib/utils/isThinPageText.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/isThinPageText.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/isThinPageText.js::isThinPageText": {
+      "filePath": "src/lib/utils/isThinPageText.js",
+      "name": "isThinPageText",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/isThinPageText.test.js::__file_root__",
+        "src/lib/utils/pageContentScan.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/isThinPageText.test.js::__file_root__": {
+      "filePath": "src/lib/utils/isThinPageText.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/isThinPageText.js::__file_root__",
+        "src/lib/utils/isThinPageText.js::isThinPageText"
+      ],
+      "importedBy": []
+    },
     "src/lib/utils/isTrackableUrl.js::isTrackableUrl": {
       "filePath": "src/lib/utils/isTrackableUrl.js",
       "name": "isTrackableUrl",
@@ -7711,6 +8457,23 @@
       "name": "__file_root__",
       "imports": [
         "src/lib/utils/loadLevel.js::loadLevel"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/matchPageText.js::matchPageText": {
+      "filePath": "src/lib/utils/matchPageText.js",
+      "name": "matchPageText",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/pageContentScan.js::__file_root__",
+        "src/lib/utils/matchPageText.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/matchPageText.test.js::__file_root__": {
+      "filePath": "src/lib/utils/matchPageText.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/matchPageText.js::matchPageText"
       ],
       "importedBy": []
     },
@@ -7813,6 +8576,55 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/pageContentScan.js::__file_root__": {
+      "filePath": "src/lib/utils/pageContentScan.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/htmlToText.js::htmlToText",
+        "src/lib/utils/matchPageText.js::matchPageText",
+        "src/lib/utils/devPageText.js::devPageText",
+        "src/lib/utils/isThinPageText.js::isThinPageText"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/pageContentScan.test.js::__file_root__": {
+      "filePath": "src/lib/utils/pageContentScan.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/pageContentScan.js::__file_root__",
+        "src/lib/utils/pageContentScan.js::pageContentScan",
+        "src/lib/utils/pageContentScan.js::readTargetText"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/pageContentTargets.js::__file_root__": {
+      "filePath": "src/lib/utils/pageContentTargets.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/historyTimestamp.js::historyTimestamp"
+      ],
+      "importedBy": [
+        "src/lib/utils/pageContentTargets.test.js::__file_root__",
+        "src/lib/utils/scanScopeOptions.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/pageContentTargets.js::pageContentTargets": {
+      "filePath": "src/lib/utils/pageContentTargets.js",
+      "name": "pageContentTargets",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/pageContentTargets.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/pageContentTargets.test.js::__file_root__": {
+      "filePath": "src/lib/utils/pageContentTargets.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/pageContentTargets.js::__file_root__",
+        "src/lib/utils/pageContentTargets.js::pageContentTargets"
+      ],
+      "importedBy": []
+    },
     "src/lib/utils/processLoad.js::summarizeProcessLoad": {
       "filePath": "src/lib/utils/processLoad.js",
       "name": "summarizeProcessLoad",
@@ -7900,6 +8712,31 @@
       "name": "__file_root__",
       "imports": [
         "src/lib/utils/samePageKey.js::samePageKey"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/scanProgressPercent.test.js::__file_root__": {
+      "filePath": "src/lib/utils/scanProgressPercent.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/scanProgressPercent.js::scanProgressPercent"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/scanScopeOptions.js::__file_root__": {
+      "filePath": "src/lib/utils/scanScopeOptions.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/pageContentTargets.js::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/scanScopeOptions.test.js::__file_root__": {
+      "filePath": "src/lib/utils/scanScopeOptions.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/scanScopeOptions.js::scanScopeOptions",
+        "src/lib/utils/pageContentTargets.js::__file_root__"
       ],
       "importedBy": []
     },
@@ -8236,5 +9073,5 @@
       "importedBy": []
     }
   },
-  "lastUpdated": "2026-09-18T11:50:39Z"
+  "lastUpdated": "2026-09-18T13:12:55Z"
 }

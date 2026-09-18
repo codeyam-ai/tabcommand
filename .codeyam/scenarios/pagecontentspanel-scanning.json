@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsPanel - Scanning",
+  "id": "0b6bea40-56a1-4649-b549-c752862f16ea",
+  "url": "/?isolate=PageContentsPanel&variant=scanning",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsPanel",
+  "scenarioType": "component",
+  "description": "Mid-scan over one group: the button has become Cancel, the scope picker and deep-scan checkbox are disabled so the run cannot be re-scoped underneath itself, and the progress bar sits beside a literal 'Scanned 23 / 60'. The bar answers how much longer; the count answers whether it really looked at everything, which is the question a scan that found nothing raises."
+}

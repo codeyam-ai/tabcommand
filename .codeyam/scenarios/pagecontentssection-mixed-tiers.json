@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsSection - Mixed Tiers",
+  "id": "28927090-556b-4108-a11c-323ac905b2e7",
+  "url": "/?isolate=PageContentsSection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsSection",
+  "scenarioType": "component",
+  "description": "A finished scan with hits from all three tiers at once, so the badges read against each other rather than in isolation. The section wears the same tinted band every other source on the Full Search page uses, with its own brown accent, and its count pill reports how many pages contained the text."
+}

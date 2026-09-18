@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsSnippet - Two Line Clamp",
+  "id": "e5ce9e38-8814-4bf7-adbb-d4f348564e70",
+  "url": "/?isolate=PageContentsSnippet&variant=long",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsSnippet",
+  "scenarioType": "component",
+  "description": "An excerpt long enough to hit the two-line clamp. The boundary matters because this snippet is allowed twice the room the notes snippet gets: prose the user only read needs a sentence before it identifies the page, where a note they wrote themselves needs a fragment."
+}

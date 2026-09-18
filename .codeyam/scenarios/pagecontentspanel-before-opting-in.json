@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsPanel - Before Opting In",
+  "id": "3336cac3-3457-4d5e-ab88-b2880a1be650",
+  "url": "/?isolate=PageContentsPanel",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsPanel",
+  "scenarioType": "component",
+  "description": "The state every user meets first: the scope picker defaulted to Open tabs, the Search page contents button, the off-by-default deep scan checkbox, and the note saying the button asks permission to read the sites you visit. The note is the point — this is the only warning before a browser permission dialog, and a control that summons one unannounced is a control people learn not to touch."
+}

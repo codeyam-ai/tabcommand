@@ -86,14 +86,48 @@ describe('countFullSearchSections', () => {
   // a no-match query still renders every chip, dimmed, showing a real 0 — the
   // count is how the user learns the section is empty rather than hidden
   it('returns zeroes for an empty result set', () => {
-    const counts = countFullSearchSections(results(), []);
+    const counts = countFullSearchSections(results(), [], []);
     expect(counts).toEqual({
       all: 0, labels: 0, grouped: 0, history: 0, notes: 0, openTabs: 0, chromeHistory: 0,
+      pageContents: 0,
     });
   });
 
   // the chips render on the first paint, before the index has produced anything
   it('tolerates missing arguments', () => {
     expect(countFullSearchSections(null, null).all).toBe(0);
+  });
+
+  // page contents is its own source, sized by its own hits
+  it('counts the page-content results', () => {
+    const counts = countFullSearchSections(results(), [], [
+      { urlKey: 'url-a' }, { urlKey: 'url-b' },
+    ]);
+    expect(counts.pageContents).toBe(2);
+  });
+
+  // page contents joins the All union where Notes and Open tabs deliberately do
+  // not: a page whose TEXT matched need not have matched anywhere else, so it is
+  // a member the location sections never saw
+  it('adds a page-content-only hit to the All union', () => {
+    const counts = countFullSearchSections(
+      results({ history: [url('url-a')] }), [], [{ urlKey: 'url-b' }]
+    );
+    expect(counts.all).toBe(2);
+  });
+
+  // deduped by the same id, so a page that matched its title AND its text is one
+  // result, not two
+  it('does not double-count a page that matched both its title and its text', () => {
+    const counts = countFullSearchSections(
+      results({ history: [url('url-a')] }), [], [{ urlKey: 'url-a' }]
+    );
+    expect(counts.all).toBe(1);
+    expect(counts.pageContents).toBe(1);
+  });
+
+  // the argument is absent on every render before the first scan
+  it('treats absent page-content results as none', () => {
+    expect(countFullSearchSections(results(), []).pageContents).toBe(0);
   });
 });

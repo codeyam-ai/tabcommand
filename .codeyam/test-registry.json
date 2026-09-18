@@ -3070,6 +3070,15 @@
       "runner": "tests"
     },
     {
+      "description": "page contents joins the All union where Notes and Open tabs deliberately do not: a page whose TEXT matched need not have matched anywhere else, so it is a member the location sections never saw",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › adds a page-content-only hit to the All union",
+      "line": 112,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
       "description": "All spans the location sections plus the opt-in outside source — the four places a distinct result can actually come from",
       "file": "src/lib/utils/countFullSearchSections.test.js",
       "format": "vitest",
@@ -3097,6 +3106,15 @@
       "runner": "tests"
     },
     {
+      "description": "page contents is its own source, sized by its own hits",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › counts the page-content results",
+      "line": 102,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
       "description": "THE POINT OF \"All\": the location sections partition the results, while Notes and Open tabs re-list hits that already appear in one of them. Summing every section would double-count, so All dedupes by id across the location sections and Chrome history.",
       "file": "src/lib/utils/countFullSearchSections.test.js",
       "format": "vitest",
@@ -3112,6 +3130,15 @@
       "key": "countFullSearchSections › does not double-count a chrome hit sharing an id with a tracked hit",
       "line": 72,
       "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "deduped by the same id, so a page that matched its title AND its text is one result, not two",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › does not double-count a page that matched both its title and its text",
+      "line": 121,
+      "registeredAt": "2026-09-18T12:37:54Z",
       "runner": "tests"
     },
     {
@@ -3137,8 +3164,17 @@
       "file": "src/lib/utils/countFullSearchSections.test.js",
       "format": "vitest",
       "key": "countFullSearchSections › tolerates missing arguments",
-      "line": 96,
+      "line": 97,
       "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the argument is absent on every render before the first scan",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › treats absent page-content results as none",
+      "line": 130,
+      "registeredAt": "2026-09-18T12:37:54Z",
       "runner": "tests"
     },
     {
@@ -3679,6 +3715,51 @@
       "key": "describeImport › uses singular wording for a single lost group",
       "line": 53,
       "registeredAt": "2026-08-12T20:49:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a scenario can seed '' deliberately to demonstrate the empty-shell case",
+      "file": "src/lib/utils/devPageText.test.js",
+      "format": "vitest",
+      "key": "devPageText › preserves a deliberately empty seeded value",
+      "line": 39,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a page the scenario did not seed is a page with no text — the same thing a real blank page gives, so \"scanned but did not match\" stays demonstrable",
+      "file": "src/lib/utils/devPageText.test.js",
+      "format": "vitest",
+      "key": "devPageText › returns an empty string for an unseeded URL on the shim",
+      "line": 33,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "null means \"this is the real extension — go and fetch it for real\". It is the branch that keeps the dev seam out of a packaged build entirely.",
+      "file": "src/lib/utils/devPageText.test.js",
+      "format": "vitest",
+      "key": "devPageText › returns null when the real chrome is present",
+      "line": 11,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a packaged extension always has `chrome`; its total absence means a unit test or a non-browser context, where there is no dev corpus to serve either",
+      "file": "src/lib/utils/devPageText.test.js",
+      "format": "vitest",
+      "key": "devPageText › returns null when there is no chrome at all",
+      "line": 18,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "on the dev server the seeded corpus stands in for the network",
+      "file": "src/lib/utils/devPageText.test.js",
+      "format": "vitest",
+      "key": "devPageText › serves seeded text for a seeded URL",
+      "line": 23,
+      "registeredAt": "2026-09-18T12:37:54Z",
       "runner": "tests"
     },
     {
@@ -4843,6 +4924,69 @@
       "runner": "tests"
     },
     {
+      "description": "source newlines and indentation would land inside the snippet window and push the actual match out of the visible excerpt",
+      "file": "src/lib/utils/htmlToText.test.js",
+      "format": "vitest",
+      "key": "htmlToText › collapses whitespace to single spaces and trims",
+      "line": 26,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a page's inline JSON blob or stylesheet would otherwise match a query the user never read on screen",
+      "file": "src/lib/utils/htmlToText.test.js",
+      "format": "vitest",
+      "key": "htmlToText › drops script, style, noscript and template content",
+      "line": 13,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the ordinary case: an article's readable text, markup removed",
+      "file": "src/lib/utils/htmlToText.test.js",
+      "format": "vitest",
+      "key": "htmlToText › extracts the readable text from a document",
+      "line": 6,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "`textContent` joins its nodes with nothing at all, so without a separator two blocks would read back as one word — which both garbles the excerpt and can manufacture a match spanning text no reader saw as adjacent",
+      "file": "src/lib/utils/htmlToText.test.js",
+      "format": "vitest",
+      "key": "htmlToText › keeps neighbouring block elements as separate words",
+      "line": 33,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a fetch that returned nothing, or a body-less document, is not a crash",
+      "file": "src/lib/utils/htmlToText.test.js",
+      "format": "vitest",
+      "key": "htmlToText › returns an empty string for empty or missing input",
+      "line": 41,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "malformed markup is normal on the open web; the parser must not throw",
+      "file": "src/lib/utils/htmlToText.test.js",
+      "format": "vitest",
+      "key": "htmlToText › tolerates malformed markup",
+      "line": 54,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the case that selects the deep tier: a client-rendered app sends a shell",
+      "file": "src/lib/utils/htmlToText.test.js",
+      "format": "vitest",
+      "key": "htmlToText › yields near-nothing for a client-rendered bootstrap shell",
+      "line": 48,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
       "description": "millions group every three digits",
       "file": "src/lib/utils/humanReadableNumber.test.js",
       "format": "vitest",
@@ -4978,6 +5122,42 @@
       "runner": "tests"
     },
     {
+      "description": "the case the predicate exists for: a client-rendered app returns a bootstrap shell whose readable text is a loading message",
+      "file": "src/lib/utils/isThinPageText.test.js",
+      "format": "vitest",
+      "key": "isThinPageText › calls a bootstrap shell thin",
+      "line": 7,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a real article is never thin, however short the paragraph",
+      "file": "src/lib/utils/isThinPageText.test.js",
+      "format": "vitest",
+      "key": "isThinPageText › calls a page with real prose not thin",
+      "line": 13,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a fetch that failed yields '' — thin, so the deep tier gets its turn",
+      "file": "src/lib/utils/isThinPageText.test.js",
+      "format": "vitest",
+      "key": "isThinPageText › calls empty, null and undefined thin",
+      "line": 26,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the boundary is inclusive on the \"enough\" side, matching the scan's `fetched.length >= THIN_TEXT` short-circuit",
+      "file": "src/lib/utils/isThinPageText.test.js",
+      "format": "vitest",
+      "key": "isThinPageText › treats exactly the threshold as enough text",
+      "line": 20,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
       "description": "A real website over http or https is the only trackable case — the core positive contract.",
       "file": "src/lib/utils/isTrackableUrl.test.js",
       "format": "vitest",
@@ -5110,6 +5290,87 @@
       "key": "loadLevel › returns medium from warnAt_0.6 up to warnAt",
       "line": 12,
       "registeredAt": "2026-06-27T16:54:02.653118+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a short page must not gain ellipses it did not earn",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › adds no ellipsis when the whole text fits in the window",
+      "line": 49,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the FIRST occurrence is the one excerpted, so the snippet is stable across re-scans of an unchanged page",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › excerpts the first occurrence",
+      "line": 70,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "substring, not token: adjacency is exactly what makes a remembered phrase worth searching for, and a tokenised match would lose it",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › matches a multi-word phrase across a word boundary",
+      "line": 23,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "someone half-remembering a phrase does not remember its capitalisation, but the excerpt must still read as the page wrote it",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › matches case-insensitively and keeps the page casing",
+      "line": 15,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the index lets a caller reason about where in the page the hit landed",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › reports the index of the match in the full text",
+      "line": 64,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "null is the caller's signal that this page is not a result at all",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › returns null for missing text, missing query, or no hit",
+      "line": 56,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the whole point of the feature: a phrase the user read, not a title",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › splits page text into the parts around the match",
+      "line": 6,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the defect this function was rewritten to fix: a fixed-character window cut words in half, so \"t to a per-origin quota\" read as a rendering bug",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › trims a long prefix back to a word boundary and marks the cut",
+      "line": 31,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the same word-boundary rule on the trailing side, where a mid-word cut looked like the excerpt had been corrupted rather than shortened",
+      "file": "src/lib/utils/matchPageText.test.js",
+      "format": "vitest",
+      "key": "matchPageText › trims a long suffix back to a word boundary and marks the cut",
+      "line": 41,
+      "registeredAt": "2026-09-18T12:37:54Z",
       "runner": "tests"
     },
     {
@@ -5677,6 +5938,249 @@
       "key": "orderedSyncPlan › writes manifest.json last",
       "line": 12,
       "registeredAt": "2026-08-12T15:45:33.757313246+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a scan cannot become an unbounded crawl of the user's browsing",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › caps the scan at the page limit",
+      "line": 164,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the tab is closed in a `finally`, so a thrown read cannot strand it",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › closes the background tab it opened",
+      "line": 108,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the deep tier is opt-in, so a thin fetch stays thin unless it is asked for",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › does not open a background tab when deep scan is off",
+      "line": 91,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the empty-shell case the deep tier exists for",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › falls back to a background tab when deep scan is on and the fetch was thin",
+      "line": 99,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an explicit limit narrows it further",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › honours a caller-supplied limit",
+      "line": 173,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a PDF or an image parsed as HTML would yield binary noise that can match a query by accident",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › ignores a response that is not html or plain text",
+      "line": 81,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "keeping the thin-but-real text beats discarding it for nothing",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › keeps the fetched text when the deep read also came up empty",
+      "line": 116,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a closed URL is fetched and parsed, never opened",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › reads a closed URL through the fetched tier",
+      "line": 64,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an open tab is read as the user sees it now, and loads nothing",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › reads an open tab through the live tier",
+      "line": 57,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the count is what makes the wait legible, and what answers \"did it really look at everything\" after a scan that found nothing",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › reports progress over every target, matched or not",
+      "line": 151,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a cross-origin refusal, an offline machine or a timeout ends one page, not the scan",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › returns empty text rather than throwing when a fetch is refused",
+      "line": 73,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty query or an empty scope is a no-op, not a crash",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › returns nothing for an empty query or no targets",
+      "line": 197,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "only pages that actually contain the query become results",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › returns only the targets whose text matched",
+      "line": 124,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Cancel has to actually stop the work, not just hide it",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › stops scanning once the signal aborts",
+      "line": 181,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the slowest page in a scan of sixty must not set how long the page shows nothing, so hits are streamed as they land",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › streams each hit through onResult as it lands",
+      "line": 138,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a tab that closed mid-scan surfaces as lastError — expected for one page in a hundred, not a fault",
+      "file": "src/lib/utils/pageContentScan.test.js",
+      "format": "vitest",
+      "key": "pageContentScan › treats a scripting lastError as empty text",
+      "line": 205,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a long-lived install holds thousands of URLs; the cap is what keeps the history scope a window onto recent browsing rather than a crawl of all of it",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › caps the history scope at the documented limit",
+      "line": 78,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the widest group scope must reach every group, not just the first",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › collects every group for the all-grouped scope",
+      "line": 54,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "reading a page twice would spend two fetches to produce two identical rows",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › deduplicates a URL that two groups both contain",
+      "line": 60,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an open tab can be read as the user currently sees it, which is what the tabId selects downstream — so it must be derived, not guessed",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › derives a numeric tabId from the stored tabKey for open tabs",
+      "line": 32,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a chrome:// page cannot be fetched or scripted, and counting it as scanned would misreport the scan's coverage",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › drops URLs that are neither http nor https",
+      "line": 93,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the URL itself is a usable label when the record has no title",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › falls back to the URL when a record has no title",
+      "line": 100,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the group scopes select closed URLs, which have no tab to read",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › leaves tabId undefined for a URL that is not open",
+      "line": 41,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "\"recent\" must mean the same thing here as on the History page",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › orders the history scope newest-first and caps it",
+      "line": 70,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an unknown scope, a missing group, or no arguments at all must not throw",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › returns an empty list for an unknown or missing scope",
+      "line": 107,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a URL with nothing known about its recency sorts last rather than poisoning the comparison with a null",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › sinks undated URLs to the end of the history scope",
+      "line": 85,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a URL that is BOTH open and in the group is still read from the live tab",
+      "file": "src/lib/utils/pageContentTargets.test.js",
+      "format": "vitest",
+      "key": "pageContentTargets › still carries the tabId when a grouped URL happens to be open",
+      "line": 48,
+      "registeredAt": "2026-09-18T12:37:54Z",
       "runner": "tests"
     },
     {
@@ -6559,6 +7063,87 @@
       "key": "samePageKey › treats the Google Docs tab-query churn as the same page",
       "line": 20,
       "registeredAt": "2026-06-30T20:15:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a bar cannot be more than full; clamping keeps a miscount from overflowing its track rather than rendering a visibly broken control",
+      "file": "src/lib/utils/scanProgressPercent.test.js",
+      "format": "vitest",
+      "key": "scanProgressPercent › clamps to the 0-100 range",
+      "line": 22,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the reason this is a function and not an inline expression: a scope that resolved to no scannable pages reports 0 / 0, and `0 / 0` is NaN — which renders as `width: NaN%` and leaves the bar at whatever it was.",
+      "file": "src/lib/utils/scanProgressPercent.test.js",
+      "format": "vitest",
+      "key": "scanProgressPercent › returns 0 rather than NaN for an empty scan",
+      "line": 15,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the ordinary case the bar is drawn from",
+      "file": "src/lib/utils/scanProgressPercent.test.js",
+      "format": "vitest",
+      "key": "scanProgressPercent › returns the fraction scanned as a percent",
+      "line": 6,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a malformed stored label must not become a blank, unpickable option",
+      "file": "src/lib/utils/scanScopeOptions.test.js",
+      "format": "vitest",
+      "key": "scanScopeOptions › drops label entries with no title",
+      "line": 52,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "one entry per group, between the two fixed scopes and the history scope",
+      "file": "src/lib/utils/scanScopeOptions.test.js",
+      "format": "vitest",
+      "key": "scanScopeOptions › inserts one option per group, ordered by stored position",
+      "line": 28,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "groups saved before positions existed must still all appear",
+      "file": "src/lib/utils/scanScopeOptions.test.js",
+      "format": "vitest",
+      "key": "scanScopeOptions › keeps groups that carry no position",
+      "line": 58,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the history label names its own cap, so the cost is legible before the pick",
+      "file": "src/lib/utils/scanScopeOptions.test.js",
+      "format": "vitest",
+      "key": "scanScopeOptions › names the history cap in the history option label",
+      "line": 39,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Open tabs leads because it is the cheapest and most private scope — those pages are already loaded, so scanning them fetches nothing.",
+      "file": "src/lib/utils/scanScopeOptions.test.js",
+      "format": "vitest",
+      "key": "scanScopeOptions › puts Open tabs first and Recent history last",
+      "line": 20,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a fresh install has no groups; the two fixed scopes still stand",
+      "file": "src/lib/utils/scanScopeOptions.test.js",
+      "format": "vitest",
+      "key": "scanScopeOptions › returns only the fixed scopes when there are no groups",
+      "line": 45,
+      "registeredAt": "2026-09-18T12:37:54Z",
       "runner": "tests"
     },
     {
@@ -9439,6 +10024,96 @@
       "key": "useListKeyboardNav › starts on the first row",
       "line": 21,
       "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "yesterday's snippets under today's query would highlight a term the box no longer contains",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › clears results and progress when the query changes",
+      "line": 109,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the scan is MANUAL: typing must never fetch a hundred pages",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › does not scan until start is called",
+      "line": 50,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty query has nothing to scan for",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › does nothing when start is called with no query",
+      "line": 131,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the picker needs the user's real groups",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › exposes the stored groups for the scope picker",
+      "line": 146,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a refusal is recorded so the panel can explain what still works",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › records a denial when the permission is refused",
+      "line": 93,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the permission is requested inside the click, and the scan follows the grant",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › requests the permission on start and scans once granted",
+      "line": 79,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the scope is the user's control over how much of their browsing is touched",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › scans the chosen group scope rather than the open tabs",
+      "line": 154,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the happy path: permission already held, one of the two pages matches",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › scans the open tabs and collects the matching pages",
+      "line": 61,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the default for an optional permission is OFF — nothing is requested, and nothing is scanned, until the user asks",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › starts ungranted, idle and with no results",
+      "line": 38,
+      "registeredAt": "2026-09-18T12:37:54Z",
+      "runner": "tests"
+    },
+    {
+      "description": "cancel has to stop the run, not just hide it",
+      "file": "src/lib/hooks/usePageContentSearch.test.jsx",
+      "format": "vitest",
+      "key": "usePageContentSearch › stops scanning when cancel is called",
+      "line": 172,
+      "registeredAt": "2026-09-18T12:37:54Z",
       "runner": "tests"
     },
     {

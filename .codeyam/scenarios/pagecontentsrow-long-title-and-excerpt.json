@@ -1,0 +1,12 @@
+{
+  "name": "PageContentsRow - Long Title And Excerpt",
+  "id": "1c827d42-c96e-4d3a-87ca-99b8b34be7e3",
+  "url": "/?isolate=PageContentsRow&variant=long-excerpt",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "PageContentsRow",
+  "scenarioType": "component",
+  "description": "The overflow boundary: a title long enough to ellipsize on one line beside an excerpt long enough to need the two-line clamp. Prose needs more room than a note's fragment before it stops being readable, which is why this row is allowed two lines where the notes snippet takes one."
+}

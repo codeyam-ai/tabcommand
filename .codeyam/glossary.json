@@ -433,11 +433,91 @@
     ]
   },
   {
-    "description": "The visible slot where searching inside page text will land. Deliberately not omitted until the feature exists: this page claims to show 'every match', and a user who searches a phrase they remember reading — rather than a title they remember seeing — will find nothing and reasonably conclude the search is broken. Naming the gap is more honest than a page that silently searches less than it appears to, and it names the cost too, which is why the capability is not simply switched on.",
-    "filePath": "src/lib/components/PageContentsSlot/PageContentsSlot.jsx",
-    "name": "PageContentsSlot",
+    "description": "What the Page contents panel says when the user declines the host permission. States what still works rather than what they withheld — declining to let an extension read every page you visit is a reasonable choice and the page keeps doing everything it did before. Carries the retry because the browser only re-shows a permission prompt on a fresh user gesture, so without it someone who dismissed the dialog by accident has no route back.",
+    "filePath": "src/lib/components/PageContentsDenied/PageContentsDenied.jsx",
+    "name": "PageContentsDenied",
     "scenarios": [
-      "pagecontentsslot-default"
+      "pagecontentsdenied-default"
+    ]
+  },
+  {
+    "description": "What the Page contents section says when a scan finished and matched nothing. Rendered rather than omitted, because a user who scanned sixty pages and got an empty screen cannot tell whether it ran at all. The second sentence names the reason they have no way to guess: a page read without loading it sees only what the site sends before its scripts run, so a signed-in app can hold the phrase and still not match.",
+    "filePath": "src/lib/components/PageContentsEmpty/PageContentsEmpty.jsx",
+    "name": "PageContentsEmpty",
+    "scenarios": [
+      "pagecontentsempty-default"
+    ]
+  },
+  {
+    "description": "The Page contents scan control surface on the Full Search page: what to scan, whether to start it, and how far through it is. Composes three pieces that each appear under a different condition — the controls always, the refusal only after one, the progress only once a scan has begun — so the panel's whole job is owning those three conditions in one place, which is what keeps 'denied' and 'scanning' from ever rendering as if both were true.",
+    "filePath": "src/lib/components/PageContentsPanel/PageContentsPanel.jsx",
+    "name": "PageContentsPanel",
+    "scenarios": [
+      "pagecontentspanel-before-opting-in",
+      "pagecontentspanel-permission-denied",
+      "pagecontentspanel-scanning",
+      "pagecontentspanel-finished-deep-history-scan"
+    ]
+  },
+  {
+    "description": "How far through a content scan is: a bar and a literal count. Both are present because they answer different questions at different moments — during the scan the bar answers 'how much longer', and after it the count answers 'did it actually look at everything', which is what a scan that found nothing immediately raises and a full bar cannot settle. The verb changes with the state so a finished readout does not read as a run that stopped early.",
+    "filePath": "src/lib/components/PageContentsProgress/PageContentsProgress.jsx",
+    "name": "PageContentsProgress",
+    "scenarios": [
+      "pagecontentsprogress-scanning",
+      "pagecontentsprogress-finished",
+      "pagecontentsprogress-first-frame",
+      "pagecontentsprogress-empty-scope"
+    ]
+  },
+  {
+    "description": "One page whose text contained the query: favicon, title, host, the tier that read it, and the passage that matched. Reuses the page's shared FullSearch-row shell so a content hit sits in the same rhythm as every other result, and composes the two pieces unique to it — the tier badge and the excerpt.",
+    "filePath": "src/lib/components/PageContentsRow/PageContentsRow.jsx",
+    "name": "PageContentsRow",
+    "scenarios": [
+      "pagecontentsrow-live-tier",
+      "pagecontentsrow-fetched-tier",
+      "pagecontentsrow-deep-tier",
+      "pagecontentsrow-long-title-and-excerpt"
+    ]
+  },
+  {
+    "description": "The row that says what to scan and starts or stops it: scope picker, Search/Cancel button, deep-scan checkbox, and the permission note. The scope picker leads because it is the only place the user says how much of their browsing this may touch. Everything but the button locks while a scan runs, since a run re-scoped underneath itself would report a total from one scope and results from another.",
+    "filePath": "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.jsx",
+    "name": "PageContentsScopeControls",
+    "scenarios": [
+      "pagecontentsscopecontrols-before-opting-in",
+      "pagecontentsscopecontrols-scanning",
+      "pagecontentsscopecontrols-granted-with-deep-scan"
+    ]
+  },
+  {
+    "description": "The Page contents results section on the Full Search page, under the same tinted band every other source uses. Renders in three states and the last two are the point: before a scan there is no section at all, because an empty band would claim a source the user has not opted into; during a scan it renders from the first hit rather than batching; and after a scan that matched nothing it says so, because 'no section' and 'a section that found nothing' answer different questions.",
+    "filePath": "src/lib/components/PageContentsSection/PageContentsSection.jsx",
+    "name": "PageContentsSection",
+    "scenarios": [
+      "pagecontentssection-mixed-tiers",
+      "pagecontentssection-no-hits",
+      "pagecontentssection-first-hit-streaming"
+    ]
+  },
+  {
+    "description": "The excerpt of page text that contained the query, with the matched phrase called out. The sibling of NotesSnippet, and the difference is why it is separate: a note snippet quotes something the user WROTE and has already seen, so a one-line fragment jogs the memory, while this quotes prose they only read — often months ago — so it is the only evidence that this page is the one they mean, and gets a sentence over two lines instead.",
+    "filePath": "src/lib/components/PageContentsSnippet/PageContentsSnippet.jsx",
+    "name": "PageContentsSnippet",
+    "scenarios": [
+      "pagecontentssnippet-default",
+      "pagecontentssnippet-two-line-clamp"
+    ]
+  },
+  {
+    "description": "Which of the three readings of a page produced a content hit — live, fetched or deep — with the copy table that spells each one out. Not decoration: the same URL yields genuinely different text depending on how it was read, so the badge is the honest answer to 'why did this page not match?'. A fetched miss on a signed-in app means the text was never there to search, which is a very different statement from a live read finding nothing.",
+    "filePath": "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx",
+    "name": "PageContentsTierBadge",
+    "scenarios": [
+      "pagecontentstierbadge-live",
+      "pagecontentstierbadge-fetched",
+      "pagecontentstierbadge-deep"
     ]
   },
   {
@@ -585,6 +665,12 @@
     "scenarios": [
       "viewallfavorites-rich"
     ]
+  },
+  {
+    "description": "Null-safe read of an AbortSignal's aborted flag, so every cancellation check in the scan is one expression whether or not a signal was supplied.",
+    "filePath": "src/lib/utils/pageContentScan.js",
+    "name": "aborted",
+    "testFile": "src/lib/utils/pageContentScan.test.js"
   },
   {
     "description": "Viewport coordinates for a menu or panel anchored to a button, for menus rendered through a portal with position: fixed to escape an ancestor's overflow: hidden. Right-aligns the menu to the anchor's right edge, clamps it horizontally inside the viewport, and flips it above the anchor when there is no room below — a control low in a scrolling grid would otherwise open its menu off the bottom of the screen. A menu taller than the space above still starts on screen. Margin and gap are tunable; rect is any object with top/bottom/right, so callers pass a real getBoundingClientRect and tests pass a literal.",
@@ -903,6 +989,12 @@
     "testFile": "src/lib/utils/importSnapshot/describeImport.test.js"
   },
   {
+    "description": "The dev server's stand-in for fetching a page over the network. A packaged extension fetches a closed URL from its own origin holding the granted host permission and gets the real page; the dev server has neither, so a fetch of an external site from a localhost page is refused before it leaves the browser and every closed-URL scope would demo as zero hits. When the chromeShim is installed — and only then — a scenario's seeded pageTexts stands in for the network, the same seam the shim already uses for chrome.history. Returns null in a packaged extension, meaning 'go and fetch it for real'.",
+    "filePath": "src/lib/utils/devPageText.js",
+    "name": "devPageText",
+    "testFile": "src/lib/utils/devPageText.test.js"
+  },
+  {
     "description": "Dissolves the Chrome tab groups belonging to labels the user just deleted, so no tab survives in a titled group to re-record the label that was removed. Tabs stay open and stay put — chrome.tabs.ungroup only clears membership and never reorders tabs or moves them between windows — so this is a deliberate, user-initiated exception to the no-autonomous-tab-moving guarantee rather than a regression of it. Queries unscoped by window and handles EVERY returned group, since a label legitimately has one Chrome group per window and the deletion removes all of them. Each affected tab is added to pendingUngroups BEFORE the call lands, reusing the record loop's existing in-flight guard to close the window in which a concurrent groupTabs pass would re-record it, and cleared in the callback. A deleted label with no live Chrome group is the common case (its tabs are all closed) and is a silent no-op. Every ungroup is trailed through recordMove under MoveSource.WORKER_LABEL_DELETED.",
     "filePath": "service_worker.js",
     "name": "dissolveDeletedLabelGroups",
@@ -1101,6 +1193,12 @@
     "testFile": "src/lib/utils/hasPerTabLoadData.test.js"
   },
   {
+    "description": "Whether the runtime exposes chrome.permissions.request at all. Guards every permission call in usePageContentSearch so the hook degrades to 'ungranted, nothing happens' outside a packaged extension rather than throwing on a missing API.",
+    "filePath": "src/lib/hooks/usePageContentSearch.js",
+    "name": "hasPermissionsApi",
+    "testFile": "src/lib/hooks/usePageContentSearch.test.jsx"
+  },
+  {
     "description": "Heals a group label slot whose recorded urlKey has drifted from a tab live URL - as Google Docs rewrites its own ?tab= query. Locates the slot for the same page by samePageKey, then rewrites it in place to the live key or splices it out when the live key already exists elsewhere, never adding a new slot. Returns found/mutated/previousKey plus a removed flag that is true only on the dedup splice branch, so callers can audit a genuine member drop while ignoring a harmless in-place rewrite. Shared by the onUpdated navigation heal and the recordInGroupTab grouping-sync path so a drifted doc keeps its position instead of dropping to the bottom of the group.",
     "filePath": "src/lib/utils/healDriftedLabelSlot.js",
     "name": "healDriftedLabelSlot",
@@ -1129,6 +1227,12 @@
     "filePath": "src/lib/utils/hostLabel.js",
     "name": "hostLabel",
     "testFile": "src/lib/utils/hostLabel.test.js"
+  },
+  {
+    "description": "Extracts the readable text from a page's HTML source for the fetched extraction tier. Uses DOMParser rather than a detached element's innerHTML because it executes no scripts and fetches no subresources — parsing a page from an arbitrary site must not be able to run that site's code. Strips script/style/noscript/template so a page's inline JSON blob cannot match a query the user never read, and re-introduces a space at every block boundary, since textContent joins its nodes with nothing and would otherwise manufacture a match spanning text no reader saw as adjacent.",
+    "filePath": "src/lib/utils/htmlToText.js",
+    "name": "htmlToText",
+    "testFile": "src/lib/utils/htmlToText.test.js"
   },
   {
     "description": "Formats a numeric value with locale-aware thousands separators for the Load page's raw per-process table (1284 -> '1,284'). A falsy value yields undefined so the caller renders nothing; locale defaults to the document language then 'en', overridable via the lang arg. Factored out of the Load page so the formatting is unit-testable.",
@@ -1193,6 +1297,12 @@
     "filePath": "src/lib/utils/isSearchEngineUrl.js",
     "name": "isSearchEngineUrl",
     "testFile": "src/lib/utils/isSearchEngineUrl.test.js"
+  },
+  {
+    "description": "Whether a fetched page's text is too thin to have been worth searching — the signal that selects the deep tier. A page fetched without running its scripts comes back in two shapes that both look like 'no match': the server really sent the article and the query is not in it, or the site is client-rendered and what came back is a bootstrap shell. Reporting the second as a miss would be a lie about a page nobody read. A length threshold cannot separate them perfectly and does not need to — being wrong costs one background tab load, which is the trade the deep-scan checkbox opts into.",
+    "filePath": "src/lib/utils/isThinPageText.js",
+    "name": "isThinPageText",
+    "testFile": "src/lib/utils/isThinPageText.test.js"
   },
   {
     "description": "Pure predicate deciding whether a URL is a real website worth recording into history/Favorites. Returns true only when the value is a non-empty string that parses as a URL whose protocol is exactly http: or https:; returns false for non-strings, empty/whitespace, unparseable values, and every other scheme such as about: including about:blank, file:, data:, view-source:, chrome:, chrome-extension:, devtools:, blob:. One rule replaces an ever-growing blocklist. Imported by the service worker's newUrl to gate what enters allUrls, and by rankFavorites to defensively drop already-stored non-website entries. Complements validTab which is tab-shaped and worker-only; this predicate is URL-shaped and stack-agnostic, mirroring the defensive try/new URL/catch style of normalizeUrl.",
@@ -1276,6 +1386,12 @@
     "filePath": "service_worker.js",
     "name": "mapColors",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Finds a query inside a page's extracted text and returns the highlighted excerpt as before/match/after. The whole matching rule for website content search, pure so it can be reasoned about without a browser, a permission or a network fetch. Matching is case-insensitive and substring-based rather than tokenised — the opposite of how the rest of the page searches — because someone reaching for this is reaching for a half-remembered phrase, and a tokenised match would lose the adjacency that makes the phrase worth searching for. Windows to a sentence and trims to word boundaries.",
+    "filePath": "src/lib/utils/matchPageText.js",
+    "name": "matchPageText",
+    "testFile": "src/lib/utils/matchPageText.test.js"
   },
   {
     "description": "Predicate deciding whether a minisearch hit matched in the notes field, by flattening the hit match map and testing for the notes key. It is the whole basis of the Full Search page Notes section: that section answers WHY a result matched rather than where it lives, so membership is read off the match map rather than off the record having notes at all. A hit with notes that matched on its title is correctly excluded. Returns false for a missing hit or a missing match map, since the page segments once before the index has produced anything.",
@@ -1371,6 +1487,18 @@
     "filePath": "scripts/sync-extension-dir.mjs",
     "name": "orderedSyncPlan",
     "testFile": "scripts/sync-extension-dir.test.js"
+  },
+  {
+    "description": "Scans a list of pages for a query, streaming each hit out as it lands. Results stream rather than batch because the slowest page in a scan of sixty would otherwise set how long the page shows nothing. Concurrency is a fixed small pool rather than Promise.all over the whole list: a hundred simultaneous fetches is a burst the browser queues anyway and remote hosts read as abuse. Bounded by a page cap and a per-page timeout, cancellable via AbortSignal, and entirely local — the text is read, matched and dropped, and only the snippet survives into a result.",
+    "filePath": "src/lib/utils/pageContentScan.js",
+    "name": "pageContentScan",
+    "testFile": "src/lib/utils/pageContentScan.test.js"
+  },
+  {
+    "description": "Turns a chosen scope into the concrete list of pages a content scan will read. Kept separate from the scan itself because it holds all the product judgement and none of the I/O: which pages a scope means, in what order, and whether each can be read from a live tab or must be fetched cold. A target carries tabId when and only when the page is open right now, and that single field selects the extraction tier downstream. Deduplicates by urlKey and drops anything that is not http or https.",
+    "filePath": "src/lib/utils/pageContentTargets.js",
+    "name": "pageContentTargets",
+    "testFile": "src/lib/utils/pageContentTargets.test.js"
   },
   {
     "description": "Reads a pasted export snapshot as forgivingly as it can be read, escalating through four passes rather than failing: strict JSON.parse, transport-damage repair, relaxed hand-edited syntax, then structural salvage of whatever survives a truncated file. Returns the recovered labels plus the minimal set of repairs that worked, or a typed failure. Validates the SHAPE after parsing so a permissive parse never becomes a permissive import, and on total failure reports the ORIGINAL strict-parse error rather than an offset into a repaired copy that does not exist in what the user pasted.",
@@ -1492,6 +1620,36 @@
     "testFile": "src/lib/utils/storageAccess.test.js"
   },
   {
+    "description": "Last resort for a closed URL whose fetched text came back an empty shell: opens it in an inactive background tab so its own JavaScript runs, reads it, and closes the tab again. The one tier that actually loads a page, which is why it sits behind an off-by-default checkbox. The tab is closed in a finally so a thrown read cannot strand it.",
+    "filePath": "src/lib/utils/pageContentScan.js",
+    "name": "readFromDeepTab",
+    "testFile": "src/lib/utils/pageContentScan.test.js"
+  },
+  {
+    "description": "Reads a closed URL by fetching it from the extension page and parsing the response. Cheap — no tab, no render — but sees only what the server sent. Rejects non-HTML content types so a PDF is not parsed as markup into binary noise that can match by accident, and swallows every failure mode (cross-origin refusal, offline, timeout) into empty text, because none of them should end the scan.",
+    "filePath": "src/lib/utils/pageContentScan.js",
+    "name": "readFromFetch",
+    "testFile": "src/lib/utils/pageContentScan.test.js"
+  },
+  {
+    "description": "Reads an open tab through chrome.scripting as the user currently sees it. The only tier that sees JavaScript-rendered content, and it loads nothing because the page is already there. A tab that has since closed, or a page the extension may not script, surfaces as lastError and resolves to empty — an expected outcome for one page in a scan of a hundred, not a fault.",
+    "filePath": "src/lib/utils/pageContentScan.js",
+    "name": "readFromTab",
+    "testFile": "src/lib/utils/pageContentScan.test.js"
+  },
+  {
+    "description": "Reads one target's text, choosing the extraction tier from what the target is and what the earlier tier produced. An open tab is read live; a closed URL is fetched; a closed URL whose fetched text came back an empty shell falls back to a background tab when deep scan is on. Returns the better of the two when the deep read also came up empty, so a thin-but-real result is never discarded for nothing.",
+    "filePath": "src/lib/utils/pageContentScan.js",
+    "name": "readTargetText",
+    "testFile": "src/lib/utils/pageContentScan.test.js"
+  },
+  {
+    "description": "The function injected into a target page to read its visible text. Defined at module scope rather than inline so it is obvious that this — and nothing else — is the code that runs inside a user's pages.",
+    "filePath": "src/lib/utils/pageContentScan.js",
+    "name": "readVisibleText",
+    "testFile": "src/lib/utils/pageContentScan.test.js"
+  },
+  {
     "description": "Returns a new labels map where every label containing oldUrlKey has it replaced by newUrlKey, position preserved, de-duplicating when newUrlKey is already present. Pure and non-mutating; mirrors the service worker label drift-healing. Used when an edited URL re-keys a record so its group memberships follow.",
     "filePath": "src/lib/utils/urlDetails.js",
     "name": "reassignUrlKeyInLabels",
@@ -1610,6 +1768,18 @@
     "filePath": "src/lib/utils/samePageKey.js",
     "name": "samePageKey",
     "testFile": "src/lib/utils/samePageKey.test.js"
+  },
+  {
+    "description": "How full the Page contents progress bar should be. Exists for the two edges an inline scanned/total*100 gets wrong: a scope that resolved to no scannable pages reports 0/0, and 0/0 is NaN, which reaches the style attribute as 'width: NaN%', is ignored, and freezes the bar at whatever the previous scan left; and a count that overshoots its total would render a fill wider than its own track. Not gaugeFillPercent, which takes different arguments and returns the percent to leave empty.",
+    "filePath": "src/lib/utils/scanProgressPercent.js",
+    "name": "scanProgressPercent",
+    "testFile": "src/lib/utils/scanProgressPercent.test.js"
+  },
+  {
+    "description": "The ordered list of scopes the Page contents picker offers. The ORDER is the product decision this function exists to hold: Open tabs leads because it is both the cheapest and the most private option — those pages are already loaded, so scanning them fetches nothing — and Recent history is last because it is the widest, fifty mostly-closed pages each costing a request. Groups sit between, in the order the user arranged them everywhere else. Pure, so the ordering is assertable without rendering a select.",
+    "filePath": "src/lib/utils/scanScopeOptions.js",
+    "name": "scanScopeOptions",
+    "testFile": "src/lib/utils/scanScopeOptions.test.js"
   },
   {
     "description": "Queries chrome.history for the Full Search page's opt-in 'Include Chrome history' section — the only search source TabCommand does not own. Defensive by construction: with no permission, or outside a packaged extension where chrome.history does not exist, it resolves to an empty list rather than throwing, so the section simply does not render. Drops any hit whose URL is already a tracked url-* key, because the tracked record is strictly richer (group, notes, open-tab state). Shapes results like URL search hits so they render through the same row, with ids namespaced 'chrome-history-<url>' so they can never collide with a tracked id.",
@@ -1811,6 +1981,18 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "The trailing counterpart of trimStart: trims the text after the match back to a word boundary and appends an ellipsis, so an excerpt ends on a whole word.",
+    "filePath": "src/lib/utils/matchPageText.js",
+    "name": "trimEnd",
+    "testFile": "src/lib/utils/matchPageText.test.js"
+  },
+  {
+    "description": "Trims a leading excerpt fragment back to a word boundary and marks the cut with an ellipsis. Slicing a fixed character count lands mid-word roughly four times in five, and an excerpt beginning 't to a per-origin quota' reads as a rendering bug rather than as a shortened quotation.",
+    "filePath": "src/lib/utils/matchPageText.js",
+    "name": "trimStart",
+    "testFile": "src/lib/utils/matchPageText.test.js"
+  },
+  {
     "description": "The worker's single storage-write chokepoint. Routes each key to its owning area (labels -> sync, everything else -> local) and guards the sync path against quota and availability failures. Also COALESCES: a labels write byte-identical to the last one persisted is dropped, because labels now lives in sync, which caps writes at 120/minute — and recordInGroupTab runs per tab from groupTabs on every activeTabs change, so re-persisting an unchanged map would breach the quota within a minute of ordinary browsing. Dropping is safe by construction since identical content means storage already holds the value.",
     "filePath": "service_worker.js",
     "name": "update",
@@ -1896,6 +2078,12 @@
     "filePath": "src/lib/hooks/useListKeyboardNav.js",
     "name": "useListKeyboardNav",
     "testFile": "src/lib/hooks/useListKeyboardNav.test.jsx"
+  },
+  {
+    "description": "Everything behind the Page contents panel: the optional host permission, the chosen scope, the scan in flight and the hits so far. The scan is deliberately MANUAL — it runs on a click, never as a side effect of typing — because every other section queries a free in-memory index while this one reads real pages, so an as-you-type version would fetch a hundred pages for 't', then for 'ta', then for 'tab'. The button is not a missing convenience; it is the consent. Results live here and nowhere else, so they are gone on reload.",
+    "filePath": "src/lib/hooks/usePageContentSearch.js",
+    "name": "usePageContentSearch",
+    "testFile": "src/lib/hooks/usePageContentSearch.test.jsx"
   },
   {
     "description": "Writes the Full Search query back into uxSettings.page so a reload resumes the same search, the way Pages.URL carries its urlKey. Debounced because the alternative is a storage write per keystroke and every write fans out to chrome.storage.onChanged, which the search index itself listens to. The first render is skipped outright: writing back the query just handed in is a no-op round-trip that would fire a change event before the user typed anything. The write re-reads uxSettings and bails unless the app is still on the search page, because a pending debounce can land after the user has navigated away — clicking a result routes Home — and would otherwise drag them back to search on the next reload.",
