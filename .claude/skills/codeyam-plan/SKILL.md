@@ -89,7 +89,7 @@ what produces generic "look at the codebase" plans the editor workflow has
 to re-research at the `explore` slug:
 
 - `codeyam-editor editor glossary-find <name>` (flags: `--prefix`,
-  `--substring`, `--feature`, `--format`) — look up named entries
+  `--substring`, `--names-only`, `--fields`, `--format`) — look up named entries
 - `codeyam-editor editor glossary-list` / `glossary-untested` /
   `glossary-by-tag <tag>` — projections across the whole table
 - `.codeyam/glossary-index.txt` — line-oriented, greppable sidecar; safe to

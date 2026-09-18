@@ -81,6 +81,7 @@ blob-report/
 .codeyam/state/provider-auth-verdict.json
 .codeyam/state/dependency-provision.json
 .codeyam/state/setup-provision.json
+.codeyam/state/provisioning-lockfile-rewrites.jsonl
 .codeyam/state/session-results-snapshot.json
 .codeyam/state/pre-commit-sync-rebase-gate.json
 .codeyam/state/pre-commit-sync-orphan-bail.json

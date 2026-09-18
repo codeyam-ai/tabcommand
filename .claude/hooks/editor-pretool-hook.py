@@ -863,6 +863,9 @@ _GATING_SUBCOMMANDS = frozenset(
         "preview-interact",
         "preview-nav",
         "preview-verify",
+        # Runs the suite twice — the most reliably long command a build session
+        # issues, so it gets backgrounded and piped like the rest.
+        "prove-red",
         "push",
         "reconcile-registry",
         "refresh-tests",
@@ -871,6 +874,7 @@ _GATING_SUBCOMMANDS = frozenset(
         "session-checkpoint",
         "session-finalize",
         "show-results",
+        "test-on-base",
         "verify-build",
         "verify-full-finalize",
         "verify-test-cache",
@@ -2345,6 +2349,7 @@ def read_event():
 _INSPECTOR_BY_STORE = [
     (".codeyam/logs/audit-history.jsonl", "audit-history"),
     (".codeyam/state/finalize-debt.json", "finalize-debt"),
+    (".codeyam/state/last-advance.txt", "step-handoff --section <NAME> (bare to list sections)"),
     (".codeyam/dependency-graph.json", "deps-imports / deps-imported-by"),
     (".codeyam/test-registry.json", "registry-query"),
     (".codeyam/per-test-evidence.json", "evidence-query"),
@@ -2380,11 +2385,19 @@ _CODEYAM_STATE_PATH = re.compile(r"\.codeyam/[A-Za-z0-9_.][A-Za-z0-9_./+-]*")
 # `inspector_nudge`'s docstring was never python-specific: `ls` on a
 # guessed path re-derives a store's layout exactly the way a python walk
 # re-derives its schema, and fails the same way.
+#
+# `sed` and `awk` are here because their absence made the one idiom that
+# actually dropped instructions — `sed -n '160,260p'` on the saved step
+# hand-off — invisible to this nudge entirely. A windowed `sed` on a guessed
+# anchor re-derives a store's layout the same way; widening the verb set
+# widens the nudge for every `.codeyam/` store, which is the intended
+# direction (a broader net argues for keeping the instrument soft, not for
+# narrowing the net).
 _READ_VERB = re.compile(
     r"""(?:\A|[\n;|&`(]|\$\()\s*
         (?:[A-Za-z_][A-Za-z_0-9]*=\S*\s+)*
         (?:(?:sudo|command|time|xargs)\s+)*
-        (?:python3?|ls|cat|head|tail|wc|jq|grep|find)\b
+        (?:python3?|ls|cat|head|tail|wc|jq|grep|find|sed|awk)\b
     """,
     re.VERBOSE,
 )
@@ -2478,6 +2491,152 @@ def inspector_nudge(command):
             f"something you missed. Not blocking; your command still runs."
         )
     return None
+
+
+# ── windowed hand-off read guard ───────────────────────────────────────
+#
+# The saved step hand-off is an INSTRUCTION file, and a window of one is the
+# single read shape with no trustworthy interpretation: the lines that come
+# back are accurate, and nothing in them says a section body was cut.
+#
+# Observed: an agent read its step-3 hand-off with
+# `sed -n '160,260p' .codeyam/state/last-advance.txt`. The window ended
+# exactly on a `━━━ ASK WHETHER TO KEEP ASKING ━━━` banner, so it got the
+# heading and none of the body, never asked the question that section told it
+# to ask, and had no signal anything was missing — the read exited 0 with text
+# that looked complete BECAUSE it ended on a heading. The user caught it turns
+# later.
+#
+# BLOCK, not notice — the opposite call from `inspector_nudge` above, and the
+# asymmetry is what decides it. Hand-parsing a JSON store is wasteful but
+# recoverable inside the same turn; a half-read instruction file costs
+# SILENTLY UNEXECUTED INSTRUCTIONS discovered turns later. This is the hook's
+# own criterion for its blocking half: the cases where there is no reading
+# under which the result is trustworthy. And a block strands nobody, which is
+# the condition `inspector_nudge` reasons from in the other direction —
+# `cat` and `step-handoff --section` are always-available COMPLETE
+# alternatives, so there is no legitimate question this refusal leaves
+# unanswerable.
+#
+# `grep` and a whole-file `cat` stay allowed on purpose: locating a section is
+# not reading a window of one, and `cat` is the recovery the pointer line has
+# always named.
+_HANDOFF_STORE = ".codeyam/state/last-advance.txt"
+
+# The command-position anchor is `_READ_VERB`'s, for the same reason: position
+# is what separates a read from an incidental mention, so the path quoted in a
+# commit message or handed to `git add` is not a hit.
+_HANDOFF_VERB_ANCHOR = r"""(?:\A|[\n;|&`(]|\$\()\s*
+        (?:[A-Za-z_][A-Za-z_0-9]*=\S*\s+)*
+        (?:(?:sudo|command|time|xargs)\s+)*
+    """
+
+# `head`/`tail` truncate with or WITHOUT an explicit `-n`: a bare
+# `head FILE` is already a ten-line window, which is why no flag is required.
+_HANDOFF_HEAD_TAIL = re.compile(_HANDOFF_VERB_ANCHOR + r"(head|tail)\b", re.VERBOSE)
+_HANDOFF_SED = re.compile(_HANDOFF_VERB_ANCHOR + r"(sed)\b", re.VERBOSE)
+_HANDOFF_AWK = re.compile(_HANDOFF_VERB_ANCHOR + r"(awk)\b", re.VERBOSE)
+
+# A `sed` address that truncates by LINE NUMBER: `160,260p`, `1,+20p`,
+# `160,$p`, `40p`, `260q`, `1,100d`. A `sed` carrying no such address is not
+# windowing by line and is left alone — a substitution whose replacement
+# happens to contain a digit does not reach `[pqd]`.
+_SED_LINE_WINDOW = re.compile(r"\d+\s*(?:,\s*(?:\d+|\+\d+|\$))?\s*[pqd]\b")
+
+# `awk` truncates when it guards on the record number.
+_AWK_NR = re.compile(r"\bNR\b")
+
+
+def windowed_handoff_read(command):
+    """Return the truncating idiom `command` uses to read a WINDOW of the
+    saved step hand-off, or None.
+
+    Fires only when the command BOTH names `.codeyam/state/last-advance.txt`
+    AND truncates it. Heredoc bodies are elided first, for the same reason
+    every other guard elides them: a commit message that quotes the path is
+    prose, not a read.
+
+    A bare `cat`, a `grep`, and a `wc -l` of the same path are deliberately
+    NOT matches. Reading the file whole is the recovery this guard points at,
+    and locating a section by name is how an agent legitimately discovers what
+    to ask `--section` for — refusing either would break the way out.
+
+    Pure and side-effect free, so the idiom set is assertable directly without
+    going through captured stdout."""
+    if not command:
+        return None
+    command = elide_heredoc_bodies(command)
+    if _HANDOFF_STORE not in command:
+        return None
+    head_tail = _HANDOFF_HEAD_TAIL.search(command)
+    if head_tail:
+        return head_tail.group(1)
+    if _HANDOFF_SED.search(command) and _SED_LINE_WINDOW.search(command):
+        return "sed"
+    if _HANDOFF_AWK.search(command) and _AWK_NR.search(command):
+        return "awk"
+    return None
+
+
+def windowed_handoff_read_tool(tool_input):
+    """The truncating idiom a `Read` TOOL call uses on the saved step hand-off,
+    or None.
+
+    The `Read` tool reaches the same failure through a different door:
+    `offset`/`limit` are a line window by another name, and the unconditional
+    read-only allow further down would wave it through.
+
+    Split out of `main()` for the reason the Bash half already is — a pure
+    predicate is assertable directly, where three lines inlined in `main()`
+    can only be reached end-to-end through a captured exit code.
+
+    `file_path` is matched on its normalised tail, so an absolute path answers
+    the same as a project-relative one. A `Read` carrying NEITHER key is a
+    whole-file read and deliberately not a match: that is one of the two
+    complete alternatives the refusal points at."""
+    tool_input = tool_input or {}
+    path = str(tool_input.get("file_path") or "").replace("\\", "/")
+    if not path.endswith(_HANDOFF_STORE):
+        return None
+    if tool_input.get("offset") is None and tool_input.get("limit") is None:
+        return None
+    return "Read offset/limit"
+
+
+def windowed_handoff_read_refusal(idiom):
+    """The `(reason, next_action)` pair for a windowed hand-off read.
+
+    The reason states the failure CONCRETELY — a window can end on a banner
+    and yield a heading with no body. The abstract version ("you might miss
+    something") is exactly what an agent holding accurate-looking text
+    discounts, which is how this failed the first time.
+
+    The next action names `step-handoff --section` FIRST, and says why it
+    beats the line range the agent may already be holding. `HandoffSection`
+    publishes `start_line`/`end_line` and documents them as meaning what
+    `sed -n 'A,Bp'` means, so an agent that ran `step-handoff` is actively
+    INVITED to sed the range it was handed. Refusing that read is still right
+    — the arithmetic is the hazard, and a copied range is complete only if it
+    was copied exactly — so the recovery has to say the named form reaches the
+    same answer without any of it."""
+    return (
+        f"this reads a WINDOW of the saved step hand-off (`{_HANDOFF_STORE}`) "
+        f"with `{idiom}`. That file is an instruction file, and a window of one "
+        f"is the single read shape with no trustworthy interpretation: the "
+        f"lines that come back are accurate, and nothing in them tells you a "
+        f"section body was cut. A window that ends on a `━━━ … ━━━` banner "
+        f"hands back a heading with no body — it reads as complete and is not, "
+        f"which is how a whole section's instructions went unexecuted and were "
+        f"caught only turns later.",
+        f"read it WHOLE or by NAMED SECTION, never by line range: "
+        f"`{cli_command()} editor step-handoff --section <NAME>` returns one "
+        f"complete section (run it bare to list the sections this hand-off "
+        f"actually has), and `cat {_HANDOFF_STORE}` returns all of it. Line "
+        f"numbers printed by `step-handoff` are NOT a licence to `sed` the "
+        f"range back — the named form gives the same answer with none of the "
+        f"arithmetic. `grep`, `wc -l`, and a bare `cat` of this file are "
+        f"unaffected.",
+    )
 
 
 # ── scripted state-read guard ──────────────────────────────────────────
@@ -3081,6 +3240,59 @@ def main():
                 call=call,
             )
 
+    # Windowed hand-off read guard. Neither step-scoped nor editor-mode-scoped,
+    # for the same reason as the guards above: a half-read hand-off is just as
+    # wrong outside the editor workflow, and drops its instructions just as
+    # silently there.
+    #
+    # Placed after `recursive-delete` and before `self-matching-pgrep`: a
+    # refusal about destroying something must never be displaced by one about a
+    # read, and an advisory about a command that merely will not finish must
+    # never displace this one.
+    #
+    # The `Read`-tool half lives HERE rather than beside the read-only allow
+    # further down, and that is forced rather than preferred: the
+    # `Read`/`Glob`/`Grep` allow-branch sits after the `CODEYAM_EDITOR_ACTIVE`
+    # short-circuit, so a guard that must pre-empt it cannot live below it.
+    if tool_name == "Bash":
+        idiom = windowed_handoff_read(tool_input.get("command", ""))
+        if idiom:
+            reason, next_action = windowed_handoff_read_refusal(idiom)
+            block(
+                project_dir,
+                "windowed-handoff-read",
+                reason,
+                next_action,
+                detail=idiom,
+                evidence=(
+                    f"the command names `{_HANDOFF_STORE}` in a read position and "
+                    f"truncates it with `{idiom}`; a whole-file `cat`, a `grep`, "
+                    f"and a `wc -l` of the same path are not matched"
+                ),
+                call=call,
+            )
+
+    # A `Read` of the hand-off carrying NEITHER key is a whole-file read and
+    # stays allowed — it is one of the two complete alternatives the refusal
+    # points at.
+    if tool_name == "Read":
+        idiom = windowed_handoff_read_tool(tool_input)
+        if idiom:
+            reason, next_action = windowed_handoff_read_refusal(idiom)
+            block(
+                project_dir,
+                "windowed-handoff-read",
+                reason,
+                next_action,
+                detail=idiom,
+                evidence=(
+                    f"Read targets `{tool_input.get('file_path')}` with "
+                    f"offset={tool_input.get('offset')!r} limit={tool_input.get('limit')!r}; "
+                    f"the same Read carrying neither key is a whole-file read and is allowed"
+                ),
+                call=call,
+            )
+
     # Self-matching-pgrep guard. Neither step-scoped nor editor-mode-scoped,
     # for the same reason as the guards above: a wait loop that polls for its
     # own argv hangs in any session, and it hangs silently — an agent inside
@@ -3328,6 +3540,13 @@ def main():
         # block previously asserted the host was macOS and fired inside Linux
         # containers, which teaches an agent to distrust the hook's other
         # explanations.
+        #
+        # The recovery names commands that run through Bash, because Bash is
+        # the one tool every harness has. It used to prescribe "the Grep tool",
+        # and the harness running the fleet exposes no such tool — the very next
+        # call after the block failed with "No such tool available: Grep". A
+        # harness search tool is mentioned only conditionally, never as the
+        # sole next action.
         if _uses_pcre_grep(command):
             block(
                 project_dir,
@@ -3335,8 +3554,12 @@ def main():
                 "`grep -P` (PCRE) is not portable — BSD grep on macOS has no "
                 "`-P`, so a command written on a Linux VM fails on a "
                 "developer's laptop. The rule applies on every platform.",
-                "use the Grep tool instead — it wraps ripgrep and honors "
-                "PCRE syntax on both platforms.",
+                "re-run it through Bash as `grep -E` with the pattern rewritten "
+                "in POSIX extended syntax (e.g. `[0-9]` for `\\d`, `[[:space:]]` "
+                "for `\\s`); when the pattern genuinely needs PCRE (lookarounds, "
+                "lazy quantifiers), run ripgrep through Bash instead: "
+                "`rg --pcre2 '<pattern>' <path>`. A harness-provided search "
+                "tool also works, if this session has one.",
                 evidence=f"a PCRE flag was found on a `grep` in command position in: {command}",
                 call=call,
             )
