@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchFilterChips - Notes Selected",
+  "id": "79d3e3db-30fb-4e56-bab3-6c355b8bc76f",
+  "url": "/?isolate=FullSearchFilterChips&variant=notes-selected",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchFilterChips",
+  "scenarioType": "component",
+  "description": "A source chip rather than All is active, which is how the page narrows to one section. The other counts stay visible so the user can see what they are not looking at."
+}

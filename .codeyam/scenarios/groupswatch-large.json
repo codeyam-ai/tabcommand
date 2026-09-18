@@ -1,0 +1,12 @@
+{
+  "name": "GroupSwatch - Large",
+  "id": "23ac28df-c806-41c2-95ce-e637e5ca00e9",
+  "url": "/?isolate=GroupSwatch&variant=large",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "GroupSwatch",
+  "scenarioType": "component",
+  "description": "An oversized swatch, proving the size prop drives both dimensions and the circle stays a circle rather than an ellipse."
+}

@@ -1,0 +1,15 @@
+/* The excerpt itself is laid out by whichever row hosts it — the overlay and the
+   Full Search page size and place it differently — so this file owns only what
+   the two share: the muted single line and the called-out match. */
+.NotesSnippet {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.NotesSnippet span {
+  color: var(--brand-command);
+  font-weight: 600;
+}

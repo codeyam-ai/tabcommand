@@ -8,11 +8,14 @@ import { KeyDown, event } from '../../utils';
 import { Pages } from '../../../Constants';
 import { Icon } from '../Icon';
 import { Favicon } from '../Favicon';
+import { GroupSwatch } from '../GroupSwatch';
+import { NotesSnippet } from '../NotesSnippet';
+import { OpenFullSearchRow } from '../OpenFullSearchRow';
 import { Chrome } from '../../utils/Chrome';
-import searchNotesSnippet from '../../utils/searchNotesSnippet';
+import openUrlKey from '../../utils/openUrlKey';
 import groupSearchUrlsByLabel from '../../utils/groupSearchUrlsByLabel';
 
-const SearchResults = ({ labels, urls, archived }) => {
+const SearchResults = ({ query, labels, urls, archived }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Grouped URL hits, split into one sub-section per group. `flatUrls` recovers
@@ -21,11 +24,33 @@ const SearchResults = ({ labels, urls, archived }) => {
   const urlGroups = groupSearchUrlsByLabel(urls);
   const flatUrls = urlGroups.flatMap((group) => group.urls);
 
+  // "Open Full Search" is pinned at flat index 0 whenever there is query text,
+  // which shifts every other index by one. It is absent (and the indices are
+  // unshifted) when the component is rendered without a query — the isolated
+  // scenarios do exactly that, and they should keep showing the plain list.
+  const hasFullSearch = !!query;
+  const offset = hasFullSearch ? 1 : 0;
+
+  const openFullSearch = () => {
+    KeyDown.trigger(event({ key: "Escape" }));
+    Chrome.get('SearchResults4', 'uxSettings', ({ uxSettings }) => {
+      const next = uxSettings || {};
+      next.page = { name: Pages.SEARCH, query };
+      Chrome.set('SearchResults3', { uxSettings: next });
+    });
+  };
+
   const handleClick = (e, index) => {
+    if (hasFullSearch && index === 0) {
+      openFullSearch();
+      return;
+    }
+
     KeyDown.trigger(event({ key: "Escape" }));
     // The flat activation order matches the render order below:
     // Groups, then Grouped URLs (group by group), then Archived URLs.
-    const selectedItem = [...labels, ...flatUrls, ...(archived || [])][index];
+    const selectedItem = [...labels, ...flatUrls, ...(archived || [])][index - offset];
+    if (!selectedItem) return;
     if (selectedItem.labelTitle) {
       // Navigation lives entirely on `uxSettings`: select the label by title
       // (a string, matching LabelCollection) and route Home via
@@ -36,26 +61,15 @@ const SearchResults = ({ labels, urls, archived }) => {
         Chrome.set('SearchResults1', { uxSettings: uxSettings });
       });
     } else {
-      Chrome.get('SearchResults2', 'activeTabs', (result) => {
-        const activeTab = (result.activeTabs || []).filter(
-          (activeTab) => activeTab.urlKey === selectedItem.id
-        )[0];
-        if (activeTab && !e.metaKey) {
-          const tabId = parseInt(activeTab.tabKey.split('-')[1]);
-          chrome.tabs.update(tabId, { active: true }, () => { });
-        } else if (!activeTab) {
-          chrome.tabs.create({
-            url: selectedItem.url,
-            active: !e.metaKey
-          }, () => { });
-        }
-      })
+      // Open-or-focus is `openUrlKey`, shared with the Full Search page so the
+      // two surfaces cannot drift on what clicking a result does.
+      openUrlKey(selectedItem.id, selectedItem.url, { newTab: !!e.metaKey });
     }
   }
 
   useEffect(() => {
     setSelectedIndex(0);
-    const totalItems = (labels || []).length + flatUrls.length + (archived || []).length;
+    const totalItems = offset + (labels || []).length + flatUrls.length + (archived || []).length;
     let _selectedIndex = selectedIndex;
 
     const handleKeyDown = (e) => {
@@ -75,7 +89,7 @@ const SearchResults = ({ labels, urls, archived }) => {
     KeyDown.add(handleKeyDown);
 
     return () => KeyDown.remove(handleKeyDown);
-  }, [labels, urls, archived]);
+  }, [query, labels, urls, archived]);
 
   const labelResult = (i, label) => {
     return (
@@ -85,11 +99,12 @@ const SearchResults = ({ labels, urls, archived }) => {
         onMouseEnter={() => setSelectedIndex(i)}
         onClick={(e) => handleClick(e, i)}
       >
-        <div
+        <GroupSwatch
           key={`searchResult-${label.id}-icon`}
+          color={label.color}
+          size={14}
           className='SearchResults-labelIcon'
-          style={{ backgroundColor: label.color }}
-        ></div>
+        />
         <div key={`searchResult-${label.id}-title`} className='SearchResults-result-title'>
           {label.labelTitle}
         </div>
@@ -98,19 +113,6 @@ const SearchResults = ({ labels, urls, archived }) => {
   }
 
   const urlResult = (i, url) => {
-    let notesElement = false;
-    const matchAreas = Object.values(url.match).flat();
-    if (matchAreas.indexOf('notes') > -1) {
-      const snippet = searchNotesSnippet(url.notes, url.terms[0]);
-      if (snippet) {
-        notesElement = (
-          <div key={`searchResult-${url.id}-notes`} className='SearchResults-result-notes'>
-            {snippet.before}<span>{snippet.match}</span>{snippet.after}
-          </div>
-        );
-      }
-    }
-
     const editUrl = (e) => {
       KeyDown.trigger(event({ key: "Escape" }));
       e.preventDefault();
@@ -136,14 +138,22 @@ const SearchResults = ({ labels, urls, archived }) => {
         <div key={`searchResult-${url.id}-title`} className='SearchResults-result-title'>
           {url.urlTitle}
         </div>
-        {notesElement}
+        <NotesSnippet hit={url} className='SearchResults-result-notes' />
       </div>
     )
   }
 
-  let index = -1;
+  let index = offset - 1;
   return (
     <div id='SearchResults' className='SearchResults'>
+      {hasFullSearch &&
+        <OpenFullSearchRow
+          query={query}
+          selected={selectedIndex === 0}
+          onSelect={() => setSelectedIndex(0)}
+          onActivate={(e) => handleClick(e, 0)}
+        />
+      }
       {(!labels || !labels.length) && (!urls || !urls.length) && (!archived || !archived.length) &&
         <div className='SearchResults-section'>
           <div className='SearchResults-section-title'>No Results</div>
@@ -195,6 +205,7 @@ const SearchResults = ({ labels, urls, archived }) => {
 }
 
 SearchResults.propTypes = {
+  query: PropTypes.string,
   labels: PropTypes.array,
   urls: PropTypes.array,
   archived: PropTypes.array

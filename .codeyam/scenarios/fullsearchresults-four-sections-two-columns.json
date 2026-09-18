@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchResults - Four Sections Two Columns",
+  "id": "0fa90919-4867-4373-b16d-98d6743b6847",
+  "url": "/?isolate=FullSearchResults",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchResults",
+  "scenarioType": "component",
+  "description": "The layout decision this component owns: four sections of uneven height flowed into two columns, each section kept whole across the column boundary so a group never separates from its header."
+}

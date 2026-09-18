@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchRow - Grouped Open With Notes",
+  "id": "b5fe5c0c-aa15-4242-8381-a77c39144ceb",
+  "url": "/?isolate=FullSearchRow",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchRow",
+  "scenarioType": "component",
+  "description": "The flagship row with every affordance at once: favicon, title, host, the trailing group swatch, the OPEN badge, the edit pencil, and a notes excerpt with the query term highlighted."
+}

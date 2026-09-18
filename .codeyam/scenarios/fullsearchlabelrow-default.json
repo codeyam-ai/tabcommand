@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchLabelRow - Default",
+  "id": "ea29cc88-c6ce-4a89-ac96-fb183dcc93ea",
+  "url": "/?isolate=FullSearchLabelRow",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchLabelRow",
+  "scenarioType": "component",
+  "description": "A group matched by name. Deliberately plainer than a URL row: a group has no host, no notes, no open state and nothing to edit from here."
+}

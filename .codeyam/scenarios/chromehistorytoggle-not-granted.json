@@ -1,0 +1,12 @@
+{
+  "name": "ChromeHistoryToggle - Not Granted",
+  "id": "236aa1cb-816d-4af9-ac4b-4360758b831e",
+  "url": "/?isolate=ChromeHistoryToggle",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ChromeHistoryToggle",
+  "scenarioType": "component",
+  "description": "Unchecked and ungranted, showing the 'asks permission the first time' warning. This is the state that matters most: it is the only control in TabCommand that summons a browser permission prompt, and the note is what stops that being a surprise."
+}

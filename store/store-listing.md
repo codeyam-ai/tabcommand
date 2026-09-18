@@ -187,6 +187,29 @@ only mechanism that survives worker termination. It is used solely for this
 auto-close check and for no other timing purpose.
 ```
 
+### `history` (optional)
+
+This one is **not** requested at install. It is declared under
+`optional_permissions`, so the install-time warning list is unchanged and Chrome
+only ever prompts if the user turns the feature on themselves.
+
+```
+TabCommand's Full Search page searches the user's own TabCommand data: their
+groups, their saved and closed tabs, their notes, and their open tabs. It offers
+one opt-in extra — an "Include Chrome history" toggle that widens the same search
+to the user's full Chrome browsing history, so a page they visited but never
+saved in TabCommand is still findable.
+
+This permission is optional and is requested at runtime, only at the moment the
+user switches that toggle on; a user who never turns it on is never asked for it.
+It is used for a single call, chrome.history.search, run against the text the
+user typed into the search box. Results are matched and displayed locally on the
+user's device, are deduplicated against the pages TabCommand already tracks, and
+are never transmitted anywhere. TabCommand does not add to, delete from, or
+otherwise modify browsing history. Revoking the permission in Chrome's settings
+turns the feature off and the rest of search continues to work unchanged.
+```
+
 ### `system.cpu`
 
 ```

@@ -1,0 +1,60 @@
+{
+  "surface": "FullSearch",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "flatRows",
+      "value": "empty",
+      "rationale": "source-derived state flatRows=empty",
+      "status": "planned"
+    },
+    {
+      "dimension": "flatRows",
+      "value": "one",
+      "rationale": "source-derived state flatRows=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "flatRows",
+      "value": "many",
+      "rationale": "source-derived state flatRows=many",
+      "status": "covered"
+    },
+    {
+      "dimension": "chromeHistoryActive",
+      "value": "true",
+      "rationale": "source-derived state chromeHistoryActive=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "chromeHistoryActive",
+      "value": "false",
+      "rationale": "source-derived state chromeHistoryActive=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "query",
+      "value": "true",
+      "rationale": "source-derived state query=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "query",
+      "value": "false",
+      "rationale": "source-derived state query=false",
+      "status": "planned"
+    },
+    {
+      "dimension": "tab",
+      "value": "true",
+      "rationale": "source-derived state tab=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "tab",
+      "value": "false",
+      "rationale": "source-derived state tab=false",
+      "status": "planned"
+    }
+  ]
+}

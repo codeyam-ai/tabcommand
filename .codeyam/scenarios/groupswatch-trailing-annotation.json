@@ -1,0 +1,12 @@
+{
+  "name": "GroupSwatch - Trailing Annotation",
+  "id": "772f77a4-9ee0-4f81-888f-3e73532367bd",
+  "url": "/?isolate=GroupSwatch&variant=trailing",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "GroupSwatch",
+  "scenarioType": "component",
+  "description": "The smaller trailing size a Full Search row uses to say which group a URL belongs to, with the group name as its tooltip — deliberately subordinate to the row's favicon."
+}

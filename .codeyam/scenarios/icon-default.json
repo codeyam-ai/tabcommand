@@ -1,11 +1,12 @@
 {
   "name": "Icon - Default",
-  "id": "46cc9410-2311-4956-88d5-c3d41bab3061",
-  "url": "/?isolate=Icon",
+  "id": "75374c2d-b4b4-49b0-b521-ac55e863b058",
+  "url": "/?isolate=Icon&theme=dark",
   "dimensions": [
     "Desktop"
   ],
   "mocks": {},
   "componentName": "Icon",
-  "scenarioType": "component"
+  "scenarioType": "component",
+  "description": "The search glyph, the icon set default. Captured on the dark theme and at a large size on purpose: the icon inherits the muted secondary text colour, which on a light canvas rendered it almost invisible — two different glyphs then read as the same frame and the distinct-capture check could not tell this scenario from Icon - History."
 }

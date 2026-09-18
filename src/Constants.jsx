@@ -4,7 +4,8 @@ export const Pages = {
   URL: 'Url',
   LOAD: 'Load',
   HISTORY: 'History',
-  FAVORITES: 'Favorites'
+  FAVORITES: 'Favorites',
+  SEARCH: 'Search'
 }
 
 export const ItemTypes = {

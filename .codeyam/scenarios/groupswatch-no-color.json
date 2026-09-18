@@ -1,0 +1,12 @@
+{
+  "name": "GroupSwatch - No Color",
+  "id": "ec4eef24-f802-4510-a946-96c729dd5547",
+  "url": "/?isolate=GroupSwatch&variant=colorless",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "GroupSwatch",
+  "scenarioType": "component",
+  "description": "No color supplied: the dot still holds its space at the default size instead of collapsing, so a row with a missing group color keeps its alignment."
+}

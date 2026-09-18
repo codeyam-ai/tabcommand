@@ -1,0 +1,108 @@
+{
+  "surface": "SearchResults",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "key",
+      "value": "Enter",
+      "rationale": "source-derived state key=Enter",
+      "status": "planned"
+    },
+    {
+      "dimension": "key",
+      "value": "ArrowUp",
+      "rationale": "source-derived state key=ArrowUp",
+      "status": "planned"
+    },
+    {
+      "dimension": "key",
+      "value": "ArrowDown",
+      "rationale": "source-derived state key=ArrowDown",
+      "status": "planned"
+    },
+    {
+      "dimension": "archived",
+      "value": "empty",
+      "rationale": "source-derived state archived=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "archived",
+      "value": "one",
+      "rationale": "source-derived state archived=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "archived",
+      "value": "many",
+      "rationale": "source-derived state archived=many",
+      "status": "covered"
+    },
+    {
+      "dimension": "urls",
+      "value": "empty",
+      "rationale": "source-derived state urls=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "urls",
+      "value": "one",
+      "rationale": "source-derived state urls=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "urls",
+      "value": "many",
+      "rationale": "source-derived state urls=many",
+      "status": "covered"
+    },
+    {
+      "dimension": "labels",
+      "value": "empty",
+      "rationale": "source-derived state labels=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "labels",
+      "value": "one",
+      "rationale": "source-derived state labels=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "labels",
+      "value": "many",
+      "rationale": "source-derived state labels=many",
+      "status": "covered"
+    },
+    {
+      "dimension": "flatUrls",
+      "value": "empty",
+      "rationale": "source-derived state flatUrls=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "flatUrls",
+      "value": "one",
+      "rationale": "source-derived state flatUrls=one",
+      "status": "covered"
+    },
+    {
+      "dimension": "flatUrls",
+      "value": "many",
+      "rationale": "source-derived state flatUrls=many",
+      "status": "covered"
+    },
+    {
+      "dimension": "hasFullSearch",
+      "value": "true",
+      "rationale": "source-derived state hasFullSearch=true",
+      "status": "planned"
+    },
+    {
+      "dimension": "hasFullSearch",
+      "value": "false",
+      "rationale": "source-derived state hasFullSearch=false",
+      "status": "planned"
+    }
+  ]
+}

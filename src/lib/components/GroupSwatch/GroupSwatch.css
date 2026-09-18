@@ -1,0 +1,7 @@
+/* Height and width come from the `size` prop, so they are deliberately absent
+   here — this file owns only the shape and the refusal to be squeezed by a
+   flex row. */
+.GroupSwatch {
+  border-radius: 50%;
+  flex-shrink: 0;
+}

@@ -8,6 +8,7 @@ import { ImportExport } from '../ImportExport';
 import { UrlDetails } from '../UrlDetails';
 import { History } from '../History';
 import { ViewAllFavorites } from '../ViewAllFavorites';
+import { FullSearch } from '../FullSearch';
 import { ItemTypes, Pages } from '../../../Constants';
 
 import { DragDropContext } from '@hello-pangea/dnd';
@@ -347,6 +348,9 @@ const App = () => {
         }
         {page.name === Pages.FAVORITES &&
           <ViewAllFavorites />
+        }
+        {page.name === Pages.SEARCH &&
+          <FullSearch initialQuery={page.query} />
         }
         {isHome &&
           <div className="App-homeShell">

@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchInput - Long Query",
+  "id": "67f3dba7-b402-40fd-805d-05ad606bc636",
+  "url": "/?isolate=FullSearchInput&variant=long-query",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchInput",
+  "scenarioType": "component",
+  "description": "A query long enough to fill the field, confirming the text scrolls within the input rather than the input growing past its 640px bound."
+}

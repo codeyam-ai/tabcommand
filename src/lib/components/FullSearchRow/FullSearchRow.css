@@ -1,0 +1,36 @@
+/* The row's own shell — the shared `.FullSearch-row*` rules it uses for layout
+   live with the page, since the label row and the pending note share them. This
+   file owns only what is specific to a URL row. */
+
+/* The notes excerpt drops to its own line beneath the title, spanning the row. */
+.FullSearch-row .NotesSnippet.FullSearch-row-notes {
+  flex-basis: 100%;
+  margin-top: 2px;
+}
+
+/* "Open" — this url is a tab the user has right now, so activating it focuses
+   rather than duplicates. Outlined rather than filled so a screen with many
+   open results does not turn into a wall of solid pills. */
+.FullSearch-badge {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--c-lime-fg);
+  color: var(--c-lime-fg);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.FullSearch-row-edit {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: color var(--t-fast);
+}
+
+.FullSearch-row-edit:hover {
+  color: var(--brand-command);
+}

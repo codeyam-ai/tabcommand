@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchInput - Empty",
+  "id": "75498b3c-6dab-4d7d-889b-7f3500cbe4c7",
+  "url": "/?isolate=FullSearchInput&variant=empty",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchInput",
+  "scenarioType": "component",
+  "description": "No query yet, so the placeholder carries the invitation. This is what a user sees if they reach the page with the query cleared."
+}

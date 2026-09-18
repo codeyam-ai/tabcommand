@@ -238,18 +238,27 @@ const ISOLATION_PROPS = {
     },
   },
   Url: {
+    // The resting row of an open tab: favicon, title and its load bar, but no
+    // action buttons. `showActions` is deliberately FALSE here — with it true the
+    // default rendered exactly what the `expanded` variant renders, because
+    // `expanded` only forces the same two regions on (Url.jsx gates them on
+    // `showActions || hover || expanded` and `(showLoad && !hover) || expanded`).
+    // The pair captured identical frames for that reason; holding actions back
+    // in the default is what makes `expanded` demonstrate something.
     default: {
       urlKey: 'url-https://news.ycombinator.com',
       showLoad: true,
-      showActions: true,
+      showActions: false,
       expanded: false,
     },
     variants: {
       // Same seeded url-* storage as the default; only the display props change.
+      // `expanded` is the ONLY reason the actions appear here, which is the whole
+      // point of the prop — it stands in for hover on a row the user has opened.
       expanded: {
         urlKey: 'url-https://news.ycombinator.com',
-        showLoad: true,
-        showActions: true,
+        showLoad: false,
+        showActions: false,
         expanded: true,
       },
       minimal: {
@@ -940,15 +949,21 @@ const ISOLATION_PROPS = {
   },
   // The local Lucide-style icon set. Default shows the search glyph; variants
   // exercise a few representative glyphs (the icon is chosen by the `name` prop).
+  // Rendered large on purpose. At 28px a glyph occupies a few hundred pixels of a
+  // 1440x900 capture, so two different icons differ by less than the distinct-capture
+  // check's threshold and `icon-default` / `icon-history` were flagged as the same
+  // frame despite being different glyphs. Size is not what these scenarios are
+  // about, so showing the icon at a legible size costs nothing and makes each
+  // scenario say which glyph it is.
   Icon: {
     default: {
       name: 'search',
-      size: 28,
+      size: 96,
     },
     variants: {
-      pin: { name: 'pin', size: 28 },
-      history: { name: 'history', size: 28 },
-      settings: { name: 'settings', size: 28 },
+      pin: { name: 'pin', size: 96 },
+      history: { name: 'history', size: 96 },
+      settings: { name: 'settings', size: 96 },
     },
   },
   // One History list row. Default is a grouped tab with a close timestamp;
@@ -1377,6 +1392,466 @@ const ISOLATION_PROPS = {
         visits: [FAV_NOW - 2 * D, FAV_NOW - 30 * D],
       },
     },
+  },
+
+  // ── Full Search ────────────────────────────────────────────────────────
+  // The hits below are shaped exactly as `buildUrlDocuments` stamps them, so
+  // what renders in isolation is what renders on the page: `match` names the
+  // field that hit (a notes match is what makes a snippet appear), `terms`
+  // carries the query word the snippet highlights, and `urlLabelTitle` /
+  // `urlLabelColor` are present only on a URL that belongs to a group.
+  GroupSwatch: {
+    default: { color: '#1873E4' },
+    variants: {
+      // The trailing annotation size used on a Full Search row, where the dot
+      // says "this belongs to Work" beside the result rather than leading it.
+      trailing: { color: '#1F8E43', size: 9, title: 'Reading' },
+      // Every group hue at once — the wayfinding set, all nine distinguishable.
+      large: { color: '#c2278a', size: 20, title: 'Social' },
+      // No color supplied: the dot must still hold its space rather than
+      // collapsing the row it leads.
+      colorless: {},
+    },
+  },
+
+  NotesSnippet: {
+    // The whole point: the match landed in `notes`, so the excerpt renders with
+    // the query term called out.
+    default: {
+      hit: {
+        id: 'url-https://news.ycombinator.com',
+        notes: 'Read the Show HN thread on tab hoarding — good arguments for searching your archived tabs, not just bookmarks.',
+        match: { tab: ['notes'] },
+        terms: ['tab'],
+      },
+    },
+    variants: {
+      // A term at the very start of the notes: nothing before it to window.
+      'match-at-start': {
+        hit: {
+          id: 'url-a',
+          notes: 'Bookmarked while debugging the archive index — explains the 5MB cap.',
+          match: { bookmarked: ['notes'] },
+          terms: ['bookmarked'],
+        },
+      },
+      // The match was in the TITLE, not the notes — the component renders
+      // nothing at all, which is the branch that keeps non-notes rows clean.
+      'title-match-renders-nothing': {
+        hit: {
+          id: 'url-b',
+          notes: 'Some notes that do not contain the term.',
+          match: { react: ['urlTitle'] },
+          terms: ['react'],
+        },
+      },
+      // The term sits at the very END of a long note, so the window has plenty to
+      // trim in front of it and nothing after — the snippet opens mid-sentence and
+      // the highlight closes it. This replaced a second "renders nothing" variant
+      // (notes matched but the term absent, so searchNotesSnippet returns null):
+      // that case is real, but it is VISUALLY identical to the title-match one
+      // above, and two blank frames do not earn two scenarios. The distinction
+      // they were drawing lives in searchNotesSnippet's unit tests, which is where
+      // a difference with no pixels belongs.
+      'match-at-end': {
+        hit: {
+          id: 'url-c',
+          notes: 'Bookmarked while debugging the archive index — it explains the 5MB local storage cap and how to batch writes without blowing the quota',
+          match: { quota: ['notes'] },
+          terms: ['quota'],
+        },
+      },
+    },
+  },
+
+  OpenFullSearchRow: {
+    default: { query: 'tab', selected: true, onSelect: noop, onActivate: noop },
+    variants: {
+      // Unselected — what the row looks like once the user arrows down past it.
+      unselected: { query: 'tab', selected: false, onSelect: noop, onActivate: noop },
+      // A long query has to ellipsize rather than push the overlay wider.
+      'long-query': {
+        query: 'chrome extension tab group sync across devices',
+        selected: true,
+        onSelect: noop,
+        onActivate: noop,
+      },
+      // A single character — the row appears from the first keystroke.
+      'one-character': { query: 'r', selected: true, onSelect: noop, onActivate: noop },
+    },
+  },
+
+  FullSearchInput: {
+    default: { value: 'tab', onChange: noop },
+    variants: {
+      // Empty: the placeholder carries the invitation.
+      empty: { value: '', onChange: noop },
+      'long-query': {
+        value: 'chrome extension tab group sync across devices and profiles',
+        onChange: noop,
+      },
+    },
+  },
+
+  FullSearchFilterChips: {
+    default: {
+      chips: [
+        { key: 'all', label: 'All' },
+        { key: 'labels', label: 'Groups' },
+        { key: 'grouped', label: 'In my groups' },
+        { key: 'history', label: 'History' },
+        { key: 'notes', label: 'Notes' },
+        { key: 'openTabs', label: 'Open tabs' },
+      ],
+      counts: { all: 6, labels: 0, grouped: 5, history: 1, notes: 3, openTabs: 5 },
+      active: 'all',
+      onSelect: noop,
+    },
+    variants: {
+      // A chip other than All selected — the narrowed state.
+      'notes-selected': {
+        chips: [
+          { key: 'all', label: 'All' },
+          { key: 'labels', label: 'Groups' },
+          { key: 'grouped', label: 'In my groups' },
+          { key: 'history', label: 'History' },
+          { key: 'notes', label: 'Notes' },
+          { key: 'openTabs', label: 'Open tabs' },
+        ],
+        counts: { all: 6, labels: 0, grouped: 5, history: 1, notes: 3, openTabs: 5 },
+        active: 'notes',
+        onSelect: noop,
+      },
+      // The opt-in seventh chip, present only once Chrome history is on.
+      'with-chrome-history': {
+        chips: [
+          { key: 'all', label: 'All' },
+          { key: 'labels', label: 'Groups' },
+          { key: 'grouped', label: 'In my groups' },
+          { key: 'history', label: 'History' },
+          { key: 'notes', label: 'Notes' },
+          { key: 'openTabs', label: 'Open tabs' },
+          { key: 'chromeHistory', label: 'Chrome history' },
+        ],
+        counts: { all: 9, labels: 1, grouped: 5, history: 1, notes: 3, openTabs: 5, chromeHistory: 3 },
+        active: 'all',
+        onSelect: noop,
+      },
+      // Every count zero — every chip dimmed but still readable and clickable,
+      // which is how "nothing in Notes" stays an answer rather than a blank.
+      'all-empty': {
+        chips: [
+          { key: 'all', label: 'All' },
+          { key: 'labels', label: 'Groups' },
+          { key: 'grouped', label: 'In my groups' },
+          { key: 'history', label: 'History' },
+          { key: 'notes', label: 'Notes' },
+          { key: 'openTabs', label: 'Open tabs' },
+        ],
+        counts: { all: 0, labels: 0, grouped: 0, history: 0, notes: 0, openTabs: 0 },
+        active: 'all',
+        onSelect: noop,
+      },
+      // Three digits: the count pill must not blow out the chip.
+      'large-counts': {
+        chips: [
+          { key: 'all', label: 'All' },
+          { key: 'labels', label: 'Groups' },
+          { key: 'grouped', label: 'In my groups' },
+          { key: 'history', label: 'History' },
+          { key: 'notes', label: 'Notes' },
+          { key: 'openTabs', label: 'Open tabs' },
+        ],
+        counts: { all: 428, labels: 12, grouped: 247, history: 181, notes: 39, openTabs: 24 },
+        active: 'all',
+        onSelect: noop,
+      },
+    },
+  },
+
+  ChromeHistoryToggle: {
+    // Not yet granted: the permission warning is showing, which is the state
+    // that matters most — it is the only control that summons a browser prompt.
+    default: { checked: false, granted: false, onToggle: noop },
+    variants: {
+      // Granted and on: the warning has said what it needed to and is gone.
+      'granted-on': { checked: true, granted: true, onToggle: noop },
+      // Granted but switched off — no re-prompt is coming, so no note.
+      'granted-off': { checked: false, granted: true, onToggle: noop },
+    },
+  },
+
+  FullSearchLabelRow: {
+    default: {
+      hit: { id: 'label-Work', labelTitle: 'Work', color: '#1873E4' },
+      index: 0,
+      selected: false,
+      onSelect: noop,
+      onActivate: noop,
+    },
+    variants: {
+      selected: {
+        hit: { id: 'label-Reading', labelTitle: 'Reading', color: '#1F8E43' },
+        index: 0,
+        selected: true,
+        onSelect: noop,
+        onActivate: noop,
+      },
+      // A long group name has to ellipsize rather than wrap the row.
+      'long-title': {
+        hit: {
+          id: 'label-Long',
+          labelTitle: 'Quarterly planning, roadmap and everything else I keep reopening',
+          color: '#c2278a',
+        },
+        index: 0,
+        selected: false,
+        onSelect: noop,
+        onActivate: noop,
+      },
+    },
+  },
+
+  FullSearchRow: {
+    // The flagship: grouped, open right now, and matched in its notes — every
+    // affordance the row has, visible at once.
+    default: {
+      hit: {
+        id: 'url-https://news.ycombinator.com',
+        urlTitle: 'Hacker News',
+        urlLabelTitle: 'Work',
+        urlLabelColor: '#1873E4',
+        favicon: '',
+        notes: 'Read the Show HN thread on tab hoarding — good arguments for searching your archived tabs.',
+        match: { tab: ['notes'] },
+        terms: ['tab'],
+      },
+      index: 0,
+      selected: false,
+      isOpen: true,
+      onSelect: noop,
+      onActivate: noop,
+      onEdit: noop,
+    },
+    variants: {
+      selected: {
+        hit: {
+          id: 'url-https://github.com/codeyam/tabcommand',
+          urlTitle: 'codeyam/tabcommand — GitHub',
+          urlLabelTitle: 'Work',
+          urlLabelColor: '#1873E4',
+          favicon: '',
+          match: { tab: ['urlTitle'] },
+          terms: ['tab'],
+        },
+        index: 0,
+        selected: true,
+        isOpen: true,
+        onSelect: noop,
+        onActivate: noop,
+        onEdit: noop,
+      },
+      // Archived: no group, not open — the plainest a tracked row gets.
+      'ungrouped-and-closed': {
+        hit: {
+          id: 'url-https://overreacted.io',
+          urlTitle: 'overreacted — A blog by Dan Abramov',
+          favicon: '',
+          match: { blog: ['urlTitle'] },
+          terms: ['blog'],
+        },
+        index: 0,
+        selected: false,
+        isOpen: false,
+        onSelect: noop,
+        onActivate: noop,
+        onEdit: noop,
+      },
+      // A Chrome-history hit: it carries a real url and a namespaced id, and the
+      // edit pencil is WITHHELD because there is no tracked record to open.
+      'chrome-history-hit': {
+        hit: {
+          id: 'chrome-history-https://superuser.com/questions/1042/how-to-stop-hoarding-tabs',
+          urlTitle: 'How do I stop keeping 200 tabs open? - Super User',
+          url: 'https://superuser.com/questions/1042/how-to-stop-hoarding-tabs',
+        },
+        index: 0,
+        selected: false,
+        isOpen: false,
+        onSelect: noop,
+        onActivate: noop,
+        onEdit: noop,
+      },
+      // A very long title beside a long host — both have to stay on one line.
+      'long-title': {
+        hit: {
+          id: 'url-https://stackoverflow.com/questions/78912345/chrome-storage-local-quota',
+          urlTitle: 'javascript - chrome.storage.local quota exceeded when writing many url records - Stack Overflow',
+          urlLabelTitle: 'Reading',
+          urlLabelColor: '#1F8E43',
+          favicon: '',
+          match: { chrome: ['urlTitle'] },
+          terms: ['chrome'],
+        },
+        index: 0,
+        selected: false,
+        isOpen: false,
+        onSelect: noop,
+        onActivate: noop,
+        onEdit: noop,
+      },
+    },
+  },
+
+  FullSearchSection: {
+    // The grouped section, which is the only one with sub-headers.
+    default: {
+      sectionKey: 'grouped',
+      title: 'In my groups',
+      count: 3,
+      groups: [
+        {
+          title: 'Work',
+          color: '#1873E4',
+          urls: [
+            { id: 'url-https://github.com/codeyam/tabcommand', urlTitle: 'codeyam/tabcommand — GitHub' },
+            { id: 'url-https://www.figma.com/file/tabcommand', urlTitle: 'TabCommand UI – Figma' },
+          ],
+        },
+        {
+          title: 'Reading',
+          color: '#1F8E43',
+          urls: [
+            { id: 'url-https://react.dev/learn', urlTitle: 'Quick Start – React' },
+          ],
+        },
+      ],
+      rows: [],
+      renderRow: (u) => <div key={u.id} className="FullSearch-row">{u.urlTitle}</div>,
+    },
+    variants: {
+      // A flat section — no sub-headers, which is every section but "In my
+      // groups". The gold Notes accent.
+      'flat-notes': {
+        sectionKey: 'notes',
+        title: 'Notes',
+        count: 2,
+        rows: [
+          { id: 'url-https://news.ycombinator.com', urlTitle: 'Hacker News' },
+          { id: 'url-https://www.notion.so/codeyam/Roadmap', urlTitle: 'Roadmap – Notion' },
+        ],
+        renderRow: (u) => <div key={u.id} className="FullSearch-row">{u.urlTitle}</div>,
+      },
+      // The green Open tabs accent with a larger count.
+      'flat-open-tabs': {
+        sectionKey: 'openTabs',
+        title: 'Open tabs',
+        count: 12,
+        rows: [
+          { id: 'url-a', urlTitle: 'codeyam/tabcommand — GitHub' },
+          { id: 'url-b', urlTitle: 'TabCommand UI – Figma' },
+          { id: 'url-c', urlTitle: 'Roadmap – Notion' },
+        ],
+        renderRow: (u) => <div key={u.id} className="FullSearch-row">{u.urlTitle}</div>,
+      },
+      // A single hit — the boundary where a count pill reads "1".
+      'single-hit': {
+        sectionKey: 'history',
+        title: 'History',
+        count: 1,
+        rows: [{ id: 'url-https://news.ycombinator.com', urlTitle: 'Hacker News' }],
+        renderRow: (u) => <div key={u.id} className="FullSearch-row">{u.urlTitle}</div>,
+      },
+    },
+  },
+
+  FullSearchResults: {
+    // Four sections across two columns — the layout decision this component owns.
+    default: {
+      sections: [
+        {
+          key: 'grouped',
+          title: 'In my groups',
+          rows: [{ id: 'a' }, { id: 'b' }, { id: 'c' }],
+          groups: [
+            {
+              title: 'Work',
+              color: '#1873E4',
+              urls: [
+                { id: 'a', urlTitle: 'codeyam/tabcommand — GitHub' },
+                { id: 'b', urlTitle: 'TabCommand UI – Figma' },
+              ],
+            },
+            { title: 'Reading', color: '#1F8E43', urls: [{ id: 'c', urlTitle: 'Quick Start – React' }] },
+          ],
+        },
+        { key: 'history', title: 'History', rows: [{ id: 'd', urlTitle: 'Hacker News' }] },
+        {
+          key: 'notes',
+          title: 'Notes',
+          rows: [{ id: 'e', urlTitle: 'Roadmap – Notion' }, { id: 'f', urlTitle: 'Tab Triage Notes – Notion' }],
+        },
+        {
+          key: 'openTabs',
+          title: 'Open tabs',
+          rows: [{ id: 'g', urlTitle: 'Home / X' }, { id: 'h', urlTitle: 'r/programming' }],
+        },
+      ],
+      renderRow: (u) => <div key={u.id} className="FullSearch-row">{u.urlTitle}</div>,
+    },
+    variants: {
+      // One section only — what a filter chip narrows the page down to, and the
+      // case where the second column is empty.
+      'single-section': {
+        sections: [
+          {
+            key: 'notes',
+            title: 'Notes',
+            rows: [{ id: 'e', urlTitle: 'Roadmap – Notion' }],
+          },
+        ],
+        renderRow: (u) => <div key={u.id} className="FullSearch-row">{u.urlTitle}</div>,
+      },
+      // Every section at once, including the opt-in Chrome history — all six
+      // accent colours visible together.
+      'all-six-sections': {
+        sections: [
+          { key: 'labels', title: 'Groups', rows: [{ id: 'l1', urlTitle: 'Work' }] },
+          {
+            key: 'grouped',
+            title: 'In my groups',
+            rows: [{ id: 'a' }, { id: 'b' }],
+            groups: [
+              {
+                title: 'Work',
+                color: '#1873E4',
+                urls: [{ id: 'a', urlTitle: 'codeyam/tabcommand — GitHub' }, { id: 'b', urlTitle: 'TabCommand UI – Figma' }],
+              },
+            ],
+          },
+          { key: 'history', title: 'History', rows: [{ id: 'd', urlTitle: 'Hacker News' }] },
+          { key: 'notes', title: 'Notes', rows: [{ id: 'e', urlTitle: 'Roadmap – Notion' }] },
+          { key: 'openTabs', title: 'Open tabs', rows: [{ id: 'g', urlTitle: 'Home / X' }] },
+          {
+            key: 'chromeHistory',
+            title: 'Chrome history',
+            rows: [{ id: 'c1', urlTitle: 'How do I stop keeping 200 tabs open?' }],
+          },
+        ],
+        renderRow: (u) => <div key={u.id} className="FullSearch-row">{u.urlTitle}</div>,
+      },
+    },
+  },
+
+  FullSearchHint: {
+    // No props and one state — what the page says before anything is typed.
+    default: {},
+  },
+
+  PageContentsSlot: {
+    // No props and one state — the dimmed footnote naming what the page cannot
+    // search yet, and why.
+    default: {},
   },
 };
 

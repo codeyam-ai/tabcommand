@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchRow - Chrome History Hit",
+  "id": "166c7cd5-48cf-44a3-a1c8-21db579b3e53",
+  "url": "/?isolate=FullSearchRow&variant=chrome-history-hit",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchRow",
+  "scenarioType": "component",
+  "description": "A result from Chrome's own history rather than from TabCommand's index. The edit pencil is deliberately withheld: there is no tracked record behind it, so the URL detail page would open blank."
+}

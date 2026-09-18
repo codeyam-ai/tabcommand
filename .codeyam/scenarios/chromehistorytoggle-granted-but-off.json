@@ -1,0 +1,12 @@
+{
+  "name": "ChromeHistoryToggle - Granted But Off",
+  "id": "ce316eb7-c5ad-452a-8f79-82856ca315d5",
+  "url": "/?isolate=ChromeHistoryToggle&variant=granted-off",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ChromeHistoryToggle",
+  "scenarioType": "component",
+  "description": "Switched off while the permission is still held — no warning, because re-enabling will not prompt again. Turning the toggle off deliberately never revokes the grant."
+}

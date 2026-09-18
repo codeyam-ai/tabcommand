@@ -1,0 +1,42 @@
+.FullSearch-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.FullSearch-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-color: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--t-fast), color var(--t-fast);
+}
+
+.FullSearch-chip:hover {
+  border-color: var(--brand-command);
+}
+
+.FullSearch-chip-active {
+  border-color: var(--brand-command);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* A zero-count chip is dimmed but stays clickable — the count is the answer to
+   "is there anything here?", so the chip has to remain readable to be useful. */
+.FullSearch-chip-empty {
+  opacity: 0.45;
+}
+
+.FullSearch-chip-count {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}

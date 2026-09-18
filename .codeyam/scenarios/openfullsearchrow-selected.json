@@ -1,0 +1,12 @@
+{
+  "name": "OpenFullSearchRow - Selected",
+  "id": "03de39f1-6498-4342-a93c-307891112577",
+  "url": "/?isolate=OpenFullSearchRow",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "OpenFullSearchRow",
+  "scenarioType": "component",
+  "description": "The pinned overlay row in its default state — selected, so Enter opens the Full Search page rather than the top hit. The search glyph and the quoted query are what make the destination legible before clicking."
+}

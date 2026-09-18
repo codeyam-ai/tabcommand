@@ -34,6 +34,16 @@
     "testFile": "src/lib/utils/Chrome/Chrome.test.js"
   },
   {
+    "description": "The opt-in switch for searching Chrome's own browsing history. The 'asks permission the first time' note shows only while the permission is ungranted, and it is the component's whole reason for existing separately: this is the one control in TabCommand that triggers a browser permission prompt, and a switch that summons a system dialog without warning is one people learn not to touch. Once granted the note disappears, having said what it needed to.",
+    "filePath": "src/lib/components/ChromeHistoryToggle/ChromeHistoryToggle.jsx",
+    "name": "ChromeHistoryToggle",
+    "scenarios": [
+      "chromehistorytoggle-not-granted",
+      "chromehistorytoggle-granted-and-on",
+      "chromehistorytoggle-granted-but-off"
+    ]
+  },
+  {
     "description": "One draggable section of the sidebar's tab rail: a Droppable wrapping one Draggable Url row per url. It lives at module scope rather than inside Tabs' body because a component declared inside a render is a new type each time, which remounts the Droppable/Draggable subtree and makes @hello-pangea/dnd cancel an in-flight drag.",
     "filePath": "src/lib/components/DraggableTabUrls/DraggableTabUrls.jsx",
     "name": "DraggableTabUrls",
@@ -102,6 +112,98 @@
     "scenarios": [
       "favoritesresetcontrol-default",
       "favoritesresetcontrol-confirming"
+    ]
+  },
+  {
+    "description": "The Full Search page: every match for a query, nothing capped and nothing hidden. The sidebar overlay is a quick-jump capped at ten grouped and ten archived hits with no way to see the rest or ask where a hit came from; this page is the other half of that trade, showing the whole result set split by SOURCE into Groups, In my groups, History, Notes, Open tabs and an opt-in Chrome history, with a count on every filter chip so the shape of the results is legible before a single row is read. The query lives in uxSettings.page.query rather than in component state alone, so a reload lands back on the same search the way Pages.URL carries its urlKey. The page composes only: the index comes from useSearchIndex, live storage from useActiveTabs, the optional-permission feature from useChromeHistorySearch, query persistence from usePersistedPageQuery, keyboard navigation from useListKeyboardNav, and the section/count shaping from buildFullSearchSections and countFullSearchSections.",
+    "filePath": "src/lib/pages/FullSearch/FullSearch.jsx",
+    "name": "FullSearch",
+    "scenarios": [
+      "fullsearch-rich-results"
+    ]
+  },
+  {
+    "description": "The filter row: one chip per source, each carrying its count. The count is the feature rather than decoration — it is how the shape of a result set becomes legible before a single row is read ('forty matches, but only two are in my groups'), visible without clicking anything. A zero-count chip is dimmed but still clickable rather than hidden, because hiding it would make the row change width as the user types, and the absence of a section is itself an answer that can only be read from a chip still present.",
+    "filePath": "src/lib/components/FullSearchFilterChips/FullSearchFilterChips.jsx",
+    "name": "FullSearchFilterChips",
+    "scenarios": [
+      "fullsearchfilterchips-all-selected",
+      "fullsearchfilterchips-notes-selected",
+      "fullsearchfilterchips-with-chrome-history",
+      "fullsearchfilterchips-all-empty",
+      "fullsearchfilterchips-large-counts"
+    ]
+  },
+  {
+    "description": "What the Full Search page says before anything has been typed. It names the five things this search actually covers, because the page's whole claim is breadth and an empty screen makes no claim at all — a user arriving with no query should leave knowing that their notes and their open tabs are searchable, facts they had no way to learn from the sidebar box.",
+    "filePath": "src/lib/components/FullSearchHint/FullSearchHint.jsx",
+    "name": "FullSearchHint",
+    "scenarios": [
+      "fullsearchhint-default"
+    ]
+  },
+  {
+    "description": "The Full Search page's own query field — large, autofocused, and seeded with whatever query the sidebar overlay handed over. It is a second input for the same search rather than a duplicate of the sidebar box: arriving on this page means the user wants to work the query rather than jump to a hit, so the field is where their attention already is and takes focus on mount.",
+    "filePath": "src/lib/components/FullSearchInput/FullSearchInput.jsx",
+    "name": "FullSearchInput",
+    "scenarios": [
+      "fullsearchinput-with-query",
+      "fullsearchinput-empty",
+      "fullsearchinput-long-query"
+    ]
+  },
+  {
+    "description": "A group result on the Full Search page — the user searched a word that names one of their groups, so the group itself is the match. Deliberately much plainer than a URL row: a group has no host, no notes, no open state and nothing to edit from here. Activating it selects the group and routes Home, which the page owns rather than the row.",
+    "filePath": "src/lib/components/FullSearchLabelRow/FullSearchLabelRow.jsx",
+    "name": "FullSearchLabelRow",
+    "scenarios": [
+      "fullsearchlabelrow-default",
+      "fullsearchlabelrow-selected",
+      "fullsearchlabelrow-long-title"
+    ]
+  },
+  {
+    "description": "The two-column result area: every visible section, in order, flowed into columns. It owns the columns wrapper rather than the page, so the layout decision and the break-inside rule that makes it work stay with the thing they describe. Columns rather than a grid because section heights are wildly uneven — 'In my groups' can dwarf 'Notes' — and column flow packs them without leaving a grid row's dead space under the short one. Reading order is DOM order, which is also flatRows order, so the keyboard walks the columns the way the eye does.",
+    "filePath": "src/lib/components/FullSearchResults/FullSearchResults.jsx",
+    "name": "FullSearchResults",
+    "scenarios": [
+      "fullsearchresults-four-sections-two-columns",
+      "fullsearchresults-single-section",
+      "fullsearchresults-all-six-sections"
+    ]
+  },
+  {
+    "description": "One URL result on the Full Search page: favicon, title, host, the group it belongs to, whether it is open right now, an edit affordance, and the notes excerpt when the match landed there. Everything conditional is a statement about the hit rather than a prop the caller must get right — the group swatch appears only for a grouped hit, the OPEN badge only when the url is an active tab, and the edit pencil is withheld from a Chrome-history hit, which is not a tracked record and so has no URL detail page to open. The notes line renders itself or nothing.",
+    "filePath": "src/lib/components/FullSearchRow/FullSearchRow.jsx",
+    "name": "FullSearchRow",
+    "scenarios": [
+      "fullsearchrow-grouped-open-with-notes",
+      "fullsearchrow-selected",
+      "fullsearchrow-ungrouped-and-closed",
+      "fullsearchrow-chrome-history-hit",
+      "fullsearchrow-long-title"
+    ]
+  },
+  {
+    "description": "One source-section of the Full Search page: a tinted title band naming the source, its count, and the rows beneath. The band's colour comes from a FullSearch-section-<key> class the page sets, so the accent is data-driven rather than threaded through every call — and the key that picks the colour is the key that picked the section, so the two cannot disagree. The groups prop is what makes 'In my groups' different from every other section: its rows are sub-divided, one header per group, and its ABSENCE rather than an empty array is the branch, which is the contract buildFullSearchSections deliberately holds up.",
+    "filePath": "src/lib/components/FullSearchSection/FullSearchSection.jsx",
+    "name": "FullSearchSection",
+    "scenarios": [
+      "fullsearchsection-grouped-with-sub-headers",
+      "fullsearchsection-flat-notes",
+      "fullsearchsection-flat-open-tabs",
+      "fullsearchsection-single-hit"
+    ]
+  },
+  {
+    "description": "The coloured dot that stands for a group. It appears in five places across the two search surfaces — leading a group result row, heading a grouped sub-section, and trailing a Full Search row to name the group a URL belongs to — and was three different class names for the same circle before this. The `size` prop covers the one real variation: the trailing marker is smaller than a leading one so it reads as an annotation rather than as the row's icon. `title` becomes the hover tooltip, which is how a trailing swatch names its group without spending a line of width.",
+    "filePath": "src/lib/components/GroupSwatch/GroupSwatch.jsx",
+    "name": "GroupSwatch",
+    "scenarios": [
+      "groupswatch-default",
+      "groupswatch-trailing-annotation",
+      "groupswatch-large",
+      "groupswatch-no-color"
     ]
   },
   {
@@ -309,6 +411,36 @@
     "testFile": "src/lib/components/LoadUrl/LoadUrl.test.jsx"
   },
   {
+    "description": "The one-line notes excerpt under a search result whose match landed in its notes, with the matched term called out. Both search surfaces render it; each carried its own copy of the windowing check plus the before/span/after markup, which is how they drifted into different class names for the same element. The component owns the whole decision including whether there is anything to show, so a caller renders it unconditionally and gets nothing when the match was in the title. It returns null in three cases: the hit did not match in notes, minisearch supplied no terms, or the term is not literally present in the stored notes — searchNotesSnippet owns that last judgement.",
+    "filePath": "src/lib/components/NotesSnippet/NotesSnippet.jsx",
+    "name": "NotesSnippet",
+    "scenarios": [
+      "notessnippet-match-in-notes",
+      "notessnippet-match-at-start",
+      "notessnippet-title-match-renders-nothing",
+      "notessnippet-term-not-present"
+    ]
+  },
+  {
+    "description": "The pinned first row of the sidebar search overlay, reading 'Open Full Search for <query>'. It occupies flat index 0 whenever there is query text and is the default selection, so Enter opens the full page rather than the top hit — a deliberate change to an existing reflex (the top hit is now ArrowDown then Enter) that the row earns by being the only affordance able to answer 'show me everything' from an overlay that caps itself at ten results. It renders above every section including 'No Results', because a query with no hits is exactly when a user most wants somewhere else to look.",
+    "filePath": "src/lib/components/OpenFullSearchRow/OpenFullSearchRow.jsx",
+    "name": "OpenFullSearchRow",
+    "scenarios": [
+      "openfullsearchrow-selected",
+      "openfullsearchrow-unselected",
+      "openfullsearchrow-long-query",
+      "openfullsearchrow-one-character"
+    ]
+  },
+  {
+    "description": "The visible slot where searching inside page text will land. Deliberately not omitted until the feature exists: this page claims to show 'every match', and a user who searches a phrase they remember reading — rather than a title they remember seeing — will find nothing and reasonably conclude the search is broken. Naming the gap is more honest than a page that silently searches less than it appears to, and it names the cost too, which is why the capability is not simply switched on.",
+    "filePath": "src/lib/components/PageContentsSlot/PageContentsSlot.jsx",
+    "name": "PageContentsSlot",
+    "scenarios": [
+      "pagecontentsslot-default"
+    ]
+  },
+  {
     "description": "The shared chrome at the top of a full-page view: a back link, the page title, and an optional one-line intro. History and ViewAllFavorites each rendered this trio inline off the same Page- classes before it was hoisted here. Takes title, intro, onBack and an optional backLabel.",
     "filePath": "src/lib/components/PageHeader/PageHeader.jsx",
     "name": "PageHeader",
@@ -319,7 +451,7 @@
     ]
   },
   {
-    "description": "Sidebar search box: builds a minisearch index over labels and the WHOLE allUrls archive — labeled and unlabeled URLs — with fields labelTitle/urlTitle/url/notes and boosts. Rebuilds on chrome.storage onChanged for a labels change, an allUrls grow or shrink, or a notes edit on any indexed url, re-reading labels and allUrls each time. Typing runs a prefix search; results are deduped and segmented via segmentSearchResults into the SearchResults overlay as labels, grouped urls, and archived urls, each capped at 10. Cmd/Ctrl+F focuses, Escape closes. A build-token guards overlapping async rebuilds. Document shaping is factored into buildSearchDocuments and buildUrlDocuments.",
+    "description": "Sidebar search box. The minisearch index itself now belongs to the shared useSearchIndex hook, which the Full Search page also consumes, so the two surfaces cannot drift on fields, boosts or rebuild triggers; this component is the overlay — the input, the Cmd/Ctrl+F focus and Escape close, and the capped quick-jump list. Typing runs a prefix search whose hits are deduped and segmented via segmentSearchResults into SearchResults as labels, grouped urls and archived urls, each still capped at 10. The overlay now opens on ANY query text rather than only on a query with hits, because the pinned Open Full Search row is the thing Enter activates and a zero-hit query most needs somewhere else to look.",
     "filePath": "src/lib/components/Search/Search.jsx",
     "name": "Search",
     "testFile": "src/lib/components/Search/Search.test.jsx",
@@ -338,7 +470,7 @@
     }
   },
   {
-    "description": "The search overlay rendered by Search: sections for Groups, Grouped URLs, and Archived URLs. The Grouped URLs section is split into one sub-section per group via groupSearchUrlsByLabel, each headed by the group's color dot and title, with url rows rendered beneath; Archived URLs renders unlabeled hits with the same url row renderer, including a highlighted notes snippet via searchNotesSnippet. Plus a No Results empty state; a section renders only when it has hits. Keyboard navigation with Arrow up/down + Enter and mouse hover move the selection across the flat labels-then-grouped-urls-then-archived list (grouped urls flattened group by group so activation indices stay aligned with render order); activating a label selects it and routes Home, activating a url focuses or opens its tab, and the edit pencil routes to the URL detail page.",
+    "description": "The search overlay rendered by Search. When there is query text it pins an OpenFullSearchRow at flat index 0 as the default selection, so Enter opens the Full Search page carrying the query and the top hit becomes ArrowDown-then-Enter; every other index shifts by one, and the row is absent with the indices unshifted when the component renders without a query, which is what the isolated scenarios do. Below it: sections for Groups, Grouped URLs split into one sub-section per group via groupSearchUrlsByLabel, and Archived URLs, plus a No Results state that now renders BENEATH the pinned row rather than instead of the overlay. Group dots are GroupSwatch and notes excerpts are NotesSnippet, both shared with the Full Search page. Arrow/Enter and mouse hover move one selection across the flat list; activating a label selects it and routes Home, activating a url goes through the shared openUrlKey, and the edit pencil routes to the URL detail page.",
     "filePath": "src/lib/components/SearchResults/SearchResults.jsx",
     "name": "SearchResults",
     "testFile": "src/lib/components/SearchResults/SearchResults.test.jsx"
@@ -515,6 +647,15 @@
     "testFile": "src/lib/utils/historyTimestamp.test.js"
   },
   {
+    "description": "Routes the Full Search page back to Home by setting uxSettings.page. Navigation in TabCommand lives entirely on the uxSettings storage key rather than on a router, so leaving a page means writing the destination and letting App re-render from the change event — the same shape the History and ViewAllFavorites back links use. Wired to the PageHeader back control. Shares a name with those sibling helpers by convention, not by reuse: each page owns its own one-line destination write.",
+    "filePath": "src/lib/pages/FullSearch/FullSearch.jsx",
+    "name": "back",
+    "untestabilityReason": {
+      "justification": "A two-line chrome.storage write with no branching — the only behavior under test would be the storage layer itself, which chromeShim already covers.",
+      "kind": "platform-glue"
+    }
+  },
+  {
     "description": "Navigates from the History page back to the Home page by updating uxSettings.page via Chrome storage.",
     "filePath": "src/lib/pages/History/History.jsx",
     "name": "back",
@@ -549,6 +690,12 @@
     "filePath": "src/lib/utils/bucketVisitsByWeek.js",
     "name": "bucketVisitsByWeek",
     "testFile": "src/lib/utils/bucketVisitsByWeek.test.js"
+  },
+  {
+    "description": "Turns a segmented Full Search result set into the ordered sections the page renders plus the flat row list its keyboard navigation indexes into. The invariant it exists to hold is that flatRows is exactly the concatenation of sections[].rows in render order, so markup and Arrow/Enter targets derive from one value and cannot drift — the earlier shape, a running render index beside a separately-built activation array, is precisely the arrangement where arrowing to one row and pressing Enter opens another. Section order is the page's information hierarchy: what a match IS, where it lives, why it matched, what is open now, then the opt-in outside source. Empty sections are dropped rather than rendered as bare headings, and only the grouped section carries a groups key — its absence, not an empty array, is what the renderer branches on.",
+    "filePath": "src/lib/utils/buildFullSearchSections.js",
+    "name": "buildFullSearchSections",
+    "testFile": "src/lib/utils/buildFullSearchSections.test.js"
   },
   {
     "description": "Builds one entry for the always-on group-membership ADDITION audit trail, the mirror image of buildGroupRemovalEntry. Coerces urlKeys to an array, normalizes a missing tabId to null while preserving tabId 0, carries `total` as the label's member count AFTER the add, and carries `previousKey` only for the drift-heal source where the add is a rewrite-in-place. Clock-free: `t` is caller-supplied so the builder stays pure and needs no chrome or Date stubbing. Exists because groups were growing members nobody filed and no trail recorded which code path appended them.",
@@ -653,6 +800,12 @@
       "justification": "A two-call fs.mkdir/fs.copyFile boundary with no branching.",
       "kind": "platform-glue"
     }
+  },
+  {
+    "description": "Computes the number on every Full Search filter chip. Five counts are a section's length; 'All' is the one needing thought, because the sections deliberately overlap and summing them would report a result set two or three times larger than the one on screen. All therefore dedupes by id across the location sections (labels, grouped, history) plus Chrome history — the partition, counted once. Notes and Open tabs are deliberately excluded from that union: every hit they hold already sits in a location section, so including them could only double-count. Tolerates null inputs, since the chips render before the index has produced anything.",
+    "filePath": "src/lib/utils/countFullSearchSections.js",
+    "name": "countFullSearchSections",
+    "testFile": "src/lib/utils/countFullSearchSections.test.js"
   },
   {
     "description": "Internal helper of deriveSystemTotals: average per-core busy fraction = delta(kernel+user)/delta(total) across processors between two chrome.system.cpu samples. Returns 0 (never NaN) for missing/empty/single-sample input and for a non-advancing counter.",
@@ -972,6 +1125,12 @@
     "testFile": "src/lib/utils/historyTimestamp.test.js"
   },
   {
+    "description": "Reduces a URL to the host shown beside a search result's title — 'github.com' under 'codeyam/tabcommand — GitHub' — so a row whose title alone is ambiguous is still identifiable without spending the width a full URL costs. Strips only a LEADING 'www.', leaving subdomains and hosts that merely contain the string intact. Returns '' rather than throwing on empty, absent or unparseable input, because a search index built from seeded or hand-edited storage can hold a malformed key and one bad record must cost that row its host line, not the whole page.",
+    "filePath": "src/lib/utils/hostLabel.js",
+    "name": "hostLabel",
+    "testFile": "src/lib/utils/hostLabel.test.js"
+  },
+  {
     "description": "Formats a numeric value with locale-aware thousands separators for the Load page's raw per-process table (1284 -> '1,284'). A falsy value yields undefined so the caller renders nothing; locale defaults to the document language then 'en', overridable via the lang arg. Factored out of the Load page so the formatting is unit-testable.",
     "filePath": "src/lib/utils/humanReadableNumber.js",
     "name": "humanReadableNumber",
@@ -1016,6 +1175,12 @@
     "filePath": "service_worker.js",
     "name": "isAutoCloseEligible",
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Predicate returning true when a search-hit id sits in the 'chrome-history-' namespace, marking a result that came from Chrome's own browsing history rather than from a URL TabCommand tracks. Used by FullSearchRow to withhold the edit affordance, since there is no url-* record for the URL detail page to open. Returns false for a missing or non-string id rather than treating absence as a match.",
+    "filePath": "src/lib/utils/searchHitHref.js",
+    "name": "isChromeHistoryHit",
+    "testFile": "src/lib/utils/searchHitHref.test.js"
   },
   {
     "description": "Service-worker mirror of the src/lib/utils/isSearchEngineUrl predicate: returns true when a URL host (via the local siteKey mirror) is a known search engine - a curated exact-host set plus a google.<tld> ccTLD rule. Used by newUrl to skip the Favorites scoring writes (per-record visits + the durable siteVisits host bucket) for search engines, which rankFavorites discards anyway. Duplicated here because the service-worker runtime cannot import the ES module, matching the siteKey and pruneVisits mirroring convention; SEARCH_ENGINE_HOSTS is kept byte-identical to the canonical set.",
@@ -1113,6 +1278,12 @@
     "testFile": "service_worker.test.js"
   },
   {
+    "description": "Predicate deciding whether a minisearch hit matched in the notes field, by flattening the hit match map and testing for the notes key. It is the whole basis of the Full Search page Notes section: that section answers WHY a result matched rather than where it lives, so membership is read off the match map rather than off the record having notes at all. A hit with notes that matched on its title is correctly excluded. Returns false for a missing hit or a missing match map, since the page segments once before the index has produced anything.",
+    "filePath": "src/lib/utils/segmentFullSearchResults.js",
+    "name": "matchedInNotes",
+    "testFile": "src/lib/utils/segmentFullSearchResults.test.js"
+  },
+  {
     "description": "Finds the brace closing the object that starts at a given index, or -1 when the text runs out first — which IS the truncation signal salvage keys off. String-aware, so a brace inside a page title cannot throw off the depth count and truncate a perfectly good group.",
     "filePath": "src/lib/utils/importSnapshot/salvageLabels.js",
     "name": "matchingBrace",
@@ -1188,6 +1359,12 @@
     "filePath": "src/lib/utils/normalizeUrl.js",
     "name": "normalizeUrl",
     "testFile": "src/lib/utils/normalizeUrl.test.js"
+  },
+  {
+    "description": "Opens a tracked URL, or focuses it when it is already open — the behavior a search result has always had on click. Extracted from SearchResults.handleClick so the sidebar overlay and the Full Search page share one rule rather than reimplementing and drifting. If the urlKey is among activeTabs it focuses that tab instead of opening a duplicate; newTab (the overlay passes e.metaKey) forces a new background tab. When the URL is already open AND newTab is set, nothing happens — a deliberate no-op carried over from the original, so a meta-click never duplicates a tab the user already has.",
+    "filePath": "src/lib/utils/openUrlKey.js",
+    "name": "openUrlKey",
+    "testFile": "src/lib/utils/openUrlKey.test.js"
   },
   {
     "description": "Reorders the built file list so every asset is copied before manifest.json. A directory holding a manifest IS an installed extension to Chrome, so writing the manifest first would briefly advertise an extension whose code has not landed. Pure and never adds or drops an entry, so the mirror cannot silently drift from the build.",
@@ -1435,6 +1612,18 @@
     "testFile": "src/lib/utils/samePageKey.test.js"
   },
   {
+    "description": "Queries chrome.history for the Full Search page's opt-in 'Include Chrome history' section — the only search source TabCommand does not own. Defensive by construction: with no permission, or outside a packaged extension where chrome.history does not exist, it resolves to an empty list rather than throwing, so the section simply does not render. Drops any hit whose URL is already a tracked url-* key, because the tracked record is strictly richer (group, notes, open-tab state). Shapes results like URL search hits so they render through the same row, with ids namespaced 'chrome-history-<url>' so they can never collide with a tracked id.",
+    "filePath": "src/lib/utils/searchChromeHistory.js",
+    "name": "searchChromeHistory",
+    "testFile": "src/lib/utils/searchChromeHistory.test.js"
+  },
+  {
+    "description": "Resolves the URL a Full Search hit points at. A tracked record's storage key IS its url ('url-<url>', the form allUrls holds) and the stored record does not always repeat it in a url field, so an explicit hit.url wins and the key is the fallback — getting that order backwards renders every row hostless and hands chrome.tabs.create an undefined url. An id in no recognised namespace yields '' rather than a bogus href. Its companion isChromeHistoryHit tests the 'chrome-history-' id namespace, which is how a row decides whether to offer the edit pencil: a Chrome-history hit has no tracked record behind it, so the URL detail page would open blank.",
+    "filePath": "src/lib/utils/searchHitHref.js",
+    "name": "searchHitHref",
+    "testFile": "src/lib/utils/searchHitHref.test.js"
+  },
+  {
     "description": "Computes the truncated, highlighted notes snippet under a URL search result whose match landed in its notes: finds the term case-insensitively, captures the original-cased match, windows ~18 chars before / ~24 after, and returns { before, match, after } (or null when there's nothing to highlight).",
     "filePath": "src/lib/utils/searchNotesSnippet.js",
     "name": "searchNotesSnippet",
@@ -1445,6 +1634,12 @@
     "filePath": "src/lib/utils/visitDecay.js",
     "name": "seedVisitsFromCount",
     "testFile": "src/lib/utils/visitDecay.test.js"
+  },
+  {
+    "description": "Shapes raw minisearch hits into the five sections the Full Search page renders: labels, grouped (run through groupSearchUrlsByLabel into per-group sub-sections), history, notes, and openTabs. It widens the overlay's segmentSearchResults along a second axis — that one splits by WHERE a URL lives, this one also splits by WHY it matched (the match includes the notes field) and by what is on screen now (the id is an activeTabs urlKey). The sections deliberately OVERLAP, so a URL appears in its location section and again under Notes or Open tabs; callers needing the unduplicated set dedupe by id. Hits are first deduped by document id, as the overlay's version does, because overlapping index rebuilds can briefly leave a URL indexed twice.",
+    "filePath": "src/lib/utils/segmentFullSearchResults.js",
+    "name": "segmentFullSearchResults",
+    "testFile": "src/lib/utils/segmentFullSearchResults.test.js"
   },
   {
     "description": "Shapes raw minisearch hits for the SearchResults overlay: dedupes hits by document id, then splits them into { labels, urls, archived } — a hit is a label when it carries labelTitle, a grouped url when it carries urlLabelTitle, and an archived url otherwise.",
@@ -1679,10 +1874,40 @@
     "testFile": "src/lib/utils/usageMax.test.js"
   },
   {
+    "description": "Reads activeTabs and allUrls together — one call, one pair of invalidating events — and keeps them live. activeTabs drives the Full Search page's OPEN badges and its Open tabs section; allUrls is the set a Chrome-history hit is deduped against. Both re-read on chrome.storage change so the page stays honest while tabs open and close underneath it: a result claiming OPEN about a tab closed a minute ago is worse than no badge. Routes through changedInArea rather than comparing areaName directly, so a future move of either key to sync needs no edit here. Yields empty arrays, never undefined, since consumers map over both unguarded.",
+    "filePath": "src/lib/hooks/useActiveTabs.js",
+    "name": "useActiveTabs",
+    "testFile": "src/lib/hooks/useActiveTabs.test.jsx"
+  },
+  {
+    "description": "The whole 'Include Chrome history' feature behind one hook: the persisted preference, the optional runtime permission, the toggle reconciling them, and the resulting hits. Preference and grant are separate state deliberately, because they disagree — a user can enable the toggle and revoke the permission months later in Chrome's settings, and the section must then fall back to not-granted rather than calling an API it no longer holds; `active` is the conjunction and the only thing a consumer should render from. Turning the toggle off never drops the grant, so re-enabling does not re-prompt for something never taken back. The hits effect depends on the CONTENTS of indexedUrls, not its array identity: every run ends in a setHits, so depending on identity made a caller passing an inline array loop unboundedly and die of an out-of-memory crash rather than a visible failure.",
+    "filePath": "src/lib/hooks/useChromeHistorySearch.js",
+    "name": "useChromeHistorySearch",
+    "testFile": "src/lib/hooks/useChromeHistorySearch.test.jsx"
+  },
+  {
     "description": "Owns the History page's data. Reads allUrls, autoClosed and labels plus each url record, dates every row via historyTimestamp, buckets it with bucketByDay against a now recomputed per load, colors it from label membership, and returns the rows sorted newest-first with undated rows last. Subscribes to chrome.storage.onChanged so the page stays live without a remount. Exposes reopen to open a row's url in a new tab, and deleteRow to delete it from history via deleteUrlFromHistory — deleteRow needs no local state surgery because the same onChanged listener re-loads on the resulting allUrls change, so the row disappears on its own. Returns rows, reopen and deleteRow.",
     "filePath": "src/lib/hooks/useHistoryRows.js",
     "name": "useHistoryRows",
     "testFile": "src/lib/hooks/useHistoryRows.test.jsx"
+  },
+  {
+    "description": "Arrow/Enter/Escape navigation over a flat row list, plus the selected index the list renders its highlight from. It takes the SAME array the caller renders, which is the point: the overlay's original arrangement — a running render index beside a separately-assembled activation array — is the shape where arrowing to one row and pressing Enter opens another. The keydown subscription is made once and reads current rows and handlers through refs; subscribing on [rows, onActivate] looks equivalent and is not, because a caller passing an inline handler gets a new identity every render, so each keypress re-ran the effect and reset the selection to 0, leaving the highlight apparently frozen on the first row. Selection resets when the row list changes, since a held index points at whatever now occupies that slot. metaKey is coerced to a real boolean and forwarded rather than interpreted — what a meta-Enter means belongs to the caller.",
+    "filePath": "src/lib/hooks/useListKeyboardNav.js",
+    "name": "useListKeyboardNav",
+    "testFile": "src/lib/hooks/useListKeyboardNav.test.jsx"
+  },
+  {
+    "description": "Writes the Full Search query back into uxSettings.page so a reload resumes the same search, the way Pages.URL carries its urlKey. Debounced because the alternative is a storage write per keystroke and every write fans out to chrome.storage.onChanged, which the search index itself listens to. The first render is skipped outright: writing back the query just handed in is a no-op round-trip that would fire a change event before the user typed anything. The write re-reads uxSettings and bails unless the app is still on the search page, because a pending debounce can land after the user has navigated away — clicking a result routes Home — and would otherwise drag them back to search on the next reload.",
+    "filePath": "src/lib/hooks/usePersistedPageQuery.js",
+    "name": "usePersistedPageQuery",
+    "testFile": "src/lib/hooks/usePersistedPageQuery.test.jsx"
+  },
+  {
+    "description": "Owns the one MiniSearch index behind both search surfaces — the sidebar overlay and the Full Search page — so a second consumer cannot stand up its own and drift on fields, boosts or rebuild triggers. Built inline in Search.jsx before this. Indexes labels plus the WHOLE allUrls archive, rebuilding on a labels change, an allUrls grow or shrink, or a notes edit on any indexed url. Returns search(query) (raw prefix-matched hits) and indexVersion, which bumps on every completed rebuild: the overlay re-searches per keystroke and ignores it, but a surface seeded with a query it already holds has no keystroke to hang a re-search on and would otherwise render empty forever. The build token lives in a ref, NOT in the effect — the two StrictMode mount effects share one MiniSearch instance, so an effect-local token let both pass their own guard and the loser rejected on a duplicate id, leaving the index silently half-built.",
+    "filePath": "src/lib/hooks/useSearchIndex.js",
+    "name": "useSearchIndex",
+    "testFile": "src/lib/hooks/useSearchIndex.test.jsx"
   },
   {
     "description": "React hook owning the degraded-sync banner state for any surface outside the Import / Export page, where the warning must be dismissible rather than permanently parked above the user's groups. Dismissal is deliberately PER-INCIDENT: it records the `at` of the status record being dismissed, and writeByArea only writes a new record when the status actually changes, so a dismissal holds while sync stays broken and lifts when sync recovers and then fails again. Returns `{status, dismiss}` with status nulled while dismissed.",

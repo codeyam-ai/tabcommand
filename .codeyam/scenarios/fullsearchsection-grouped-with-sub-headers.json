@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchSection - Grouped With Sub-Headers",
+  "id": "b17fa2e6-d3c1-4693-a386-d5161204d26e",
+  "url": "/?isolate=FullSearchSection",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchSection",
+  "scenarioType": "component",
+  "description": "The 'In my groups' section — the only one whose rows are sub-divided, one header per group. The blue title band and its count pill sit above two group sub-sections."
+}

@@ -2287,6 +2287,96 @@
       "runner": "tests"
     },
     {
+      "description": "grouped hits render one sub-header per group, so the section carries both the per-group structure and the flattened rows that index into flatRows",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › carries the grouped sub-sections on the section that has them",
+      "line": 77,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "THE INVARIANT: flatRows IS the concatenation of what renders, in render order. Keyboard selection indexes into it, so any drift between the two means arrowing down highlights one row and Enter opens another.",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › flattens rows in render order, grouped sub-sections included",
+      "line": 63,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the section heading and its filter chip must read as the same thing",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › gives every section a human title",
+      "line": 91,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "picking a chip narrows the page to that one source",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › keeps only the selected section when a filter is active",
+      "line": 42,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "absence of the key — not an empty array — is what the renderer branches on",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › leaves groups undefined on flat sections",
+      "line": 85,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty section is not a heading with nothing under it",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › omits sections with no rows",
+      "line": 34,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a filter naming a section that has no hits yields nothing, not a stray header",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › returns no sections when the filtered section is empty",
+      "line": 54,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the order is the page's information hierarchy: what it IS, then where it lives, then why it matched, then what is on screen",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › returns sections in a fixed order",
+      "line": 26,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "All is the default and shows the complete split, which is the page's point",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › shows every section under the all filter",
+      "line": 48,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the page renders once before the index has produced any results",
+      "file": "src/lib/utils/buildFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "buildFullSearchSections › tolerates missing arguments",
+      "line": 99,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
       "description": "A typical worker addition carries every root-causing field through unchanged.",
       "file": "src/lib/utils/groupAdditionLog.test.js",
       "format": "vitest",
@@ -2977,6 +3067,78 @@
       "key": "columnsForWidth › steps down through three and two columns",
       "line": 13,
       "registeredAt": "2026-06-27T22:49:30Z",
+      "runner": "tests"
+    },
+    {
+      "description": "All spans the location sections plus the opt-in outside source — the four places a distinct result can actually come from",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › counts All across labels, grouped, history and chrome history",
+      "line": 61,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "each chip answers its own question, so each count is its own section's size",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › counts each section independently",
+      "line": 17,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "`grouped` arrives as per-group sub-sections, so its count is the flattened total — not the number of groups",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › counts grouped urls across every group, not the number of groups",
+      "line": 35,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "THE POINT OF \"All\": the location sections partition the results, while Notes and Open tabs re-list hits that already appear in one of them. Summing every section would double-count, so All dedupes by id across the location sections and Chrome history.",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › dedupes All across sections that deliberately overlap",
+      "line": 49,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a Chrome-history hit for an already-tracked url is deduped upstream by searchChromeHistory, but an id collision must not inflate All either",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › does not double-count a chrome hit sharing an id with a tracked hit",
+      "line": 72,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the Chrome history chip only appears when the feature is on, so its count has to survive independently of the rest",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › reports the chrome history count separately",
+      "line": 81,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a no-match query still renders every chip, dimmed, showing a real 0 — the count is how the user learns the section is empty rather than hidden",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › returns zeroes for an empty result set",
+      "line": 88,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the chips render on the first paint, before the index has produced anything",
+      "file": "src/lib/utils/countFullSearchSections.test.js",
+      "format": "vitest",
+      "key": "countFullSearchSections › tolerates missing arguments",
+      "line": 96,
+      "registeredAt": "2026-09-17T21:25:44Z",
       "runner": "tests"
     },
     {
@@ -4636,6 +4798,51 @@
       "runner": "tests"
     },
     {
+      "description": "only a LEADING www. goes — a host that merely contains it keeps its shape",
+      "file": "src/lib/utils/hostLabel.test.js",
+      "format": "vitest",
+      "key": "hostLabel › does not strip www elsewhere in the host",
+      "line": 16,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a subdomain is often the whole distinction between two results, so only the `www.` noise goes — nothing else is collapsed",
+      "file": "src/lib/utils/hostLabel.test.js",
+      "format": "vitest",
+      "key": "hostLabel › keeps subdomains",
+      "line": 22,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an unparseable or absent href must render no host rather than throw — a seeded record with a malformed key would otherwise take the whole page down",
+      "file": "src/lib/utils/hostLabel.test.js",
+      "format": "vitest",
+      "key": "hostLabel › returns an empty string rather than throwing on bad input",
+      "line": 29,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the host is the secondary line on a search row — it orients without the noise",
+      "file": "src/lib/utils/hostLabel.test.js",
+      "format": "vitest",
+      "key": "hostLabel › returns the hostname",
+      "line": 6,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "`www.` is pure noise at this size; every row would carry it",
+      "file": "src/lib/utils/hostLabel.test.js",
+      "format": "vitest",
+      "key": "hostLabel › strips a leading www.",
+      "line": 11,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
       "description": "millions group every three digits",
       "file": "src/lib/utils/humanReadableNumber.test.js",
       "format": "vitest",
@@ -4687,6 +4894,24 @@
       "key": "humanReadableNumber › returns undefined for falsy values",
       "line": 21,
       "registeredAt": "2026-06-12T11:47:55Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an absent id must not be mistaken for a Chrome-history hit, or the row would silently lose its edit affordance",
+      "file": "src/lib/utils/searchHitHref.test.js",
+      "format": "vitest",
+      "key": "isChromeHistoryHit › is false for a missing id",
+      "line": 55,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "these hits are not tracked records, so there is nothing to open an editor on",
+      "file": "src/lib/utils/searchHitHref.test.js",
+      "format": "vitest",
+      "key": "isChromeHistoryHit › is true only for the chrome-history id namespace",
+      "line": 47,
+      "registeredAt": "2026-09-17T21:25:44Z",
       "runner": "tests"
     },
     {
@@ -5353,6 +5578,60 @@
       "key": "normalizeUrl › treats http and https as equivalent",
       "line": 22,
       "registeredAt": "2026-06-28T14:43:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a deliberate no-op carried over from the overlay: meta-clicking a url that is already open must not hand the user a second copy of the same tab",
+      "file": "src/lib/utils/openUrlKey.test.js",
+      "format": "vitest",
+      "key": "openUrlKey › does nothing when the url is already open and newTab is set",
+      "line": 84,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "THE RULE: a url the user already has open is focused, never duplicated",
+      "file": "src/lib/utils/openUrlKey.test.js",
+      "format": "vitest",
+      "key": "openUrlKey › focuses the existing tab when the url is already open",
+      "line": 33,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "meta-click is the platform convention for \"open it, but don't take me there\"",
+      "file": "src/lib/utils/openUrlKey.test.js",
+      "format": "vitest",
+      "key": "openUrlKey › opens a background tab when newTab is set",
+      "line": 71,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an ordinary click on a result the user does not have open takes them there",
+      "file": "src/lib/utils/openUrlKey.test.js",
+      "format": "vitest",
+      "key": "openUrlKey › opens a new foreground tab when the url is not open",
+      "line": 58,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an unseeded store must open the url rather than throw on the absent key",
+      "file": "src/lib/utils/openUrlKey.test.js",
+      "format": "vitest",
+      "key": "openUrlKey › opens the url when there are no active tabs at all",
+      "line": 97,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the tab id is parsed out of the 'tab-<id>' key, so a focus targets the real tab",
+      "file": "src/lib/utils/openUrlKey.test.js",
+      "format": "vitest",
+      "key": "openUrlKey › parses the numeric tab id out of the tabKey",
+      "line": 46,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
       "runner": "tests"
     },
     {
@@ -6283,6 +6562,132 @@
       "runner": "tests"
     },
     {
+      "description": "THE DEDUPE: the tracked record carries the group, the notes and the open-tab state a raw history entry has none of, so the tracked one wins outright",
+      "file": "src/lib/utils/searchChromeHistory.test.js",
+      "format": "vitest",
+      "key": "searchChromeHistory › drops entries for urls TabCommand already tracks",
+      "line": 51,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an entry with no title still has to be identifiable in the list",
+      "file": "src/lib/utils/searchChromeHistory.test.js",
+      "format": "vitest",
+      "key": "searchChromeHistory › falls back to the url when an entry has no title",
+      "line": 64,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "ids are namespaced so they can never collide with a tracked 'url-<url>' id",
+      "file": "src/lib/utils/searchChromeHistory.test.js",
+      "format": "vitest",
+      "key": "searchChromeHistory › namespaces every id under chrome-history-",
+      "line": 41,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty query must not pull the user's entire browsing history",
+      "file": "src/lib/utils/searchChromeHistory.test.js",
+      "format": "vitest",
+      "key": "searchChromeHistory › resolves empty for an empty query",
+      "line": 73,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "without the optional permission — or outside a packaged extension — the API is simply absent, and the section must vanish rather than the page crash",
+      "file": "src/lib/utils/searchChromeHistory.test.js",
+      "format": "vitest",
+      "key": "searchChromeHistory › resolves empty when chrome.history is unavailable",
+      "line": 83,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "unit tests and SSR-ish contexts have no chrome global whatsoever",
+      "file": "src/lib/utils/searchChromeHistory.test.js",
+      "format": "vitest",
+      "key": "searchChromeHistory › resolves empty when there is no chrome at all",
+      "line": 90,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "hits are shaped like url results so the page renders them through one row",
+      "file": "src/lib/utils/searchChromeHistory.test.js",
+      "format": "vitest",
+      "key": "searchChromeHistory › shapes chrome history entries like url search hits",
+      "line": 26,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a malformed entry must not take the whole section down with it",
+      "file": "src/lib/utils/searchChromeHistory.test.js",
+      "format": "vitest",
+      "key": "searchChromeHistory › skips entries with no url",
+      "line": 95,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the stored record usually does NOT repeat its url, so the key is the source",
+      "file": "src/lib/utils/searchHitHref.test.js",
+      "format": "vitest",
+      "key": "searchHitHref › derives the url from a tracked hit id when the record has no url field",
+      "line": 6,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a query string is part of the url and survives the slice intact",
+      "file": "src/lib/utils/searchHitHref.test.js",
+      "format": "vitest",
+      "key": "searchHitHref › keeps query strings and fragments in a key-derived url",
+      "line": 32,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an explicit url field wins — a Chrome-history hit carries one",
+      "file": "src/lib/utils/searchHitHref.test.js",
+      "format": "vitest",
+      "key": "searchHitHref › prefers an explicit url field over the id",
+      "line": 11,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an id in no recognised namespace yields nothing rather than a bogus href",
+      "file": "src/lib/utils/searchHitHref.test.js",
+      "format": "vitest",
+      "key": "searchHitHref › returns an empty string for an id with no url- prefix and no url field",
+      "line": 27,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "rows render from whatever the index holds, which can briefly be a partial record mid-rebuild — a missing id must not throw during paint",
+      "file": "src/lib/utils/searchHitHref.test.js",
+      "format": "vitest",
+      "key": "searchHitHref › tolerates a missing or empty hit",
+      "line": 39,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a real record that DOES carry url must not be second-guessed from its key",
+      "file": "src/lib/utils/searchHitHref.test.js",
+      "format": "vitest",
+      "key": "searchHitHref › uses the url field even when the id would also resolve",
+      "line": 19,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
       "description": "the match keeps the notes' original casing even when the term is lowercase",
       "file": "src/lib/utils/searchNotesSnippet.test.js",
       "format": "vitest",
@@ -6379,6 +6784,96 @@
       "key": "seedVisitsFromCount › seeds recent visits ending at now that clear the threshold",
       "line": 123,
       "registeredAt": "2026-07-02T21:34:39Z",
+      "runner": "tests"
+    },
+    {
+      "description": "\"Open tabs\" is about the live window, not the index — membership comes from activeTabs, so the section changes as tabs open and close",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › collects hits that are currently open tabs",
+      "line": 59,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Notes answers \"why did this match\", which is a different question from where the url lives — so it is keyed off the match field, not off location",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › collects hits whose match landed in notes",
+      "line": 49,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "overlapping index rebuilds can briefly leave a url indexed twice, which would otherwise surface as two results sharing a React key",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › dedupes repeated ids, keeping the first _highest-scoring_ hit",
+      "line": 79,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an activeTabs entry with no urlKey must not match a hit with no id",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › ignores malformed activeTabs entries",
+      "line": 98,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "THE OVERLAP IS THE DESIGN: one url can be in its location section AND in Notes AND in Open tabs, so each filter chip answers its question completely",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › lists one hit in every section it qualifies for",
+      "line": 69,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a label hit and a url hit can both match; neither may leak into the other",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › never puts a label hit in a url section",
+      "line": 89,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "\"History\" is the archive: tracked urls filed into no group",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › puts ungrouped urls in history",
+      "line": 38,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a url belonging to a group is sub-divided by group, the way the page renders it",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › routes grouped urls through groupSearchUrlsByLabel",
+      "line": 25,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a hit carrying labelTitle is a group, not a url",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › separates label hits from url hits",
+      "line": 18,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the page segments once before the index has produced anything",
+      "file": "src/lib/utils/segmentFullSearchResults.test.js",
+      "format": "vitest",
+      "key": "segmentFullSearchResults › tolerates null results and null activeTabs",
+      "line": 104,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
       "runner": "tests"
     },
     {
@@ -8614,6 +9109,141 @@
       "runner": "tests"
     },
     {
+      "description": "a listener left attached would set state on an unmounted component on every subsequent tab change, for the life of the page",
+      "file": "src/lib/hooks/useActiveTabs.test.jsx",
+      "format": "vitest",
+      "key": "useActiveTabs › detaches its listener on unmount",
+      "line": 94,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an unrelated write must not churn the page",
+      "file": "src/lib/hooks/useActiveTabs.test.jsx",
+      "format": "vitest",
+      "key": "useActiveTabs › ignores changes to other keys",
+      "line": 78,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the whole reason this is a hook and not a one-shot read: a tab closing while the results are on screen must clear its OPEN badge",
+      "file": "src/lib/hooks/useActiveTabs.test.jsx",
+      "format": "vitest",
+      "key": "useActiveTabs › re-reads when activeTabs changes",
+      "line": 46,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a newly tracked url must reach the dedupe set, or Chrome history would re-offer a page TabCommand just started tracking",
+      "file": "src/lib/hooks/useActiveTabs.test.jsx",
+      "format": "vitest",
+      "key": "useActiveTabs › re-reads when allUrls changes",
+      "line": 62,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "both keys come back in one read, parsed — the page needs the tabs for its OPEN badges and the url set for the Chrome-history dedupe",
+      "file": "src/lib/hooks/useActiveTabs.test.jsx",
+      "format": "vitest",
+      "key": "useActiveTabs › reads activeTabs and allUrls on mount",
+      "line": 33,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an unseeded store must yield empty arrays, not undefined — the consumer maps over both without guarding",
+      "file": "src/lib/hooks/useActiveTabs.test.jsx",
+      "format": "vitest",
+      "key": "useActiveTabs › returns empty arrays when nothing is stored",
+      "line": 22,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "re-enabling when the grant is already held must not prompt again",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › does not re-request an already-held permission",
+      "line": 124,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a url TabCommand already tracks is dropped — the tracked record carries the group, the notes and the open-tab state a raw history entry has none of",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › drops hits for urls already in the index",
+      "line": 62,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the happy path: both halves agree, so the section renders and queries run",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › is active when the preference is set and the permission is held",
+      "line": 35,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the default for an optional permission is OFF — nothing is requested until the user asks for it",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › is inactive and ungranted by default",
+      "line": 26,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "switching off writes the preference but LEAVES the grant — revoking is the user's to do in Chrome, and dropping it here would re-prompt on re-enable",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › keeps the permission when switched off",
+      "line": 107,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the preference must not be written when the user dismisses Chrome's prompt",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › leaves the preference off when the permission request is denied",
+      "line": 140,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "turning it on for the first time asks for the permission and, once granted, persists the preference so the next visit does not re-ask",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › requests the permission and persists the preference when switched on",
+      "line": 90,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty query must not fetch the user's entire browsing history",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › returns no hits for an empty query",
+      "line": 77,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "THE REVOCATION CASE: preference says yes, Chrome says no. The feature must fall back cleanly rather than calling an API it no longer holds.",
+      "file": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "format": "vitest",
+      "key": "useChromeHistorySearch › stays inactive when the preference is set but the permission was revoked",
+      "line": 49,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
       "description": "a record's group color comes from label membership so the row dot matches the group the tab belongs to",
       "file": "src/lib/hooks/useHistoryRows.test.jsx",
       "format": "vitest",
@@ -8719,6 +9349,213 @@
       "key": "useHistoryRows › writes a deletedUrls tombstone when a row is deleted",
       "line": 164,
       "registeredAt": "2026-07-28T17:18:28Z",
+      "runner": "tests"
+    },
+    {
+      "description": "THE INVARIANT: Enter activates the row the highlight is on, not another",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › activates the selected row on Enter",
+      "line": 48,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Escape is the caller's to interpret — on the page it blurs the query field rather than navigating away",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › calls onEscape when Escape is pressed",
+      "line": 80,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "arrowing past either end must stay put rather than wrap or go out of bounds",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › clamps at both ends of the list",
+      "line": 39,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a handler left attached would keep stealing keystrokes after the page is gone",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › detaches its handler on unmount",
+      "line": 108,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty list must not activate an undefined row or move the selection",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › does nothing on an empty list",
+      "line": 98,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "meta-Enter is forwarded, not interpreted — the caller decides what it means",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › forwards the meta modifier to the activation handler",
+      "line": 57,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Alt and Ctrl combinations belong to the browser and the OS",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › ignores alt and ctrl combinations",
+      "line": 88,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the basic walk — and the case that broke when the subscription re-ran on every render, freezing the highlight on the first row",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › moves down and up with the arrow keys",
+      "line": 28,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a held index would point at whatever now occupies that slot in a new result set, so a changed list starts over at the top",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › resets the selection when the row list changes",
+      "line": 66,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the first row is the default target, so Enter with no arrowing opens it",
+      "file": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "format": "vitest",
+      "key": "useListKeyboardNav › starts on the first row",
+      "line": 21,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "a burst of keystrokes must cost one write, not one per character",
+      "file": "src/lib/hooks/usePersistedPageQuery.test.jsx",
+      "format": "vitest",
+      "key": "usePersistedPageQuery › debounces rapid query changes into a single write",
+      "line": 67,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "writing back the query we were just handed would fire a storage change event before the user has typed a thing — and the search index listens to it",
+      "file": "src/lib/hooks/usePersistedPageQuery.test.jsx",
+      "format": "vitest",
+      "key": "usePersistedPageQuery › does not write on the first render",
+      "line": 35,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "THE NAVIGATION RACE: a debounce still pending when the user clicks a result must not drag them back to search on the next reload",
+      "file": "src/lib/hooks/usePersistedPageQuery.test.jsx",
+      "format": "vitest",
+      "key": "usePersistedPageQuery › does not write once the app has navigated off the search page",
+      "line": 47,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "the point of the hook: a reload lands back on the same search",
+      "file": "src/lib/hooks/usePersistedPageQuery.test.jsx",
+      "format": "vitest",
+      "key": "usePersistedPageQuery › persists a changed query to uxSettings.page",
+      "line": 20,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "an absent uxSettings must not throw — a fresh profile has no page yet",
+      "file": "src/lib/hooks/usePersistedPageQuery.test.jsx",
+      "format": "vitest",
+      "key": "usePersistedPageQuery › tolerates missing uxSettings",
+      "line": 87,
+      "registeredAt": "2026-09-17T21:25:44Z",
+      "runner": "tests"
+    },
+    {
+      "description": "THE BUG THE REF-HELD BUILD TOKEN FIXES. StrictMode double-invokes the mount effect against ONE shared MiniSearch instance. With the token scoped inside the effect, both builds passed their own guard, both called addAllAsync with the same ids, and the loser rejected on a duplicate id — leaving the index silently half-built and indexVersion never bumping, so a page seeded with a query rendered empty forever.",
+      "file": "src/lib/hooks/useSearchIndex.test.jsx",
+      "format": "vitest",
+      "key": "useSearchIndex › completes its build under StrictMode double-invocation",
+      "line": 103,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "the index covers the WHOLE archive, not just grouped urls",
+      "file": "src/lib/hooks/useSearchIndex.test.jsx",
+      "format": "vitest",
+      "key": "useSearchIndex › indexes labels and every tracked url",
+      "line": 41,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an ungrouped url carries no group, which is the signal downstream segmenting uses to route it to the archive rather than to a group sub-section",
+      "file": "src/lib/hooks/useSearchIndex.test.jsx",
+      "format": "vitest",
+      "key": "useSearchIndex › leaves ungrouped urls without a group title",
+      "line": 70,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "notes are searchable, and the match reports WHICH field hit — which is what lets the Full Search page split a Notes section out of the same result set",
+      "file": "src/lib/hooks/useSearchIndex.test.jsx",
+      "format": "vitest",
+      "key": "useSearchIndex › matches on notes as well as titles",
+      "line": 84,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a newly tracked url has to become searchable without a reload",
+      "file": "src/lib/hooks/useSearchIndex.test.jsx",
+      "format": "vitest",
+      "key": "useSearchIndex › re-indexes when the archive grows",
+      "line": 135,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "an empty archive must still settle rather than leave consumers waiting on a version bump that never arrives",
+      "file": "src/lib/hooks/useSearchIndex.test.jsx",
+      "format": "vitest",
+      "key": "useSearchIndex › reports a completed build for an empty archive",
+      "line": 159,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "a grouped url carries its group's title and color so results can be sub-sectioned without re-reading the labels map",
+      "file": "src/lib/hooks/useSearchIndex.test.jsx",
+      "format": "vitest",
+      "key": "useSearchIndex › stamps grouped urls with their group title and color",
+      "line": 55,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "no url may be indexed twice, or two results would share a React key",
+      "file": "src/lib/hooks/useSearchIndex.test.jsx",
+      "format": "vitest",
+      "key": "useSearchIndex › yields no duplicate ids after a rebuild",
+      "line": 113,
+      "registeredAt": "2026-09-17T21:33:33.928329965+00:00",
       "runner": "tests"
     },
     {

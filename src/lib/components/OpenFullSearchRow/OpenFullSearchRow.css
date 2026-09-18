@@ -1,0 +1,21 @@
+/* The row borrows the overlay's `.SearchResults-result` layout and adds a
+   hairline beneath, so it reads as the overlay's ACTION rather than as another
+   hit in the list above the sections. */
+.SearchResults-result-fullSearch {
+  margin-bottom: 8px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--r-row) var(--r-row) 0 0;
+}
+
+.SearchResults-result-fullSearch .SearchResults-result-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.SearchResults-fullSearchIcon {
+  order: 1;
+  margin-right: 8px;
+  flex-shrink: 0;
+  color: var(--brand-command);
+}

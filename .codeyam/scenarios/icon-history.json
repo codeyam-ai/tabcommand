@@ -1,11 +1,12 @@
 {
   "name": "Icon - History",
-  "id": "e45bd19d-a8e2-4b56-8efa-303524ac5a73",
-  "url": "/?isolate=Icon&variant=history",
+  "id": "2a17abdb-5fc3-4963-9ea2-15669b34725b",
+  "url": "/?isolate=Icon&variant=history&theme=dark",
   "dimensions": [
     "Desktop"
   ],
   "mocks": {},
   "componentName": "Icon",
-  "scenarioType": "component"
+  "scenarioType": "component",
+  "description": "The history glyph — a clock with a counter-clockwise arrow — proving the name prop selects a different path from the set rather than the component drawing one fixed shape. Same dark theme and large size as Icon - Default, so the two are comparable side by side and genuinely distinguishable."
 }

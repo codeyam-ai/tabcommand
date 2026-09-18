@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchLabelRow - Selected",
+  "id": "3f885faf-3820-4cd7-a73e-f175f2db5f3e",
+  "url": "/?isolate=FullSearchLabelRow&variant=selected",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchLabelRow",
+  "scenarioType": "component",
+  "description": "The row under the keyboard highlight, which is the row Enter activates — selecting the group and routing Home."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchSection - Single Hit",
+  "id": "2dbca1c8-8fa0-4d98-a647-0f49f4046d4f",
+  "url": "/?isolate=FullSearchSection&variant=single-hit",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchSection",
+  "scenarioType": "component",
+  "description": "The boundary between an empty section and a full one: exactly one row, with the count pill reading 1 at its minimum width."
+}

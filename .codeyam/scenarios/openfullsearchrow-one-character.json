@@ -1,0 +1,12 @@
+{
+  "name": "OpenFullSearchRow - One Character",
+  "id": "832e5e5d-b81d-408f-9658-33f36f23a76c",
+  "url": "/?isolate=OpenFullSearchRow&variant=one-character",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "OpenFullSearchRow",
+  "scenarioType": "component",
+  "description": "A single typed character — the row appears from the very first keystroke, which is what guarantees there is always somewhere to go even before results arrive."
+}

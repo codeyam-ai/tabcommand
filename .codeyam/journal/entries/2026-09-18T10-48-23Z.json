@@ -1,0 +1,2235 @@
+{
+  "timestamp": "2026-09-18T10:48:23Z",
+  "title": "Full Search Page",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe sidebar search box (`Search` → `SearchResults`) is a quick-jump overlay: it shows at most 10 grouped URLs and 10 archived URLs, with no way to see everything that matched or to narrow the results by where they came from. This plan adds a pinned first row, **\"Open Full Search\"**, to the overlay. When there is query text, that row is selected by default, so pressing Enter (or clicking it) goes to a new **Full Search** page with the query carried over. The Full Search page shows every match with no cap. Results are split by source: **Groups**, **In my groups** (grouped URLs, sub-sectioned per group), **History** (tracked URLs not in any group), **Notes** (URLs whose notes matched, with the snippet), and **Open tabs**. Filter chips show a count for each section. There is also an opt-in **\"Include Chrome history\"** toggle, which requests the `history` permission at runtime (an optional permission, not an install-time one) and adds a section of matches from Chrome's full browser history.\n\n## Key Decisions\n\n- **\"Open Full Search\" takes index 0 and the default selection.** The user asked for Enter to open Full Search, which changes today's behavior where Enter opens the top hit. To reach the top hit it is now ArrowDown then Enter. The row shows even when the query has no results, and replaces the bare \"No Results\" state as the first thing on screen.\n- **A new page, not a new html entry.** It follows the existing `uxSettings.page` routing: `Pages.SEARCH` plus `{ name: Pages.SEARCH, query }`, rendered in `App.jsx` alongside `HISTORY` and `FAVORITES`. Putting the query in `uxSettings.page` means a reload keeps the search, which matches how `URL` carries `urlKey`.\n- **Extract the index into a shared hook.** Today the MiniSearch index is built inline in `Search.jsx` (lines 16-149). A new `useSearchIndex` hook takes over the construction, the `buildToken` race guard, and the `onChanged` rebuild logic, so the overlay and the page can't drift apart. `Search.jsx` becomes a consumer, and its existing tests must stay green.\n- **Sources are computed by a pure util.** The new `segmentFullSearchResults(results, activeTabs)` extends what `segmentSearchResults` does. It returns `{ labels, grouped, history, notes, openTabs }`. A URL can appear in both its location section (grouped or history) and in Notes / Open tabs. The \"All\" chip dedupes by id. This keeps the page logic testable without React.\n- **Chrome history is an optional permission.** Add `\"optional_permissions\": [\"history\"]` to `manifest.json`. The toggle calls `chrome.permissions.request({ permissions: ['history'] })` and then `chrome.history.search({ text, startTime: 0, maxResults: 200 })`. Hits whose URL is already indexed are dropped (the tracked record is richer). The toggle state persists in `settings`, and the page checks `chrome.permissions.contains` on mount so a revoked permission falls back cleanly. The install-time warning stays unchanged.\n- **No page-content search here.** Searching website contents needs host permissions and is its own plan (`website-content-search`, which depends on this one). This page leaves a visible section slot for it.\n\n## Implementation\n\n### 1. Shared search index hook\n\n**New file**: `src/lib/hooks/useSearchIndex.js`\n\nMove the MiniSearch construction, `addDocuments` (with `buildToken`), and `handleStorageChange` out of `Search.jsx` into `useSearchIndex()`. The hook returns `{ search(query) }`, which is the raw MiniSearch results with `{prefix: true}`. It reuses `buildSearchDocuments` / `buildUrlDocuments` and `changedInArea` unchanged.\n\n### 2. Overlay: pinned \"Open Full Search\" row\n\n**File**: `src/lib/components/Search/Search.jsx`\n**File**: `src/lib/components/SearchResults/SearchResults.jsx`\n\n- `Search` uses `useSearchIndex`, passes `query` to `SearchResults`, and renders the results whenever `searchText` is non-empty, including when there are zero hits.\n- `SearchResults` renders an \"Open Full Search\" row (search icon, the text `Open Full Search for \"<query>\"`) at flat index 0. Every other index shifts by one, both in `handleClick`'s lookup array and in the running `index` counter. `totalItems` grows by 1.\n- Activating it (click or Enter at index 0) fires the synthetic Escape as the other results do, then sets `uxSettings.page = { name: Pages.SEARCH, query }`.\n- The \"No Results\" section now renders below the pinned row.\n\n### 3. Page constant and routing\n\n**File**: `src/Constants.jsx`: add `SEARCH: 'Search'` to `Pages`.\n\n**File**: `src/lib/pages/App/App.jsx`: add a `page.name === Pages.SEARCH` branch next to the `HISTORY` / `FAVORITES` branches (around line 345), rendering `<FullSearch initialQuery={page.query} />`.\n\n**File**: `src/lib/pages/index.js`: export `FullSearch`.\n\n### 4. Full Search page\n\n**New file**: `src/lib/pages/FullSearch/FullSearch.jsx` (+ `FullSearch.css`, `index.js`)\n\n- A `PageHeader` titled \"Search\", with a large query input seeded from `initialQuery`. Edits write the query back to `uxSettings.page.query` (debounced) so a reload keeps it.\n- Filter chips: All · Groups · In my groups · History · Notes · Open tabs · (Chrome history, only when enabled), each with a count. Chips with zero hits are dimmed but still clickable.\n- Sections render with no 10-item cap. URL rows reuse the existing row look: the `Favicon`, the title, the host, the group color swatch for grouped hits, the notes snippet via `searchNotesSnippet`, an \"Open\" badge when the URL is in `activeTabs`, and the edit pencil that routes to `Pages.URL`.\n- Clicking a row reuses the same open-or-focus-tab behavior as `SearchResults.handleClick`. Pull that logic into a small shared util (**new file**: `src/lib/utils/openUrlKey.js`) so both callers share it.\n- Keyboard: ArrowUp/Down/Enter over the visible (filtered) flat list, and Escape blurs the input. Use `KeyDown` the way `SearchResults` does.\n- An empty query shows a short hint. A query with no hits shows `EmptyState`.\n\n### 5. Source segmentation util\n\n**New file**: `src/lib/utils/segmentFullSearchResults.js` (+ test)\n\nPure function. `labels` are hits with `labelTitle`. `grouped` are URL hits with `urlLabelTitle`, run through `groupSearchUrlsByLabel`. `history` are URL hits with no group. `notes` are URL hits whose `match` includes `notes`. `openTabs` are URL hits whose id is in `activeTabs[].urlKey`. It dedupes by id within each section the way `segmentSearchResults` does.\n\n### 6. Optional Chrome history\n\n**File**: `manifest.json`: add `\"optional_permissions\": [\"history\"]`.\n\n**New file**: `src/lib/utils/searchChromeHistory.js`: `searchChromeHistory(text, indexedUrls)` calls `chrome.history.search` and returns hits shaped like URL results (`id: 'chrome-history-<url>'`, `urlTitle`, `url`, `lastVisitTime`), dropping URLs already in `indexedUrls`.\n\n**File**: `src/lib/utils/chromeShim/chromeShim.js`: add `permissions.contains` / `request` and `history.search` stubs so the dev server and scenarios can render both the permission-granted and not-granted states.\n\n### 7. Store and privacy copy\n\n**File**: `store/store-listing.md`: add a justification row for the optional `history` permission (\"only requested when the user turns on 'Include Chrome history' in Full Search; queried locally, never transmitted\").\n\nThe public policy at codeyam.com/tabcommand/privacy lives outside this repo. Flag in the final summary that it needs a line about the optional history permission.\n\n## Reused existing code\n\n- `buildSearchDocuments`, `buildUrlDocuments` from `src/lib/utils/buildSearchDocuments.js` (glossary: `buildSearchDocuments`, `buildUrlDocuments`)\n- `segmentSearchResults` from `src/lib/utils/segmentSearchResults.js` (glossary: `segmentSearchResults`), the model for the new util\n- `groupSearchUrlsByLabel` from `src/lib/utils/groupSearchUrlsByLabel.js`\n- `searchNotesSnippet` from `src/lib/utils/searchNotesSnippet.js` (glossary: `searchNotesSnippet`)\n- `changedInArea` from `src/lib/utils/storageAreas.js`\n- `Chrome.get` / `Chrome.set` from `src/lib/utils/Chrome`\n- `KeyDown` from `src/lib/utils/KeyDown.js`\n- `PageHeader`, `EmptyState`, `Favicon`, `Icon` components from `src/lib/components`\n- The page-branch pattern in `src/lib/pages/App/App.jsx`\n\n## Scenarios to Demonstrate\n\n- Overlay with a query that has matches: \"Open Full Search\" pinned and selected at the top, the normal sections below\n- Overlay with a query that has no matches: \"Open Full Search\" plus \"No Results\"\n- Full Search, rich data: hits in all five sections, with counts on the chips, the notes snippet highlighted, and \"Open\" badges\n- Full Search filtered to a single chip (e.g. Notes)\n- Full Search with more than 10 grouped and archived hits (proves there's no cap)\n- Full Search with an empty query (hint) and with no hits (empty state)\n- The Chrome history toggle off (not granted), and on with Chrome-history hits deduped against tracked URLs",
+  "description": "Added a Full Search page that shows every match for a query with no ten-item cap, split by source into Groups, In my groups, History, Notes, Open tabs and an opt-in Chrome history, each a colour-banded section flowed across two columns with a count on every filter chip. The sidebar overlay now pins an Open Full Search row as its default selection and opens on any query text rather than only on a query with hits, so a zero-hit search still has somewhere to go; Enter reaches the page and the top hit becomes ArrowDown then Enter. Chrome history is declared as an optional permission requested at runtime only when the user switches it on, and its results are deduped against pages TabCommand already tracks. SCOPE VERDICT: this cycle delivered against the search deliverable, users-can-search-across-tabs-history-and; no deliverables were deferred. All eight project deliverables read as delivered with decidedBy agent, but those resolutions predate this cycle rather than being claimed by it. Two fixes landed that were not in the plan: the shared search index built its MiniSearch race guard inside the effect, so under StrictMode both mount builds raced one instance and the loser rejected on a duplicate id, leaving the index silently half-built; and the extracted keyboard hook resubscribed on every render, freezing the selection on the first row. Both are now covered by regression tests. Three scenario pairs that captured visually identical frames were fixed rather than excused: two blank NotesSnippet states were merged into one and replaced with a match-at-end windowing case, the Url expanded variant was given props that let expanded actually change the render, and the Icon scenarios moved to the dark theme at a legible size. No baseline exceptions were recorded. Also of note: a mid-session isolate call replaced the components manifest instead of extending it, which silently broke every pre-existing component capture until the manifest was restored and 150 scenarios were force-recaptured.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/capture.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/editor.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/full-search-page.md\t.codeyam/plans/completed/full-search-page.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-interactivity.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-issues.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenario-playwright.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/icon-default.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/icon-history.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-auto-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-grouped-rows--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/draggabletaburls-ungrouped-drag-hint--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-all-sites-removed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-duplicate-urls-collapsed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-frequency-boost--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-drift-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-google-doc-survives-search-exclusion--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-heavy-content-site-rolled-up--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-multi-page-site-removed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-non-website-entries-filtered--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-favorite-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-open-tab-discounted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-pinned-tab-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-query-distinct-pages-rolled-up-and-cued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-removed-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-same-origin-different-path-uncued--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-search-engines-excluded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-serp-excluded-portal-kept--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-sidebar-with-view-all-link--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-single-favorite--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-stats-survive-url-eviction--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/favorites-ten-justified--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-delete-confirm-armed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-search-engine-dated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/history-single-entry--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-all-groups-deleted-tabs-survive--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dark-mode--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-deleted-group-stays-deleted--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-deleted-group-stays-deleted--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-dragging-tab-onto-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-first-run-migration-from-local--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-four-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-color-preview-in-context--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-color-preview-in-context--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-group-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-restored-from-sync-after-uninstall--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-groups-survive-a-sync-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-light-theme--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-open-and-saved-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-overflowing-tabs--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-reorder-lands-one-slot-down--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-reorder-lands-one-slot-down--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-settings-popover-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-stable-chrome-footer--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-sync-wins-over-stale-local--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-temporary-theme-override--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-three-columns--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-history--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/icon-history--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-color-preview-while-editing--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-deliberate-same-site-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-guarded-single-member--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-menu-open--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-overflowing-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-phantom-members--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-preview-name-cleared--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-remove-control-revealed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-saved-recolor-committed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-title-and-color-preview--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollection-work-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-bottom-row-flipped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-long-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelcollectionmenu-work-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-empty-title--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-empty-title--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-preset-color--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-preset-color--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-edit-work--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-blank--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-new-group-title-typed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-reading--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-shopping--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelform-social--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcontainer-expanded--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-custom-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-derived-color--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labelformcustomcolor-preset-selected--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-populated--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/labels-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-high--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-meter-low--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-page--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/load-stable-chrome-fallback--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-high-load--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/loadmeter-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-active-results--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-empty-query--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-archived-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-multiple-groups--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-multiple-groups--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-single-group--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-grouped-single-group--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-labels-only--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-many--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-matches--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-mixed-with-archived--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/searchresults-mixed-with-archived--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-control--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-maximum--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-off--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-auto-close-shortest--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-day-mode-accent--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-default--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-group-columns-selected--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/settings-stable-chrome--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-dark--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/themetoggle-light--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-comfortable--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-running-hot--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/triage-stable-chrome-hidden--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-active-tab--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-edit--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-details-unlabeled--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-dragging--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-expanded--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-idle--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/url-minimal--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-empty--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-open-cue-by-page-identity--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-removed-site-dimmed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-rich--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/viewallfavorites-site-restored-by-bring-back--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/search-active-results.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/finalize-debt.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/1ce9896307cb40d1ea14e42c568b159b5505c328327a98a0c3d3f629559eb699.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/7b85f8f27c1351a48506652736f73f086fe35750d01e867449e45d4b3bea0d20.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "manifest.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/Constants.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Search/Search.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.css",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/SearchResults/SearchResults.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/App/App.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/pages/index.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/chromeShim/chromeShim.js",
+      "status": "modified"
+    },
+    {
+      "path": "store/store-listing.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/chromehistorytoggle-granted-and-on.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/chromehistorytoggle-granted-but-off.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/chromehistorytoggle-not-granted.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/fullsearch.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/search.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/searchresults.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearch-chrome-history-included.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearch-empty-query.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearch-no-matches.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearch-rich-results.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearch-single-match.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchfilterchips-all-empty.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchfilterchips-all-selected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchfilterchips-large-counts.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchfilterchips-notes-selected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchfilterchips-with-chrome-history.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchhint-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchinput-empty.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchinput-long-query.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchinput-with-query.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchlabelrow-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchlabelrow-long-title.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchlabelrow-selected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchresults-all-six-sections.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchresults-four-sections-two-columns.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchresults-single-section.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchrow-chrome-history-hit.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchrow-grouped-open-with-notes.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchrow-long-title.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchrow-selected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchrow-ungrouped-and-closed.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchsection-flat-notes.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchsection-flat-open-tabs.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchsection-grouped-with-sub-headers.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/fullsearchsection-single-hit.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/groupswatch-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/groupswatch-large.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/groupswatch-no-color.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/groupswatch-trailing-annotation.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/notessnippet-match-at-end.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/notessnippet-match-at-start.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/notessnippet-match-in-notes.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/notessnippet-title-match-renders-nothing.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/openfullsearchrow-long-query.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/openfullsearchrow-one-character.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/openfullsearchrow-selected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/openfullsearchrow-unselected.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/pagecontentsslot-default.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/chromehistorytoggle-granted-and-on--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/chromehistorytoggle-granted-and-on--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/chromehistorytoggle-granted-but-off--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/chromehistorytoggle-granted-but-off--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/chromehistorytoggle-not-granted--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/chromehistorytoggle-not-granted--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-chrome-history-included--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-chrome-history-included--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-empty-query--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-empty-query--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-no-matches--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-no-matches--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-rich-results--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-rich-results--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-single-match--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearch-single-match--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-all-empty--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-all-empty--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-all-selected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-all-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-large-counts--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-large-counts--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-notes-selected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-notes-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-with-chrome-history--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchfilterchips-with-chrome-history--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchhint-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchhint-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchinput-empty--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchinput-empty--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchinput-long-query--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchinput-long-query--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchinput-with-query--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchinput-with-query--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchlabelrow-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchlabelrow-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchlabelrow-long-title--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchlabelrow-long-title--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchlabelrow-selected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchlabelrow-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchresults-all-six-sections--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchresults-all-six-sections--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchresults-four-sections-two-columns--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchresults-four-sections-two-columns--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchresults-single-section--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchresults-single-section--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-chrome-history-hit--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-chrome-history-hit--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-grouped-open-with-notes--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-grouped-open-with-notes--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-long-title--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-long-title--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-selected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-ungrouped-and-closed--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchrow-ungrouped-and-closed--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchsection-flat-notes--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchsection-flat-notes--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchsection-flat-open-tabs--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchsection-flat-open-tabs--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchsection-grouped-with-sub-headers--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchsection-grouped-with-sub-headers--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchsection-single-hit--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/fullsearchsection-single-hit--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/groupswatch-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/groupswatch-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/groupswatch-large--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/groupswatch-large--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/groupswatch-no-color--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/groupswatch-no-color--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/groupswatch-trailing-annotation--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/groupswatch-trailing-annotation--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/notessnippet-match-at-end--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/notessnippet-match-at-end--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/notessnippet-match-at-start--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/notessnippet-match-at-start--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/notessnippet-match-in-notes--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/notessnippet-match-in-notes--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/notessnippet-title-match-renders-nothing--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/notessnippet-title-match-renders-nothing--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/openfullsearchrow-long-query--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/openfullsearchrow-long-query--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/openfullsearchrow-one-character--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/openfullsearchrow-one-character--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/openfullsearchrow-selected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/openfullsearchrow-selected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/openfullsearchrow-unselected--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/openfullsearchrow-unselected--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsslot-default--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/pagecontentsslot-default--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-no-results-with-full-search-offer--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/search-no-results-with-full-search-offer--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/search-no-results-with-full-search-offer.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/994ca114a99f0551c2a320ceb9562f2a9f963f0e3503098376dc3c62dc412884.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/bb193cc77f9cdaa90df718660893caf68bf378f21ad2e848284553b6c64ee4a8.json",
+      "status": "added"
+    },
+    {
+      "path": "core",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ChromeHistoryToggle/ChromeHistoryToggle.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ChromeHistoryToggle/ChromeHistoryToggle.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/ChromeHistoryToggle/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchFilterChips/FullSearchFilterChips.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchFilterChips/FullSearchFilterChips.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchFilterChips/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchHint/FullSearchHint.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchHint/FullSearchHint.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchHint/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchInput/FullSearchInput.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchInput/FullSearchInput.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchInput/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchLabelRow/FullSearchLabelRow.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchLabelRow/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchResults/FullSearchResults.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchResults/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchRow/FullSearchRow.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchRow/FullSearchRow.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchRow/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchSection/FullSearchSection.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchSection/FullSearchSection.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/FullSearchSection/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/GroupSwatch/GroupSwatch.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/GroupSwatch/GroupSwatch.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/GroupSwatch/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/NotesSnippet/NotesSnippet.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/NotesSnippet/NotesSnippet.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/NotesSnippet/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/OpenFullSearchRow/OpenFullSearchRow.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/OpenFullSearchRow/OpenFullSearchRow.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/OpenFullSearchRow/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSlot/PageContentsSlot.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSlot/PageContentsSlot.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/components/PageContentsSlot/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useActiveTabs.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useActiveTabs.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useChromeHistorySearch.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useChromeHistorySearch.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useListKeyboardNav.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useListKeyboardNav.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/usePersistedPageQuery.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/usePersistedPageQuery.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useSearchIndex.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/hooks/useSearchIndex.test.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/FullSearch/FullSearch.css",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/FullSearch/FullSearch.jsx",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/pages/FullSearch/index.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/buildFullSearchSections.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/buildFullSearchSections.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/countFullSearchSections.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/countFullSearchSections.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/hostLabel.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/hostLabel.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/openUrlKey.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/openUrlKey.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/searchChromeHistory.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/searchChromeHistory.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/searchHitHref.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/searchHitHref.test.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/segmentFullSearchResults.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/segmentFullSearchResults.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Google Doc Survives Search Exclusion",
+      "screenshotPath": "favorites-google-doc-survives-search-exclusion--desktop.png"
+    },
+    {
+      "name": "Favorites - Heavy Content Site Rolled Up",
+      "screenshotPath": "favorites-heavy-content-site-rolled-up--desktop.png"
+    },
+    {
+      "name": "Favorites - SERP Excluded Portal Kept",
+      "screenshotPath": "favorites-serp-excluded-portal-kept--desktop.png"
+    },
+    {
+      "name": "Favorites - Search Engines Excluded",
+      "screenshotPath": "favorites-search-engines-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Sidebar With View All Link",
+      "screenshotPath": "favorites-sidebar-with-view-all-link--desktop.png"
+    },
+    {
+      "name": "Favorites - Stats Survive URL Eviction",
+      "screenshotPath": "favorites-stats-survive-url-eviction--desktop.png"
+    },
+    {
+      "name": "FullSearch - Chrome History Included",
+      "screenshotPath": "fullsearch-chrome-history-included--desktop.png"
+    },
+    {
+      "name": "FullSearch - Empty Query",
+      "screenshotPath": "fullsearch-empty-query--desktop.png"
+    },
+    {
+      "name": "FullSearch - No Matches",
+      "screenshotPath": "fullsearch-no-matches--desktop.png"
+    },
+    {
+      "name": "FullSearch - Rich Results",
+      "screenshotPath": "fullsearch-rich-results--desktop.png"
+    },
+    {
+      "name": "FullSearch - Single Match",
+      "screenshotPath": "fullsearch-single-match--desktop.png"
+    },
+    {
+      "name": "History - Delete Confirm Armed",
+      "screenshotPath": "history-delete-confirm-armed--desktop.png"
+    },
+    {
+      "name": "History - Empty",
+      "screenshotPath": "history-empty--desktop.png"
+    },
+    {
+      "name": "History - Populated",
+      "screenshotPath": "history-populated--desktop.png"
+    },
+    {
+      "name": "History - Search Engine Dated",
+      "screenshotPath": "history-search-engine-dated--desktop.png"
+    },
+    {
+      "name": "History - Single Entry",
+      "screenshotPath": "history-single-entry--desktop.png"
+    },
+    {
+      "name": "Home - All Groups Deleted Tabs Survive",
+      "screenshotPath": "home-all-groups-deleted-tabs-survive--desktop.png"
+    },
+    {
+      "name": "Home - Automatically Closed",
+      "screenshotPath": "home-automatically-closed--desktop.png"
+    },
+    {
+      "name": "Home - Dark Mode",
+      "screenshotPath": "home-dark-mode--desktop.png"
+    },
+    {
+      "name": "Home - Deleted Group Stays Deleted",
+      "screenshotPath": "home-deleted-group-stays-deleted--desktop.png"
+    },
+    {
+      "name": "Home - Dragging Tab onto Group",
+      "screenshotPath": "home-dragging-tab-onto-group--desktop.png"
+    },
+    {
+      "name": "Home - Empty",
+      "screenshotPath": "home-empty--desktop.png"
+    },
+    {
+      "name": "Home - First Run Migration From Local",
+      "screenshotPath": "home-first-run-migration-from-local--desktop.png"
+    },
+    {
+      "name": "Home - Four Columns",
+      "screenshotPath": "home-four-columns--desktop.png"
+    },
+    {
+      "name": "Home - Group Color Preview In Context",
+      "screenshotPath": "home-group-color-preview-in-context--desktop.png"
+    },
+    {
+      "name": "Home - Group Menu Open",
+      "screenshotPath": "home-group-menu-open--desktop.png"
+    },
+    {
+      "name": "Home - Grouped",
+      "screenshotPath": "home-grouped--desktop.png"
+    },
+    {
+      "name": "Home - Groups Restored From Sync After Uninstall",
+      "screenshotPath": "home-groups-restored-from-sync-after-uninstall--desktop.png"
+    },
+    {
+      "name": "Home - Groups Survive A Sync Fallback",
+      "screenshotPath": "home-groups-survive-a-sync-fallback--desktop.png"
+    },
+    {
+      "name": "Home - Light Theme",
+      "screenshotPath": "home-light-theme--desktop.png"
+    },
+    {
+      "name": "Home - Open and Saved Tabs",
+      "screenshotPath": "home-open-and-saved-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Overflowing Tabs",
+      "screenshotPath": "home-overflowing-tabs--desktop.png"
+    },
+    {
+      "name": "Home - Reorder Lands One Slot Down",
+      "screenshotPath": "home-reorder-lands-one-slot-down--desktop.png"
+    },
+    {
+      "name": "Home - Running Hot",
+      "screenshotPath": "home-running-hot--desktop.png"
+    },
+    {
+      "name": "Home - Settings Popover Open",
+      "screenshotPath": "home-settings-popover-open--desktop.png"
+    },
+    {
+      "name": "Home - Stable Chrome Footer",
+      "screenshotPath": "home-stable-chrome-footer--desktop.png"
+    },
+    {
+      "name": "Home - Sync Wins Over Stale Local",
+      "screenshotPath": "home-sync-wins-over-stale-local--desktop.png"
+    },
+    {
+      "name": "Home - Temporary Theme Override",
+      "screenshotPath": "home-temporary-theme-override--desktop.png"
+    },
+    {
+      "name": "Home - Three Columns",
+      "screenshotPath": "home-three-columns--desktop.png"
+    },
+    {
+      "name": "Home - Unorganized",
+      "screenshotPath": "home-unorganized--desktop.png"
+    },
+    {
+      "name": "Labels - Populated",
+      "screenshotPath": "labels-populated--desktop.png"
+    },
+    {
+      "name": "Labels - Selected",
+      "screenshotPath": "labels-selected--desktop.png"
+    },
+    {
+      "name": "Load - Stable Chrome Fallback",
+      "screenshotPath": "load-stable-chrome-fallback--desktop.png"
+    },
+    {
+      "name": "Load Meter - High",
+      "screenshotPath": "load-meter-high--desktop.png"
+    },
+    {
+      "name": "Load Meter - Low",
+      "screenshotPath": "load-meter-low--desktop.png"
+    },
+    {
+      "name": "Load Page",
+      "screenshotPath": "load-page--desktop.png"
+    },
+    {
+      "name": "Search - Active Results",
+      "screenshotPath": "search-active-results--desktop.png"
+    },
+    {
+      "name": "Search - No Results With Full Search Offer",
+      "screenshotPath": "search-no-results-with-full-search-offer--desktop.png"
+    },
+    {
+      "name": "URL Details - Edit",
+      "screenshotPath": "url-details-edit--desktop.png"
+    },
+    {
+      "name": "URL Details - Unlabeled",
+      "screenshotPath": "url-details-unlabeled--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Empty",
+      "screenshotPath": "viewallfavorites-empty--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Open Cue By Page Identity",
+      "screenshotPath": "viewallfavorites-open-cue-by-page-identity--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Removed Site Dimmed",
+      "screenshotPath": "viewallfavorites-removed-site-dimmed--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Rich",
+      "screenshotPath": "viewallfavorites-rich--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Site Restored By Bring Back",
+      "screenshotPath": "viewallfavorites-site-restored-by-bring-back--desktop.png"
+    },
+    {
+      "name": "ChromeHistoryToggle - Granted And On",
+      "screenshotPath": "chromehistorytoggle-granted-and-on--desktop.png"
+    },
+    {
+      "name": "ChromeHistoryToggle - Granted But Off",
+      "screenshotPath": "chromehistorytoggle-granted-but-off--desktop.png"
+    },
+    {
+      "name": "ChromeHistoryToggle - Not Granted",
+      "screenshotPath": "chromehistorytoggle-not-granted--desktop.png"
+    },
+    {
+      "name": "DraggableTabUrls - Auto Closed",
+      "screenshotPath": "draggabletaburls-auto-closed--desktop.png"
+    },
+    {
+      "name": "DraggableTabUrls - Grouped Rows",
+      "screenshotPath": "draggabletaburls-grouped-rows--desktop.png"
+    },
+    {
+      "name": "DraggableTabUrls - Ungrouped Drag Hint",
+      "screenshotPath": "draggabletaburls-ungrouped-drag-hint--desktop.png"
+    },
+    {
+      "name": "Favorites - All Sites Removed",
+      "screenshotPath": "favorites-all-sites-removed--desktop.png"
+    },
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Google Doc Drift Open",
+      "screenshotPath": "favorites-google-doc-drift-open--desktop.png"
+    },
+    {
+      "name": "Favorites - Multi Page Site Removed",
+      "screenshotPath": "favorites-multi-page-site-removed--desktop.png"
+    },
+    {
+      "name": "Favorites - Non-Website Entries Filtered",
+      "screenshotPath": "favorites-non-website-entries-filtered--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Query Distinct Pages Rolled Up And Cued",
+      "screenshotPath": "favorites-query-distinct-pages-rolled-up-and-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Same Origin Different Path Uncued",
+      "screenshotPath": "favorites-same-origin-different-path-uncued--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    },
+    {
+      "name": "FullSearchFilterChips - All Empty",
+      "screenshotPath": "fullsearchfilterchips-all-empty--desktop.png"
+    },
+    {
+      "name": "FullSearchFilterChips - All Selected",
+      "screenshotPath": "fullsearchfilterchips-all-selected--desktop.png"
+    },
+    {
+      "name": "FullSearchFilterChips - Large Counts",
+      "screenshotPath": "fullsearchfilterchips-large-counts--desktop.png"
+    },
+    {
+      "name": "FullSearchFilterChips - Notes Selected",
+      "screenshotPath": "fullsearchfilterchips-notes-selected--desktop.png"
+    },
+    {
+      "name": "FullSearchFilterChips - With Chrome History",
+      "screenshotPath": "fullsearchfilterchips-with-chrome-history--desktop.png"
+    },
+    {
+      "name": "FullSearchHint - Default",
+      "screenshotPath": "fullsearchhint-default--desktop.png"
+    },
+    {
+      "name": "FullSearchInput - Empty",
+      "screenshotPath": "fullsearchinput-empty--desktop.png"
+    },
+    {
+      "name": "FullSearchInput - Long Query",
+      "screenshotPath": "fullsearchinput-long-query--desktop.png"
+    },
+    {
+      "name": "FullSearchInput - With Query",
+      "screenshotPath": "fullsearchinput-with-query--desktop.png"
+    },
+    {
+      "name": "FullSearchLabelRow - Default",
+      "screenshotPath": "fullsearchlabelrow-default--desktop.png"
+    },
+    {
+      "name": "FullSearchLabelRow - Long Title",
+      "screenshotPath": "fullsearchlabelrow-long-title--desktop.png"
+    },
+    {
+      "name": "FullSearchLabelRow - Selected",
+      "screenshotPath": "fullsearchlabelrow-selected--desktop.png"
+    },
+    {
+      "name": "FullSearchResults - All Six Sections",
+      "screenshotPath": "fullsearchresults-all-six-sections--desktop.png"
+    },
+    {
+      "name": "FullSearchResults - Four Sections Two Columns",
+      "screenshotPath": "fullsearchresults-four-sections-two-columns--desktop.png"
+    },
+    {
+      "name": "FullSearchResults - Single Section",
+      "screenshotPath": "fullsearchresults-single-section--desktop.png"
+    },
+    {
+      "name": "FullSearchRow - Chrome History Hit",
+      "screenshotPath": "fullsearchrow-chrome-history-hit--desktop.png"
+    },
+    {
+      "name": "FullSearchRow - Grouped Open With Notes",
+      "screenshotPath": "fullsearchrow-grouped-open-with-notes--desktop.png"
+    },
+    {
+      "name": "FullSearchRow - Long Title",
+      "screenshotPath": "fullsearchrow-long-title--desktop.png"
+    },
+    {
+      "name": "FullSearchRow - Selected",
+      "screenshotPath": "fullsearchrow-selected--desktop.png"
+    },
+    {
+      "name": "FullSearchRow - Ungrouped And Closed",
+      "screenshotPath": "fullsearchrow-ungrouped-and-closed--desktop.png"
+    },
+    {
+      "name": "FullSearchSection - Flat Notes",
+      "screenshotPath": "fullsearchsection-flat-notes--desktop.png"
+    },
+    {
+      "name": "FullSearchSection - Flat Open Tabs",
+      "screenshotPath": "fullsearchsection-flat-open-tabs--desktop.png"
+    },
+    {
+      "name": "FullSearchSection - Grouped With Sub-Headers",
+      "screenshotPath": "fullsearchsection-grouped-with-sub-headers--desktop.png"
+    },
+    {
+      "name": "FullSearchSection - Single Hit",
+      "screenshotPath": "fullsearchsection-single-hit--desktop.png"
+    },
+    {
+      "name": "GroupSwatch - Default",
+      "screenshotPath": "groupswatch-default--desktop.png"
+    },
+    {
+      "name": "GroupSwatch - Large",
+      "screenshotPath": "groupswatch-large--desktop.png"
+    },
+    {
+      "name": "GroupSwatch - No Color",
+      "screenshotPath": "groupswatch-no-color--desktop.png"
+    },
+    {
+      "name": "GroupSwatch - Trailing Annotation",
+      "screenshotPath": "groupswatch-trailing-annotation--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Color Preview While Editing",
+      "screenshotPath": "labelcollection-color-preview-while-editing--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Deliberate Same Site Members",
+      "screenshotPath": "labelcollection-deliberate-same-site-members--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Empty",
+      "screenshotPath": "labelcollection-empty--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Guarded Single Member",
+      "screenshotPath": "labelcollection-guarded-single-member--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Menu Open",
+      "screenshotPath": "labelcollection-menu-open--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Overflowing Members",
+      "screenshotPath": "labelcollection-overflowing-members--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Phantom Members",
+      "screenshotPath": "labelcollection-phantom-members--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Preview Name Cleared",
+      "screenshotPath": "labelcollection-preview-name-cleared--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Remove Control Revealed",
+      "screenshotPath": "labelcollection-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Saved Recolor Committed",
+      "screenshotPath": "labelcollection-saved-recolor-committed--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Title And Color Preview",
+      "screenshotPath": "labelcollection-title-and-color-preview--desktop.png"
+    },
+    {
+      "name": "LabelCollection - Work Group",
+      "screenshotPath": "labelcollection-work-group--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Empty Title",
+      "screenshotPath": "labelform-edit-empty-title--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Preset Color",
+      "screenshotPath": "labelform-edit-preset-color--desktop.png"
+    },
+    {
+      "name": "LabelForm - Edit Work",
+      "screenshotPath": "labelform-edit-work--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group",
+      "screenshotPath": "labelform-new-blank--desktop.png"
+    },
+    {
+      "name": "LabelForm - New Group Title Typed",
+      "screenshotPath": "labelform-new-group-title-typed--desktop.png"
+    },
+    {
+      "name": "LabelForm - Reading",
+      "screenshotPath": "labelform-reading--desktop.png"
+    },
+    {
+      "name": "LabelForm - Shopping",
+      "screenshotPath": "labelform-shopping--desktop.png"
+    },
+    {
+      "name": "LabelForm - Social",
+      "screenshotPath": "labelform-social--desktop.png"
+    },
+    {
+      "name": "Labels - Grouped",
+      "screenshotPath": "labels-grouped--desktop.png"
+    },
+    {
+      "name": "LoadMeter - High Load",
+      "screenshotPath": "loadmeter-high-load--desktop.png"
+    },
+    {
+      "name": "LoadMeter - Idle",
+      "screenshotPath": "loadmeter-idle--desktop.png"
+    },
+    {
+      "name": "NotesSnippet - Match At End",
+      "screenshotPath": "notessnippet-match-at-end--desktop.png"
+    },
+    {
+      "name": "NotesSnippet - Match At Start",
+      "screenshotPath": "notessnippet-match-at-start--desktop.png"
+    },
+    {
+      "name": "NotesSnippet - Match In Notes",
+      "screenshotPath": "notessnippet-match-in-notes--desktop.png"
+    },
+    {
+      "name": "NotesSnippet - Title Match Renders Nothing",
+      "screenshotPath": "notessnippet-title-match-renders-nothing--desktop.png"
+    },
+    {
+      "name": "OpenFullSearchRow - Long Query",
+      "screenshotPath": "openfullsearchrow-long-query--desktop.png"
+    },
+    {
+      "name": "OpenFullSearchRow - One Character",
+      "screenshotPath": "openfullsearchrow-one-character--desktop.png"
+    },
+    {
+      "name": "OpenFullSearchRow - Selected",
+      "screenshotPath": "openfullsearchrow-selected--desktop.png"
+    },
+    {
+      "name": "OpenFullSearchRow - Unselected",
+      "screenshotPath": "openfullsearchrow-unselected--desktop.png"
+    },
+    {
+      "name": "PageContentsSlot - Default",
+      "screenshotPath": "pagecontentsslot-default--desktop.png"
+    },
+    {
+      "name": "Search - Empty Query",
+      "screenshotPath": "search-empty-query--desktop.png"
+    },
+    {
+      "name": "SearchResults - Archived Only",
+      "screenshotPath": "searchresults-archived-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Empty",
+      "screenshotPath": "searchresults-empty--desktop.png"
+    },
+    {
+      "name": "SearchResults - Grouped Multiple Groups",
+      "screenshotPath": "searchresults-grouped-multiple-groups--desktop.png"
+    },
+    {
+      "name": "SearchResults - Grouped Single Group",
+      "screenshotPath": "searchresults-grouped-single-group--desktop.png"
+    },
+    {
+      "name": "SearchResults - Labels Only",
+      "screenshotPath": "searchresults-labels-only--desktop.png"
+    },
+    {
+      "name": "SearchResults - Many Results",
+      "screenshotPath": "searchresults-many--desktop.png"
+    },
+    {
+      "name": "SearchResults - Matches",
+      "screenshotPath": "searchresults-matches--desktop.png"
+    },
+    {
+      "name": "SearchResults - Mixed With Archived",
+      "screenshotPath": "searchresults-mixed-with-archived--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Control",
+      "screenshotPath": "settings-auto-close-control--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Maximum",
+      "screenshotPath": "settings-auto-close-maximum--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Off",
+      "screenshotPath": "settings-auto-close-off--desktop.png"
+    },
+    {
+      "name": "Settings - Auto Close Shortest",
+      "screenshotPath": "settings-auto-close-shortest--desktop.png"
+    },
+    {
+      "name": "Settings - Day Mode Accent",
+      "screenshotPath": "settings-day-mode-accent--desktop.png"
+    },
+    {
+      "name": "Settings - Default",
+      "screenshotPath": "settings-default--desktop.png"
+    },
+    {
+      "name": "Settings - Group Columns Selected",
+      "screenshotPath": "settings-group-columns-selected--desktop.png"
+    },
+    {
+      "name": "Settings - Stable Chrome",
+      "screenshotPath": "settings-stable-chrome--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    },
+    {
+      "name": "Triage - Comfortable",
+      "screenshotPath": "triage-comfortable--desktop.png"
+    },
+    {
+      "name": "Triage - Running Hot",
+      "screenshotPath": "triage-running-hot--desktop.png"
+    },
+    {
+      "name": "Triage - Stable Chrome Hidden",
+      "screenshotPath": "triage-stable-chrome-hidden--desktop.png"
+    },
+    {
+      "name": "Url - Active Tab",
+      "screenshotPath": "url-active-tab--desktop.png"
+    },
+    {
+      "name": "Url - Dragging",
+      "screenshotPath": "url-dragging--desktop.png"
+    },
+    {
+      "name": "Url - Expanded",
+      "screenshotPath": "url-expanded--desktop.png"
+    },
+    {
+      "name": "Url - Idle",
+      "screenshotPath": "url-idle--desktop.png"
+    },
+    {
+      "name": "Url - Minimal",
+      "screenshotPath": "url-minimal--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 1071,
+    "passed": 1071,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 1071,
+        "passed": 1071
+      }
+    ]
+  }
+}

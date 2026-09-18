@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchFilterChips - All Empty",
+  "id": "5b595aa5-94cc-4ce0-bf2d-3a4403627b1b",
+  "url": "/?isolate=FullSearchFilterChips&variant=all-empty",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchFilterChips",
+  "scenarioType": "component",
+  "description": "A query that matched nothing: every chip dimmed at zero but still rendered and clickable. The row deliberately does not collapse, because a visible 0 is an answer and a missing chip is not."
+}

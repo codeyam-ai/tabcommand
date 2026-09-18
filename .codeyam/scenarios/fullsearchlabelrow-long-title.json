@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchLabelRow - Long Title",
+  "id": "f86e6666-17d6-41be-90ec-bf7d20ed513a",
+  "url": "/?isolate=FullSearchLabelRow&variant=long-title",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchLabelRow",
+  "scenarioType": "component",
+  "description": "A group name long enough to need ellipsis, confirming the title truncates on one line rather than wrapping and pushing the row taller than its neighbours."
+}

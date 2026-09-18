@@ -1,0 +1,112 @@
+/* The page shell and the layout its sections share. The pieces themselves own
+   their own styling: the query field in FullSearchInput.css, the chips in
+   FullSearchFilterChips.css, the tinted title band and group sub-headers in
+   FullSearchSection.css, the badge and pencil in FullSearchRow.css, the toggle
+   in ChromeHistoryToggle.css, and the footnote in PageContentsSlot.css. The
+   shared `Page-*` chrome lives in PageHeader.css and the empty line in
+   EmptyState.css. */
+.FullSearch {
+  height: 100vh;
+  overflow-y: auto;
+  padding: 22px 28px 48px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* ── Two columns of results ────────────────────────────────────────────── */
+/* `columns` beats a grid here because section heights are wildly uneven — a
+   grid would leave a full row's dead space under the short section — and
+   `break-inside: avoid` keeps each section (and its group sub-headers) whole
+   across the column boundary. */
+.FullSearch-columns {
+  columns: 2;
+  column-gap: 26px;
+  max-width: 1180px;
+}
+
+@media (max-width: 1100px) {
+  .FullSearch-columns {
+    columns: 1;
+  }
+}
+
+.FullSearch-section {
+  margin-bottom: 22px;
+  max-width: 760px;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  /* A column's first section must not float away from the column top — the
+     default margin collapse leaves column 2 starting lower than column 1. */
+  display: inline-block;
+  width: 100%;
+}
+
+/* Per-section accents, consumed by FullSearchSection.css. Deliberately NOT the
+   nine group hues from Constants — those mean "this is group X" everywhere else
+   in the app, and reusing them for section identity would say something untrue
+   about the rows underneath. `--section-band` is the same hue at low alpha: an
+   rgba tint rather than a solid, so ONE pair of values works on both the light
+   and the dark theme instead of needing a second set under a dark-mode
+   selector. */
+.FullSearch-section-labels        { --section-accent: #7c6df2; --section-band: rgba(124, 109, 242, 0.14); }
+.FullSearch-section-grouped       { --section-accent: #2f7de1; --section-band: rgba(47, 125, 225, 0.14); }
+.FullSearch-section-history       { --section-accent: #168f8f; --section-band: rgba(22, 143, 143, 0.14); }
+.FullSearch-section-notes         { --section-accent: #cf9f1c; --section-band: rgba(207, 159, 28, 0.16); }
+.FullSearch-section-openTabs      { --section-accent: #1e9e57; --section-band: rgba(30, 158, 87, 0.14); }
+.FullSearch-section-chromeHistory { --section-accent: #c2278a; --section-band: rgba(194, 39, 138, 0.14); }
+
+/* ── The row shell ─────────────────────────────────────────────────────── */
+/* Shared by the URL row and the label row, so it lives with the page rather
+   than with either one. */
+.FullSearch-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  margin-bottom: 2px;
+  border-radius: var(--r-row);
+  cursor: pointer;
+  transition: background-color var(--t-fast);
+}
+
+.FullSearch-row-selected {
+  background-color: var(--c-raised);
+}
+
+.FullSearch-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.FullSearch-row-title {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.FullSearch-row-label .FullSearch-row-title {
+  flex: 1;
+  font-weight: 600;
+}
+
+.FullSearch-row-host {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* The trailing group marker is smaller than a leading swatch so it reads as an
+   annotation on the row rather than as the row's icon. */
+.FullSearch-swatch-trailing {
+  height: 9px;
+  width: 9px;
+}
+
+/* The empty-query hint styles itself — see FullSearchHint.css. */

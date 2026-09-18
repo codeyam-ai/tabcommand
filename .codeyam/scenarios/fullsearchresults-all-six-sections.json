@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchResults - All Six Sections",
+  "id": "e1a21e49-b183-4a85-b47f-c2ab9e7644f2",
+  "url": "/?isolate=FullSearchResults&variant=all-six-sections",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchResults",
+  "scenarioType": "component",
+  "description": "Every source at once including the opt-in Chrome history, so all six section accent colours are visible together and can be checked for distinguishability in one frame."
+}

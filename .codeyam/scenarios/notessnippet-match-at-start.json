@@ -1,0 +1,12 @@
+{
+  "name": "NotesSnippet - Match At Start",
+  "id": "41da9823-250a-4ddc-bad5-bbe8749a93a6",
+  "url": "/?isolate=NotesSnippet&variant=match-at-start",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "NotesSnippet",
+  "scenarioType": "component",
+  "description": "The term opens the note, so there is nothing to window before it — the snippet starts at the highlight rather than with a leading fragment."
+}

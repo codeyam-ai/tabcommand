@@ -206,6 +206,49 @@ export function createChromeShim() {
         removeListener: () => {},
       },
     },
+    // The optional-permission pair behind Full Search's "Include Chrome
+    // history" toggle. Outside a packaged extension there is no permission
+    // model at all, so the shim keeps the grant in the seeded local store under
+    // `grantedPermissions`: a scenario that omits the key renders the
+    // not-granted state, one that seeds `["history"]` renders the granted
+    // state, and `request` flips a not-granted scenario to granted live — which
+    // is what makes the toggle demonstrable in the preview instead of being
+    // permanently stuck on whichever half was seeded.
+    permissions: {
+      contains: (query, cb) => {
+        const granted = stores[LOCAL].grantedPermissions || [];
+        const wanted = (query && query.permissions) || [];
+        defer(cb, wanted.every((p) => granted.indexOf(p) > -1));
+      },
+      request: (query, cb) => {
+        const granted = stores[LOCAL].grantedPermissions || [];
+        const wanted = (query && query.permissions) || [];
+        const next = Array.from(new Set([...granted, ...wanted]));
+        stores[LOCAL].grantedPermissions = next;
+        window.localStorage.setItem('grantedPermissions', JSON.stringify(next));
+        defer(cb, true);
+      },
+    },
+
+    // There is no real browser history to read outside the extension, so the
+    // shim serves whatever a scenario seeded under `chromeHistory` — a list of
+    // `{ url, title, lastVisitTime }` — filtered by the query text the way
+    // chrome.history.search filters, so the deduping against already-tracked
+    // URLs is exercised for real rather than mocked around. No seed means no
+    // hits, and the section renders empty.
+    history: {
+      search: (query, cb) => {
+        const text = ((query && query.text) || '').toLowerCase();
+        const entries = stores[LOCAL].chromeHistory || [];
+        const matches = entries.filter((entry) => {
+          if (!text) return true;
+          const haystack = `${entry.title || ''} ${entry.url || ''}`.toLowerCase();
+          return haystack.indexOf(text) > -1;
+        });
+        defer(cb, matches.slice(0, (query && query.maxResults) || matches.length));
+      },
+    },
+
     runtime: {
       getURL: (p) => p,
       // Present so the sync-write guard's `chrome.runtime.lastError` check has

@@ -1,0 +1,12 @@
+{
+  "name": "OpenFullSearchRow - Long Query",
+  "id": "055187f2-a502-442e-ba77-5d7b4a5f190d",
+  "url": "/?isolate=OpenFullSearchRow&variant=long-query",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "OpenFullSearchRow",
+  "scenarioType": "component",
+  "description": "A long multi-word query: the row must ellipsize within the 300px overlay rather than widening it or wrapping to a second line."
+}

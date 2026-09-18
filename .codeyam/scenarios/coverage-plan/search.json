@@ -1,0 +1,60 @@
+{
+  "surface": "Search",
+  "surface_kind": "component",
+  "states": [
+    {
+      "dimension": "key",
+      "value": "Escape",
+      "rationale": "source-derived state key=Escape",
+      "status": "planned"
+    },
+    {
+      "dimension": "key",
+      "value": " ",
+      "rationale": "source-derived state key= ",
+      "status": "planned"
+    },
+    {
+      "dimension": "key",
+      "value": "f",
+      "rationale": "source-derived state key=f",
+      "status": "planned"
+    },
+    {
+      "dimension": "searchText",
+      "value": "empty",
+      "rationale": "source-derived state searchText=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "searchText",
+      "value": "one",
+      "rationale": "source-derived state searchText=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "searchText",
+      "value": "many",
+      "rationale": "source-derived state searchText=many",
+      "status": "planned"
+    },
+    {
+      "dimension": "value",
+      "value": "empty",
+      "rationale": "source-derived state value=empty",
+      "status": "covered"
+    },
+    {
+      "dimension": "value",
+      "value": "one",
+      "rationale": "source-derived state value=one",
+      "status": "planned"
+    },
+    {
+      "dimension": "value",
+      "value": "many",
+      "rationale": "source-derived state value=many",
+      "status": "planned"
+    }
+  ]
+}

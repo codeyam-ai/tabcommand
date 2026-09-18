@@ -1,0 +1,12 @@
+{
+  "name": "GroupSwatch - Default",
+  "id": "ab7ebb4e-0672-45d3-933c-dd79415f6168",
+  "url": "/?isolate=GroupSwatch",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "GroupSwatch",
+  "scenarioType": "component",
+  "description": "The group dot at its leading size, in the Work blue — the form it takes when it opens a group result row."
+}

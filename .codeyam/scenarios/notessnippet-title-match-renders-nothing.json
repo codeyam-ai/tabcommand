@@ -1,0 +1,12 @@
+{
+  "name": "NotesSnippet - Title Match Renders Nothing",
+  "id": "b54848bd-8324-494d-a03a-8e5b7b6a7913",
+  "url": "/?isolate=NotesSnippet&variant=title-match-renders-nothing",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "NotesSnippet",
+  "scenarioType": "component",
+  "description": "The match landed in the title, not the notes, so the component renders nothing at all. This blank capture is the correct result — it is what keeps non-notes rows from carrying an irrelevant second line."
+}

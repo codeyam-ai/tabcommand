@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchResults - Single Section",
+  "id": "4fefc1e9-409c-48eb-ab9f-31e96da5a189",
+  "url": "/?isolate=FullSearchResults&variant=single-section",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchResults",
+  "scenarioType": "component",
+  "description": "What a filter chip narrows the page to — one section, and therefore an empty second column. Proves the column flow degrades to a single column of content rather than stretching to fill."
+}

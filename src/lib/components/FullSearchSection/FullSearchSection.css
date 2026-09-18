@@ -1,0 +1,53 @@
+/* The section title is a filled band, not a floating label: each section reads
+   as its own block rather than as one continuous list with occasional small grey
+   text. The accent carries a per-section colour so the eye can find "Notes"
+   without reading the word. Both custom properties are set by the page's
+   `FullSearch-section-<key>` classes. */
+.FullSearch-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  /* Flat left edge so the accent reads as a bar, not as a stray comma the way a
+     fully-rounded border-left renders. */
+  border-radius: 0 var(--r-row) var(--r-row) 0;
+  border-left: 4px solid var(--section-accent, var(--text-muted));
+  background-color: var(--section-band, var(--card-bg));
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.FullSearch-section-count {
+  margin-left: auto;
+  min-width: 18px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background-color: var(--section-accent, var(--text-muted));
+  color: var(--app-bg);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* A grouped sub-section: the group's dot and name over its rows, one level
+   under the section band. */
+.FullSearch-group {
+  margin-bottom: 10px;
+}
+
+.FullSearch-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 2px;
+}
+
+.FullSearch-group-title {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}

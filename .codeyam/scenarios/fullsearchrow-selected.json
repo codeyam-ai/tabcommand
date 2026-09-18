@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchRow - Selected",
+  "id": "6ae5c193-4d15-40c8-978a-cf421e886536",
+  "url": "/?isolate=FullSearchRow&variant=selected",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchRow",
+  "scenarioType": "component",
+  "description": "The row under the keyboard highlight — the raised background that tells the user which row Enter will open."
+}

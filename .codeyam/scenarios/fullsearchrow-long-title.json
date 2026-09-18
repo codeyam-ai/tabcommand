@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchRow - Long Title",
+  "id": "ea8f7199-bbc0-44bd-8a0d-ae1e09c9ca29",
+  "url": "/?isolate=FullSearchRow&variant=long-title",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchRow",
+  "scenarioType": "component",
+  "description": "A long title beside a long host, confirming the title ellipsizes while the host, badges and pencil keep their space rather than being pushed off the row."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "NotesSnippet - Match At End",
+  "id": "debd39de-e84d-4f79-860f-59786b949cde",
+  "url": "/?isolate=NotesSnippet&variant=match-at-end",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "NotesSnippet",
+  "scenarioType": "component",
+  "description": "The matched term sits at the very end of a long note, so the window trims a long run of text in front of it and leaves nothing behind it — the snippet opens mid-sentence and the highlight closes it. Together with the mid-note default and the match-at-start case, this pins all three ends of searchNotesSnippet windowing math."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchFilterChips - With Chrome History",
+  "id": "1a08fb91-5c91-4da9-abc1-dcf4df388364",
+  "url": "/?isolate=FullSearchFilterChips&variant=with-chrome-history",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchFilterChips",
+  "scenarioType": "component",
+  "description": "The seventh chip, present only once the optional history permission is granted and the toggle is on — the one chip whose existence is conditional."
+}

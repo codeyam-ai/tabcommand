@@ -1,0 +1,36 @@
+.FullSearch-inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 640px;
+  margin: 4px 0 14px;
+}
+
+/* Sits inside the field's left padding; pointer-events off so clicking the icon
+   still lands in the input. */
+.FullSearch-inputIcon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.FullSearch-input {
+  width: 100%;
+  padding: 12px 14px 12px 42px;
+  box-sizing: border-box;
+  border: 1px solid var(--search-border);
+  border-radius: var(--radius-card);
+  background-color: var(--search-bg);
+  color: var(--search-text);
+  font-size: 16px;
+  outline: none;
+}
+
+.FullSearch-input::placeholder {
+  color: var(--search-placeholder);
+}
+
+.FullSearch-input:focus {
+  border-color: var(--brand-command);
+}

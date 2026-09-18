@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchFilterChips - All Selected",
+  "id": "4183905d-3c01-4651-87f1-9ae3ec71bb4f",
+  "url": "/?isolate=FullSearchFilterChips",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchFilterChips",
+  "scenarioType": "component",
+  "description": "The default filter row: All active, real counts on every chip, and Groups at zero shown dimmed but still present — the shape of the result set readable without opening anything."
+}

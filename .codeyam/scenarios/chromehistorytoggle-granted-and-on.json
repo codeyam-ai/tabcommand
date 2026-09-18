@@ -1,0 +1,12 @@
+{
+  "name": "ChromeHistoryToggle - Granted And On",
+  "id": "4b54c909-03b4-4a00-88fd-56ae469bec9d",
+  "url": "/?isolate=ChromeHistoryToggle&variant=granted-on",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "ChromeHistoryToggle",
+  "scenarioType": "component",
+  "description": "Permission held and the feature on — the warning is gone, having said what it needed to, and the checkbox carries the whole state."
+}

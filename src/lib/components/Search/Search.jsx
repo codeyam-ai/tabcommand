@@ -2,34 +2,25 @@ import './Search.css';
 
 import React, { useState, useEffect } from 'react';
 
-import MiniSearch from 'minisearch'
-
 import { SearchResults } from '..'
 import { Icon } from '../Icon'
 
 import { KeyDown } from '../../utils';
-import { Chrome } from '../../utils/Chrome';
-import { LOCAL, changedInArea } from '../../utils/storageAreas';
 import segmentSearchResults from '../../utils/segmentSearchResults';
-import { buildSearchDocuments, buildUrlDocuments } from '../../utils/buildSearchDocuments';
+import { useSearchIndex } from '../../hooks/useSearchIndex';
 
 const Search = () => {
-  const [miniSearch] = useState(
-    new MiniSearch({
-      fields: ['labelTitle', 'urlTitle', 'url', 'notes'],
-      storeFields: ['labelTitle', 'urlTitle', 'url', 'urlLabelTitle', 'urlLabelColor', 'color', 'favicon', 'notes'],
-      searchOptions: {
-        boost: { labelTitle: 100, urlTitle: 50, notes: 5 }
-      }
-    })
-  );
+  // The index itself — construction, rebuilds, and the race guard — belongs to
+  // `useSearchIndex`, which the Full Search page shares. This component is the
+  // overlay: the input, the Escape/focus keyboard behavior, and the capped
+  // quick-jump list.
+  const { search: searchIndex } = useSearchIndex();
   const [searchText, setSearchText] = useState("");
   const [results, setResults] = useState(null);
 
   const search = (query) => {
     setSearchText(query);
-    const searchResults = miniSearch.search(query, {prefix: true});
-    setResults(segmentSearchResults(searchResults));
+    setResults(segmentSearchResults(searchIndex(query)));
   }
 
   const close = () => {
@@ -39,13 +30,8 @@ const Search = () => {
   }
 
   useEffect(() => {
-    let labelMap = {};
-    if (miniSearch === null) return;
-
     // Under StrictMode + `createRoot`, effects are double-invoked in dev, so we
-    // name the handlers and remove them on cleanup — otherwise the duplicate
-    // `onChanged` listener races two index builds and emits duplicate result
-    // keys. Matches how App/Labels/SearchResults already manage their listeners.
+    // name the handler and remove it on cleanup.
     const handleKeyDown = (e) => {
       const input = document.getElementById('Search-Input');
 
@@ -68,85 +54,14 @@ const Search = () => {
     };
     KeyDown.add(handleKeyDown);
 
-    // Rebuilds can overlap (StrictMode double-effect's two mount reads, plus the
-    // seed-time `onChanged`). `addAllAsync` resolving after a newer rebuild's
-    // `removeAll` would re-add already-cleared ids and corrupt minisearch's
-    // id map (the same url indexed twice → duplicate React keys). A monotonic
-    // token lets only the latest rebuild commit its async url batch.
-    let buildToken = 0;
-    const addDocuments = (labels, allUrls) => {
-      const myToken = ++buildToken;
-      miniSearch.removeAll();
-
-      const built = buildSearchDocuments(labels);
-      labelMap = built.labelMap;
-      const labelColorMap = built.labelColorMap;
-      miniSearch.addAll(built.labelDocuments);
-
-      // Index the WHOLE archive, not just labeled URLs: the deduped union of
-      // `allUrls` (the authoritative full set History reads) and the labeled
-      // keys. Archived URLs come through with no `urlLabelTitle`.
-      const urlKeys = Array.from(
-        new Set([...(allUrls || []), ...Object.keys(labelMap)])
-      );
-      if (urlKeys.length > 0) {
-        Chrome.get('Search1', urlKeys, (result) => {
-          if (myToken !== buildToken) return;
-          const documents = buildUrlDocuments(urlKeys, labelMap, labelColorMap, result);
-
-          miniSearch.addAllAsync(documents).then(
-            () => console.log("Search Indexing Complete For URLs")
-          ).catch(e => console.log("Search Error", e));
-        })
-      }
-    }
-
-    Chrome.get('Search2', ['labels', 'allUrls'], ({ labels, allUrls }) => {
-      addDocuments(labels, allUrls);
-    });
-
-    // Re-read both `labels` and `allUrls` for a full rebuild — mirrors how
-    // History.jsx re-reads the archive on change so newly visited/closed URLs
-    // become searchable live.
-    const rebuildFromStorage = () => {
-      Chrome.get('Search3', ['labels', 'allUrls'], ({ labels, allUrls }) => {
-        addDocuments(labels || {}, allUrls || []);
-      });
-    };
-
-    const handleStorageChange = (changes, areaName) => {
-      // `labels` lives in chrome.storage.sync while `allUrls` and the `url-*`
-      // records stay local, so ONE event carries only one area's keys. A blanket
-      // `areaName !== 'local'` guard would drop every group change and the index
-      // would go stale the moment a group was renamed or a member added.
-      const labelsChange = changedInArea(changes, areaName, 'labels');
-      const allUrlsChange = changedInArea(changes, areaName, 'allUrls');
-
-      // A label change OR a grow/shrink of the archive re-indexes everything.
-      if (labelsChange || allUrlsChange) {
-        rebuildFromStorage();
-        return;
-      }
-
-      // A notes edit on any already-indexed URL (labeled or archived) re-indexes
-      // so its updated notes are searchable. `url-*` records are local-only.
-      if (areaName !== LOCAL) return;
-      for (const changedKey of Object.keys(changes)) {
-        if (!changedKey.startsWith('url-')) continue;
-        const { newValue, oldValue } = changes[changedKey];
-        if (newValue && oldValue && newValue.notes !== oldValue.notes) {
-          rebuildFromStorage();
-          return;
-        }
-      }
-    };
-    chrome.storage.onChanged.addListener(handleStorageChange);
-
-    return () => {
-      KeyDown.remove(handleKeyDown);
-      chrome.storage.onChanged.removeListener(handleStorageChange);
-    };
+    return () => KeyDown.remove(handleKeyDown);
   }, []);
+
+  // The overlay opens on any query text, not just a query with hits: "Open Full
+  // Search" is pinned at the top of the list and is the thing Enter activates,
+  // so a zero-hit query still needs somewhere to go. "No Results" now renders
+  // underneath that row rather than instead of the whole overlay.
+  const segmented = results || { labels: [], urls: [], archived: [] };
 
   return (
     <div className='Search'>
@@ -160,12 +75,13 @@ const Search = () => {
           onChange={(e) => search(e.target.value)}
         />
       </div>
-      {(searchText && searchText.length > 0 && results) &&
+      {(searchText && searchText.length > 0) &&
         <div>
           <SearchResults
-            labels={results.labels}
-            urls={results.urls.slice(0,10)}
-            archived={results.archived.slice(0,10)}
+            query={searchText}
+            labels={segmented.labels}
+            urls={segmented.urls.slice(0,10)}
+            archived={segmented.archived.slice(0,10)}
           />
           <div id="BackgroundOverlay" onClick={close}></div>
         </div>

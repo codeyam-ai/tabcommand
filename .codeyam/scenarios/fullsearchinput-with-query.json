@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchInput - With Query",
+  "id": "747dac3c-d0d0-43bd-b110-b86894884d7e",
+  "url": "/?isolate=FullSearchInput",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchInput",
+  "scenarioType": "component",
+  "description": "The page's large query field carrying a query handed over from the sidebar overlay — the state it is in every time the page is opened from a search."
+}

@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchFilterChips - Large Counts",
+  "id": "cda2b0ca-143d-48bf-8b0d-5e118eb0df8a",
+  "url": "/?isolate=FullSearchFilterChips&variant=large-counts",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchFilterChips",
+  "scenarioType": "component",
+  "description": "Three-digit counts on a heavily-used archive, confirming the count pill widens without breaking the chip or wrapping the row awkwardly."
+}

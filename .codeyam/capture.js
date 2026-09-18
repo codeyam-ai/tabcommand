@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // codeyam-generated — DO NOT EDIT.
-// codeyam-editor: 0.1.7  build: a4c5299c7999edde656e5c190ed23ef9d6dd3f7c  source-sha256: a4e0d8f180362dbf6bf276feaddabb8a566e702fc49c16e2248821160bfa074d
+// codeyam-editor: 0.1.7  build: 4321d04b94cd0ad5c286df74610784e1e74481a7  source-sha256: 1d96471a1f0c730e17e929641744fe44821d8c76e89c2898e3e04a88bb517993
 
 // Render environment (colorScheme, deviceScaleFactor, userAgent, locale,
 // timezoneId, reduceMotion, forcedColors) is read from config when present
@@ -36,6 +36,15 @@ const CAPTURE_LAUNCH_SIGSEGV_RETRIES = 2;
 // Short backoff between SIGSEGV retries so the transient fault has a moment to
 // clear; small enough not to eat the per-slug recapture budget.
 const CAPTURE_LAUNCH_SIGSEGV_BACKOFF_MS = 250;
+
+// The sentinel the reverse proxy stamps on its dev-server-down placeholder —
+// the other half of this contract is
+// `crates/proxy-http/src/reverse_proxy.rs::DEV_SERVER_DOWN_HEADER`, and the two
+// spellings are deliberately greppable from each other. Keyed on the header
+// rather than the placeholder's copy for two reasons: the response is a 200, so
+// no status check can see it, and the copy is per-framework prose that drifts
+// the moment `render_placeholder` is reworded.
+const DEV_SERVER_DOWN_HEADER = "x-codeyam-dev-server-down";
 
 // Pin the headless capture browser's `localhost` resolution to the IPv4
 // loopback the editor's listeners bind. The browser-facing preview origin is
@@ -168,6 +177,7 @@ const {
 
 const {
   assertAppPortReachable,
+  defaultReadServerState,
   loadScenarioInIframe,
   loadScenarioTopLevel,
   resolveHarnessOrigin,
@@ -216,6 +226,21 @@ function originHost(origin) {
   }
 }
 
+// Read the on-box `.codeyam/session-token` (0600), or `null` when there is
+// none. Every control-API call the capture makes is token-gated on a
+// non-loopback bind, and its three callers were each re-deriving this path;
+// one reader means a capture cannot authenticate one route and silently fail
+// to authenticate another. Never throws — an unreadable file reads as absent,
+// which degrades to the un-credentialed behavior a loopback bind is happy with.
+function readSessionToken() {
+  try {
+    const p = path.join(process.cwd(), ".codeyam", "session-token");
+    return fs.existsSync(p) ? fs.readFileSync(p, "utf8").trim() || null : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 // Build the Playwright cookie array that authenticates the capture context to
 // the editor's token-gated control-API. Reads the on-box `.codeyam/session-token`
 // (0600) and emits a `cy_session` cookie for every host the capture might address
@@ -228,10 +253,7 @@ function originHost(origin) {
 // laptop capture is completely unaffected. `deps` is injectable so the builder is
 // unit-testable without disk.
 function buildSessionTokenCookies({
-  readTokenFile = () => {
-    const p = path.join(process.cwd(), ".codeyam", "session-token");
-    return fs.existsSync(p) ? fs.readFileSync(p, "utf8").trim() : null;
-  },
+  readTokenFile = readSessionToken,
   harnessOrigin = resolveHarnessOrigin(),
 } = {}) {
   try {
@@ -264,12 +286,7 @@ function buildSessionTokenCookies({
 // heading into a guaranteed 401). Never throws — an unreadable file reports
 // absent, degrading to today's behavior.
 function onBoxSessionTokenExists() {
-  try {
-    const p = path.join(process.cwd(), ".codeyam", "session-token");
-    return fs.existsSync(p) && fs.readFileSync(p, "utf8").trim().length > 0;
-  } catch (_) {
-    return false;
-  }
+  return readSessionToken() !== null;
 }
 
 // Pure predicate behind the capability-skew guard: true when the capture WILL
@@ -292,8 +309,133 @@ const {
 } = require("./scenario-handlers");
 
 const {
+  buildCounterpartProbe,
+  subpathHydrationEscalation,
   waitForHydration,
 } = require("./scenario-interactivity");
+
+// The content frame's own URL, or `null` when it cannot answer.
+//
+// `frame.url()` is the only correct source for the URL a hydration verdict is
+// ABOUT. `page.url()` is the top-level document, which under the iframe harness
+// is the wrapper — carrying the real route only percent-encoded inside its
+// `?src=` parameter. `loadScenarioTopLevel` / `loadScenarioInIframe` both
+// document the returned frame as uniformly usable, and its URL is right in every
+// load shape: a top-level navigation (redirects followed, which is why
+// `page.url()` was preferred originally), the harness iframe, the degraded
+// `setContent` harness whose ancestor is `about:blank`, and a frame re-pointed
+// by a `navigate` step — where a decoded `?src=` would be stale.
+//
+// A frame detached by a navigation mid-capture throws or returns `""`, and a
+// reporting detail must never cost the capture, so every caller falls back to
+// exactly the behavior that shipped before this existed.
+function safeFrameUrl(frame) {
+  try {
+    const value = frame && frame.url();
+    return typeof value === "string" && value ? value : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+// Resolve where the subpath-hydration verdict is POSTed and what headers carry
+// it, or `null` when there is no reachable control port to report to. Pure.
+//
+// Split out of `reportSubpathHydrationFailure` because the AUTH half is where
+// the real defect lives and the network half is what makes it untestable. Every
+// control-API route is session-token-gated; this call is made from Node rather
+// than from the browser context, so it carries no `cy_session` cookie and the
+// token must ride as a Bearer header. Omit it and the POST is refused, the
+// escalation silently never happens, and the capture still reports success —
+// exactly the invisible failure this whole feature exists to end. As a pure
+// function that contract is asserted with no server running.
+//
+// A loopback bind that never persisted a token yields no header, which the
+// editor accepts; that is why the token is optional rather than required.
+function subpathHydrationReportTarget({ controlPort, token }) {
+  if (!(controlPort > 0)) return null;
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return {
+    url: `http://127.0.0.1:${controlPort}/api/editor-preview-subpath-hydration`,
+    headers,
+  };
+}
+
+// Tell the editor that this route proved dead under the `/__codeyam_preview`
+// mount and alive at the app's own origin, so `/api/config` can escalate the
+// preview off the subpath for the rest of the session.
+//
+// The verdict is worthless unless it reaches the decision-maker, and the
+// capture process is the only thing that ever runs the two-origin experiment.
+// It travels over the editor's control plane rather than a file so it is read
+// on the next `/api/config` resolution — a launch-time channel could not vary
+// per route.
+//
+// FAIL-SOFT ON EVERY LEG. A missing state file, a control port that is not
+// listening, a non-2xx, a timeout: none of them may change the capture's
+// outcome. The capture's job is to report what it saw, and it has already done
+// that by the time this runs; a reporting failure costs the escalation, never
+// the finding.
+async function reportSubpathHydrationFailure(
+  escalation,
+  { readServerState = defaultReadServerState, readToken = readSessionToken } = {},
+) {
+  try {
+    const state = readServerState();
+    const target = subpathHydrationReportTarget({
+      controlPort: state && state.controlPort,
+      token: readToken(),
+    });
+    if (!target) return false;
+    const response = await fetch(target.url, {
+      method: "POST",
+      headers: target.headers,
+      body: JSON.stringify({
+        failedUrl: escalation.failedUrl,
+        counterpartUrl: escalation.counterpartUrl,
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    return response.ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+// Decide-and-report the subpath-hydration escalation for one hydration verdict.
+//
+// Two call sites now run this exact sequence — the top-level wait in
+// `runScenarioCheck` and the per-`navigate` wait in `runFlowSteps` — and both
+// must read the verdict the same way, since a difference between them would be
+// a route that escalates at the top level and silently does not one navigation
+// deep. Hoisted once the second call site made the duplication real.
+//
+// Returns the escalation payload (or `null`) rather than a boolean, so the
+// decision is assertable without a control port or a browser; `reportSubpath
+// HydrationFailure` is already fail-soft on every leg, so a reporting failure
+// costs the escalation and never the capture.
+//
+// Deliberately does NOT touch the caller's issue list: whether the finding is
+// reported as an issue is the CALLER's concern and the two sites differ on it.
+//
+// `report` is injectable for the same reason `reportSubpathHydrationFailure`
+// takes its own readers: the real one POSTs to the live control port, which a
+// unit test must never do.
+async function escalateSubpathHydration(
+  hydration,
+  { report = reportSubpathHydrationFailure } = {},
+) {
+  const escalation = subpathHydrationEscalation({
+    crossOrigin: hydration.crossOrigin,
+    url: hydration.issue && hydration.issue.url,
+    counterpartUrl: hydration.counterpartUrl,
+  });
+  if (escalation) {
+    await report(escalation);
+  }
+  return escalation;
+}
 
 // Read project-specific loading markers from `.codeyam/stack.json`
 // (`capture.loadingMarkers`). The capture script runs with cwd = project dir
@@ -443,6 +585,22 @@ function isCrossOriginRequest(url, appOrigin) {
 function isCaptureFatalRequestFailure(url, appOrigin) {
   if (!appOrigin) return true;
   return !isCrossOriginRequest(url, appOrigin);
+}
+
+// True when this response is the reverse proxy's dev-server-down placeholder
+// rather than the app. The proxy stamps `DEV_SERVER_DOWN_HEADER` on exactly
+// that response and four Rust consumers already key on it; this is the fifth,
+// and the first on the capture side. Header names are compared
+// case-insensitively — Playwright lowercases them, but the contract is the
+// header, not Playwright's normalization of it. A null response is not a
+// placeholder (the null-response case has its own branch). Pure, so the
+// decision is unit-testable without a live browser or a downed dev server.
+function isDevServerPlaceholderResponse(response) {
+  if (!response || typeof response.headers !== "function") return false;
+  const headers = response.headers() || {};
+  return Object.keys(headers).some(
+    (name) => name.toLowerCase() === DEV_SERVER_DOWN_HEADER,
+  );
 }
 
 // Return a copy of `headers` with every name in `markerNames` removed.
@@ -1142,6 +1300,7 @@ async function runFlowSteps(page, initialFrame, steps, ctx) {
     harnessOrigin,
     hydrationTimeoutMs = 10000,
     settleMs,
+    probeCounterpart,
   } = ctx;
   // Honor a caller-supplied `settleMs` for the in-flow stability windows,
   // falling back to today's hardcoded defaults (5s for interaction steps, 10s
@@ -1174,10 +1333,24 @@ async function runFlowSteps(page, initialFrame, steps, ctx) {
           // fill/click, or the interaction lands on inert SSR markup (the same
           // bug the top-level wait fixes, one route deeper). Bounded and
           // stack-gated exactly like the top-level wait.
-          await waitForHydration(frame, {
-            url: target,
+          const navHydration = await waitForHydration(frame, {
+            // `target` is only where we aimed; the frame's own URL is where we
+            // landed, so a redirect during the step is followed. Falls back to
+            // `target` when a detached frame cannot answer.
+            url: safeFrameUrl(frame) || target,
             timeoutMs: hydrationTimeoutMs,
+            probeCounterpart,
           });
+          // The mount that breaks a top-level load breaks it here too, and
+          // before this a route that died one navigation deep got no
+          // attribution at all. Report it so the editor can escalate the
+          // preview off the subpath for the rest of the session.
+          //
+          // The returned issue is deliberately NOT pushed: this wait exists to
+          // gate the next interaction, and adding an issue here would give a
+          // flow that passes today a new way to fail. Computing a verdict and
+          // not raising it reads as a bug otherwise — it is the point.
+          await escalateSubpathHydration(navHydration);
           break;
         }
         case "click":
@@ -1420,6 +1593,12 @@ async function runScenarioCheck(
   });
 
   let loaded = false;
+  // Set when the top-level document turned out to be the proxy's
+  // dev-server-down placeholder. Gates the screenshot write below: the frame is
+  // the wrong pixels by definition, and overwriting a previously-correct PNG
+  // with codeyam's placeholder card is the failure that made this guard
+  // necessary — the stale image outlived the failed run and was believed.
+  let devServerPlaceholder = false;
 
   try {
     // Application/route captures navigate at the top level so the
@@ -1442,7 +1621,29 @@ async function runScenarioCheck(
     const response = loadResult.response;
     loaded = true;
 
-    if (response && response.status() >= 400) {
+    // The proxy's dev-server-down placeholder is a 200 carrying codeyam's own
+    // sentinel header, so it is checked BEFORE the status branches below —
+    // status alone cannot tell it from the app. Left unchecked, the capture
+    // photographs codeyam's "Ready to scaffold" card, reports success, and
+    // leaves that frame on disk to be shown later as the app's real state.
+    if (isDevServerPlaceholderResponse(response)) {
+      devServerPlaceholder = true;
+      pushIssue(
+        issues,
+        createIssue(
+          "navigation",
+          "Captured the editor's dev-server placeholder, not the app. The proxy " +
+            `answered with \`${DEV_SERVER_DOWN_HEADER}\`, which means the proxy ` +
+            "could not reach the app for this request. That happens two ways: the " +
+            "app's dev server is not running, or it is running and the proxy could " +
+            "not reach it this time. The screenshot would be of codeyam's own " +
+            "placeholder card. Re-run the capture first — it is the cheaper check, " +
+            "and a transient miss clears. If the same capture fails this way again, " +
+            "confirm the app's dev server is up and accepting connections.",
+          { url, devServerDown: true },
+        ),
+      );
+    } else if (response && response.status() >= 400) {
       pushIssue(
         issues,
         createIssue("navigation", `Navigation returned HTTP ${response.status()}`, {
@@ -1493,12 +1694,37 @@ async function runScenarioCheck(
       config.hydrationTimeoutMs > 0
         ? config.hydrationTimeoutMs
         : 10000;
+    // A scenario's declared `captureTiming` moment, as a FLOOR on when the
+    // frame may be taken. Distinct from `stableTimeoutMs` above, which is a
+    // CAP: `waitForStablePage` returns the moment two consecutive polls match,
+    // so a cap can only ever make a capture happen *sooner*, never later. That
+    // asymmetry is what made a declared capture moment unreachable on a canvas
+    // surface — a scripted terminal replay paints into a <canvas>, so
+    // `document.body.innerHTML` never changes while it plays, the page reads as
+    // stable on the first two polls, and the frame was taken ~1.2s in no matter
+    // what the scenario declared. A scenario whose interesting state arrives
+    // later than that (a `blocked` banner scripted at 1800ms) could never be
+    // captured, and raising `atMs` did nothing because it only raised the cap.
+    const captureAtMs =
+      typeof config.captureAtMs === "number" && config.captureAtMs > 0
+        ? config.captureAtMs
+        : null;
+    const settleStartedAt = Date.now();
     const stableOutcome = await waitForStablePage(
       page,
       frame,
       stableTimeoutMs,
       loadingMarkers,
     );
+    // Held here — after stability, before the content/hydration assertions and
+    // the screenshot — so every downstream check sees the same frame the
+    // scenario asked for rather than an earlier one.
+    if (captureAtMs !== null) {
+      const remainingMs = captureAtMs - (Date.now() - settleStartedAt);
+      if (remainingMs > 0) {
+        await page.waitForTimeout(remainingMs);
+      }
+    }
 
     // DOM-stable does not mean done: a client-side data fetch can still be in
     // flight (the loading skeleton cleared but its replacement content hasn't
@@ -1632,16 +1858,38 @@ async function runScenarioCheck(
     // attaching. Stack-gated and fail-safe: a timed-out wait yields
     // `hydrated: false` (so a truly dead page still classifies `unhydrated`),
     // and a non-interactive stack returns instantly.
+    // The hydration verdict is about the CONTENT document, and under the iframe
+    // harness `page.url()` is the harness — with the preview mount present only
+    // percent-encoded, so every `/__codeyam_preview` test on it is false and the
+    // whole escalation path silently never fires. `frame` is the content frame
+    // in every load shape, so its own URL is the one both the message and the
+    // counterpart probe must see.
+    const contentUrl = safeFrameUrl(frame) || page.url() || url;
+    // Built once and shared with `runFlowSteps` below, so a route that dies one
+    // navigation deep gets the same two-origin experiment this wait runs.
+    const probeCounterpart = buildCounterpartProbe(page);
     const hydration = await waitForHydration(frame, {
-      url: page.url() || url,
+      url: contentUrl,
       timeoutMs: hydrationTimeoutMs,
       // `undefined` in production → waitForHydration reads .codeyam/stack.json;
       // a test injects a stack to force the interactive path without a real file.
       stack: config.stack,
+      // Fires ONLY on a proven-dead verdict, so a healthy capture pays nothing.
+      // Answers "is it my page or is it this origin?" before the failure is
+      // reported, instead of leaving every session to establish it by hand.
+      probeCounterpart,
     });
     if (hydration.issue) {
       pushIssue(issues, hydration.issue);
     }
+
+    // The two-sided verdict — dead under `/__codeyam_preview`, alive at the
+    // app's own origin — is proof the MOUNT is at fault, not the page. Hand it
+    // to the editor so the next `/api/config` serves this preview from the
+    // origin that works. Gated on the exact shape (see
+    // `subpathHydrationEscalation`); every other verdict, including
+    // `dead-on-both`, reports nothing and the hydration veto stands.
+    await escalateSubpathHydration(hydration);
 
     // Assert the injected seed actually landed in the capture browser, at rest
     // and BEFORE any interaction can legitimately mutate storage. A non-empty
@@ -1671,6 +1919,7 @@ async function runScenarioCheck(
         warnings: interactionWarnings,
         hydrationTimeoutMs,
         settleMs: config.settleMs,
+        probeCounterpart,
       });
     } else if (config.interaction) {
       // Record fingerprint before interaction
@@ -1745,7 +1994,13 @@ async function runScenarioCheck(
       await centerCaptureWrapper(frame).catch(() => {});
     }
 
-    if (outputPath && loaded) {
+    // A placeholder capture writes NOTHING. The false `success: true` was the
+    // visible half of this bug; the expensive half was the PNG of codeyam's
+    // "Ready to scaffold" card left on disk, which outlived the run and was
+    // later sent to a user as evidence of the app's real state. Leaving the
+    // previous (or absent) screenshot untouched is what makes the failure
+    // recoverable rather than destructive.
+    if (outputPath && loaded && !devServerPlaceholder) {
       fs.mkdirSync(path.dirname(outputPath), { recursive: true });
       await page.screenshot({ path: outputPath, fullPage: false });
     }
@@ -1759,6 +2014,10 @@ async function runScenarioCheck(
       unmockedRoutes,
       mockUsage: { used: mockObserver.used, unused: mockObserver.unused },
       externalRequests: mockObserver.externalRequests,
+      // Optional: supplied only by callers that know where the viewer's own
+      // browser is served. Absent on every path that does not, which keeps the
+      // reported verdict `false` rather than a guess.
+      viewerOrigin: config.viewerOrigin ?? null,
     });
 
     if (config.interaction) {
@@ -1766,14 +2025,25 @@ async function runScenarioCheck(
       result.interactionRetried = interactionRetried;
     }
 
-    // Forward the hydration census's password-input flag so the in-place
-    // auth-gate guard can fire on a route the project never declared. Attached
-    // ONLY when the probe actually took a census: a backend/static/unknown
-    // stack returns `hasPasswordInput: null` having looked at nothing, and
-    // emitting a hardcoded `false` there would read downstream as a positive
-    // "no password field" claim the probe never made.
+    // Forward the hydration password census so the in-place auth-gate guard can
+    // fire on a route the project never declared. Attached ONLY when the probe
+    // actually took a census: a backend/static/unknown stack returns a null
+    // census having looked at nothing, and emitting hardcoded `false`s there
+    // would read downstream as positive "no password field", "not a credential
+    // form" claims the probe never made.
+    //
+    // Emitted as ONE object rather than three sibling flags because the three
+    // facts are only meaningful together — the two corroborating shapes exist
+    // precisely to qualify the first, and a consumer that received one without
+    // the others would be back to inferring a gate from a bare password field.
+    // `hasPasswordInput` is the discriminator for whether a census happened at
+    // all; the other two are booleans whenever it is.
     if (typeof hydration.hasPasswordInput === "boolean") {
-      result.hasPasswordInput = hydration.hasPasswordInput;
+      result.passwordCensus = {
+        hasPasswordInput: hydration.hasPasswordInput,
+        credentialForm: hydration.credentialForm === true,
+        formIsThePage: hydration.formIsThePage === true,
+      };
     }
 
     // Surface any non-fatal interaction/flow warnings (e.g. an ambiguous
@@ -1816,6 +2086,7 @@ async function runScenarioCheck(
       // to the failure is often exactly what explains the failure.
       mockUsage: { used: mockObserver.used, unused: mockObserver.unused },
       externalRequests: mockObserver.externalRequests,
+      viewerOrigin: config.viewerOrigin ?? null,
     });
   } finally {
     await browser.close();
@@ -1857,10 +2128,17 @@ module.exports = {
   scenarioScriptsLiveSocket,
   applyBrowserState,
   buildSessionTokenCookies,
+  readSessionToken,
+  subpathHydrationReportTarget,
+  reportSubpathHydrationFailure,
+  escalateSubpathHydration,
+  safeFrameUrl,
   captureAuthSkewDetected,
   SESSION_COOKIE,
   isCrossOriginRequest,
   isCaptureFatalRequestFailure,
+  isDevServerPlaceholderResponse,
+  DEV_SERVER_DOWN_HEADER,
   stripMarkerHeaders,
   main,
   launchChromiumWithSelfHeal,

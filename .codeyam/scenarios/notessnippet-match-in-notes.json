@@ -1,0 +1,12 @@
+{
+  "name": "NotesSnippet - Match In Notes",
+  "id": "11b89df8-bf69-4a35-accc-a4844e114841",
+  "url": "/?isolate=NotesSnippet",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "NotesSnippet",
+  "scenarioType": "component",
+  "description": "The case the component exists for: the query hit the notes field, so the excerpt renders windowed around the term with the match called out in the brand accent."
+}

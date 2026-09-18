@@ -4,3 +4,4 @@ export { Load } from "./Load";
 export { UrlDetails } from "./UrlDetails";
 export { History } from "./History";
 export { ViewAllFavorites } from "./ViewAllFavorites";
+export { FullSearch } from "./FullSearch";

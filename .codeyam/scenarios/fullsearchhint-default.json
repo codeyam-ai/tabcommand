@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchHint - Default",
+  "id": "bd4de2b7-7441-4a54-b50e-73bbd64e9f4f",
+  "url": "/?isolate=FullSearchHint",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchHint",
+  "scenarioType": "component",
+  "description": "What the page says before anything is typed. It names the five things the search actually covers, because an empty screen makes no claim and a user has no other way to learn their notes and open tabs are searchable."
+}

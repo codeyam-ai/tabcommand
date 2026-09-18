@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchRow - Ungrouped And Closed",
+  "id": "288c97f3-6c96-41fc-8e54-3cf18f48e646",
+  "url": "/?isolate=FullSearchRow&variant=ungrouped-and-closed",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchRow",
+  "scenarioType": "component",
+  "description": "An archived page in no group and not currently open — the plainest a tracked row gets, with the group swatch and OPEN badge both correctly absent."
+}

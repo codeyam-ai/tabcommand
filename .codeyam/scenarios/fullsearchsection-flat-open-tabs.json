@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchSection - Flat Open Tabs",
+  "id": "35a4971c-f838-4a01-9ebb-7b825b144124",
+  "url": "/?isolate=FullSearchSection&variant=flat-open-tabs",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchSection",
+  "scenarioType": "component",
+  "description": "The green Open tabs accent with a two-digit count, showing that the section title's colour is driven by which section it is rather than by anything about its rows."
+}

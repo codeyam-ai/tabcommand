@@ -87,14 +87,11 @@
   order: 1;
 }
 
-/* Group color dot leads the label row. */
+/* Group color dot leads the label row. The circle itself is GroupSwatch (which
+   also sizes it); this only places it. */
 .SearchResults-labelIcon {
   order: 1;
-  height: 14px;
-  width: 14px;
-  border-radius: 50%;
   margin-right: 8px;
-  flex-shrink: 0;
 }
 
 .SearchResults-result-title {
@@ -121,21 +118,12 @@
   color: var(--brand-command);
 }
 
-.SearchResults-result-notes {
+/* The snippet's own look lives in NotesSnippet.css, shared with the Full Search
+   page; this is only where the overlay's flex row places it. */
+.SearchResults-result .NotesSnippet.SearchResults-result-notes {
   order: 4;
   flex-basis: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   margin-top: 4px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-/* The matched term within a notes snippet, called out in the brand accent. */
-.SearchResults-result-notes span {
-  color: var(--brand-command);
-  font-weight: 600;
 }
 
 .SearchResults-search-archived {
@@ -145,3 +133,6 @@
   font-size: 13px;
   cursor: not-allowed;
 }
+
+/* The pinned "Open Full Search" row styles itself — see
+   OpenFullSearchRow.css. */

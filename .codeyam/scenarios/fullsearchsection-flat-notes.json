@@ -1,0 +1,12 @@
+{
+  "name": "FullSearchSection - Flat Notes",
+  "id": "49d19812-05a6-4893-bc89-5409ec1516bd",
+  "url": "/?isolate=FullSearchSection&variant=flat-notes",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "FullSearchSection",
+  "scenarioType": "component",
+  "description": "A flat section with no sub-headers, which is every section but 'In my groups', carrying the gold Notes accent on its band and count."
+}

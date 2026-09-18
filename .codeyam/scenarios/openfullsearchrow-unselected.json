@@ -1,0 +1,12 @@
+{
+  "name": "OpenFullSearchRow - Unselected",
+  "id": "1d38d0b5-8daf-4df5-81e7-bdc74563575c",
+  "url": "/?isolate=OpenFullSearchRow&variant=unselected",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "componentName": "OpenFullSearchRow",
+  "scenarioType": "component",
+  "description": "What the row looks like once the user has arrowed down past it onto a real hit — the highlight is gone but the row remains, still clickable."
+}

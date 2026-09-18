@@ -1,0 +1,14 @@
+.FullSearch-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 18px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.FullSearch-toggle-note {
+  color: var(--text-muted);
+  font-size: 12px;
+}

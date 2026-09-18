@@ -1,6 +1,6 @@
 {
   "name": "Search - Active Results",
-  "id": "67099c33-44b8-47da-a703-cc2e6ce76900",
+  "id": "92f514f2-0d69-4914-aa59-8f62dd4d538d",
   "url": "/",
   "dimensions": [
     "Desktop"
@@ -8,27 +8,28 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "autoClosed": "{}",
-      "url-https://www.reddit.com/r/programming": "{\"title\":\"r/programming\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
       "url-https://overreacted.io": "{\"title\":\"overreacted — A blog by Dan Abramov\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://stackoverflow.com/questions/78912345/chrome-storage-local-quota": "{\"title\":\"javascript - chrome.storage.local quota exceeded - Stack Overflow\",\"favicon\":\"\",\"notes\":\"Bookmarked while debugging the archive index — explains the 5MB local storage cap and how to batch writes.\",\"processes\":{\"samples\":0}}",
+      "url-https://www.reddit.com/r/programming": "{\"title\":\"r/programming\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.etsy.com/favorites": "{\"title\":\"Favorites – Etsy\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\"]},\"Social\":{\"title\":\"Social\",\"backgroundColor\":\"#D01882\",\"position\":3,\"urlKeys\":[\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\"]}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "autoClosed": "{}",
       "url-https://twitter.com/home": "{\"title\":\"Home / X\",\"favicon\":\"\",\"processes\":{\"samples\":10,\"network\":204800,\"cpu\":31000,\"privateMemory\":2100000000,\"jsMemoryAllocated\":1680000000,\"jsMemoryUsed\":1260000000}}",
+      "url-https://www.notion.so/codeyam/Roadmap": "{\"title\":\"Roadmap – Notion\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
+      "url-https://www.amazon.com/wishlist": "{\"title\":\"Your Wish List – Amazon\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
       "allUrls": "[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\",\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\",\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\",\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\",\"url-https://news.ycombinator.com\",\"url-https://stackoverflow.com/questions/78912345/chrome-storage-local-quota\",\"url-https://www.youtube.com/watch?v=react-conf-keynote\"]",
       "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://github.com/codeyam/tabcommand": "{\"title\":\"codeyam/tabcommand — GitHub\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://www.amazon.com/wishlist": "{\"title\":\"Your Wish List – Amazon\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://www.figma.com/file/tabcommand": "{\"title\":\"TabCommand UI – Figma\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "labels": "{\"Work\":{\"title\":\"Work\",\"backgroundColor\":\"#1873E4\",\"position\":0,\"urlKeys\":[\"url-https://github.com/codeyam/tabcommand\",\"url-https://www.figma.com/file/tabcommand\",\"url-https://www.notion.so/codeyam/Roadmap\"]},\"Reading\":{\"title\":\"Reading\",\"backgroundColor\":\"#1F8E43\",\"position\":1,\"urlKeys\":[\"url-https://react.dev/learn\",\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"url-https://overreacted.io\"]},\"Shopping\":{\"title\":\"Shopping\",\"backgroundColor\":\"#E47415\",\"position\":2,\"urlKeys\":[\"url-https://www.amazon.com/wishlist\",\"url-https://www.etsy.com/favorites\"]},\"Social\":{\"title\":\"Social\",\"backgroundColor\":\"#D01882\",\"position\":3,\"urlKeys\":[\"url-https://twitter.com/home\",\"url-https://www.reddit.com/r/programming\"]}}",
-      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"notes\":\"Read the Show HN thread on tab hoarding — good arguments for searching your archived tabs, not just bookmarks.\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
-      "url-https://stackoverflow.com/questions/78912345/chrome-storage-local-quota": "{\"title\":\"javascript - chrome.storage.local quota exceeded - Stack Overflow\",\"favicon\":\"\",\"notes\":\"Bookmarked while debugging the archive index — explains the 5MB local storage cap and how to batch writes.\",\"processes\":{\"samples\":0}}",
       "url-https://www.youtube.com/watch?v=react-conf-keynote": "{\"title\":\"React Conf 2024 Keynote - YouTube\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "url-https://www.etsy.com/favorites": "{\"title\":\"Favorites – Etsy\",\"favicon\":\"\",\"processes\":{\"samples\":0}}",
-      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.notion.so/codeyam/Roadmap\",\"tabKey\":\"tab-303\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-304\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"tabKey\":\"tab-305\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://twitter.com/home\",\"tabKey\":\"tab-306\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-307\",\"pinned\":false,\"tabCommandPinned\":false}]"
+      "activeTabs": "[{\"urlKey\":\"url-https://github.com/codeyam/tabcommand\",\"tabKey\":\"tab-301\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.figma.com/file/tabcommand\",\"tabKey\":\"tab-302\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://www.notion.so/codeyam/Roadmap\",\"tabKey\":\"tab-303\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://react.dev/learn\",\"tabKey\":\"tab-304\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://developer.mozilla.org/en-US/docs/Web/API\",\"tabKey\":\"tab-305\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://twitter.com/home\",\"tabKey\":\"tab-306\",\"pinned\":false,\"tabCommandPinned\":false},{\"urlKey\":\"url-https://news.ycombinator.com\",\"tabKey\":\"tab-307\",\"pinned\":false,\"tabCommandPinned\":false}]",
+      "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"\",\"notes\":\"Read the Show HN thread on tab hoarding — good arguments for searching your archived tabs, not just bookmarks.\",\"processes\":{\"samples\":10,\"network\":153600,\"cpu\":26000,\"privateMemory\":1596000000,\"jsMemoryAllocated\":1276800000,\"jsMemoryUsed\":957600000}}",
+      "url-https://developer.mozilla.org/en-US/docs/Web/API": "{\"title\":\"Web APIs | MDN\",\"favicon\":\"\",\"processes\":{\"samples\":0}}"
     }
   },
   "scenarioType": "application",
   "pageFilePath": "src/lib/pages/App/App.jsx",
+  "description": "The sidebar quick-jump overlay with a live query. Its meaning widened with the Full Search page: the overlay now opens on ANY query text rather than only on a query with hits, and it leads with a pinned 'Open Full Search for \"r\"' row that is the default selection — so Enter goes to the full page and the top hit becomes ArrowDown-then-Enter. Below the pinned row the familiar capped list still shows: Groups, Grouped URLs split per group, and Archived URLs with a highlighted notes snippet. This scenario is the before-half of the feature's story, the state a user is in at the moment they decide ten results are not enough.",
   "interactions": [
     {
       "action": "fill",
