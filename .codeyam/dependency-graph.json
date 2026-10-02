@@ -71,15 +71,15 @@
       "imports": [],
       "importedBy": [
         ".codeyam/scenario-handlers.js",
-        ".codeyam/capture.js",
-        ".codeyam/scenario-interactivity.js"
+        ".codeyam/scenario-interactivity.js",
+        ".codeyam/capture.js"
       ]
     },
     ".codeyam/scenario-metrics.js": {
       "imports": [],
       "importedBy": [
-        ".codeyam/capture.js",
-        ".codeyam/scenario-playwright.js"
+        ".codeyam/scenario-playwright.js",
+        ".codeyam/capture.js"
       ]
     },
     ".codeyam/scenario-mocks.js": {
@@ -99,8 +99,8 @@
     "codeyam/vite-plugin-codeyam.mjs": {
       "imports": [],
       "importedBy": [
-        "vite.config.mjs",
-        "codeyam/vite-plugin-codeyam.test.js"
+        "codeyam/vite-plugin-codeyam.test.js",
+        "vite.config.mjs"
       ]
     },
     "codeyam/vite-plugin-codeyam.test.js": {
@@ -205,36 +205,38 @@
     "src/Constants.jsx": {
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/usePersistedPageQuery.js",
-        "src/lib/hooks/useTheme.js",
-        "src/lib/pages/App/App.jsx",
-        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
         "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+        "src/lib/pages/UrlDetails/UrlDetails.jsx",
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/FullSearch/FullSearch.jsx",
+        "src/lib/pages/Load/Load.jsx",
         "src/lib/pages/History/History.test.jsx",
         "src/lib/pages/History/History.jsx",
-        "src/lib/pages/FullSearch/FullSearch.jsx",
-        "src/lib/pages/UrlDetails/UrlDetails.jsx",
-        "src/lib/pages/Load/Load.jsx",
-        "src/lib/components/LabelForm/LabelForm.jsx",
-        "src/lib/components/LabelForm/LabelForm.test.jsx",
-        "src/lib/components/Url/Url.jsx",
         "src/lib/components/LabelCollection/LabelCollection.jsx",
+        "src/lib/components/Url/Url.jsx",
+        "src/lib/components/LoadMeter/LoadMeter.jsx",
         "src/lib/components/Favorites/Favorites.jsx",
+        "src/lib/components/LabelForm/LabelForm.test.jsx",
+        "src/lib/components/LabelForm/LabelForm.jsx",
+        "src/lib/components/Triage/Triage.jsx",
         "src/lib/components/Tabs/Tabs.jsx",
         "src/lib/components/SearchResults/SearchResults.jsx",
+        "src/lib/components/Settings/Settings.jsx",
         "src/lib/components/Labels/Labels.jsx",
         "src/lib/components/DraggableTabUrls/DraggableTabUrls.jsx",
-        "src/lib/components/Settings/Settings.jsx",
-        "src/lib/components/LoadMeter/LoadMeter.jsx",
-        "src/lib/components/Triage/Triage.jsx",
+        "src/lib/hooks/usePersistedPageQuery.js",
+        "src/lib/hooks/useTheme.js",
+        "src/lib/utils/Chrome/Chrome.js",
+        "src/lib/utils/describeDragAddition.js",
         "src/lib/utils/describeDragAddition.test.js",
         "src/lib/utils/describeDragRemoval.test.js",
-        "src/lib/utils/effectiveColumns.js",
-        "src/lib/utils/Chrome/Chrome.js",
-        "src/lib/utils/dragReducer.js",
         "src/lib/utils/dragReducer.test.js",
-        "src/lib/utils/describeDragAddition.js",
-        "src/lib/utils/describeDragRemoval.js"
+        "src/lib/utils/describeDragRemoval.js",
+        "src/lib/utils/sortAutoClosed.test.js",
+        "src/lib/utils/sortAutoClosed.js",
+        "src/lib/utils/dragReducer.js",
+        "src/lib/utils/effectiveColumns.js"
       ]
     },
     "src/index.css": {
@@ -258,16 +260,16 @@
     "src/lib/components": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/App/App.jsx",
         "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
-        "src/lib/pages/History/History.jsx",
-        "src/lib/pages/FullSearch/FullSearch.jsx",
         "src/lib/pages/UrlDetails/UrlDetails.jsx",
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/FullSearch/FullSearch.jsx",
         "src/lib/pages/Load/Load.jsx",
+        "src/lib/pages/History/History.jsx",
         "src/lib/components/LabelCollection/LabelCollection.jsx",
+        "src/lib/components/Search/Search.jsx",
         "src/lib/components/LabelFormContainer/LabelFormContainer.jsx",
         "src/lib/components/Labels/Labels.jsx",
-        "src/lib/components/Search/Search.jsx",
         "src/lib/components/DraggableTabUrls/DraggableTabUrls.jsx"
       ]
     },
@@ -326,8 +328,8 @@
     "src/lib/components/DraggableTabUrls": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/Tabs/Tabs.jsx"
+        "src/lib/components/Tabs/Tabs.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/DraggableTabUrls/DraggableTabUrls.jsx": {
@@ -401,14 +403,14 @@
     "src/lib/components/Favicon": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
         "src/lib/components/Favorites/Favorites.jsx",
-        "src/lib/components/HistoryRow/HistoryRow.jsx",
-        "src/lib/components/PageContentsRow/PageContentsRow.jsx",
-        "src/lib/components/SearchResults/SearchResults.jsx",
+        "src/lib/components/FavoriteRow/FavoriteRow.jsx",
         "src/lib/components/LoadUrl/LoadUrl.jsx",
+        "src/lib/components/SearchResults/SearchResults.jsx",
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx",
+        "src/lib/components/index.js",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx",
-        "src/lib/components/FavoriteRow/FavoriteRow.jsx"
+        "src/lib/components/HistoryRow/HistoryRow.jsx"
       ]
     },
     "src/lib/components/Favicon/Favicon.css": {
@@ -713,10 +715,10 @@
     "src/lib/components/GroupSwatch": {
       "imports": [],
       "importedBy": [
+        "src/lib/components/SearchResults/SearchResults.jsx",
+        "src/lib/components/FullSearchSection/FullSearchSection.jsx",
         "src/lib/components/index.js",
         "src/lib/components/FullSearchLabelRow/FullSearchLabelRow.jsx",
-        "src/lib/components/FullSearchSection/FullSearchSection.jsx",
-        "src/lib/components/SearchResults/SearchResults.jsx",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx"
       ]
     },
@@ -743,8 +745,8 @@
     "src/lib/components/HistoryRow": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/HistorySection/HistorySection.jsx"
+        "src/lib/components/HistorySection/HistorySection.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/HistoryRow/HistoryRow.css": {
@@ -836,24 +838,24 @@
       "importedBy": [
         "src/lib/pages/UrlDetails/UrlDetails.jsx",
         "src/lib/pages/Load/Load.jsx",
-        "src/lib/components/LabelForm/LabelForm.jsx",
-        "src/lib/components/FullSearchInput/FullSearchInput.jsx",
-        "src/lib/components/PageHeader/PageHeader.jsx",
-        "src/lib/components/Url/Url.jsx",
-        "src/lib/components/SyncWarning/SyncWarning.jsx",
-        "src/lib/components/index.js",
-        "src/lib/components/Tabs/Tabs.jsx",
-        "src/lib/components/UrlLabel/UrlLabel.jsx",
-        "src/lib/components/ImportMessage/ImportMessage.jsx",
-        "src/lib/components/SearchResults/SearchResults.jsx",
+        "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
         "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx",
+        "src/lib/components/Url/Url.jsx",
         "src/lib/components/Search/Search.jsx",
+        "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+        "src/lib/components/LabelForm/LabelForm.jsx",
+        "src/lib/components/OpenFullSearchRow/OpenFullSearchRow.jsx",
+        "src/lib/components/FullSearchInput/FullSearchInput.jsx",
+        "src/lib/components/Tabs/Tabs.jsx",
+        "src/lib/components/SyncWarning/SyncWarning.jsx",
+        "src/lib/components/SearchResults/SearchResults.jsx",
         "src/lib/components/Settings/Settings.jsx",
         "src/lib/components/SnapshotField/SnapshotField.jsx",
-        "src/lib/components/OpenFullSearchRow/OpenFullSearchRow.jsx",
+        "src/lib/components/UrlLabel/UrlLabel.jsx",
+        "src/lib/components/index.js",
+        "src/lib/components/PageHeader/PageHeader.jsx",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx",
-        "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
-        "src/lib/components/FavoriteRow/FavoriteRow.jsx"
+        "src/lib/components/ImportMessage/ImportMessage.jsx"
       ]
     },
     "src/lib/components/Icon/Icon.jsx": {
@@ -954,8 +956,8 @@
         "src/lib/utils/labelDisplayOrder.js"
       ],
       "importedBy": [
-        "src/lib/components/LabelCollection/index.js",
-        "src/lib/components/LabelCollection/LabelCollection.test.jsx"
+        "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+        "src/lib/components/LabelCollection/index.js"
       ]
     },
     "src/lib/components/LabelCollection/LabelCollection.test.jsx": {
@@ -1014,8 +1016,8 @@
     "src/lib/components/LabelForm": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx"
+        "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/LabelForm/LabelForm.css": {
@@ -1033,8 +1035,8 @@
         "src/lib/components/LabelForm/LabelFormCustomColor.jsx"
       ],
       "importedBy": [
-        "src/lib/components/LabelForm/index.js",
-        "src/lib/components/LabelForm/LabelForm.test.jsx"
+        "src/lib/components/LabelForm/LabelForm.test.jsx",
+        "src/lib/components/LabelForm/index.js"
       ]
     },
     "src/lib/components/LabelForm/LabelForm.test.jsx": {
@@ -1076,8 +1078,8 @@
         "src/lib/components"
       ],
       "importedBy": [
-        "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
-        "src/lib/components/LabelFormContainer/index.js"
+        "src/lib/components/LabelFormContainer/index.js",
+        "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx"
       ]
     },
     "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx": {
@@ -1141,8 +1143,8 @@
         "src/lib/utils/effectiveColumns.js"
       ],
       "importedBy": [
-        "src/lib/components/Labels/index.js",
-        "src/lib/components/Labels/Labels.test.jsx"
+        "src/lib/components/Labels/Labels.test.jsx",
+        "src/lib/components/Labels/index.js"
       ]
     },
     "src/lib/components/Labels/Labels.test.jsx": {
@@ -1201,8 +1203,8 @@
     "src/lib/components/LoadMeterCaption": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/LoadMeter/LoadMeter.jsx"
+        "src/lib/components/LoadMeter/LoadMeter.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/LoadMeterCaption/LoadMeterCaption.css": {
@@ -1217,8 +1219,8 @@
         "src/lib/utils/Chrome"
       ],
       "importedBy": [
-        "src/lib/components/LoadMeterCaption/index.js",
-        "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx"
+        "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
+        "src/lib/components/LoadMeterCaption/index.js"
       ]
     },
     "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx": {
@@ -1254,8 +1256,8 @@
         "src/lib/utils/hasPerTabLoadData.js"
       ],
       "importedBy": [
-        "src/lib/components/LoadPerTabNote/index.js",
-        "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx"
+        "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx",
+        "src/lib/components/LoadPerTabNote/index.js"
       ]
     },
     "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx": {
@@ -1289,8 +1291,8 @@
         "src/lib/utils/humanReadableNumber.js"
       ],
       "importedBy": [
-        "src/lib/components/LoadProcesses/index.js",
-        "src/lib/components/LoadProcesses/LoadProcesses.test.jsx"
+        "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
+        "src/lib/components/LoadProcesses/index.js"
       ]
     },
     "src/lib/components/LoadProcesses/LoadProcesses.test.jsx": {
@@ -1324,8 +1326,8 @@
         "src/lib/utils/processLoad.js"
       ],
       "importedBy": [
-        "src/lib/components/LoadUrl/index.js",
-        "src/lib/components/LoadUrl/LoadUrl.test.jsx"
+        "src/lib/components/LoadUrl/LoadUrl.test.jsx",
+        "src/lib/components/LoadUrl/index.js"
       ]
     },
     "src/lib/components/LoadUrl/LoadUrl.test.jsx": {
@@ -1343,8 +1345,8 @@
     "src/lib/components/NotesSnippet": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
         "src/lib/components/SearchResults/SearchResults.jsx",
+        "src/lib/components/index.js",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx"
       ]
     },
@@ -1372,8 +1374,8 @@
     "src/lib/components/OpenFullSearchRow": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/SearchResults/SearchResults.jsx"
+        "src/lib/components/SearchResults/SearchResults.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/OpenFullSearchRow/OpenFullSearchRow.css": {
@@ -1400,8 +1402,8 @@
     "src/lib/components/PageContentsDenied": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/PageContentsDenied/PageContentsDenied.css": {
@@ -1427,8 +1429,8 @@
     "src/lib/components/PageContentsEmpty": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/PageContentsSection/PageContentsSection.jsx"
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/PageContentsEmpty/PageContentsEmpty.css": {
@@ -1483,8 +1485,8 @@
     "src/lib/components/PageContentsProgress": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/PageContentsProgress/PageContentsProgress.css": {
@@ -1511,8 +1513,8 @@
     "src/lib/components/PageContentsRow": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/PageContentsSection/PageContentsSection.jsx"
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/PageContentsRow/PageContentsRow.css": {
@@ -1542,8 +1544,8 @@
     "src/lib/components/PageContentsScopeControls": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css": {
@@ -1598,8 +1600,8 @@
     "src/lib/components/PageContentsSnippet": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/PageContentsRow/PageContentsRow.jsx"
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/PageContentsSnippet/PageContentsSnippet.css": {
@@ -1625,8 +1627,8 @@
     "src/lib/components/PageContentsTierBadge": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/PageContentsRow/PageContentsRow.jsx"
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.css": {
@@ -1700,8 +1702,8 @@
         "src/lib/hooks/useSearchIndex.js"
       ],
       "importedBy": [
-        "src/lib/components/Search/index.js",
-        "src/lib/components/Search/Search.test.jsx"
+        "src/lib/components/Search/Search.test.jsx",
+        "src/lib/components/Search/index.js"
       ]
     },
     "src/lib/components/Search/Search.test.jsx": {
@@ -1771,8 +1773,8 @@
         "src/lib/utils/groupSearchUrlsByLabel.js"
       ],
       "importedBy": [
-        "src/lib/components/SearchResults/index.js",
-        "src/lib/components/SearchResults/SearchResults.test.jsx"
+        "src/lib/components/SearchResults/SearchResults.test.jsx",
+        "src/lib/components/SearchResults/index.js"
       ]
     },
     "src/lib/components/SearchResults/SearchResults.test.jsx": {
@@ -1812,8 +1814,8 @@
         "src/lib/utils/hasPerTabLoadData.js"
       ],
       "importedBy": [
-        "src/lib/components/Settings/index.js",
-        "src/lib/components/Settings/Settings.test.jsx"
+        "src/lib/components/Settings/Settings.test.jsx",
+        "src/lib/components/Settings/index.js"
       ]
     },
     "src/lib/components/Settings/Settings.test.jsx": {
@@ -1895,8 +1897,8 @@
     "src/lib/components/SyncWarning": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/App/App.jsx",
-        "src/lib/pages/ImportExport/ImportExport.jsx"
+        "src/lib/pages/ImportExport/ImportExport.jsx",
+        "src/lib/pages/App/App.jsx"
       ]
     },
     "src/lib/components/SyncWarning/SyncWarning.css": {
@@ -1943,11 +1945,12 @@
         "src/lib/utils/storageAreas.js",
         "src/lib/utils/dragHoverStore.js",
         "src/lib/utils/processLoad.js",
-        "src/lib/utils/humanReadableNumber.js"
+        "src/lib/utils/humanReadableNumber.js",
+        "src/lib/utils/sortAutoClosed.js"
       ],
       "importedBy": [
-        "src/lib/components/Tabs/index.js",
-        "src/lib/components/Tabs/Tabs.test.jsx"
+        "src/lib/components/Tabs/Tabs.test.jsx",
+        "src/lib/components/Tabs/index.js"
       ]
     },
     "src/lib/components/Tabs/Tabs.test.jsx": {
@@ -2013,8 +2016,8 @@
         "src/Constants.jsx"
       ],
       "importedBy": [
-        "src/lib/components/Triage/index.js",
-        "src/lib/components/Triage/Triage.test.jsx"
+        "src/lib/components/Triage/Triage.test.jsx",
+        "src/lib/components/Triage/index.js"
       ]
     },
     "src/lib/components/Triage/Triage.test.jsx": {
@@ -2121,8 +2124,8 @@
         "src/lib/components/Icon"
       ],
       "importedBy": [
-        "src/lib/components/UrlLabel/index.js",
-        "src/lib/components/UrlLabel/UrlLabel.test.jsx"
+        "src/lib/components/UrlLabel/UrlLabel.test.jsx",
+        "src/lib/components/UrlLabel/index.js"
       ]
     },
     "src/lib/components/UrlLabel/UrlLabel.test.jsx": {
@@ -2140,8 +2143,8 @@
     "src/lib/components/UsageSparkline": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js",
-        "src/lib/components/FavoriteRow/FavoriteRow.jsx"
+        "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+        "src/lib/components/index.js"
       ]
     },
     "src/lib/components/UsageSparkline/UsageSparkline.css": {
@@ -2231,8 +2234,8 @@
         "src/lib/utils/storageAreas.js"
       ],
       "importedBy": [
-        "src/lib/hooks/useActiveTabs.test.jsx",
-        "src/lib/pages/FullSearch/FullSearch.jsx"
+        "src/lib/pages/FullSearch/FullSearch.jsx",
+        "src/lib/hooks/useActiveTabs.test.jsx"
       ]
     },
     "src/lib/hooks/useActiveTabs.test.jsx": {
@@ -2248,8 +2251,8 @@
         "src/lib/utils/searchChromeHistory.js"
       ],
       "importedBy": [
-        "src/lib/hooks/useChromeHistorySearch.test.jsx",
-        "src/lib/pages/FullSearch/FullSearch.jsx"
+        "src/lib/pages/FullSearch/FullSearch.jsx",
+        "src/lib/hooks/useChromeHistorySearch.test.jsx"
       ]
     },
     "src/lib/hooks/useChromeHistorySearch.test.jsx": {
@@ -2267,8 +2270,8 @@
         "src/lib/utils/historyTimestamp.js"
       ],
       "importedBy": [
-        "src/lib/hooks/useHistoryRows.test.jsx",
-        "src/lib/pages/History/History.jsx"
+        "src/lib/pages/History/History.jsx",
+        "src/lib/hooks/useHistoryRows.test.jsx"
       ]
     },
     "src/lib/hooks/useHistoryRows.test.jsx": {
@@ -2283,8 +2286,8 @@
         "src/lib/utils"
       ],
       "importedBy": [
-        "src/lib/hooks/useListKeyboardNav.test.jsx",
-        "src/lib/pages/FullSearch/FullSearch.jsx"
+        "src/lib/pages/FullSearch/FullSearch.jsx",
+        "src/lib/hooks/useListKeyboardNav.test.jsx"
       ]
     },
     "src/lib/hooks/useListKeyboardNav.test.jsx": {
@@ -2302,8 +2305,8 @@
         "src/lib/utils/pageContentTargets.js"
       ],
       "importedBy": [
-        "src/lib/hooks/usePageContentSearch.test.jsx",
-        "src/lib/pages/FullSearch/FullSearch.jsx"
+        "src/lib/pages/FullSearch/FullSearch.jsx",
+        "src/lib/hooks/usePageContentSearch.test.jsx"
       ]
     },
     "src/lib/hooks/usePageContentSearch.test.jsx": {
@@ -2319,8 +2322,8 @@
         "src/Constants.jsx"
       ],
       "importedBy": [
-        "src/lib/hooks/usePersistedPageQuery.test.jsx",
-        "src/lib/pages/FullSearch/FullSearch.jsx"
+        "src/lib/pages/FullSearch/FullSearch.jsx",
+        "src/lib/hooks/usePersistedPageQuery.test.jsx"
       ]
     },
     "src/lib/hooks/usePersistedPageQuery.test.jsx": {
@@ -2337,9 +2340,9 @@
         "src/lib/utils/buildSearchDocuments.js"
       ],
       "importedBy": [
-        "src/lib/hooks/useSearchIndex.test.jsx",
         "src/lib/pages/FullSearch/FullSearch.jsx",
-        "src/lib/components/Search/Search.jsx"
+        "src/lib/components/Search/Search.jsx",
+        "src/lib/hooks/useSearchIndex.test.jsx"
       ]
     },
     "src/lib/hooks/useSearchIndex.test.jsx": {
@@ -2365,8 +2368,8 @@
         "src/Constants.jsx"
       ],
       "importedBy": [
-        "src/lib/hooks/useTheme.test.jsx",
-        "src/lib/pages/App/App.jsx"
+        "src/lib/pages/App/App.jsx",
+        "src/lib/hooks/useTheme.test.jsx"
       ]
     },
     "src/lib/hooks/useTheme.test.jsx": {
@@ -2435,8 +2438,8 @@
     "src/lib/pages/FullSearch": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js",
-        "src/lib/pages/App/App.jsx"
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/index.js"
       ]
     },
     "src/lib/pages/FullSearch/FullSearch.css": {
@@ -2476,8 +2479,8 @@
     "src/lib/pages/History": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js",
-        "src/lib/pages/App/App.jsx"
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/index.js"
       ]
     },
     "src/lib/pages/History/History.css": {
@@ -2496,8 +2499,8 @@
         "src/lib/hooks/useHistoryRows.js"
       ],
       "importedBy": [
-        "src/lib/pages/History/index.js",
-        "src/lib/pages/History/History.test.jsx"
+        "src/lib/pages/History/History.test.jsx",
+        "src/lib/pages/History/index.js"
       ]
     },
     "src/lib/pages/History/History.test.jsx": {
@@ -2517,8 +2520,8 @@
     "src/lib/pages/ImportExport": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js",
-        "src/lib/pages/App/App.jsx"
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/index.js"
       ]
     },
     "src/lib/pages/ImportExport/ImportExport.css": {
@@ -2540,8 +2543,8 @@
         "src/lib/utils/importSnapshot"
       ],
       "importedBy": [
-        "src/lib/pages/ImportExport/index.js",
-        "src/lib/pages/ImportExport/ImportExport.test.jsx"
+        "src/lib/pages/ImportExport/ImportExport.test.jsx",
+        "src/lib/pages/ImportExport/index.js"
       ]
     },
     "src/lib/pages/ImportExport/ImportExport.test.jsx": {
@@ -2561,8 +2564,8 @@
     "src/lib/pages/Load": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js",
-        "src/lib/pages/App/App.jsx"
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/index.js"
       ]
     },
     "src/lib/pages/Load/Load.css": {
@@ -2580,8 +2583,8 @@
         "src/lib/components/Icon"
       ],
       "importedBy": [
-        "src/lib/pages/Load/index.js",
-        "src/lib/pages/Load/Load.test.jsx"
+        "src/lib/pages/Load/Load.test.jsx",
+        "src/lib/pages/Load/index.js"
       ]
     },
     "src/lib/pages/Load/Load.test.jsx": {
@@ -2600,8 +2603,8 @@
     "src/lib/pages/UrlDetails": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js",
-        "src/lib/pages/App/App.jsx"
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/index.js"
       ]
     },
     "src/lib/pages/UrlDetails/UrlDetails.css": {
@@ -2641,8 +2644,8 @@
     "src/lib/pages/ViewAllFavorites": {
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js",
-        "src/lib/pages/App/App.jsx"
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/index.js"
       ]
     },
     "src/lib/pages/ViewAllFavorites/ViewAllFavorites.css": {
@@ -2662,8 +2665,8 @@
         "src/lib/components"
       ],
       "importedBy": [
-        "src/lib/pages/ViewAllFavorites/index.js",
-        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx"
+        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+        "src/lib/pages/ViewAllFavorites/index.js"
       ]
     },
     "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx": {
@@ -2707,41 +2710,41 @@
     "src/lib/utils": {
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/useListKeyboardNav.js",
+        "src/lib/components/Search/Search.jsx",
         "src/lib/components/SearchResults/SearchResults.jsx",
-        "src/lib/components/Search/Search.jsx"
+        "src/lib/hooks/useListKeyboardNav.js"
       ]
     },
     "src/lib/utils/Chrome": {
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/useSyncStatus.js",
-        "src/lib/hooks/usePageContentSearch.js",
-        "src/lib/hooks/usePersistedPageQuery.js",
-        "src/lib/hooks/useSearchIndex.js",
-        "src/lib/hooks/useChromeHistorySearch.js",
-        "src/lib/hooks/useActiveTabs.js",
-        "src/lib/hooks/useHistoryRows.js",
-        "src/lib/hooks/useTheme.js",
-        "src/lib/pages/App/App.jsx",
         "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
-        "src/lib/pages/History/History.jsx",
-        "src/lib/pages/FullSearch/FullSearch.jsx",
-        "src/lib/pages/UrlDetails/UrlDetails.jsx",
-        "src/lib/pages/Load/Load.jsx",
         "src/lib/pages/ImportExport/ImportExport.jsx",
-        "src/lib/components/LabelForm/LabelForm.jsx",
-        "src/lib/components/Url/Url.jsx",
+        "src/lib/pages/UrlDetails/UrlDetails.jsx",
+        "src/lib/pages/App/App.jsx",
+        "src/lib/pages/FullSearch/FullSearch.jsx",
+        "src/lib/pages/Load/Load.jsx",
+        "src/lib/pages/History/History.jsx",
         "src/lib/components/LabelCollection/LabelCollection.jsx",
+        "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx",
+        "src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx",
+        "src/lib/components/Url/Url.jsx",
+        "src/lib/components/LoadMeter/LoadMeter.jsx",
         "src/lib/components/Favorites/Favorites.jsx",
+        "src/lib/components/LabelForm/LabelForm.jsx",
+        "src/lib/components/Triage/Triage.jsx",
         "src/lib/components/Tabs/Tabs.jsx",
         "src/lib/components/SearchResults/SearchResults.jsx",
-        "src/lib/components/Labels/Labels.jsx",
-        "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx",
         "src/lib/components/Settings/Settings.jsx",
-        "src/lib/components/LoadMeter/LoadMeter.jsx",
-        "src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx",
-        "src/lib/components/Triage/Triage.jsx",
+        "src/lib/components/Labels/Labels.jsx",
+        "src/lib/hooks/usePersistedPageQuery.js",
+        "src/lib/hooks/useSyncStatus.js",
+        "src/lib/hooks/useTheme.js",
+        "src/lib/hooks/usePageContentSearch.js",
+        "src/lib/hooks/useChromeHistorySearch.js",
+        "src/lib/hooks/useSearchIndex.js",
+        "src/lib/hooks/useActiveTabs.js",
+        "src/lib/hooks/useHistoryRows.js",
         "src/lib/utils/deleteUrlFromHistory.js",
         "src/lib/utils/openUrlKey.js"
       ]
@@ -2772,10 +2775,10 @@
     "src/lib/utils/KeyDown.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/useListKeyboardNav.test.jsx",
         "src/lib/components/SearchResults/SearchResults.test.jsx",
-        "src/lib/utils/index.js",
-        "src/lib/utils/KeyDown.test.js"
+        "src/lib/hooks/useListKeyboardNav.test.jsx",
+        "src/lib/utils/KeyDown.test.js",
+        "src/lib/utils/index.js"
       ]
     },
     "src/lib/utils/KeyDown.test.js": {
@@ -2800,8 +2803,8 @@
     "src/lib/utils/bucketVisitsByDay.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/UsageSparkline/UsageSparkline.jsx",
         "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+        "src/lib/components/UsageSparkline/UsageSparkline.jsx",
         "src/lib/utils/bucketVisitsByDay.test.js",
         "src/lib/utils/usageMax.js"
       ]
@@ -2815,8 +2818,8 @@
     "src/lib/utils/bucketVisitsByWeek.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/UsageSparkline/UsageSparkline.jsx",
         "src/lib/components/FavoriteRow/FavoriteRow.jsx",
+        "src/lib/components/UsageSparkline/UsageSparkline.jsx",
         "src/lib/utils/bucketVisitsByWeek.test.js",
         "src/lib/utils/usageMax.js"
       ]
@@ -2856,36 +2859,36 @@
     "src/lib/utils/chromeShim": {
       "imports": [],
       "importedBy": [
+        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
+        "src/lib/pages/ImportExport/ImportExport.test.jsx",
+        "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
+        "src/lib/pages/App/App.test.jsx",
+        "src/lib/pages/Load/Load.test.jsx",
+        "src/lib/pages/History/History.test.jsx",
+        "src/lib/components/LabelCollection/LabelCollection.test.jsx",
+        "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx",
+        "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
+        "src/lib/components/Url/Url.test.jsx",
+        "src/lib/components/Search/Search.test.jsx",
+        "src/lib/components/LoadMeter/LoadMeter.test.jsx",
+        "src/lib/components/Favorites/Favorites.test.jsx",
+        "src/lib/components/LabelForm/LabelForm.test.jsx",
+        "src/lib/components/Triage/Triage.test.jsx",
+        "src/lib/components/Tabs/Tabs.test.jsx",
+        "src/lib/components/SearchResults/SearchResults.test.jsx",
+        "src/lib/components/Settings/Settings.test.jsx",
+        "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
+        "src/lib/components/Labels/Labels.test.jsx",
         "src/lib/hooks/usePageContentSearch.test.jsx",
+        "src/lib/hooks/useHistoryRows.test.jsx",
         "src/lib/hooks/usePersistedPageQuery.test.jsx",
-        "src/lib/hooks/useTheme.test.jsx",
         "src/lib/hooks/useActiveTabs.test.jsx",
+        "src/lib/hooks/useTheme.test.jsx",
         "src/lib/hooks/useSearchIndex.test.jsx",
         "src/lib/hooks/useChromeHistorySearch.test.jsx",
-        "src/lib/hooks/useHistoryRows.test.jsx",
-        "src/lib/pages/App/App.test.jsx",
-        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
-        "src/lib/pages/History/History.test.jsx",
-        "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
-        "src/lib/pages/Load/Load.test.jsx",
-        "src/lib/pages/ImportExport/ImportExport.test.jsx",
-        "src/lib/components/LabelForm/LabelForm.test.jsx",
-        "src/lib/components/Url/Url.test.jsx",
-        "src/lib/components/LabelCollection/LabelCollection.test.jsx",
-        "src/lib/components/Favorites/Favorites.test.jsx",
-        "src/lib/components/Tabs/Tabs.test.jsx",
-        "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
-        "src/lib/components/SearchResults/SearchResults.test.jsx",
-        "src/lib/components/Labels/Labels.test.jsx",
-        "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx",
-        "src/lib/components/Search/Search.test.jsx",
-        "src/lib/components/Settings/Settings.test.jsx",
-        "src/lib/components/LoadMeter/LoadMeter.test.jsx",
-        "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
-        "src/lib/components/Triage/Triage.test.jsx",
+        "src/lib/utils/searchChromeHistory.test.js",
         "src/lib/utils/deleteUrlFromHistory.test.js",
         "src/lib/utils/openUrlKey.test.js",
-        "src/lib/utils/searchChromeHistory.test.js",
         "src/index.jsx"
       ]
     },
@@ -2894,8 +2897,8 @@
         "src/lib/utils/storageAreas.js"
       ],
       "importedBy": [
-        "src/lib/utils/chromeShim/index.js",
-        "src/lib/utils/chromeShim/chromeShim.test.js"
+        "src/lib/utils/chromeShim/chromeShim.test.js",
+        "src/lib/utils/chromeShim/index.js"
       ]
     },
     "src/lib/utils/chromeShim/chromeShim.test.js": {
@@ -2931,8 +2934,8 @@
         "src/lib/utils/Chrome"
       ],
       "importedBy": [
-        "src/lib/hooks/useHistoryRows.js",
         "src/lib/components/Url/Url.jsx",
+        "src/lib/hooks/useHistoryRows.js",
         "src/lib/utils/deleteUrlFromHistory.test.js"
       ]
     },
@@ -2947,8 +2950,8 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/deletedLabelTitles.test.js"
+        "src/lib/utils/deletedLabelTitles.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/deletedLabelTitles.test.js": {
@@ -2975,8 +2978,8 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/deriveSystemTotals.test.js"
+        "src/lib/utils/deriveSystemTotals.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/deriveSystemTotals.test.js": {
@@ -3020,8 +3023,8 @@
     "src/lib/utils/devPageText.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/utils/devPageText.test.js",
-        "src/lib/utils/pageContentScan.js"
+        "src/lib/utils/pageContentScan.js",
+        "src/lib/utils/devPageText.test.js"
       ]
     },
     "src/lib/utils/devPageText.test.js": {
@@ -3035,8 +3038,8 @@
       "importedBy": [
         "src/lib/pages/App/App.jsx",
         "src/lib/components/LabelCollection/LabelCollection.jsx",
-        "src/lib/components/Tabs/Tabs.jsx",
         "src/lib/components/Tabs/Tabs.test.jsx",
+        "src/lib/components/Tabs/Tabs.jsx",
         "src/lib/utils/dragHoverStore.test.js"
       ]
     },
@@ -3116,8 +3119,8 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/findLabelForUrlKey.test.js"
+        "src/lib/utils/findLabelForUrlKey.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/findLabelForUrlKey.test.js": {
@@ -3155,9 +3158,9 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
         "src/lib/pages/App/App.jsx",
-        "src/lib/utils/groupAdditionLog.test.js"
+        "src/lib/utils/groupAdditionLog.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/groupAdditionLog.test.js": {
@@ -3183,8 +3186,8 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/groupMoveLog.test.js"
+        "src/lib/utils/groupMoveLog.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/groupMoveLog.test.js": {
@@ -3198,10 +3201,10 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
         "src/lib/pages/App/App.jsx",
         "src/lib/components/LabelCollection/LabelCollection.jsx",
-        "src/lib/utils/groupRemovalLog.test.js"
+        "src/lib/utils/groupRemovalLog.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/groupRemovalLog.test.js": {
@@ -3214,8 +3217,8 @@
       "imports": [],
       "importedBy": [
         "src/lib/components/SearchResults/SearchResults.jsx",
-        "src/lib/utils/groupSearchUrlsByLabel.test.js",
-        "src/lib/utils/segmentFullSearchResults.js"
+        "src/lib/utils/segmentFullSearchResults.js",
+        "src/lib/utils/groupSearchUrlsByLabel.test.js"
       ]
     },
     "src/lib/utils/groupSearchUrlsByLabel.test.js": {
@@ -3228,11 +3231,11 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
         "src/lib/pages/App/App.jsx",
         "src/lib/components/LabelCollection/LabelCollection.jsx",
+        "src/lib/utils/groupingLog.test.js",
         "src/lib/utils/groupMoveLog.test.js",
-        "src/lib/utils/groupingLog.test.js"
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/groupingLog.test.js": {
@@ -3246,9 +3249,9 @@
       "importedBy": [
         "src/lib/pages/App/App.jsx",
         "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx",
-        "src/lib/components/Settings/Settings.jsx",
         "src/lib/components/LoadMeter/LoadMeter.jsx",
         "src/lib/components/Triage/Triage.jsx",
+        "src/lib/components/Settings/Settings.jsx",
         "src/lib/utils/hasPerTabLoadData.test.js"
       ]
     },
@@ -3264,8 +3267,8 @@
       ],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/healDriftedLabelSlot.test.js"
+        "src/lib/utils/healDriftedLabelSlot.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/healDriftedLabelSlot.test.js": {
@@ -3294,8 +3297,8 @@
     "src/lib/utils/historyBuckets.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/useHistoryRows.js",
         "src/lib/pages/History/History.jsx",
+        "src/lib/hooks/useHistoryRows.js",
         "src/lib/utils/historyBuckets.test.js"
       ]
     },
@@ -3349,8 +3352,8 @@
     "src/lib/utils/humanReadableNumber.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/components/LoadProcesses/LoadProcesses.jsx",
         "src/lib/components/Tabs/Tabs.jsx",
+        "src/lib/components/LoadProcesses/LoadProcesses.jsx",
         "src/lib/utils/humanReadableNumber.test.js"
       ]
     },
@@ -3384,8 +3387,8 @@
         "src/lib/utils/importSnapshot/repairTransportDamage.js"
       ],
       "importedBy": [
-        "src/lib/utils/importSnapshot/index.js",
-        "src/lib/utils/importSnapshot/describeImport.test.js"
+        "src/lib/utils/importSnapshot/describeImport.test.js",
+        "src/lib/utils/importSnapshot/index.js"
       ]
     },
     "src/lib/utils/importSnapshot/describeImport.test.js": {
@@ -3418,8 +3421,8 @@
     "src/lib/utils/importSnapshot/relaxJsonSyntax.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js",
         "src/lib/utils/importSnapshot/index.js",
+        "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js",
         "src/lib/utils/importSnapshot/salvageLabels.js"
       ]
     },
@@ -3432,11 +3435,11 @@
     "src/lib/utils/importSnapshot/repairTransportDamage.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/utils/importSnapshot/index.js",
-        "src/lib/utils/importSnapshot/index.js",
-        "src/lib/utils/importSnapshot/repairTransportDamage.test.js",
         "src/lib/utils/importSnapshot/describeImport.js",
-        "src/lib/utils/importSnapshot/describeImport.test.js"
+        "src/lib/utils/importSnapshot/repairTransportDamage.test.js",
+        "src/lib/utils/importSnapshot/describeImport.test.js",
+        "src/lib/utils/importSnapshot/index.js",
+        "src/lib/utils/importSnapshot/index.js"
       ]
     },
     "src/lib/utils/importSnapshot/repairTransportDamage.test.js": {
@@ -3451,8 +3454,8 @@
         "src/lib/utils/importSnapshot/validateSnapshotShape.js"
       ],
       "importedBy": [
-        "src/lib/utils/importSnapshot/index.js",
-        "src/lib/utils/importSnapshot/salvageLabels.test.js"
+        "src/lib/utils/importSnapshot/salvageLabels.test.js",
+        "src/lib/utils/importSnapshot/index.js"
       ]
     },
     "src/lib/utils/importSnapshot/salvageLabels.test.js": {
@@ -3488,8 +3491,8 @@
         "src/lib/utils/siteKey.js"
       ],
       "importedBy": [
-        "src/lib/utils/isSearchEngineUrl.test.js",
-        "src/lib/utils/rankFavorites.js"
+        "src/lib/utils/rankFavorites.js",
+        "src/lib/utils/isSearchEngineUrl.test.js"
       ]
     },
     "src/lib/utils/isSearchEngineUrl.test.js": {
@@ -3515,9 +3518,9 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
+        "src/lib/utils/rankFavorites.js",
         "src/lib/utils/isTrackableUrl.test.js",
-        "src/lib/utils/rankFavorites.js"
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/isTrackableUrl.test.js": {
@@ -3530,9 +3533,9 @@
       "imports": [],
       "importedBy": [
         "src/lib/components/LabelCollection/LabelCollection.jsx",
-        "src/lib/utils/dragReducer.js",
+        "src/lib/utils/labelDisplayOrder.test.js",
         "src/lib/utils/dragReducer.test.js",
-        "src/lib/utils/labelDisplayOrder.test.js"
+        "src/lib/utils/dragReducer.js"
       ]
     },
     "src/lib/utils/labelDisplayOrder.test.js": {
@@ -3546,8 +3549,8 @@
         "src/lib/utils/migrateLabelsToSync.js"
       ],
       "importedBy": [
-        "src/lib/utils/storageAccess.js",
-        "src/lib/utils/labelsPrecedence.test.js"
+        "src/lib/utils/labelsPrecedence.test.js",
+        "src/lib/utils/storageAccess.js"
       ]
     },
     "src/lib/utils/labelsPrecedence.test.js": {
@@ -3573,8 +3576,8 @@
     "src/lib/utils/matchPageText.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/utils/pageContentScan.js",
-        "src/lib/utils/matchPageText.test.js"
+        "src/lib/utils/matchPageText.test.js",
+        "src/lib/utils/pageContentScan.js"
       ]
     },
     "src/lib/utils/matchPageText.test.js": {
@@ -3590,10 +3593,10 @@
       ],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
         "src/lib/utils/migrateLabelsToSync.test.js",
         "src/lib/utils/labelsPrecedence.js",
-        "src/index.jsx"
+        "src/index.jsx",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/migrateLabelsToSync.test.js": {
@@ -3607,8 +3610,8 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/navigatedAwayFromRecordedSlot.test.js"
+        "src/lib/utils/navigatedAwayFromRecordedSlot.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/navigatedAwayFromRecordedSlot.test.js": {
@@ -3622,8 +3625,8 @@
         "src/lib/utils/siteKey.js"
       ],
       "importedBy": [
-        "src/lib/utils/normalizeUrl.test.js",
         "src/lib/utils/hiddenSiteKeys.js",
+        "src/lib/utils/normalizeUrl.test.js",
         "src/lib/utils/rankFavorites.js"
       ]
     },
@@ -3658,8 +3661,8 @@
         "src/lib/utils/isThinPageText.js"
       ],
       "importedBy": [
-        "src/lib/hooks/usePageContentSearch.js",
         "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.jsx",
+        "src/lib/hooks/usePageContentSearch.js",
         "src/lib/utils/pageContentScan.test.js"
       ]
     },
@@ -3675,8 +3678,8 @@
       ],
       "importedBy": [
         "src/lib/hooks/usePageContentSearch.js",
-        "src/lib/utils/scanScopeOptions.test.js",
         "src/lib/utils/pageContentTargets.test.js",
+        "src/lib/utils/scanScopeOptions.test.js",
         "src/lib/utils/scanScopeOptions.js"
       ]
     },
@@ -3690,9 +3693,9 @@
       "imports": [],
       "importedBy": [
         "src/lib/components/Url/Url.jsx",
-        "src/lib/components/Tabs/Tabs.jsx",
         "src/lib/components/LoadUrl/LoadUrl.jsx",
         "src/lib/components/Triage/Triage.jsx",
+        "src/lib/components/Tabs/Tabs.jsx",
         "src/lib/utils/processLoad.test.js"
       ]
     },
@@ -3706,8 +3709,8 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/pruneDeletedUrls.test.js"
+        "src/lib/utils/pruneDeletedUrls.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/pruneDeletedUrls.test.js": {
@@ -3755,10 +3758,10 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/samePageKey.test.js",
+        "src/lib/utils/healDriftedLabelSlot.js",
         "src/lib/utils/rankFavorites.js",
-        "src/lib/utils/healDriftedLabelSlot.js"
+        "src/lib/utils/samePageKey.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/samePageKey.test.js": {
@@ -3868,16 +3871,32 @@
     "src/lib/utils/siteKey.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/utils/isSearchEngineUrl.js",
-        "src/lib/utils/normalizeUrl.js",
         "src/lib/utils/hiddenSiteKeys.js",
+        "src/lib/utils/siteKey.test.js",
         "src/lib/utils/rankFavorites.js",
-        "src/lib/utils/siteKey.test.js"
+        "src/lib/utils/normalizeUrl.js",
+        "src/lib/utils/isSearchEngineUrl.js"
       ]
     },
     "src/lib/utils/siteKey.test.js": {
       "imports": [
         "src/lib/utils/siteKey.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/sortAutoClosed.js": {
+      "imports": [
+        "src/Constants.jsx"
+      ],
+      "importedBy": [
+        "src/lib/components/Tabs/Tabs.jsx",
+        "src/lib/utils/sortAutoClosed.test.js"
+      ]
+    },
+    "src/lib/utils/sortAutoClosed.test.js": {
+      "imports": [
+        "src/lib/utils/sortAutoClosed.js",
+        "src/Constants.jsx"
       ],
       "importedBy": []
     },
@@ -3889,17 +3908,17 @@
       ],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/hooks/useSyncStatus.js",
-        "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
-        "src/lib/pages/ImportExport/ImportExport.jsx",
         "src/lib/pages/ImportExport/ImportExport.test.jsx",
-        "src/lib/components/LabelForm/LabelForm.test.jsx",
-        "src/lib/components/SyncWarning/SyncWarning.jsx",
+        "src/lib/pages/ImportExport/ImportExport.jsx",
+        "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
         "src/lib/components/LabelCollection/LabelCollection.test.jsx",
         "src/lib/components/Search/Search.test.jsx",
+        "src/lib/components/LabelForm/LabelForm.test.jsx",
+        "src/lib/components/SyncWarning/SyncWarning.jsx",
+        "src/lib/hooks/useSyncStatus.js",
+        "src/lib/utils/Chrome/Chrome.js",
         "src/lib/utils/storageAccess.test.js",
-        "src/lib/utils/Chrome/Chrome.js"
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/storageAccess.test.js": {
@@ -3913,18 +3932,18 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/hooks/useSyncStatus.js",
-        "src/lib/hooks/useSearchIndex.js",
-        "src/lib/hooks/useActiveTabs.js",
         "src/lib/pages/App/App.jsx",
         "src/lib/components/LabelCollection/LabelCollection.jsx",
         "src/lib/components/Tabs/Tabs.jsx",
         "src/lib/components/Labels/Labels.jsx",
+        "src/lib/hooks/useSyncStatus.js",
+        "src/lib/hooks/useSearchIndex.js",
+        "src/lib/hooks/useActiveTabs.js",
+        "src/lib/utils/chromeShim/chromeShim.js",
         "src/lib/utils/storageAreas.test.js",
         "src/lib/utils/migrateLabelsToSync.js",
         "src/lib/utils/storageAccess.js",
-        "src/lib/utils/chromeShim/chromeShim.js"
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/storageAreas.test.js": {
@@ -3936,11 +3955,11 @@
     "src/lib/utils/syncQuota.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/utils/migrateLabelsToSync.js",
-        "src/lib/utils/storageAccess.test.js",
         "src/lib/utils/migrateLabelsToSync.test.js",
-        "src/lib/utils/storageAccess.js",
-        "src/lib/utils/syncQuota.test.js"
+        "src/lib/utils/migrateLabelsToSync.js",
+        "src/lib/utils/syncQuota.test.js",
+        "src/lib/utils/storageAccess.test.js",
+        "src/lib/utils/storageAccess.js"
       ]
     },
     "src/lib/utils/syncQuota.test.js": {
@@ -3953,8 +3972,8 @@
       "imports": [],
       "importedBy": [
         "service_worker.js",
-        "service_worker.test.js",
-        "src/lib/utils/tabPlacement.test.js"
+        "src/lib/utils/tabPlacement.test.js",
+        "service_worker.test.js"
       ]
     },
     "src/lib/utils/tabPlacement.test.js": {
@@ -3995,9 +4014,9 @@
     "src/lib/utils/visitDecay.js": {
       "imports": [],
       "importedBy": [
-        "src/lib/utils/rankFavorites.test.js",
         "src/lib/utils/visitDecay.test.js",
-        "src/lib/utils/rankFavorites.js"
+        "src/lib/utils/rankFavorites.js",
+        "src/lib/utils/rankFavorites.test.js"
       ]
     },
     "src/lib/utils/visitDecay.test.js": {
@@ -4155,6 +4174,14 @@
       ],
       "importedBy": []
     },
+    ".codeyam/scenario-interactivity.js::__file_root__": {
+      "filePath": ".codeyam/scenario-interactivity.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        ".codeyam/capture.js::{\n  buildCounterpartProbe,\n  subpathHydrationEscalation,\n  waitForHydration,\n}"
+      ]
+    },
     ".codeyam/scenario-interactivity.js::{ createIssue }": {
       "filePath": ".codeyam/scenario-interactivity.js",
       "name": "{ createIssue }",
@@ -4163,13 +4190,21 @@
       ],
       "importedBy": []
     },
+    ".codeyam/scenario-issues.js::__file_root__": {
+      "filePath": ".codeyam/scenario-issues.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        ".codeyam/capture.js::{\n  createIssue,\n  pushIssue,\n  buildResult,\n}"
+      ]
+    },
     ".codeyam/scenario-metrics.js::__file_root__": {
       "filePath": ".codeyam/scenario-metrics.js",
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        ".codeyam/capture.js::{\n  findScenarioError,\n  SCENARIO_ERROR_MARKER,\n  hasRenderableContent,\n  buildSettleAdvisory,\n  describeBlankReason,\n}",
-        ".codeyam/scenario-playwright.js::{\n  hasLoadingMarkers,\n  shouldStopWaitingForImages,\n}"
+        ".codeyam/scenario-playwright.js::{\n  hasLoadingMarkers,\n  shouldStopWaitingForImages,\n}",
+        ".codeyam/capture.js::{\n  findScenarioError,\n  SCENARIO_ERROR_MARKER,\n  hasRenderableContent,\n  buildSettleAdvisory,\n  describeBlankReason,\n}"
       ]
     },
     ".codeyam/scenario-mocks.js::__file_root__": {
@@ -4178,6 +4213,14 @@
       "imports": [],
       "importedBy": [
         ".codeyam/capture.js::{\n  attachHttpMocks,\n  isDeclaredErrorMock,\n  unmockedRouteFrom,\n}"
+      ]
+    },
+    ".codeyam/scenario-playwright.js::__file_root__": {
+      "filePath": ".codeyam/scenario-playwright.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        ".codeyam/capture.js::{\n  assertAppPortReachable,\n  defaultReadServerState,\n  loadScenarioInIframe,\n  loadScenarioTopLevel,\n  resolveHarnessOrigin,\n  waitForStablePage,\n  createNetworkTracker,\n  waitForNetworkQuiet,\n  collectContentState,\n  scrollThroughDocument,\n  collectVisibleTextLength,\n  forceFinalVisualState,\n  centerCaptureWrapper,\n  performInteraction,\n  waitForPredicate,\n  performInteractionSequence,\n}"
       ]
     },
     ".codeyam/scenario-playwright.js::{\n  hasLoadingMarkers,\n  shouldStopWaitingForImages,\n}": {
@@ -4193,7 +4236,8 @@
       "name": "codeyamPlugin",
       "imports": [],
       "importedBy": [
-        "codeyam/vite-plugin-codeyam.test.js::__file_root__"
+        "codeyam/vite-plugin-codeyam.test.js::__file_root__",
+        "vite.config.mjs::__file_root__"
       ]
     },
     "codeyam/vite-plugin-codeyam.test.js::__file_root__": {
@@ -4236,6 +4280,14 @@
         "popup/popup.css::__file_root__"
       ],
       "importedBy": []
+    },
+    "popup/popup.js::__file_root__": {
+      "filePath": "popup/popup.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "popup/popup.html::__file_root__"
+      ]
     },
     "scripts/sync-extension-dir.test.js::__file_root__": {
       "filePath": "scripts/sync-extension-dir.test.js",
@@ -4323,7 +4375,9 @@
         "src/lib/styles/theme.css::__file_root__",
         "src/index.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "index.html::__file_root__"
+      ]
     },
     "src/lib/components/AppBrand/AppBrand.css::__file_root__": {
       "filePath": "src/lib/components/AppBrand/AppBrand.css",
@@ -4373,7 +4427,9 @@
       "imports": [
         "src/lib/components/ChromeHistoryToggle/ChromeHistoryToggle.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/ChromeHistoryToggle/index.js::__file_root__"
+      ]
     },
     "src/lib/components/ChromeHistoryToggle/index.js::__file_root__": {
       "filePath": "src/lib/components/ChromeHistoryToggle/index.js",
@@ -4398,7 +4454,9 @@
         "src/lib/components::__file_root__",
         "src/Constants.jsx::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/DraggableTabUrls/index.js::__file_root__"
+      ]
     },
     "src/lib/components/DraggableTabUrls/index.js::__file_root__": {
       "filePath": "src/lib/components/DraggableTabUrls/index.js",
@@ -4413,8 +4471,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/Tabs/Tabs.jsx::__file_root__"
+        "src/lib/components/Tabs/Tabs.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/EmptyState/EmptyState.css::__file_root__": {
@@ -4431,7 +4489,9 @@
       "imports": [
         "src/lib/components/EmptyState/EmptyState.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/EmptyState/index.js::__file_root__"
+      ]
     },
     "src/lib/components/EmptyState/index.js::__file_root__": {
       "filePath": "src/lib/components/EmptyState/index.js",
@@ -4464,7 +4524,9 @@
         "src/lib/components/ExportPanel/ExportPanel.css::__file_root__",
         "src/lib/components/SnapshotField::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/ExportPanel/index.js::__file_root__"
+      ]
     },
     "src/lib/components/ExportPanel/index.js::__file_root__": {
       "filePath": "src/lib/components/ExportPanel/index.js",
@@ -4514,14 +4576,14 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
         "src/lib/components/Favorites/Favorites.jsx::__file_root__",
-        "src/lib/components/HistoryRow/HistoryRow.jsx::__file_root__",
-        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__",
-        "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
+        "src/lib/components/FavoriteRow/FavoriteRow.jsx::__file_root__",
         "src/lib/components/LoadUrl/LoadUrl.jsx::__file_root__",
+        "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx::__file_root__",
-        "src/lib/components/FavoriteRow/FavoriteRow.jsx::__file_root__"
+        "src/lib/components/HistoryRow/HistoryRow.jsx::__file_root__"
       ]
     },
     "src/lib/components/FavoriteRow/FavoriteRow.css::__file_root__": {
@@ -4546,7 +4608,9 @@
         "src/lib/components/Icon::__file_root__",
         "src/lib/components/UsageSparkline::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/FavoriteRow/index.js::__file_root__"
+      ]
     },
     "src/lib/components/FavoriteRow/index.js::__file_root__": {
       "filePath": "src/lib/components/FavoriteRow/index.js",
@@ -4572,6 +4636,14 @@
         "src/lib/components/Favorites/Favorites.jsx::__file_root__"
       ]
     },
+    "src/lib/components/Favorites/Favorites.jsx::Favorites": {
+      "filePath": "src/lib/components/Favorites/Favorites.jsx",
+      "name": "Favorites",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/Favorites/Favorites.test.jsx::__file_root__"
+      ]
+    },
     "src/lib/components/Favorites/Favorites.jsx::__file_root__": {
       "filePath": "src/lib/components/Favorites/Favorites.jsx",
       "name": "__file_root__",
@@ -4585,7 +4657,9 @@
         "src/lib/components/Favicon::__file_root__",
         "src/lib/components/Icon/Icon.jsx::Icon"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/Favorites/index.js::__file_root__"
+      ]
     },
     "src/lib/components/Favorites/Favorites.test.jsx::__file_root__": {
       "filePath": "src/lib/components/Favorites/Favorites.test.jsx",
@@ -4626,7 +4700,9 @@
       "imports": [
         "src/lib/components/FavoritesResetControl/FavoritesResetControl.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/FavoritesResetControl/index.js::__file_root__"
+      ]
     },
     "src/lib/components/FavoritesResetControl/index.js::__file_root__": {
       "filePath": "src/lib/components/FavoritesResetControl/index.js",
@@ -4658,7 +4734,9 @@
       "imports": [
         "src/lib/components/FullSearchFilterChips/FullSearchFilterChips.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/FullSearchFilterChips/index.js::__file_root__"
+      ]
     },
     "src/lib/components/FullSearchFilterChips/index.js::__file_root__": {
       "filePath": "src/lib/components/FullSearchFilterChips/index.js",
@@ -4690,7 +4768,9 @@
       "imports": [
         "src/lib/components/FullSearchHint/FullSearchHint.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/FullSearchHint/index.js::__file_root__"
+      ]
     },
     "src/lib/components/FullSearchHint/index.js::__file_root__": {
       "filePath": "src/lib/components/FullSearchHint/index.js",
@@ -4723,7 +4803,9 @@
         "src/lib/components/FullSearchInput/FullSearchInput.css::__file_root__",
         "src/lib/components/Icon::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/FullSearchInput/index.js::__file_root__"
+      ]
     },
     "src/lib/components/FullSearchInput/index.js::__file_root__": {
       "filePath": "src/lib/components/FullSearchInput/index.js",
@@ -4747,7 +4829,9 @@
       "imports": [
         "src/lib/components/GroupSwatch::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/FullSearchLabelRow/index.js::__file_root__"
+      ]
     },
     "src/lib/components/FullSearchLabelRow/index.js::__file_root__": {
       "filePath": "src/lib/components/FullSearchLabelRow/index.js",
@@ -4771,7 +4855,9 @@
       "imports": [
         "src/lib/components/FullSearchSection::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/FullSearchResults/index.js::__file_root__"
+      ]
     },
     "src/lib/components/FullSearchResults/index.js::__file_root__": {
       "filePath": "src/lib/components/FullSearchResults/index.js",
@@ -4843,7 +4929,9 @@
         "src/lib/components/FullSearchSection/FullSearchSection.css::__file_root__",
         "src/lib/components/GroupSwatch::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/FullSearchSection/index.js::__file_root__"
+      ]
     },
     "src/lib/components/FullSearchSection/index.js::__file_root__": {
       "filePath": "src/lib/components/FullSearchSection/index.js",
@@ -4876,7 +4964,9 @@
       "imports": [
         "src/lib/components/GroupSwatch/GroupSwatch.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/GroupSwatch/index.js::__file_root__"
+      ]
     },
     "src/lib/components/GroupSwatch/index.js::__file_root__": {
       "filePath": "src/lib/components/GroupSwatch/index.js",
@@ -4891,10 +4981,10 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
+        "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
+        "src/lib/components/FullSearchSection/FullSearchSection.jsx::__file_root__",
         "src/lib/components/index.js::__file_root__",
         "src/lib/components/FullSearchLabelRow/FullSearchLabelRow.jsx::__file_root__",
-        "src/lib/components/FullSearchSection/FullSearchSection.jsx::__file_root__",
-        "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx::__file_root__"
       ]
     },
@@ -4914,7 +5004,9 @@
         "src/lib/components/Favicon::__file_root__",
         "src/lib/components/HistoryRowActions::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/HistoryRow/index.js::__file_root__"
+      ]
     },
     "src/lib/components/HistoryRow/HistoryRow.test.jsx::__file_root__": {
       "filePath": "src/lib/components/HistoryRow/HistoryRow.test.jsx",
@@ -4937,8 +5029,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/HistorySection/HistorySection.jsx::__file_root__"
+        "src/lib/components/HistorySection/HistorySection.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/HistoryRowActions/HistoryRowActions.css::__file_root__": {
@@ -4955,7 +5047,9 @@
       "imports": [
         "src/lib/components/HistoryRowActions/HistoryRowActions.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/HistoryRowActions/index.js::__file_root__"
+      ]
     },
     "src/lib/components/HistoryRowActions/index.js::__file_root__": {
       "filePath": "src/lib/components/HistoryRowActions/index.js",
@@ -5015,6 +5109,15 @@
         "src/lib/components/Favorites/Favorites.jsx::__file_root__"
       ]
     },
+    "src/lib/components/Icon/Icon.jsx::__file_root__": {
+      "filePath": "src/lib/components/Icon/Icon.jsx",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/Icon/index.js::__file_root__",
+        "src/lib/components/Icon/index.js::__file_root__"
+      ]
+    },
     "src/lib/components/Icon/index.js::__file_root__": {
       "filePath": "src/lib/components/Icon/index.js",
       "name": "__file_root__",
@@ -5031,24 +5134,24 @@
       "importedBy": [
         "src/lib/pages/UrlDetails/UrlDetails.jsx::__file_root__",
         "src/lib/pages/Load/Load.jsx::__file_root__",
-        "src/lib/components/LabelForm/LabelForm.jsx::__file_root__",
-        "src/lib/components/FullSearchInput/FullSearchInput.jsx::__file_root__",
-        "src/lib/components/PageHeader/PageHeader.jsx::__file_root__",
-        "src/lib/components/Url/Url.jsx::__file_root__",
-        "src/lib/components/SyncWarning/SyncWarning.jsx::__file_root__",
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/Tabs/Tabs.jsx::__file_root__",
-        "src/lib/components/UrlLabel/UrlLabel.jsx::__file_root__",
-        "src/lib/components/ImportMessage/ImportMessage.jsx::__file_root__",
-        "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
+        "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx::__file_root__",
         "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx::__file_root__",
+        "src/lib/components/Url/Url.jsx::__file_root__",
         "src/lib/components/Search/Search.jsx::__file_root__",
+        "src/lib/components/FavoriteRow/FavoriteRow.jsx::__file_root__",
+        "src/lib/components/LabelForm/LabelForm.jsx::__file_root__",
+        "src/lib/components/OpenFullSearchRow/OpenFullSearchRow.jsx::__file_root__",
+        "src/lib/components/FullSearchInput/FullSearchInput.jsx::__file_root__",
+        "src/lib/components/Tabs/Tabs.jsx::__file_root__",
+        "src/lib/components/SyncWarning/SyncWarning.jsx::__file_root__",
+        "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
         "src/lib/components/Settings/Settings.jsx::__file_root__",
         "src/lib/components/SnapshotField/SnapshotField.jsx::__file_root__",
-        "src/lib/components/OpenFullSearchRow/OpenFullSearchRow.jsx::__file_root__",
+        "src/lib/components/UrlLabel/UrlLabel.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__",
+        "src/lib/components/PageHeader/PageHeader.jsx::__file_root__",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx::__file_root__",
-        "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx::__file_root__",
-        "src/lib/components/FavoriteRow/FavoriteRow.jsx::__file_root__"
+        "src/lib/components/ImportMessage/ImportMessage.jsx::__file_root__"
       ]
     },
     "src/lib/components/ImportMessage/ImportMessage.css::__file_root__": {
@@ -5066,7 +5169,9 @@
         "src/lib/components/ImportMessage/ImportMessage.css::__file_root__",
         "src/lib/components/Icon::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/ImportMessage/index.js::__file_root__"
+      ]
     },
     "src/lib/components/ImportMessage/index.js::__file_root__": {
       "filePath": "src/lib/components/ImportMessage/index.js",
@@ -5100,7 +5205,9 @@
         "src/lib/components/SnapshotBox::__file_root__",
         "src/lib/components/ImportMessage::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/ImportPanel/index.js::__file_root__"
+      ]
     },
     "src/lib/components/ImportPanel/index.js::__file_root__": {
       "filePath": "src/lib/components/ImportPanel/index.js",
@@ -5126,14 +5233,6 @@
         "src/lib/components/LabelCollection/LabelCollection.jsx::__file_root__"
       ]
     },
-    "src/lib/components/LabelCollection/LabelCollection.jsx::LabelCollection": {
-      "filePath": "src/lib/components/LabelCollection/LabelCollection.jsx",
-      "name": "LabelCollection",
-      "imports": [],
-      "importedBy": [
-        "src/lib/components/LabelCollection/LabelCollection.test.jsx::__file_root__"
-      ]
-    },
     "src/lib/components/LabelCollection/LabelCollection.jsx::__file_root__": {
       "filePath": "src/lib/components/LabelCollection/LabelCollection.jsx",
       "name": "__file_root__",
@@ -5156,7 +5255,9 @@
         "src/lib/utils/groupCardAppearance.js::groupCardAppearance",
         "src/lib/utils/labelDisplayOrder.js::labelDisplayOrder"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/LabelCollection/index.js::__file_root__"
+      ]
     },
     "src/lib/components/LabelCollection/LabelCollection.test.jsx::__file_root__": {
       "filePath": "src/lib/components/LabelCollection/LabelCollection.test.jsx",
@@ -5204,13 +5305,23 @@
         "src/lib/components/LabelCollectionMenu/index.js::__file_root__"
       ]
     },
+    "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx::LabelCollectionMenuActions": {
+      "filePath": "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
+      "name": "LabelCollectionMenuActions",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx::__file_root__"
+      ]
+    },
     "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx::__file_root__": {
       "filePath": "src/lib/components/LabelCollectionMenu/LabelCollectionMenuActions.jsx",
       "name": "__file_root__",
       "imports": [
         "src/lib/components/Icon::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/LabelCollectionMenu/index.js::__file_root__"
+      ]
     },
     "src/lib/components/LabelCollectionMenu/index.js::__file_root__": {
       "filePath": "src/lib/components/LabelCollectionMenu/index.js",
@@ -5238,14 +5349,6 @@
         "src/lib/components/LabelForm/LabelForm.jsx::__file_root__"
       ]
     },
-    "src/lib/components/LabelForm/LabelForm.jsx::LabelForm": {
-      "filePath": "src/lib/components/LabelForm/LabelForm.jsx",
-      "name": "LabelForm",
-      "imports": [],
-      "importedBy": [
-        "src/lib/components/LabelForm/LabelForm.test.jsx::__file_root__"
-      ]
-    },
     "src/lib/components/LabelForm/LabelForm.jsx::__file_root__": {
       "filePath": "src/lib/components/LabelForm/LabelForm.jsx",
       "name": "__file_root__",
@@ -5269,6 +5372,14 @@
       ],
       "importedBy": []
     },
+    "src/lib/components/LabelForm/LabelFormCustomColor.jsx::LabelFormCustomColor": {
+      "filePath": "src/lib/components/LabelForm/LabelFormCustomColor.jsx",
+      "name": "LabelFormCustomColor",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/LabelForm/LabelForm.jsx::__file_root__"
+      ]
+    },
     "src/lib/components/LabelForm/index.js::__file_root__": {
       "filePath": "src/lib/components/LabelForm/index.js",
       "name": "__file_root__",
@@ -5282,8 +5393,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx::__file_root__"
+        "src/lib/components/LabelCollectionMenu/LabelCollectionMenu.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/LabelFormContainer/LabelFormContainer.css::__file_root__": {
@@ -5294,6 +5405,14 @@
         "src/lib/components/LabelFormContainer/LabelFormContainer.jsx::__file_root__"
       ]
     },
+    "src/lib/components/LabelFormContainer/LabelFormContainer.jsx::LabelFormContainer": {
+      "filePath": "src/lib/components/LabelFormContainer/LabelFormContainer.jsx",
+      "name": "LabelFormContainer",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx::__file_root__"
+      ]
+    },
     "src/lib/components/LabelFormContainer/LabelFormContainer.jsx::__file_root__": {
       "filePath": "src/lib/components/LabelFormContainer/LabelFormContainer.jsx",
       "name": "__file_root__",
@@ -5301,7 +5420,9 @@
         "src/lib/components/LabelFormContainer/LabelFormContainer.css::__file_root__",
         "src/lib/components::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/LabelFormContainer/index.js::__file_root__"
+      ]
     },
     "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx::__file_root__": {
       "filePath": "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx",
@@ -5342,7 +5463,9 @@
       "imports": [
         "src/lib/components/LabelSectionHeader/LabelSectionHeader.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/LabelSectionHeader/index.js::__file_root__"
+      ]
     },
     "src/lib/components/LabelSectionHeader/index.js::__file_root__": {
       "filePath": "src/lib/components/LabelSectionHeader/index.js",
@@ -5425,6 +5548,14 @@
         "src/lib/components/LoadMeter/LoadMeter.jsx::__file_root__"
       ]
     },
+    "src/lib/components/LoadMeter/LoadMeter.jsx::LoadMeter": {
+      "filePath": "src/lib/components/LoadMeter/LoadMeter.jsx",
+      "name": "LoadMeter",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/LoadMeter/LoadMeter.test.jsx::__file_root__"
+      ]
+    },
     "src/lib/components/LoadMeter/LoadMeter.jsx::__file_root__": {
       "filePath": "src/lib/components/LoadMeter/LoadMeter.jsx",
       "name": "__file_root__",
@@ -5437,7 +5568,9 @@
         "src/lib/components/LoadMeterCaption::__file_root__",
         "src/Constants.jsx::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/LoadMeter/index.js::__file_root__"
+      ]
     },
     "src/lib/components/LoadMeter/LoadMeter.test.jsx::__file_root__": {
       "filePath": "src/lib/components/LoadMeter/LoadMeter.test.jsx",
@@ -5479,7 +5612,9 @@
         "src/lib/components/LoadMeterCaption/LoadMeterCaption.css::__file_root__",
         "src/lib/utils/Chrome::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/LoadMeterCaption/index.js::__file_root__"
+      ]
     },
     "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx::__file_root__": {
       "filePath": "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx",
@@ -5503,8 +5638,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/LoadMeter/LoadMeter.jsx::__file_root__"
+        "src/lib/components/LoadMeter/LoadMeter.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/LoadPerTabNote/LoadPerTabNote.css::__file_root__": {
@@ -5569,6 +5704,14 @@
         "src/lib/components/LoadProcesses/LoadProcesses.jsx::__file_root__"
       ]
     },
+    "src/lib/components/LoadProcesses/LoadProcesses.jsx::LoadProcesses": {
+      "filePath": "src/lib/components/LoadProcesses/LoadProcesses.jsx",
+      "name": "LoadProcesses",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/LoadProcesses/LoadProcesses.test.jsx::__file_root__"
+      ]
+    },
     "src/lib/components/LoadProcesses/LoadProcesses.jsx::__file_root__": {
       "filePath": "src/lib/components/LoadProcesses/LoadProcesses.jsx",
       "name": "__file_root__",
@@ -5576,7 +5719,9 @@
         "src/lib/components/LoadProcesses/LoadProcesses.css::__file_root__",
         "src/lib/utils/humanReadableNumber.js::humanReadableNumber"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/LoadProcesses/index.js::__file_root__"
+      ]
     },
     "src/lib/components/LoadProcesses/LoadProcesses.test.jsx::__file_root__": {
       "filePath": "src/lib/components/LoadProcesses/LoadProcesses.test.jsx",
@@ -5610,6 +5755,14 @@
         "src/lib/components/LoadUrl/LoadUrl.jsx::__file_root__"
       ]
     },
+    "src/lib/components/LoadUrl/LoadUrl.jsx::LoadUrl": {
+      "filePath": "src/lib/components/LoadUrl/LoadUrl.jsx",
+      "name": "LoadUrl",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/LoadUrl/LoadUrl.test.jsx::__file_root__"
+      ]
+    },
     "src/lib/components/LoadUrl/LoadUrl.jsx::__file_root__": {
       "filePath": "src/lib/components/LoadUrl/LoadUrl.jsx",
       "name": "__file_root__",
@@ -5618,7 +5771,9 @@
         "src/lib/components/Favicon::__file_root__",
         "src/lib/utils/processLoad.js::summarizeProcessLoad"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/LoadUrl/index.js::__file_root__"
+      ]
     },
     "src/lib/components/LoadUrl/LoadUrl.test.jsx::__file_root__": {
       "filePath": "src/lib/components/LoadUrl/LoadUrl.test.jsx",
@@ -5674,8 +5829,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
         "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__",
         "src/lib/components/FullSearchRow/FullSearchRow.jsx::__file_root__"
       ]
     },
@@ -5709,8 +5864,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/SearchResults/SearchResults.jsx::__file_root__"
+        "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/PageContentsDenied/PageContentsDenied.css::__file_root__": {
@@ -5727,7 +5882,9 @@
       "imports": [
         "src/lib/components/PageContentsDenied/PageContentsDenied.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/PageContentsDenied/index.js::__file_root__"
+      ]
     },
     "src/lib/components/PageContentsDenied/index.js::__file_root__": {
       "filePath": "src/lib/components/PageContentsDenied/index.js",
@@ -5742,8 +5899,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/PageContentsEmpty/PageContentsEmpty.css::__file_root__": {
@@ -5760,7 +5917,9 @@
       "imports": [
         "src/lib/components/PageContentsEmpty/PageContentsEmpty.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/PageContentsEmpty/index.js::__file_root__"
+      ]
     },
     "src/lib/components/PageContentsEmpty/index.js::__file_root__": {
       "filePath": "src/lib/components/PageContentsEmpty/index.js",
@@ -5775,8 +5934,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__"
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/PageContentsPanel/PageContentsPanel.css::__file_root__": {
@@ -5796,7 +5955,9 @@
         "src/lib/components/PageContentsDenied::__file_root__",
         "src/lib/components/PageContentsProgress::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/PageContentsPanel/index.js::__file_root__"
+      ]
     },
     "src/lib/components/PageContentsPanel/index.js::__file_root__": {
       "filePath": "src/lib/components/PageContentsPanel/index.js",
@@ -5844,8 +6005,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/PageContentsRow/PageContentsRow.css::__file_root__": {
@@ -5866,7 +6027,9 @@
         "src/lib/components/PageContentsSnippet::__file_root__",
         "src/lib/utils/hostLabel.js::hostLabel"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/PageContentsRow/index.js::__file_root__"
+      ]
     },
     "src/lib/components/PageContentsRow/index.js::__file_root__": {
       "filePath": "src/lib/components/PageContentsRow/index.js",
@@ -5881,8 +6044,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__"
+        "src/lib/components/PageContentsSection/PageContentsSection.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css::__file_root__": {
@@ -5900,7 +6063,9 @@
         "src/lib/components/PageContentsScopeControls/PageContentsScopeControls.css::__file_root__",
         "src/lib/utils/scanScopeOptions.js::scanScopeOptions"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/PageContentsScopeControls/index.js::__file_root__"
+      ]
     },
     "src/lib/components/PageContentsScopeControls/index.js::__file_root__": {
       "filePath": "src/lib/components/PageContentsScopeControls/index.js",
@@ -5915,8 +6080,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__"
+        "src/lib/components/PageContentsPanel/PageContentsPanel.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/PageContentsSection/PageContentsSection.css::__file_root__": {
@@ -5969,7 +6134,9 @@
       "imports": [
         "src/lib/components/PageContentsSnippet/PageContentsSnippet.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/PageContentsSnippet/index.js::__file_root__"
+      ]
     },
     "src/lib/components/PageContentsSnippet/index.js::__file_root__": {
       "filePath": "src/lib/components/PageContentsSnippet/index.js",
@@ -5984,8 +6151,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__"
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/PageContentsTierBadge/PageContentsTierBadge.css::__file_root__": {
@@ -6020,8 +6187,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__"
+        "src/lib/components/PageContentsRow/PageContentsRow.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/PageHeader/PageHeader.css::__file_root__": {
@@ -6039,7 +6206,9 @@
         "src/lib/components/PageHeader/PageHeader.css::__file_root__",
         "src/lib/components/Icon::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/PageHeader/index.js::__file_root__"
+      ]
     },
     "src/lib/components/PageHeader/index.js::__file_root__": {
       "filePath": "src/lib/components/PageHeader/index.js",
@@ -6064,14 +6233,6 @@
       "imports": [],
       "importedBy": [
         "src/lib/components/Search/Search.jsx::__file_root__"
-      ]
-    },
-    "src/lib/components/Search/Search.jsx::Search": {
-      "filePath": "src/lib/components/Search/Search.jsx",
-      "name": "Search",
-      "imports": [],
-      "importedBy": [
-        "src/lib/components/Search/Search.test.jsx::__file_root__"
       ]
     },
     "src/lib/components/Search/Search.jsx::__file_root__": {
@@ -6127,7 +6288,9 @@
       "imports": [
         "src/lib/components/SearchHint/SearchHint.css::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/SearchHint/index.js::__file_root__"
+      ]
     },
     "src/lib/components/SearchHint/index.js::__file_root__": {
       "filePath": "src/lib/components/SearchHint/index.js",
@@ -6169,7 +6332,9 @@
         "src/lib/utils/openUrlKey.js::openUrlKey",
         "src/lib/utils/groupSearchUrlsByLabel.js::groupSearchUrlsByLabel"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/SearchResults/index.js::__file_root__"
+      ]
     },
     "src/lib/components/SearchResults/SearchResults.test.jsx::__file_root__": {
       "filePath": "src/lib/components/SearchResults/SearchResults.test.jsx",
@@ -6312,7 +6477,9 @@
         "src/lib/components/Icon::__file_root__",
         "src/lib/components/SnapshotBox::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/SnapshotField/index.js::__file_root__"
+      ]
     },
     "src/lib/components/SnapshotField/index.js::__file_root__": {
       "filePath": "src/lib/components/SnapshotField/index.js",
@@ -6346,7 +6513,9 @@
         "src/lib/components/Icon::__file_root__",
         "src/lib/utils/storageAccess.js::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/SyncWarning/index.js::__file_root__"
+      ]
     },
     "src/lib/components/SyncWarning/index.js::__file_root__": {
       "filePath": "src/lib/components/SyncWarning/index.js",
@@ -6361,8 +6530,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/App/App.jsx::__file_root__",
-        "src/lib/pages/ImportExport/ImportExport.jsx::__file_root__"
+        "src/lib/pages/ImportExport/ImportExport.jsx::__file_root__",
+        "src/lib/pages/App/App.jsx::__file_root__"
       ]
     },
     "src/lib/components/Tabs/Tabs.css::__file_root__": {
@@ -6371,14 +6540,6 @@
       "imports": [],
       "importedBy": [
         "src/lib/components/Tabs/Tabs.jsx::__file_root__"
-      ]
-    },
-    "src/lib/components/Tabs/Tabs.jsx::Tabs": {
-      "filePath": "src/lib/components/Tabs/Tabs.jsx",
-      "name": "Tabs",
-      "imports": [],
-      "importedBy": [
-        "src/lib/components/Tabs/Tabs.test.jsx::__file_root__"
       ]
     },
     "src/lib/components/Tabs/Tabs.jsx::__file_root__": {
@@ -6394,9 +6555,12 @@
         "src/lib/utils/dragHoverStore.js::getDragActive",
         "src/lib/utils/dragHoverStore.js::subscribeDragActive",
         "src/lib/utils/processLoad.js::summarizeProcessLoad",
-        "src/lib/utils/humanReadableNumber.js::humanReadableNumber"
+        "src/lib/utils/humanReadableNumber.js::humanReadableNumber",
+        "src/lib/utils/sortAutoClosed.js::sortAutoClosed"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/Tabs/index.js::__file_root__"
+      ]
     },
     "src/lib/components/Tabs/Tabs.test.jsx::__file_root__": {
       "filePath": "src/lib/components/Tabs/Tabs.test.jsx",
@@ -6464,6 +6628,14 @@
         "src/lib/components/Triage/Triage.jsx::__file_root__"
       ]
     },
+    "src/lib/components/Triage/Triage.jsx::Triage": {
+      "filePath": "src/lib/components/Triage/Triage.jsx",
+      "name": "Triage",
+      "imports": [],
+      "importedBy": [
+        "src/lib/components/Triage/Triage.test.jsx::__file_root__"
+      ]
+    },
     "src/lib/components/Triage/Triage.jsx::__file_root__": {
       "filePath": "src/lib/components/Triage/Triage.jsx",
       "name": "__file_root__",
@@ -6476,7 +6648,9 @@
         "src/lib/utils/hasPerTabLoadData.js::hasPerTabLoadData",
         "src/Constants.jsx::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/components/Triage/index.js::__file_root__"
+      ]
     },
     "src/lib/components/Triage/Triage.test.jsx::__file_root__": {
       "filePath": "src/lib/components/Triage/Triage.test.jsx",
@@ -6608,14 +6782,6 @@
         "src/lib/components/UrlLabel/UrlLabel.jsx::__file_root__"
       ]
     },
-    "src/lib/components/UrlLabel/UrlLabel.jsx::UrlLabel": {
-      "filePath": "src/lib/components/UrlLabel/UrlLabel.jsx",
-      "name": "UrlLabel",
-      "imports": [],
-      "importedBy": [
-        "src/lib/components/UrlLabel/UrlLabel.test.jsx::__file_root__"
-      ]
-    },
     "src/lib/components/UrlLabel/UrlLabel.jsx::__file_root__": {
       "filePath": "src/lib/components/UrlLabel/UrlLabel.jsx",
       "name": "__file_root__",
@@ -6686,8 +6852,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/components/index.js::__file_root__",
-        "src/lib/components/FavoriteRow/FavoriteRow.jsx::__file_root__"
+        "src/lib/components/FavoriteRow/FavoriteRow.jsx::__file_root__",
+        "src/lib/components/index.js::__file_root__"
       ]
     },
     "src/lib/components/index.js::__file_root__": {
@@ -6756,16 +6922,16 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/App/App.jsx::__file_root__",
         "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx::__file_root__",
-        "src/lib/pages/History/History.jsx::__file_root__",
-        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__",
         "src/lib/pages/UrlDetails/UrlDetails.jsx::__file_root__",
+        "src/lib/pages/App/App.jsx::__file_root__",
+        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__",
         "src/lib/pages/Load/Load.jsx::__file_root__",
+        "src/lib/pages/History/History.jsx::__file_root__",
         "src/lib/components/LabelCollection/LabelCollection.jsx::__file_root__",
+        "src/lib/components/Search/Search.jsx::__file_root__",
         "src/lib/components/LabelFormContainer/LabelFormContainer.jsx::__file_root__",
         "src/lib/components/Labels/Labels.jsx::__file_root__",
-        "src/lib/components/Search/Search.jsx::__file_root__",
         "src/lib/components/DraggableTabUrls/DraggableTabUrls.jsx::__file_root__"
       ]
     },
@@ -6777,14 +6943,6 @@
         "src/lib/utils/storageAreas.js::changedInArea"
       ],
       "importedBy": []
-    },
-    "src/lib/hooks/useActiveTabs.js::useActiveTabs": {
-      "filePath": "src/lib/hooks/useActiveTabs.js",
-      "name": "useActiveTabs",
-      "imports": [],
-      "importedBy": [
-        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__"
-      ]
     },
     "src/lib/hooks/useActiveTabs.test.jsx::__file_root__": {
       "filePath": "src/lib/hooks/useActiveTabs.test.jsx",
@@ -6809,7 +6967,7 @@
       "name": "useChromeHistorySearch",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__"
+        "src/lib/hooks/useChromeHistorySearch.test.jsx::__file_root__"
       ]
     },
     "src/lib/hooks/useChromeHistorySearch.test.jsx::__file_root__": {
@@ -6831,15 +6989,6 @@
         "src/lib/utils/historyTimestamp.js::historyTimestamp"
       ],
       "importedBy": []
-    },
-    "src/lib/hooks/useHistoryRows.js::useHistoryRows": {
-      "filePath": "src/lib/hooks/useHistoryRows.js",
-      "name": "useHistoryRows",
-      "imports": [],
-      "importedBy": [
-        "src/lib/hooks/useHistoryRows.test.jsx::__file_root__",
-        "src/lib/pages/History/History.jsx::__file_root__"
-      ]
     },
     "src/lib/hooks/useHistoryRows.test.jsx::__file_root__": {
       "filePath": "src/lib/hooks/useHistoryRows.test.jsx",
@@ -6863,8 +7012,7 @@
       "name": "useListKeyboardNav",
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/useListKeyboardNav.test.jsx::__file_root__",
-        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__"
+        "src/lib/hooks/useListKeyboardNav.test.jsx::__file_root__"
       ]
     },
     "src/lib/hooks/useListKeyboardNav.test.jsx::__file_root__": {
@@ -6889,14 +7037,6 @@
       ],
       "importedBy": []
     },
-    "src/lib/hooks/usePageContentSearch.js::usePageContentSearch": {
-      "filePath": "src/lib/hooks/usePageContentSearch.js",
-      "name": "usePageContentSearch",
-      "imports": [],
-      "importedBy": [
-        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__"
-      ]
-    },
     "src/lib/hooks/usePageContentSearch.test.jsx::__file_root__": {
       "filePath": "src/lib/hooks/usePageContentSearch.test.jsx",
       "name": "__file_root__",
@@ -6920,7 +7060,7 @@
       "name": "usePersistedPageQuery",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__"
+        "src/lib/hooks/usePersistedPageQuery.test.jsx::__file_root__"
       ]
     },
     "src/lib/hooks/usePersistedPageQuery.test.jsx::__file_root__": {
@@ -6949,9 +7089,7 @@
       "name": "useSearchIndex",
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/useSearchIndex.test.jsx::__file_root__",
-        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__",
-        "src/lib/components/Search/Search.jsx::__file_root__"
+        "src/lib/hooks/useSearchIndex.test.jsx::__file_root__"
       ]
     },
     "src/lib/hooks/useSearchIndex.test.jsx::__file_root__": {
@@ -6973,14 +7111,6 @@
       ],
       "importedBy": []
     },
-    "src/lib/hooks/useSyncStatus.js::useSyncStatus": {
-      "filePath": "src/lib/hooks/useSyncStatus.js",
-      "name": "useSyncStatus",
-      "imports": [],
-      "importedBy": [
-        "src/lib/pages/App/App.jsx::__file_root__"
-      ]
-    },
     "src/lib/hooks/useTheme.js::__file_root__": {
       "filePath": "src/lib/hooks/useTheme.js",
       "name": "__file_root__",
@@ -6995,7 +7125,7 @@
       "name": "useTheme",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/App/App.jsx::__file_root__"
+        "src/lib/hooks/useTheme.test.jsx::__file_root__"
       ]
     },
     "src/lib/hooks/useTheme.test.jsx::__file_root__": {
@@ -7013,6 +7143,14 @@
       "imports": [],
       "importedBy": [
         "src/lib/pages/App/App.jsx::__file_root__"
+      ]
+    },
+    "src/lib/pages/App/App.jsx::App": {
+      "filePath": "src/lib/pages/App/App.jsx",
+      "name": "App",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/App/App.test.jsx::__file_root__"
       ]
     },
     "src/lib/pages/App/App.jsx::__file_root__": {
@@ -7047,7 +7185,9 @@
         "src/lib/hooks/useTheme.js::useTheme",
         "src/lib/hooks/useSyncStatus.js::useSyncStatus"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/pages/App/index.js::__file_root__"
+      ]
     },
     "src/lib/pages/App/App.test.jsx::__file_root__": {
       "filePath": "src/lib/pages/App/App.test.jsx",
@@ -7102,7 +7242,9 @@
         "src/lib/utils/searchHitHref.js::searchHitHref",
         "src/lib/utils/openUrlKey.js::openUrlKey"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/pages/FullSearch/index.js::__file_root__"
+      ]
     },
     "src/lib/pages/FullSearch/index.js::__file_root__": {
       "filePath": "src/lib/pages/FullSearch/index.js",
@@ -7117,8 +7259,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js::__file_root__",
-        "src/lib/pages/App/App.jsx::__file_root__"
+        "src/lib/pages/App/App.jsx::__file_root__",
+        "src/lib/pages/index.js::__file_root__"
       ]
     },
     "src/lib/pages/History/History.css::__file_root__": {
@@ -7140,7 +7282,9 @@
         "src/lib/utils/historyBuckets.js::__file_root__",
         "src/lib/hooks/useHistoryRows.js::useHistoryRows"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/pages/History/index.js::__file_root__"
+      ]
     },
     "src/lib/pages/History/History.test.jsx::__file_root__": {
       "filePath": "src/lib/pages/History/History.test.jsx",
@@ -7165,8 +7309,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js::__file_root__",
-        "src/lib/pages/App/App.jsx::__file_root__"
+        "src/lib/pages/App/App.jsx::__file_root__",
+        "src/lib/pages/index.js::__file_root__"
       ]
     },
     "src/lib/pages/ImportExport/ImportExport.css::__file_root__": {
@@ -7175,14 +7319,6 @@
       "imports": [],
       "importedBy": [
         "src/lib/pages/ImportExport/ImportExport.jsx::__file_root__"
-      ]
-    },
-    "src/lib/pages/ImportExport/ImportExport.jsx::ImportExport": {
-      "filePath": "src/lib/pages/ImportExport/ImportExport.jsx",
-      "name": "ImportExport",
-      "imports": [],
-      "importedBy": [
-        "src/lib/pages/ImportExport/ImportExport.test.jsx::__file_root__"
       ]
     },
     "src/lib/pages/ImportExport/ImportExport.jsx::__file_root__": {
@@ -7229,8 +7365,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js::__file_root__",
-        "src/lib/pages/App/App.jsx::__file_root__"
+        "src/lib/pages/App/App.jsx::__file_root__",
+        "src/lib/pages/index.js::__file_root__"
       ]
     },
     "src/lib/pages/Load/Load.css::__file_root__": {
@@ -7239,14 +7375,6 @@
       "imports": [],
       "importedBy": [
         "src/lib/pages/Load/Load.jsx::__file_root__"
-      ]
-    },
-    "src/lib/pages/Load/Load.jsx::Load": {
-      "filePath": "src/lib/pages/Load/Load.jsx",
-      "name": "Load",
-      "imports": [],
-      "importedBy": [
-        "src/lib/pages/Load/Load.test.jsx::__file_root__"
       ]
     },
     "src/lib/pages/Load/Load.jsx::__file_root__": {
@@ -7259,7 +7387,9 @@
         "src/lib/components::__file_root__",
         "src/lib/components/Icon::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/pages/Load/index.js::__file_root__"
+      ]
     },
     "src/lib/pages/Load/Load.test.jsx::__file_root__": {
       "filePath": "src/lib/pages/Load/Load.test.jsx",
@@ -7283,8 +7413,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js::__file_root__",
-        "src/lib/pages/App/App.jsx::__file_root__"
+        "src/lib/pages/App/App.jsx::__file_root__",
+        "src/lib/pages/index.js::__file_root__"
       ]
     },
     "src/lib/pages/UrlDetails/UrlDetails.css::__file_root__": {
@@ -7310,7 +7440,9 @@
         "src/lib/utils/urlDetails.js::reassignUrlKeyInLabels",
         "src/lib/utils/urlDetails.js::removeUrlFromLabel"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/pages/UrlDetails/index.js::__file_root__"
+      ]
     },
     "src/lib/pages/UrlDetails/UrlDetails.test.jsx::__file_root__": {
       "filePath": "src/lib/pages/UrlDetails/UrlDetails.test.jsx",
@@ -7335,8 +7467,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js::__file_root__",
-        "src/lib/pages/App/App.jsx::__file_root__"
+        "src/lib/pages/App/App.jsx::__file_root__",
+        "src/lib/pages/index.js::__file_root__"
       ]
     },
     "src/lib/pages/ViewAllFavorites/ViewAllFavorites.css::__file_root__": {
@@ -7345,6 +7477,14 @@
       "imports": [],
       "importedBy": [
         "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx::__file_root__"
+      ]
+    },
+    "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx::ViewAllFavorites": {
+      "filePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx",
+      "name": "ViewAllFavorites",
+      "imports": [],
+      "importedBy": [
+        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx::__file_root__"
       ]
     },
     "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx::__file_root__": {
@@ -7360,7 +7500,9 @@
         "src/Constants.jsx::__file_root__",
         "src/lib/components::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/pages/ViewAllFavorites/index.js::__file_root__"
+      ]
     },
     "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx::__file_root__": {
       "filePath": "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx",
@@ -7385,8 +7527,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/pages/index.js::__file_root__",
-        "src/lib/pages/App/App.jsx::__file_root__"
+        "src/lib/pages/App/App.jsx::__file_root__",
+        "src/lib/pages/index.js::__file_root__"
       ]
     },
     "src/lib/pages/index.js::__file_root__": {
@@ -7453,43 +7595,35 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/useSyncStatus.js::__file_root__",
-        "src/lib/hooks/usePageContentSearch.js::__file_root__",
-        "src/lib/hooks/usePersistedPageQuery.js::__file_root__",
-        "src/lib/hooks/useSearchIndex.js::__file_root__",
-        "src/lib/hooks/useChromeHistorySearch.js::__file_root__",
-        "src/lib/hooks/useActiveTabs.js::__file_root__",
-        "src/lib/hooks/useHistoryRows.js::__file_root__",
-        "src/lib/hooks/useTheme.js::__file_root__",
-        "src/lib/pages/App/App.jsx::__file_root__",
         "src/lib/pages/ViewAllFavorites/ViewAllFavorites.jsx::__file_root__",
-        "src/lib/pages/History/History.jsx::__file_root__",
-        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__",
-        "src/lib/pages/UrlDetails/UrlDetails.jsx::__file_root__",
-        "src/lib/pages/Load/Load.jsx::__file_root__",
         "src/lib/pages/ImportExport/ImportExport.jsx::__file_root__",
-        "src/lib/components/LabelForm/LabelForm.jsx::__file_root__",
-        "src/lib/components/Url/Url.jsx::__file_root__",
+        "src/lib/pages/UrlDetails/UrlDetails.jsx::__file_root__",
+        "src/lib/pages/App/App.jsx::__file_root__",
+        "src/lib/pages/FullSearch/FullSearch.jsx::__file_root__",
+        "src/lib/pages/Load/Load.jsx::__file_root__",
+        "src/lib/pages/History/History.jsx::__file_root__",
         "src/lib/components/LabelCollection/LabelCollection.jsx::__file_root__",
+        "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx::__file_root__",
+        "src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx::__file_root__",
+        "src/lib/components/Url/Url.jsx::__file_root__",
+        "src/lib/components/LoadMeter/LoadMeter.jsx::__file_root__",
         "src/lib/components/Favorites/Favorites.jsx::__file_root__",
+        "src/lib/components/LabelForm/LabelForm.jsx::__file_root__",
+        "src/lib/components/Triage/Triage.jsx::__file_root__",
         "src/lib/components/Tabs/Tabs.jsx::__file_root__",
         "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
-        "src/lib/components/Labels/Labels.jsx::__file_root__",
-        "src/lib/components/LoadPerTabNote/LoadPerTabNote.jsx::__file_root__",
         "src/lib/components/Settings/Settings.jsx::__file_root__",
-        "src/lib/components/LoadMeter/LoadMeter.jsx::__file_root__",
-        "src/lib/components/LoadMeterCaption/LoadMeterCaption.jsx::__file_root__",
-        "src/lib/components/Triage/Triage.jsx::__file_root__",
+        "src/lib/components/Labels/Labels.jsx::__file_root__",
+        "src/lib/hooks/usePersistedPageQuery.js::__file_root__",
+        "src/lib/hooks/useSyncStatus.js::__file_root__",
+        "src/lib/hooks/useTheme.js::__file_root__",
+        "src/lib/hooks/usePageContentSearch.js::__file_root__",
+        "src/lib/hooks/useChromeHistorySearch.js::__file_root__",
+        "src/lib/hooks/useSearchIndex.js::__file_root__",
+        "src/lib/hooks/useActiveTabs.js::__file_root__",
+        "src/lib/hooks/useHistoryRows.js::__file_root__",
         "src/lib/utils/deleteUrlFromHistory.js::__file_root__",
         "src/lib/utils/openUrlKey.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/KeyDown.js::__file_root__": {
-      "filePath": "src/lib/utils/KeyDown.js",
-      "name": "__file_root__",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/KeyDown.test.js::__file_root__"
       ]
     },
     "src/lib/utils/KeyDown.test.js::__file_root__": {
@@ -7500,6 +7634,14 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/anchoredMenuCoords.js::anchoredMenuCoords": {
+      "filePath": "src/lib/utils/anchoredMenuCoords.js",
+      "name": "anchoredMenuCoords",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/anchoredMenuCoords.test.js::__file_root__"
+      ]
+    },
     "src/lib/utils/anchoredMenuCoords.test.js::__file_root__": {
       "filePath": "src/lib/utils/anchoredMenuCoords.test.js",
       "name": "__file_root__",
@@ -7507,6 +7649,14 @@
         "src/lib/utils/anchoredMenuCoords.js::anchoredMenuCoords"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/bucketVisitsByDay.js::bucketVisitsByDay": {
+      "filePath": "src/lib/utils/bucketVisitsByDay.js",
+      "name": "bucketVisitsByDay",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/usageMax.js::__file_root__"
+      ]
     },
     "src/lib/utils/bucketVisitsByDay.test.js::__file_root__": {
       "filePath": "src/lib/utils/bucketVisitsByDay.test.js",
@@ -7575,22 +7725,8 @@
         "src/lib/utils/storageAreas.js::__file_root__",
         "src/lib/utils/storageAreas.js::areaForKey"
       ],
-      "importedBy": []
-    },
-    "src/lib/utils/chromeShim/chromeShim.js::mirrorKeyFor": {
-      "filePath": "src/lib/utils/chromeShim/chromeShim.js",
-      "name": "mirrorKeyFor",
-      "imports": [],
       "importedBy": [
-        "src/lib/utils/chromeShim/chromeShim.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/chromeShim/chromeShim.js::resolveSeedKey": {
-      "filePath": "src/lib/utils/chromeShim/chromeShim.js",
-      "name": "resolveSeedKey",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/chromeShim/chromeShim.test.js::__file_root__"
+        "src/lib/utils/chromeShim/index.js::__file_root__"
       ]
     },
     "src/lib/utils/chromeShim/chromeShim.test.js::__file_root__": {
@@ -7609,45 +7745,43 @@
       "imports": [
         "src/lib/utils/chromeShim/chromeShim.js::__file_root__"
       ],
-      "importedBy": [
-        "src/lib/utils/chromeShim/chromeShim.test.js::__file_root__"
-      ]
+      "importedBy": []
     },
     "src/lib/utils/chromeShim::__file_root__": {
       "filePath": "src/lib/utils/chromeShim",
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
+        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx::__file_root__",
+        "src/lib/pages/ImportExport/ImportExport.test.jsx::__file_root__",
+        "src/lib/pages/UrlDetails/UrlDetails.test.jsx::__file_root__",
+        "src/lib/pages/App/App.test.jsx::__file_root__",
+        "src/lib/pages/Load/Load.test.jsx::__file_root__",
+        "src/lib/pages/History/History.test.jsx::__file_root__",
+        "src/lib/components/LabelCollection/LabelCollection.test.jsx::__file_root__",
+        "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx::__file_root__",
+        "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx::__file_root__",
+        "src/lib/components/Url/Url.test.jsx::__file_root__",
+        "src/lib/components/Search/Search.test.jsx::__file_root__",
+        "src/lib/components/LoadMeter/LoadMeter.test.jsx::__file_root__",
+        "src/lib/components/Favorites/Favorites.test.jsx::__file_root__",
+        "src/lib/components/LabelForm/LabelForm.test.jsx::__file_root__",
+        "src/lib/components/Triage/Triage.test.jsx::__file_root__",
+        "src/lib/components/Tabs/Tabs.test.jsx::__file_root__",
+        "src/lib/components/SearchResults/SearchResults.test.jsx::__file_root__",
+        "src/lib/components/Settings/Settings.test.jsx::__file_root__",
+        "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx::__file_root__",
+        "src/lib/components/Labels/Labels.test.jsx::__file_root__",
         "src/lib/hooks/usePageContentSearch.test.jsx::__file_root__",
+        "src/lib/hooks/useHistoryRows.test.jsx::__file_root__",
         "src/lib/hooks/usePersistedPageQuery.test.jsx::__file_root__",
-        "src/lib/hooks/useTheme.test.jsx::__file_root__",
         "src/lib/hooks/useActiveTabs.test.jsx::__file_root__",
+        "src/lib/hooks/useTheme.test.jsx::__file_root__",
         "src/lib/hooks/useSearchIndex.test.jsx::__file_root__",
         "src/lib/hooks/useChromeHistorySearch.test.jsx::__file_root__",
-        "src/lib/hooks/useHistoryRows.test.jsx::__file_root__",
-        "src/lib/pages/App/App.test.jsx::__file_root__",
-        "src/lib/pages/ViewAllFavorites/ViewAllFavorites.test.jsx::__file_root__",
-        "src/lib/pages/History/History.test.jsx::__file_root__",
-        "src/lib/pages/UrlDetails/UrlDetails.test.jsx::__file_root__",
-        "src/lib/pages/Load/Load.test.jsx::__file_root__",
-        "src/lib/pages/ImportExport/ImportExport.test.jsx::__file_root__",
-        "src/lib/components/LabelForm/LabelForm.test.jsx::__file_root__",
-        "src/lib/components/Url/Url.test.jsx::__file_root__",
-        "src/lib/components/LabelCollection/LabelCollection.test.jsx::__file_root__",
-        "src/lib/components/Favorites/Favorites.test.jsx::__file_root__",
-        "src/lib/components/Tabs/Tabs.test.jsx::__file_root__",
-        "src/lib/components/LabelFormContainer/LabelFormContainer.test.jsx::__file_root__",
-        "src/lib/components/SearchResults/SearchResults.test.jsx::__file_root__",
-        "src/lib/components/Labels/Labels.test.jsx::__file_root__",
-        "src/lib/components/LoadPerTabNote/LoadPerTabNote.test.jsx::__file_root__",
-        "src/lib/components/Search/Search.test.jsx::__file_root__",
-        "src/lib/components/Settings/Settings.test.jsx::__file_root__",
-        "src/lib/components/LoadMeter/LoadMeter.test.jsx::__file_root__",
-        "src/lib/components/LoadMeterCaption/LoadMeterCaption.test.jsx::__file_root__",
-        "src/lib/components/Triage/Triage.test.jsx::__file_root__",
+        "src/lib/utils/searchChromeHistory.test.js::__file_root__",
         "src/lib/utils/deleteUrlFromHistory.test.js::__file_root__",
         "src/lib/utils/openUrlKey.test.js::__file_root__",
-        "src/lib/utils/searchChromeHistory.test.js::__file_root__",
         "src/index.jsx::__file_root__"
       ]
     },
@@ -7676,6 +7810,14 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/deletedLabelTitles.js::deletedLabelTitles": {
+      "filePath": "src/lib/utils/deletedLabelTitles.js",
+      "name": "deletedLabelTitles",
+      "imports": [],
+      "importedBy": [
+        "service_worker.test.js::__file_root__"
+      ]
+    },
     "src/lib/utils/deletedLabelTitles.test.js::__file_root__": {
       "filePath": "src/lib/utils/deletedLabelTitles.test.js",
       "name": "__file_root__",
@@ -7684,6 +7826,14 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/deriveGaugeTotals.js::deriveGaugeTotals": {
+      "filePath": "src/lib/utils/deriveGaugeTotals.js",
+      "name": "deriveGaugeTotals",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/deriveGaugeTotals.test.js::__file_root__"
+      ]
+    },
     "src/lib/utils/deriveGaugeTotals.test.js::__file_root__": {
       "filePath": "src/lib/utils/deriveGaugeTotals.test.js",
       "name": "__file_root__",
@@ -7691,6 +7841,15 @@
         "src/lib/utils/deriveGaugeTotals.js::deriveGaugeTotals"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/deriveSystemTotals.js::deriveSystemTotals": {
+      "filePath": "src/lib/utils/deriveSystemTotals.js",
+      "name": "deriveSystemTotals",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/deriveSystemTotals.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/deriveSystemTotals.test.js::__file_root__": {
       "filePath": "src/lib/utils/deriveSystemTotals.test.js",
@@ -7707,6 +7866,14 @@
         "src/Constants.jsx::__file_root__"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/describeDragAddition.js::describeDragAddition": {
+      "filePath": "src/lib/utils/describeDragAddition.js",
+      "name": "describeDragAddition",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/describeDragAddition.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/describeDragAddition.test.js::__file_root__": {
       "filePath": "src/lib/utils/describeDragAddition.test.js",
@@ -7734,6 +7901,14 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/devPageText.js::devPageText": {
+      "filePath": "src/lib/utils/devPageText.js",
+      "name": "devPageText",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/devPageText.test.js::__file_root__"
+      ]
+    },
     "src/lib/utils/devPageText.test.js::__file_root__": {
       "filePath": "src/lib/utils/devPageText.test.js",
       "name": "__file_root__",
@@ -7741,6 +7916,54 @@
         "src/lib/utils/devPageText.js::devPageText"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/dragHoverStore.js::getDragActive": {
+      "filePath": "src/lib/utils/dragHoverStore.js",
+      "name": "getDragActive",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dragHoverStore.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/dragHoverStore.js::getDragHover": {
+      "filePath": "src/lib/utils/dragHoverStore.js",
+      "name": "getDragHover",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dragHoverStore.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/dragHoverStore.js::setDragActive": {
+      "filePath": "src/lib/utils/dragHoverStore.js",
+      "name": "setDragActive",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dragHoverStore.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/dragHoverStore.js::setDragHover": {
+      "filePath": "src/lib/utils/dragHoverStore.js",
+      "name": "setDragHover",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dragHoverStore.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/dragHoverStore.js::subscribeDragActive": {
+      "filePath": "src/lib/utils/dragHoverStore.js",
+      "name": "subscribeDragActive",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dragHoverStore.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/dragHoverStore.js::subscribeDragHover": {
+      "filePath": "src/lib/utils/dragHoverStore.js",
+      "name": "subscribeDragHover",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dragHoverStore.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/dragHoverStore.test.js::__file_root__": {
       "filePath": "src/lib/utils/dragHoverStore.test.js",
@@ -7764,14 +7987,6 @@
       ],
       "importedBy": []
     },
-    "src/lib/utils/dragReducer.js::applyDrag": {
-      "filePath": "src/lib/utils/dragReducer.js",
-      "name": "applyDrag",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/dragReducer.test.js::__file_root__"
-      ]
-    },
     "src/lib/utils/dragReducer.test.js::__file_root__": {
       "filePath": "src/lib/utils/dragReducer.test.js",
       "name": "__file_root__",
@@ -7781,6 +7996,38 @@
         "src/lib/utils/labelDisplayOrder.js::labelDisplayOrder"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/dropTargeting.js::__file_root__": {
+      "filePath": "src/lib/utils/dropTargeting.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dropTargeting.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/dropTargeting.js::dropTargetAtPoint": {
+      "filePath": "src/lib/utils/dropTargeting.js",
+      "name": "dropTargetAtPoint",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dropTargeting.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/dropTargeting.js::dropTargetIdAtPoint": {
+      "filePath": "src/lib/utils/dropTargeting.js",
+      "name": "dropTargetIdAtPoint",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dropTargeting.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/dropTargeting.js::dropTargetIdFromElement": {
+      "filePath": "src/lib/utils/dropTargeting.js",
+      "name": "dropTargetIdFromElement",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/dropTargeting.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/dropTargeting.test.js::__file_root__": {
       "filePath": "src/lib/utils/dropTargeting.test.js",
@@ -7799,25 +8046,7 @@
       "imports": [
         "src/Constants.jsx::__file_root__"
       ],
-      "importedBy": [
-        "src/lib/utils/effectiveColumns.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/effectiveColumns.js::columnsForWidth": {
-      "filePath": "src/lib/utils/effectiveColumns.js",
-      "name": "columnsForWidth",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/effectiveColumns.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/effectiveColumns.js::effectiveColumns": {
-      "filePath": "src/lib/utils/effectiveColumns.js",
-      "name": "effectiveColumns",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/effectiveColumns.test.js::__file_root__"
-      ]
+      "importedBy": []
     },
     "src/lib/utils/effectiveColumns.test.js::__file_root__": {
       "filePath": "src/lib/utils/effectiveColumns.test.js",
@@ -7828,6 +8057,14 @@
         "src/lib/utils/effectiveColumns.js::effectiveColumns"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/event.js::__file_root__": {
+      "filePath": "src/lib/utils/event.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/index.js::__file_root__"
+      ]
     },
     "src/lib/utils/faviconMonogram.js::faviconMonogram": {
       "filePath": "src/lib/utils/faviconMonogram.js",
@@ -7850,7 +8087,8 @@
       "name": "findLabelForUrlKey",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/findLabelForUrlKey.test.js::__file_root__"
+        "src/lib/utils/findLabelForUrlKey.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/findLabelForUrlKey.test.js::__file_root__": {
@@ -7860,14 +8098,6 @@
         "src/lib/utils/findLabelForUrlKey.js::findLabelForUrlKey"
       ],
       "importedBy": []
-    },
-    "src/lib/utils/formatAutoClose.js::formatAutoClose": {
-      "filePath": "src/lib/utils/formatAutoClose.js",
-      "name": "formatAutoClose",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/formatAutoClose.test.js::__file_root__"
-      ]
     },
     "src/lib/utils/formatAutoClose.test.js::__file_root__": {
       "filePath": "src/lib/utils/formatAutoClose.test.js",
@@ -7898,7 +8128,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/groupAdditionLog.test.js::__file_root__"
+        "src/lib/utils/groupAdditionLog.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/groupAdditionLog.js::buildGroupAdditionEntry": {
@@ -7906,7 +8137,8 @@
       "name": "buildGroupAdditionEntry",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/groupAdditionLog.test.js::__file_root__"
+        "src/lib/utils/groupAdditionLog.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/groupAdditionLog.test.js::__file_root__": {
@@ -7934,6 +8166,24 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/groupMoveLog.js::__file_root__": {
+      "filePath": "src/lib/utils/groupMoveLog.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/groupMoveLog.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/groupMoveLog.js::buildGroupMoveEntry": {
+      "filePath": "src/lib/utils/groupMoveLog.js",
+      "name": "buildGroupMoveEntry",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/groupMoveLog.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
+      ]
+    },
     "src/lib/utils/groupMoveLog.test.js::__file_root__": {
       "filePath": "src/lib/utils/groupMoveLog.test.js",
       "name": "__file_root__",
@@ -7943,6 +8193,24 @@
         "src/lib/utils/groupMoveLog.js::buildGroupMoveEntry"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/groupRemovalLog.js::__file_root__": {
+      "filePath": "src/lib/utils/groupRemovalLog.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/groupRemovalLog.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/groupRemovalLog.js::buildGroupRemovalEntry": {
+      "filePath": "src/lib/utils/groupRemovalLog.js",
+      "name": "buildGroupRemovalEntry",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/groupRemovalLog.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/groupRemovalLog.test.js::__file_root__": {
       "filePath": "src/lib/utils/groupRemovalLog.test.js",
@@ -7958,8 +8226,8 @@
       "name": "groupSearchUrlsByLabel",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/groupSearchUrlsByLabel.test.js::__file_root__",
-        "src/lib/utils/segmentFullSearchResults.js::__file_root__"
+        "src/lib/utils/segmentFullSearchResults.js::__file_root__",
+        "src/lib/utils/groupSearchUrlsByLabel.test.js::__file_root__"
       ]
     },
     "src/lib/utils/groupSearchUrlsByLabel.test.js::__file_root__": {
@@ -7976,7 +8244,7 @@
       "imports": [],
       "importedBy": [
         "src/lib/utils/groupMoveLog.test.js::__file_root__",
-        "src/lib/utils/groupingLog.test.js::__file_root__"
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/groupingLog.test.js::__file_root__": {
@@ -7986,14 +8254,6 @@
         "src/lib/utils/groupingLog.js::appendGroupingLog"
       ],
       "importedBy": []
-    },
-    "src/lib/utils/hasPerTabLoadData.js::hasPerTabLoadData": {
-      "filePath": "src/lib/utils/hasPerTabLoadData.js",
-      "name": "hasPerTabLoadData",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/hasPerTabLoadData.test.js::__file_root__"
-      ]
     },
     "src/lib/utils/hasPerTabLoadData.test.js::__file_root__": {
       "filePath": "src/lib/utils/hasPerTabLoadData.test.js",
@@ -8010,6 +8270,15 @@
         "src/lib/utils/samePageKey.js::samePageKey"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/healDriftedLabelSlot.js::healDriftedLabelSlot": {
+      "filePath": "src/lib/utils/healDriftedLabelSlot.js",
+      "name": "healDriftedLabelSlot",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/healDriftedLabelSlot.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/healDriftedLabelSlot.test.js::__file_root__": {
       "filePath": "src/lib/utils/healDriftedLabelSlot.test.js",
@@ -8078,6 +8347,14 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/historyTimestamp.js::historyTimestamp": {
+      "filePath": "src/lib/utils/historyTimestamp.js",
+      "name": "historyTimestamp",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/pageContentTargets.js::__file_root__"
+      ]
+    },
     "src/lib/utils/historyTimestamp.test.js::__file_root__": {
       "filePath": "src/lib/utils/historyTimestamp.test.js",
       "name": "__file_root__",
@@ -8094,14 +8371,6 @@
       ],
       "importedBy": []
     },
-    "src/lib/utils/htmlToText.js::htmlToText": {
-      "filePath": "src/lib/utils/htmlToText.js",
-      "name": "htmlToText",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/pageContentScan.js::__file_root__"
-      ]
-    },
     "src/lib/utils/htmlToText.test.js::__file_root__": {
       "filePath": "src/lib/utils/htmlToText.test.js",
       "name": "__file_root__",
@@ -8109,6 +8378,14 @@
         "src/lib/utils/htmlToText.js::htmlToText"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/humanReadableNumber.js::humanReadableNumber": {
+      "filePath": "src/lib/utils/humanReadableNumber.js",
+      "name": "humanReadableNumber",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/humanReadableNumber.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/humanReadableNumber.test.js::__file_root__": {
       "filePath": "src/lib/utils/humanReadableNumber.test.js",
@@ -8135,7 +8412,9 @@
       "imports": [
         "src/lib/utils/importSnapshot/repairTransportDamage.js::__file_root__"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/utils/importSnapshot/index.js::__file_root__"
+      ]
     },
     "src/lib/utils/importSnapshot/describeImport.js::describeImport": {
       "filePath": "src/lib/utils/importSnapshot/describeImport.js",
@@ -8167,17 +8446,7 @@
         "src/lib/utils/importSnapshot/validateSnapshotShape.js::__file_root__",
         "src/lib/utils/importSnapshot/describeImport.js::__file_root__"
       ],
-      "importedBy": [
-        "src/lib/utils/importSnapshot/index.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/importSnapshot/index.js::parseImportSnapshot": {
-      "filePath": "src/lib/utils/importSnapshot/index.js",
-      "name": "parseImportSnapshot",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/importSnapshot/index.test.js::__file_root__"
-      ]
+      "importedBy": []
     },
     "src/lib/utils/importSnapshot/index.test.js::__file_root__": {
       "filePath": "src/lib/utils/importSnapshot/index.test.js",
@@ -8193,7 +8462,25 @@
       "name": "relaxSyntax",
       "imports": [],
       "importedBy": [
+        "src/lib/utils/importSnapshot/index.js::__file_root__",
+        "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js::__file_root__",
         "src/lib/utils/importSnapshot/salvageLabels.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/importSnapshot/relaxJsonSyntax.js::rewriteRelaxedSyntax": {
+      "filePath": "src/lib/utils/importSnapshot/relaxJsonSyntax.js",
+      "name": "rewriteRelaxedSyntax",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/importSnapshot/relaxJsonSyntax.js::stripTrailingCommas": {
+      "filePath": "src/lib/utils/importSnapshot/relaxJsonSyntax.js",
+      "name": "stripTrailingCommas",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js::__file_root__"
       ]
     },
     "src/lib/utils/importSnapshot/relaxJsonSyntax.test.js::__file_root__": {
@@ -8211,9 +8498,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/importSnapshot/repairTransportDamage.test.js::__file_root__",
-        "src/lib/utils/importSnapshot/describeImport.js::__file_root__",
-        "src/lib/utils/importSnapshot/describeImport.test.js::__file_root__"
+        "src/lib/utils/importSnapshot/index.js::__file_root__",
+        "src/lib/utils/importSnapshot/index.js::__file_root__"
       ]
     },
     "src/lib/utils/importSnapshot/repairTransportDamage.js::buildRepairCandidates": {
@@ -8221,47 +8507,7 @@
       "name": "buildRepairCandidates",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/importSnapshot/repairTransportDamage.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/importSnapshot/repairTransportDamage.js::normalizeInvisibleCharacters": {
-      "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
-      "name": "normalizeInvisibleCharacters",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/importSnapshot/repairTransportDamage.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/importSnapshot/repairTransportDamage.js::spaceOutControlCharacters": {
-      "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
-      "name": "spaceOutControlCharacters",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/importSnapshot/repairTransportDamage.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/importSnapshot/repairTransportDamage.js::straightenSmartQuotes": {
-      "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
-      "name": "straightenSmartQuotes",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/importSnapshot/repairTransportDamage.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/importSnapshot/repairTransportDamage.js::stripCodeFence": {
-      "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
-      "name": "stripCodeFence",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/importSnapshot/repairTransportDamage.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/importSnapshot/repairTransportDamage.js::stripWrapper": {
-      "filePath": "src/lib/utils/importSnapshot/repairTransportDamage.js",
-      "name": "stripWrapper",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/importSnapshot/repairTransportDamage.test.js::__file_root__"
+        "src/lib/utils/importSnapshot/index.js::__file_root__"
       ]
     },
     "src/lib/utils/importSnapshot/repairTransportDamage.test.js::__file_root__": {
@@ -8296,11 +8542,29 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/importSnapshot/validateSnapshotShape.js::__file_root__": {
+      "filePath": "src/lib/utils/importSnapshot/validateSnapshotShape.js",
+      "name": "__file_root__",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/importSnapshot/index.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/importSnapshot/validateSnapshotShape.js::asLabelList": {
+      "filePath": "src/lib/utils/importSnapshot/validateSnapshotShape.js",
+      "name": "asLabelList",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/importSnapshot/validateSnapshotShape.test.js::__file_root__",
+        "src/lib/utils/importSnapshot/index.js::__file_root__"
+      ]
+    },
     "src/lib/utils/importSnapshot/validateSnapshotShape.js::normalizeLabel": {
       "filePath": "src/lib/utils/importSnapshot/validateSnapshotShape.js",
       "name": "normalizeLabel",
       "imports": [],
       "importedBy": [
+        "src/lib/utils/importSnapshot/validateSnapshotShape.test.js::__file_root__",
         "src/lib/utils/importSnapshot/salvageLabels.js::__file_root__"
       ]
     },
@@ -8338,15 +8602,6 @@
       ],
       "importedBy": []
     },
-    "src/lib/utils/isSearchEngineUrl.js::isSearchEngineUrl": {
-      "filePath": "src/lib/utils/isSearchEngineUrl.js",
-      "name": "isSearchEngineUrl",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/isSearchEngineUrl.test.js::__file_root__",
-        "src/lib/utils/rankFavorites.js::__file_root__"
-      ]
-    },
     "src/lib/utils/isSearchEngineUrl.test.js::__file_root__": {
       "filePath": "src/lib/utils/isSearchEngineUrl.test.js",
       "name": "__file_root__",
@@ -8355,20 +8610,11 @@
       ],
       "importedBy": []
     },
-    "src/lib/utils/isThinPageText.js::__file_root__": {
-      "filePath": "src/lib/utils/isThinPageText.js",
-      "name": "__file_root__",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/isThinPageText.test.js::__file_root__"
-      ]
-    },
     "src/lib/utils/isThinPageText.js::isThinPageText": {
       "filePath": "src/lib/utils/isThinPageText.js",
       "name": "isThinPageText",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/isThinPageText.test.js::__file_root__",
         "src/lib/utils/pageContentScan.js::__file_root__"
       ]
     },
@@ -8386,7 +8632,7 @@
       "name": "isTrackableUrl",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/rankFavorites.js::__file_root__"
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/isTrackableUrl.test.js::__file_root__": {
@@ -8402,9 +8648,8 @@
       "name": "labelDisplayOrder",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/dragReducer.js::__file_root__",
         "src/lib/utils/dragReducer.test.js::__file_root__",
-        "src/lib/utils/labelDisplayOrder.test.js::__file_root__"
+        "src/lib/utils/dragReducer.js::__file_root__"
       ]
     },
     "src/lib/utils/labelDisplayOrder.test.js::__file_root__": {
@@ -8421,19 +8666,7 @@
       "imports": [
         "src/lib/utils/migrateLabelsToSync.js::hasGroups"
       ],
-      "importedBy": [
-        "src/lib/utils/storageAccess.js::__file_root__",
-        "src/lib/utils/labelsPrecedence.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/labelsPrecedence.js::resolveLabelsAcrossAreas": {
-      "filePath": "src/lib/utils/labelsPrecedence.js",
-      "name": "resolveLabelsAcrossAreas",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/storageAccess.js::__file_root__",
-        "src/lib/utils/labelsPrecedence.test.js::__file_root__"
-      ]
+      "importedBy": []
     },
     "src/lib/utils/labelsPrecedence.test.js::__file_root__": {
       "filePath": "src/lib/utils/labelsPrecedence.test.js",
@@ -8443,14 +8676,6 @@
         "src/lib/utils/labelsPrecedence.js::resolveLabelsAcrossAreas"
       ],
       "importedBy": []
-    },
-    "src/lib/utils/loadLevel.js::loadLevel": {
-      "filePath": "src/lib/utils/loadLevel.js",
-      "name": "loadLevel",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/loadLevel.test.js::__file_root__"
-      ]
     },
     "src/lib/utils/loadLevel.test.js::__file_root__": {
       "filePath": "src/lib/utils/loadLevel.test.js",
@@ -8465,8 +8690,7 @@
       "name": "matchPageText",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/pageContentScan.js::__file_root__",
-        "src/lib/utils/matchPageText.test.js::__file_root__"
+        "src/lib/utils/pageContentScan.js::__file_root__"
       ]
     },
     "src/lib/utils/matchPageText.test.js::__file_root__": {
@@ -8484,24 +8708,13 @@
         "src/lib/utils/storageAreas.js::__file_root__",
         "src/lib/utils/syncQuota.js::fitsSyncItemQuota"
       ],
-      "importedBy": [
-        "src/lib/utils/migrateLabelsToSync.test.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/migrateLabelsToSync.js::decideMigration": {
-      "filePath": "src/lib/utils/migrateLabelsToSync.js",
-      "name": "decideMigration",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/migrateLabelsToSync.test.js::__file_root__"
-      ]
+      "importedBy": []
     },
     "src/lib/utils/migrateLabelsToSync.js::hasGroups": {
       "filePath": "src/lib/utils/migrateLabelsToSync.js",
       "name": "hasGroups",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/migrateLabelsToSync.test.js::__file_root__",
         "src/lib/utils/labelsPrecedence.js::__file_root__"
       ]
     },
@@ -8510,8 +8723,8 @@
       "name": "migrateLabelsToSync",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/migrateLabelsToSync.test.js::__file_root__",
-        "src/index.jsx::__file_root__"
+        "src/index.jsx::__file_root__",
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/migrateLabelsToSync.test.js::__file_root__": {
@@ -8525,6 +8738,14 @@
         "src/lib/utils/syncQuota.js::__file_root__"
       ],
       "importedBy": []
+    },
+    "src/lib/utils/navigatedAwayFromRecordedSlot.js::navigatedAwayFromRecordedSlot": {
+      "filePath": "src/lib/utils/navigatedAwayFromRecordedSlot.js",
+      "name": "navigatedAwayFromRecordedSlot",
+      "imports": [],
+      "importedBy": [
+        "service_worker.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/navigatedAwayFromRecordedSlot.test.js::__file_root__": {
       "filePath": "src/lib/utils/navigatedAwayFromRecordedSlot.test.js",
@@ -8541,15 +8762,6 @@
         "src/lib/utils/siteKey.js::siteKey"
       ],
       "importedBy": []
-    },
-    "src/lib/utils/normalizeUrl.js::normalizeUrl": {
-      "filePath": "src/lib/utils/normalizeUrl.js",
-      "name": "normalizeUrl",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/hiddenSiteKeys.js::__file_root__",
-        "src/lib/utils/rankFavorites.js::__file_root__"
-      ]
     },
     "src/lib/utils/normalizeUrl.test.js::__file_root__": {
       "filePath": "src/lib/utils/normalizeUrl.test.js",
@@ -8585,7 +8797,25 @@
         "src/lib/utils/devPageText.js::devPageText",
         "src/lib/utils/isThinPageText.js::isThinPageText"
       ],
-      "importedBy": []
+      "importedBy": [
+        "src/lib/utils/pageContentScan.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/pageContentScan.js::pageContentScan": {
+      "filePath": "src/lib/utils/pageContentScan.js",
+      "name": "pageContentScan",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/pageContentScan.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/pageContentScan.js::readTargetText": {
+      "filePath": "src/lib/utils/pageContentScan.js",
+      "name": "readTargetText",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/pageContentScan.test.js::__file_root__"
+      ]
     },
     "src/lib/utils/pageContentScan.test.js::__file_root__": {
       "filePath": "src/lib/utils/pageContentScan.test.js",
@@ -8603,18 +8833,7 @@
       "imports": [
         "src/lib/utils/historyTimestamp.js::historyTimestamp"
       ],
-      "importedBy": [
-        "src/lib/utils/pageContentTargets.test.js::__file_root__",
-        "src/lib/utils/scanScopeOptions.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/pageContentTargets.js::pageContentTargets": {
-      "filePath": "src/lib/utils/pageContentTargets.js",
-      "name": "pageContentTargets",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/pageContentTargets.test.js::__file_root__"
-      ]
+      "importedBy": []
     },
     "src/lib/utils/pageContentTargets.test.js::__file_root__": {
       "filePath": "src/lib/utils/pageContentTargets.test.js",
@@ -8624,14 +8843,6 @@
         "src/lib/utils/pageContentTargets.js::pageContentTargets"
       ],
       "importedBy": []
-    },
-    "src/lib/utils/processLoad.js::summarizeProcessLoad": {
-      "filePath": "src/lib/utils/processLoad.js",
-      "name": "summarizeProcessLoad",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/processLoad.test.js::__file_root__"
-      ]
     },
     "src/lib/utils/processLoad.test.js::__file_root__": {
       "filePath": "src/lib/utils/processLoad.test.js",
@@ -8646,7 +8857,8 @@
       "name": "pruneDeletedUrls",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/pruneDeletedUrls.test.js::__file_root__"
+        "src/lib/utils/pruneDeletedUrls.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/pruneDeletedUrls.test.js::__file_root__": {
@@ -8673,6 +8885,14 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/rankFavorites.js::rankFavorites": {
+      "filePath": "src/lib/utils/rankFavorites.js",
+      "name": "rankFavorites",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/rankFavorites.test.js::__file_root__"
+      ]
+    },
     "src/lib/utils/rankFavorites.test.js::__file_root__": {
       "filePath": "src/lib/utils/rankFavorites.test.js",
       "name": "__file_root__",
@@ -8681,14 +8901,6 @@
         "src/lib/utils/visitDecay.js::__file_root__"
       ],
       "importedBy": []
-    },
-    "src/lib/utils/relativeTime.js::relativeTime": {
-      "filePath": "src/lib/utils/relativeTime.js",
-      "name": "relativeTime",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/relativeTime.test.js::__file_root__"
-      ]
     },
     "src/lib/utils/relativeTime.test.js::__file_root__": {
       "filePath": "src/lib/utils/relativeTime.test.js",
@@ -8703,8 +8915,8 @@
       "name": "samePageKey",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/rankFavorites.js::__file_root__",
-        "src/lib/utils/healDriftedLabelSlot.js::__file_root__"
+        "src/lib/utils/samePageKey.test.js::__file_root__",
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/samePageKey.test.js::__file_root__": {
@@ -8798,6 +9010,14 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/segmentFullSearchResults.js::segmentFullSearchResults": {
+      "filePath": "src/lib/utils/segmentFullSearchResults.js",
+      "name": "segmentFullSearchResults",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/segmentFullSearchResults.test.js::__file_root__"
+      ]
+    },
     "src/lib/utils/segmentFullSearchResults.test.js::__file_root__": {
       "filePath": "src/lib/utils/segmentFullSearchResults.test.js",
       "name": "__file_root__",
@@ -8819,8 +9039,10 @@
       "name": "siteKey",
       "imports": [],
       "importedBy": [
+        "src/lib/utils/siteKey.test.js::__file_root__",
         "src/lib/utils/rankFavorites.js::__file_root__",
-        "src/lib/utils/siteKey.test.js::__file_root__"
+        "src/lib/utils/normalizeUrl.js::__file_root__",
+        "src/lib/utils/isSearchEngineUrl.js::__file_root__"
       ]
     },
     "src/lib/utils/siteKey.test.js::__file_root__": {
@@ -8828,6 +9050,23 @@
       "name": "__file_root__",
       "imports": [
         "src/lib/utils/siteKey.js::siteKey"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/sortAutoClosed.js::__file_root__": {
+      "filePath": "src/lib/utils/sortAutoClosed.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/Constants.jsx::__file_root__"
+      ],
+      "importedBy": []
+    },
+    "src/lib/utils/sortAutoClosed.test.js::__file_root__": {
+      "filePath": "src/lib/utils/sortAutoClosed.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/sortAutoClosed.js::sortAutoClosed",
+        "src/Constants.jsx::__file_root__"
       ],
       "importedBy": []
     },
@@ -8845,6 +9084,22 @@
       ],
       "importedBy": []
     },
+    "src/lib/utils/storageAccess.js::readByArea": {
+      "filePath": "src/lib/utils/storageAccess.js",
+      "name": "readByArea",
+      "imports": [],
+      "importedBy": [
+        "service_worker.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/storageAccess.js::writeByArea": {
+      "filePath": "src/lib/utils/storageAccess.js",
+      "name": "writeByArea",
+      "imports": [],
+      "importedBy": [
+        "service_worker.test.js::__file_root__"
+      ]
+    },
     "src/lib/utils/storageAccess.test.js::__file_root__": {
       "filePath": "src/lib/utils/storageAccess.test.js",
       "name": "__file_root__",
@@ -8858,20 +9113,12 @@
       ],
       "importedBy": []
     },
-    "src/lib/utils/storageAreas.js::KNOWN_KEYS": {
-      "filePath": "src/lib/utils/storageAreas.js",
-      "name": "KNOWN_KEYS",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/chromeShim/chromeShim.js::__file_root__"
-      ]
-    },
     "src/lib/utils/storageAreas.js::__file_root__": {
       "filePath": "src/lib/utils/storageAreas.js",
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/chromeShim/chromeShim.js::__file_root__"
+        "src/lib/utils/storageAccess.js::__file_root__"
       ]
     },
     "src/lib/utils/storageAreas.js::areaForKey": {
@@ -8879,7 +9126,23 @@
       "name": "areaForKey",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/chromeShim/chromeShim.js::__file_root__"
+        "service_worker.test.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/storageAreas.js::partitionKeysByArea": {
+      "filePath": "src/lib/utils/storageAreas.js",
+      "name": "partitionKeysByArea",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/storageAccess.js::__file_root__"
+      ]
+    },
+    "src/lib/utils/storageAreas.js::partitionUpdatesByArea": {
+      "filePath": "src/lib/utils/storageAreas.js",
+      "name": "partitionUpdatesByArea",
+      "imports": [],
+      "importedBy": [
+        "src/lib/utils/storageAccess.js::__file_root__"
       ]
     },
     "src/lib/utils/storageAreas.test.js::__file_root__": {
@@ -8900,9 +9163,8 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/storageAccess.test.js::__file_root__",
-        "src/lib/utils/migrateLabelsToSync.test.js::__file_root__",
-        "src/lib/utils/syncQuota.test.js::__file_root__"
+        "src/lib/utils/syncQuota.test.js::__file_root__",
+        "src/lib/utils/storageAccess.test.js::__file_root__"
       ]
     },
     "src/lib/utils/syncQuota.js::fitsSyncItemQuota": {
@@ -8910,9 +9172,8 @@
       "name": "fitsSyncItemQuota",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/migrateLabelsToSync.js::__file_root__",
-        "src/lib/utils/storageAccess.js::__file_root__",
-        "src/lib/utils/syncQuota.test.js::__file_root__"
+        "src/lib/utils/syncQuota.test.js::__file_root__",
+        "src/lib/utils/storageAccess.js::__file_root__"
       ]
     },
     "src/lib/utils/syncQuota.js::serializedByteLength": {
@@ -8920,8 +9181,8 @@
       "name": "serializedByteLength",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/storageAccess.js::__file_root__",
-        "src/lib/utils/syncQuota.test.js::__file_root__"
+        "src/lib/utils/syncQuota.test.js::__file_root__",
+        "src/lib/utils/storageAccess.js::__file_root__"
       ]
     },
     "src/lib/utils/syncQuota.test.js::__file_root__": {
@@ -8939,7 +9200,7 @@
       "name": "bucketTabsByWindow",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/tabPlacement.test.js::__file_root__"
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/tabPlacement.js::needsGroupCall": {
@@ -8947,7 +9208,7 @@
       "name": "needsGroupCall",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/tabPlacement.test.js::__file_root__"
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/tabPlacement.js::needsUngroupCall": {
@@ -8955,7 +9216,7 @@
       "name": "needsUngroupCall",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/tabPlacement.test.js::__file_root__"
+        "service_worker.test.js::__file_root__"
       ]
     },
     "src/lib/utils/tabPlacement.test.js::__file_root__": {
@@ -8989,14 +9250,6 @@
       ],
       "importedBy": []
     },
-    "src/lib/utils/usageMax.js::usageMax": {
-      "filePath": "src/lib/utils/usageMax.js",
-      "name": "usageMax",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/usageMax.test.js::__file_root__"
-      ]
-    },
     "src/lib/utils/usageMax.test.js::__file_root__": {
       "filePath": "src/lib/utils/usageMax.test.js",
       "name": "__file_root__",
@@ -9004,43 +9257,6 @@
         "src/lib/utils/usageMax.js::usageMax"
       ],
       "importedBy": []
-    },
-    "src/lib/utils/visitDecay.js::__file_root__": {
-      "filePath": "src/lib/utils/visitDecay.js",
-      "name": "__file_root__",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/rankFavorites.test.js::__file_root__",
-        "src/lib/utils/visitDecay.test.js::__file_root__",
-        "src/lib/utils/rankFavorites.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/visitDecay.js::decayedVisitScore": {
-      "filePath": "src/lib/utils/visitDecay.js",
-      "name": "decayedVisitScore",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/visitDecay.test.js::__file_root__",
-        "src/lib/utils/rankFavorites.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/visitDecay.js::pruneVisits": {
-      "filePath": "src/lib/utils/visitDecay.js",
-      "name": "pruneVisits",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/visitDecay.test.js::__file_root__",
-        "src/lib/utils/rankFavorites.js::__file_root__"
-      ]
-    },
-    "src/lib/utils/visitDecay.js::seedVisitsFromCount": {
-      "filePath": "src/lib/utils/visitDecay.js",
-      "name": "seedVisitsFromCount",
-      "imports": [],
-      "importedBy": [
-        "src/lib/utils/visitDecay.test.js::__file_root__",
-        "src/lib/utils/rankFavorites.js::__file_root__"
-      ]
     },
     "src/lib/utils/visitDecay.test.js::__file_root__": {
       "filePath": "src/lib/utils/visitDecay.test.js",
@@ -9058,9 +9274,9 @@
       "name": "__file_root__",
       "imports": [],
       "importedBy": [
-        "src/lib/hooks/useListKeyboardNav.js::__file_root__",
+        "src/lib/components/Search/Search.jsx::__file_root__",
         "src/lib/components/SearchResults/SearchResults.jsx::__file_root__",
-        "src/lib/components/Search/Search.jsx::__file_root__"
+        "src/lib/hooks/useListKeyboardNav.js::__file_root__"
       ]
     },
     "vite.config.mjs::__file_root__": {
@@ -9073,5 +9289,5 @@
       "importedBy": []
     }
   },
-  "lastUpdated": "2026-09-18T13:12:55Z"
+  "lastUpdated": "2026-10-02T01:33:20Z"
 }

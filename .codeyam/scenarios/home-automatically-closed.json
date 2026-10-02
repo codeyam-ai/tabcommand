@@ -8,7 +8,7 @@
   "mocks": {},
   "browserState": {
     "localStorage": {
-      "autoClosed": "{\"url-https://en.wikipedia.org/wiki/Tab_(interface)\":1782588000000,\"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\":1782585000000,\"url-https://www.figma.com/file/tabcommand\":1782560000000}",
+      "autoClosed": "{\"url-https://en.wikipedia.org/wiki/Tab_(interface)\":1790901730536,\"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\":1790898730536,\"url-https://www.figma.com/file/tabcommand\":1790873730536}",
       "url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms": "{\"title\":\"chrome.alarms not firing in MV3 service worker - Stack Overflow\",\"favicon\":\"https://www.google.com/s2/favicons?domain=stackoverflow.com&sz=64\",\"processes\":{\"samples\":0}}",
       "url-https://news.ycombinator.com": "{\"title\":\"Hacker News\",\"favicon\":\"https://www.google.com/s2/favicons?domain=news.ycombinator.com&sz=64\",\"processes\":{\"samples\":0}}",
       "url-https://react.dev/learn": "{\"title\":\"Quick Start – React\",\"favicon\":\"https://www.google.com/s2/favicons?domain=react.dev&sz=64\",\"processes\":{\"samples\":0}}",

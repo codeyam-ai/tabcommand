@@ -1,0 +1,27 @@
+{
+  "claimStartedAt": "2026-10-02T00:48:56Z",
+  "completedAt": "2026-10-02T01:30:08Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.0",
+    "currentStep": "ui-step22",
+    "machine": "codeyam-editor-codeyam-editor-11",
+    "pid": 7,
+    "priority": 0,
+    "selectedPlan": "automatically-closed-newest-first",
+    "sessionId": "5b965388-ed5c-400f-b96c-faa5d59f4da9",
+    "startedAt": "2026-10-02T00:48:56Z"
+  },
+  "createdAt": "2026-09-30T20:14:08Z",
+  "deliverables": [
+    "src/lib/components/Tabs/Tabs.jsx",
+    "src/lib/components/Tabs/Tabs.test.jsx",
+    "src/lib/utils/sortAutoClosed.js",
+    "src/lib/utils/sortAutoClosed.test.js"
+  ],
+  "journalTimestamp": "2026-10-02T01:30:08Z",
+  "mode": "ui",
+  "planFile": "completed/automatically-closed-newest-first.md",
+  "slug": "automatically-closed-newest-first",
+  "title": "Automatically Closed Newest First"
+}

@@ -2190,6 +2190,13 @@ export default function CodeyamIsolate() {
 
   const props = resolveIsolationProps(isolate, variant);
 
+  // Tabs is the full-height right rail: `.Tabs` is `height: 100%`, so centered
+  // in an unsized flex box it collapses to just its footer. Give it a
+  // viewport-tall frame like App's layout does.
+  const frame = isolate === 'Tabs'
+    ? (child) => <div style={{ height: 'calc(100vh - 48px)', display: 'flex' }}>{child}</div>
+    : (child) => child;
+
   // The editor captures the full viewport (it does NOT crop to #codeyam-capture),
   // so a leaf component left at its natural position renders in a corner of an
   // otherwise-blank frame. Center it in the viewport instead, so each component
@@ -2212,7 +2219,7 @@ export default function CodeyamIsolate() {
     >
       <IsolationErrorBoundary name={isolate}>
         <DragDropContext onDragEnd={noop}>
-          <Component {...props} />
+          {frame(<Component {...props} />)}
         </DragDropContext>
       </IsolationErrorBoundary>
     </div>

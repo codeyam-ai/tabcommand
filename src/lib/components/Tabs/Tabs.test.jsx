@@ -33,6 +33,27 @@ describe('Tabs', () => {
     window.localStorage.clear();
   });
 
+  // auto-closed tabs list the most recently closed tab first
+  it('orders the Automatically Closed section newest-first', async () => {
+    const now = Date.now();
+    seed('activeTabs', []);
+    seed('allUrls', ['url-https://old.com', 'url-https://new.com']);
+    seed('url-https://old.com', { title: 'Old Close', favicon: '' });
+    seed('url-https://new.com', { title: 'New Close', favicon: '' });
+    seed('autoClosed', {
+      'url-https://old.com': now - 60 * 60 * 1000,
+      'url-https://new.com': now - 60 * 1000,
+    });
+    installChromeShim();
+    const { container } = renderTabs();
+
+    await screen.findByText('New Close');
+    const section = container.querySelector('.Tabs-autoClosed');
+    const text = section.textContent;
+    expect(text).toContain('Old Close');
+    expect(text.indexOf('New Close')).toBeLessThan(text.indexOf('Old Close'));
+  });
+
   // with no tabs, the Active Tabs section shows its explainer copy
   it('shows the empty-state explainer when there are no active tabs', async () => {
     installChromeShim();

@@ -1,0 +1,167 @@
+{
+  "timestamp": "2026-10-02T01:30:08Z",
+  "title": "Automatically Closed Newest First",
+  "type": "feature",
+  "userRequest": "## Summary\n\nThe sidebar's **Automatically Closed** section lists tabs oldest-first. `sortAutoClosed` in `src/lib/components/Tabs/Tabs.jsx` sorts the `autoClosed` map ascending by close timestamp (`autoClosed[a] - autoClosed[b]`), so the tab the Closer just closed ends up at the bottom, often below the fold. Users come to this list to get back something that was *just* closed, so it should show the most recently closed tab first.\n\n## Key Decisions\n\n- **Flip the comparator in one place.** `sortAutoClosed` feeds both the initial `Chrome.get` load and the `storage.onChanged` update path, and `ungroupedAutoClosed()` / `autoClosedTabUrlLabels()` keep the order of `autoClosedUrlKeys`. So changing the sort to descending reorders the Ungrouped block and the rows inside each group heading, and it orders the group headings by each group's most recent close.\n- **Keep the section layout.** Ungrouped still renders above the grouped headings in this section, as it does today. Only the order within the section changes.\n- **Out of scope: headings split across runs.** `generateTabUrlLabels` starts a new heading for each consecutive run of a label. If closes from label A and label B are interleaved in time, A's heading can show up twice. That already happens with ascending order and isn't made worse by this change. If it's worth fixing, it belongs in its own plan.\n- **The service worker is unchanged.** `autoClosed` stays a `urlKey -> timestamp` map in storage. Ordering is purely a display concern in `Tabs.jsx`.\n\n## Implementation\n\n### 1. Sort auto-closed keys newest-first\n\n**File**: `src/lib/components/Tabs/Tabs.jsx`\n\nIn `sortAutoClosed` (inside the mount `useEffect`), change the comparator from `(a, b) => autoClosed[a] - autoClosed[b]` to `(a, b) => autoClosed[b] - autoClosed[a]`. Add a short comment saying the list is most recent first so users can quickly restore what was just closed.\n\n### 2. Pin the order with a test\n\n**File**: `src/lib/components/Tabs/Tabs.test.jsx`\n\nAdd the reproduction test below. It seeds two ungrouped auto-closed URLs with different close times and checks that the newer one renders first in the `.Tabs-autoClosed` section.\n\n## Reused existing code\n\n- `Tabs` from `src/lib/components/Tabs/Tabs.jsx` (glossary entry: `Tabs`, tested by `src/lib/components/Tabs/Tabs.test.jsx`)\n- `installChromeShim` from `src/lib/utils/chromeShim/chromeShim.js`: the localStorage-backed chrome shim the existing Tabs tests seed through\n- `MaxAutoClosedTime` from `src/Constants.jsx`: the retention filter stays as it is\n\n## Reproduction Test\n\nThe Automatically Closed section renders the oldest close first when it should render the most recent close first.\n\n**Target**: `src/lib/components/Tabs/Tabs.test.jsx`. Run with `codeyam-editor editor refresh-tests --test Tabs`.\n\n```jsx\n// auto-closed tabs list the most recently closed tab first\nit('orders the Automatically Closed section newest-first', async () => {\n  const now = Date.now();\n  seed('activeTabs', []);\n  seed('allUrls', ['url-https://old.com', 'url-https://new.com']);\n  seed('url-https://old.com', { title: 'Old Close', favicon: '' });\n  seed('url-https://new.com', { title: 'New Close', favicon: '' });\n  seed('autoClosed', {\n    'url-https://old.com': now - 60 * 60 * 1000,\n    'url-https://new.com': now - 60 * 1000,\n  });\n  installChromeShim();\n  const { container } = renderTabs();\n\n  await screen.findByText('New Close');\n  const section = container.querySelector('.Tabs-autoClosed');\n  const text = section.textContent;\n  expect(text.indexOf('New Close')).toBeLessThan(text.indexOf('Old Close'));\n});\n```\n\nStatus: PROPOSED. Confirm it fails at execution. Expected failure: with the current ascending sort, 'Old Close' comes before 'New Close' in the section's text, so the `toBeLessThan` assertion fails. The fixture assumes auto-closed rows render their `title` from the seeded url record (the Url component reads it). Check at execution that both titles actually appear in `.Tabs-autoClosed` before trusting the failure.\n\n## Scenarios to Demonstrate\n\n- Several ungrouped auto-closed tabs closed at clearly different times: newest at the top\n- A mix of ungrouped and labeled auto-closed tabs: Ungrouped block newest-first, and group headings ordered by their most recent close\n- A single auto-closed tab (unchanged)\n- Empty state: the explainer copy still shows (unchanged)",
+  "description": "The sidebar's Automatically Closed section now lists the most recently closed tab first, both on load and after a storage change (e.g. removing a row), and group headings follow by each group's most recent close. The filter-and-sort moved out of Tabs' mount effect into a pure, tested `sortAutoClosed(autoClosed, now)` util, and a Tabs repro test pins the rendered order (confirmed red against the old ascending sort). Scenario upkeep: Home - Automatically Closed's fixed timestamps had aged past the 5-day retention window and rendered empty, so they were shifted forward (order and gaps preserved); isolated Tabs scenarios rendered as a bare footer because the isolate harness gave the full-height rail no height, so the harness now frames Tabs at viewport height. Added Tabs - Auto Closed Newest First and Tabs - Auto Closed Newest First After Removal (clicks the newest row's remove control). Scope verdict: all 8 plan deliverables delivered, none deferred (status recorded by the agent, not separately confirmed by the user). Known follow-up, out of scope: scenarios seed absolute close timestamps, so auto-closed scenarios will age out of the retention window again within ~5 days; headings split across interleaved runs remain as before.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/capture.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/harness/isolate.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/automatically-closed-newest-first.md\t.codeyam/plans/completed/automatically-closed-newest-first.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/coverage-plan/tabs.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/home-automatically-closed.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/.capture-pipeline.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-automatically-closed--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/home-unorganized--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-grouped--desktop.png.hash",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/tabs-grouped.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/finalize-debt.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/scenario-taxonomy.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/472921cd27cfe9e9ada7c2aae42938c8e261b173584b6d0062cce0466b29efd4.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/9c2892219d64ae84bb64a154c805d1d62671ac74359270372e3efbb5310a1945.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.jsx",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/components/Tabs/Tabs.test.jsx",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-auto-closed-newest-first--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-auto-closed-newest-first--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-auto-closed-newest-first-after-removal--desktop.png",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/screenshots/tabs-auto-closed-newest-first-after-removal--desktop.png.hash",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/tabs-auto-closed-newest-first-after-removal.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/scenarios/tabs-auto-closed-newest-first.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/state/claude-launch-provenance.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/1d82ef8ad569244c68271dc37715478bc3a1ead107e4aaa0c12aa5a668ab584a.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/e17832070812e94e7b323efe07ee20554767a83af0c42185be18a81c62b61bfe.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/sortAutoClosed.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/utils/sortAutoClosed.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Tabs - Auto Closed Newest First",
+      "screenshotPath": "tabs-auto-closed-newest-first--desktop.png"
+    },
+    {
+      "name": "Tabs - Auto Closed Newest First After Removal",
+      "screenshotPath": "tabs-auto-closed-newest-first-after-removal--desktop.png"
+    },
+    {
+      "name": "Tabs - Grouped",
+      "screenshotPath": "tabs-grouped--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 1152,
+    "passed": 1152,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 1152,
+        "passed": 1152
+      }
+    ]
+  }
+}

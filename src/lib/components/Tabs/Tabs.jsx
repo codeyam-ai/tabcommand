@@ -4,12 +4,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Icon } from '../Icon';
 import { DraggableTabUrls } from '../DraggableTabUrls';
 
-import { MaxAutoClosedTime, Pages, HeavyThresholdDefault } from '../../../Constants';
+import { Pages, HeavyThresholdDefault } from '../../../Constants';
 import { Chrome } from '../../utils/Chrome';
 import { changedInArea } from '../../utils/storageAreas';
 import { getDragActive, subscribeDragActive } from '../../utils/dragHoverStore';
 import { summarizeProcessLoad } from '../../utils/processLoad';
 import humanReadableNumber from '../../utils/humanReadableNumber';
+import sortAutoClosed from '../../utils/sortAutoClosed';
 
 // Fixed load cutoffs for the heaviest-tabs bar color, matching the gauge legend:
 // < 40 light, 40–69 medium, ≥ 70 high. Independent of `heavyThreshold` (which
@@ -116,18 +117,6 @@ const Tabs = ({ reviewMode = false }) => {
         }
       }
       return newColorMap;
-    };
-
-    const sortAutoClosed = (autoClosed) => {
-      const autoClosedKeys = Object.keys(autoClosed || {});
-      const maxTime = autoClosed.maxTime || MaxAutoClosedTime;
-      return autoClosedKeys.filter(
-        (urlKey) => {
-          return Date.now() - autoClosed[urlKey] < maxTime
-        }
-      ).sort(
-        (a, b) => autoClosed[a] - autoClosed[b]
-      )
     };
 
     // Applying state mid-drag re-renders this subtree, which makes

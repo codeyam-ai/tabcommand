@@ -1418,7 +1418,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › buffers an activeTabs update until the drag ends",
-      "line": 188,
+      "line": 209,
       "registeredAt": "2026-07-28T10:30:46Z",
       "runner": "tests"
     },
@@ -1427,7 +1427,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › drops a deleted group heading on a sync-area labels change",
-      "line": 98,
+      "line": 119,
       "registeredAt": "2026-08-12T18:44:04Z",
       "runner": "tests"
     },
@@ -1436,7 +1436,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › excludes browser-pinned tabs from the active list",
-      "line": 58,
+      "line": 79,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -1445,7 +1445,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › groups labeled tabs under headings and leaves the rest ungrouped",
-      "line": 76,
+      "line": 97,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -1454,7 +1454,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › keeps the sidebar row mounted across a background storage update",
-      "line": 155,
+      "line": 176,
       "registeredAt": "2026-07-28T10:30:46Z",
       "runner": "tests"
     },
@@ -1463,8 +1463,17 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › navigates to the History page when the footer button is clicked",
-      "line": 227,
+      "line": 248,
       "registeredAt": "2026-06-09T17:34:02Z",
+      "runner": "tests"
+    },
+    {
+      "description": "auto-closed tabs list the most recently closed tab first",
+      "file": "src/lib/components/Tabs/Tabs.test.jsx",
+      "format": "vitest",
+      "key": "Tabs › orders the Automatically Closed section newest-first",
+      "line": 37,
+      "registeredAt": "2026-10-02T00:59:37Z",
       "runner": "tests"
     },
     {
@@ -1472,7 +1481,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › renders a row for each seeded active tab",
-      "line": 47,
+      "line": 68,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -1481,7 +1490,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › renders grouped labels before the Ungrouped block in Active Tabs",
-      "line": 124,
+      "line": 145,
       "registeredAt": "2026-07-01T01:51:54Z",
       "runner": "tests"
     },
@@ -1490,7 +1499,7 @@
       "file": "src/lib/components/Tabs/Tabs.test.jsx",
       "format": "vitest",
       "key": "Tabs › shows the empty-state explainer when there are no active tabs",
-      "line": 37,
+      "line": 58,
       "registeredAt": "2026-06-09T17:34:02Z",
       "runner": "tests"
     },
@@ -8962,6 +8971,51 @@
       "key": "siteKey › trims surrounding whitespace before parsing",
       "line": 59,
       "registeredAt": "2026-07-14T16:24:40.474699602+00:00",
+      "runner": "tests"
+    },
+    {
+      "description": "Closes older than the retention window are dropped, not just sorted last.",
+      "file": "src/lib/utils/sortAutoClosed.test.js",
+      "format": "vitest",
+      "key": "sortAutoClosed › drops closes older than the default retention window",
+      "line": 21,
+      "registeredAt": "2026-10-02T00:59:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A stored `maxTime` overrides the default window.",
+      "file": "src/lib/utils/sortAutoClosed.test.js",
+      "format": "vitest",
+      "key": "sortAutoClosed › honors a maxTime stored on the map",
+      "line": 31,
+      "registeredAt": "2026-10-02T00:59:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "The bug this exists for: the tab closed most recently comes first.",
+      "file": "src/lib/utils/sortAutoClosed.test.js",
+      "format": "vitest",
+      "key": "sortAutoClosed › orders url keys newest close first",
+      "line": 10,
+      "registeredAt": "2026-10-02T00:59:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "A single close passes through unchanged.",
+      "file": "src/lib/utils/sortAutoClosed.test.js",
+      "format": "vitest",
+      "key": "sortAutoClosed › returns a lone close as-is",
+      "line": 48,
+      "registeredAt": "2026-10-02T00:59:37Z",
+      "runner": "tests"
+    },
+    {
+      "description": "Nothing stored yet is an empty list, not a crash.",
+      "file": "src/lib/utils/sortAutoClosed.test.js",
+      "format": "vitest",
+      "key": "sortAutoClosed › returns an empty list for a missing map",
+      "line": 42,
+      "registeredAt": "2026-10-02T00:59:37Z",
       "runner": "tests"
     },
     {

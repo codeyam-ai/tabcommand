@@ -604,6 +604,11 @@
     "description": "Home tab list: renders Active Tabs, Automatically Closed, and collapsible History sections from chrome.storage; splits tabs into label groups vs an ungrouped remainder; filters browser-pinned tabs and expired auto-closed entries. Each row is a draggable Url.",
     "filePath": "src/lib/components/Tabs/Tabs.jsx",
     "name": "Tabs",
+    "scenarios": [
+      "tabs-grouped",
+      "tabs-auto-closed-newest-first",
+      "tabs-auto-closed-newest-first-after-removal"
+    ],
     "testFile": "src/lib/components/Tabs/Tabs.test.jsx"
   },
   {
@@ -1846,6 +1851,15 @@
     "filePath": "src/lib/utils/siteKey.js",
     "name": "siteKey",
     "testFile": "src/lib/utils/siteKey.test.js"
+  },
+  {
+    "description": "Turns the stored autoClosed map of urlKey to close timestamp into the url keys the Automatically Closed section shows: drops closes outside the retention window, honoring a stored maxTime override, and orders the rest most recently closed first.",
+    "filePath": "src/lib/utils/sortAutoClosed.js",
+    "name": "sortAutoClosed",
+    "tags": [
+      "automatically-closed"
+    ],
+    "testFile": "src/lib/utils/sortAutoClosed.test.js"
   },
   {
     "description": "Sorts a labels map into the canonical export order: by title (locale compare) then by position, defaulting a missing position to 0. The two chained sorts mirror the reference ImportExport sortAndStuff.",

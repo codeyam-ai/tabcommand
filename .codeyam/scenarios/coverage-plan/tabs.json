@@ -12,13 +12,13 @@
       "dimension": "autoClosedUrlKeys",
       "value": "one",
       "rationale": "source-derived state autoClosedUrlKeys=one",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "autoClosedUrlKeys",
       "value": "many",
       "rationale": "source-derived state autoClosedUrlKeys=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "activeTabUrls",
@@ -30,13 +30,13 @@
       "dimension": "activeTabUrls",
       "value": "one",
       "rationale": "source-derived state activeTabUrls=one",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "activeTabUrls",
       "value": "many",
       "rationale": "source-derived state activeTabUrls=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "heavyRows",
@@ -48,13 +48,13 @@
       "dimension": "heavyRows",
       "value": "one",
       "rationale": "source-derived state heavyRows=one",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "heavyRows",
       "value": "many",
       "rationale": "source-derived state heavyRows=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "urlKeys",
@@ -66,13 +66,13 @@
       "dimension": "urlKeys",
       "value": "one",
       "rationale": "source-derived state urlKeys=one",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "urlKeys",
       "value": "many",
       "rationale": "source-derived state urlKeys=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "labels",
@@ -84,19 +84,19 @@
       "dimension": "labels",
       "value": "one",
       "rationale": "source-derived state labels=one",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "labels",
       "value": "many",
       "rationale": "source-derived state labels=many",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "tabId",
       "value": "true",
       "rationale": "source-derived state tabId=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "tabId",
@@ -108,7 +108,7 @@
       "dimension": "needsLoadRefresh",
       "value": "true",
       "rationale": "source-derived state needsLoadRefresh=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "needsLoadRefresh",
@@ -120,7 +120,7 @@
       "dimension": "labelsChange",
       "value": "true",
       "rationale": "source-derived state labelsChange=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "labelsChange",
@@ -132,7 +132,7 @@
       "dimension": "reviewMode",
       "value": "true",
       "rationale": "source-derived state reviewMode=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "reviewMode",
@@ -144,7 +144,7 @@
       "dimension": "url",
       "value": "true",
       "rationale": "source-derived state url=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "url",
@@ -156,7 +156,7 @@
       "dimension": "settings",
       "value": "true",
       "rationale": "source-derived state settings=true",
-      "status": "planned"
+      "status": "covered"
     },
     {
       "dimension": "settings",

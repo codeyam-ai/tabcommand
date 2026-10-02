@@ -1,0 +1,26 @@
+{
+  "name": "Tabs - Auto Closed Newest First",
+  "id": "06e5343d-4d86-47a1-a56a-5b9f89423a84",
+  "url": "/?isolate=Tabs",
+  "dimensions": [
+    "Desktop"
+  ],
+  "mocks": {},
+  "browserState": {
+    "localStorage": {
+      "autoClosed": "{\"url-https://developer.chrome.com/docs/extensions/reference/api/storage\":1790902733010,\"url-https://react.dev/reference/react/useEffect\":1790902133010,\"url-https://en.wikipedia.org/wiki/Tab_(interface)\":1790901353010,\"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\":1790892053010,\"url-https://www.figma.com/file/tabcommand\":1790809253010}",
+      "url-https://react.dev/reference/react/useEffect": "{\"title\": \"useEffect \\u2013 React\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\": \"TabCommand UI \\u2013 Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "allUrls": "[\"url-https://developer.chrome.com/docs/extensions/reference/api/storage\", \"url-https://en.wikipedia.org/wiki/Tab_(interface)\", \"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\", \"url-https://react.dev/reference/react/useEffect\", \"url-https://www.figma.com/file/tabcommand\", \"url-https://github.com/codeyam/tabcommand\"]",
+      "url-https://en.wikipedia.org/wiki/Tab_(interface)": "{\"title\": \"Tab (interface) - Wikipedia\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms": "{\"title\": \"chrome.alarms not firing in MV3 service worker - Stack Overflow\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-501\", \"pinned\": false}]",
+      "url-https://developer.chrome.com/docs/extensions/reference/api/storage": "{\"title\": \"chrome.storage API \\u2013 Chrome for Developers\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "labels": "{\"Work\": {\"title\": \"Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\"]}, \"Reading\": {\"title\": \"Reading\", \"backgroundColor\": \"#1F8E43\", \"position\": 1, \"urlKeys\": [\"url-https://react.dev/reference/react/useEffect\"]}}"
+    }
+  },
+  "componentName": "Tabs",
+  "scenarioType": "component",
+  "description": "Automatically Closed with three ungrouped closes and two groups, each closed at a clearly different time. Ungrouped reads newest-first (chrome.storage 2 min, Wikipedia 25 min, Stack Overflow 3 h), and the group headings follow by most recent close: Reading (12 min) above Work (26 h)."
+}

@@ -234,6 +234,34 @@
         "reason": "Keyboard nav (Arrow/Enter across labels, grouped, and archived rows) and click-to-open produce a transient selection highlight, not a distinct seeded display state; behavior is covered by SearchResults unit tests."
       }
     },
+    "Tabs": {
+      "empty": {
+        "status": "covered"
+      },
+      "single": {
+        "status": "covered"
+      },
+      "typical": {
+        "status": "added"
+      },
+      "many": {
+        "status": "covered"
+      },
+      "loading": {
+        "status": "n-a",
+        "reason": "Tabs has no loading UI; it renders straight from chrome.storage.local, which resolves locally before the first meaningful paint"
+      },
+      "edge": {
+        "status": "covered"
+      },
+      "error": {
+        "status": "n-a",
+        "reason": "Tabs has no error state; chrome.storage reads cannot surface a failure to this view, which falls back to empty lists"
+      },
+      "key-interaction": {
+        "status": "added"
+      }
+    },
     "UrlDetails": {
       "empty": {
         "status": "n-a",
