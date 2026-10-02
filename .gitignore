@@ -12,6 +12,7 @@
 .codeyam/secrets.json
 .codeyam/setup-connections.json
 .codeyam/session-token
+.codeyam/agent-home/
 test-results/
 playwright-report/
 blob-report/
@@ -78,6 +79,8 @@ blob-report/
 .codeyam/reconciliation-log.jsonl
 .codeyam/runner-timing-history.json
 .codeyam/state/last-advance.txt
+.codeyam/state/last-step-show.txt
+.codeyam/state/handoff-sections/
 .codeyam/state/provider-auth-verdict.json
 .codeyam/state/dependency-provision.json
 .codeyam/state/setup-provision.json
@@ -91,6 +94,7 @@ blob-report/
 .codeyam/state/command-output/
 .codeyam/state/needs-login.json
 .codeyam/state/check-in-grant.json
+.codeyam/state/check-in-offer-decline.json
 .codeyam/remote-backup-preference.json
 .codeyam/state/harness-tasks-dir
 .codeyam/state/tool-loading-injected.json
@@ -100,6 +104,8 @@ blob-report/
 .codeyam/state/push-auto-amend.json
 .codeyam/state/change-origin.json
 .codeyam/state/audit-split.json
+.codeyam/state/build-requests/
+.codeyam/state/credential-store-durability.json
 .codeyam/test-run-marker.json
 .claude/settings.local.json
 .claude/hooks/__pycache__/
