@@ -1,0 +1,94 @@
+{
+  "proposals": [
+    {
+      "id": "split-tab-tracking-write-paths-out-of-service-worker-js",
+      "title": "Split tab-tracking write paths out of service_worker.js",
+      "mode": "backend",
+      "body": "## Summary\n\n`service_worker.js` is 1871 production lines against a 500-line budget, and its three longest functions (`groupTabs` 172, `recordInGroupTab` 130, `handleActiveTabsGroupChanges` 119) are over the 150-line entity budget. The url-* record write paths (`tabUpdates`, `urlUpdates`, `newUrl`, `recordAccess`) that the raw-URL-title fix had to touch live inside this file, which made each fix site slow to find and hard to test in isolation; the worker test harness has to strip imports and inject every helper by name.\n\n## Key Decisions\n\n- Move the url-* record tracking (`tabUpdates`, `urlUpdates`, `newUrl`, `recordAccess`, `getUrlKey`, `pruneVisits`) into `src/lib/worker/urlTracking.js` as pure-ish functions taking `getStorage` / `chrome.tabs.get` as parameters, like `src/lib/utils/urlRecordDisplay.js` already does for the display rules.\n- Keep the chrome event listeners in `service_worker.js`; they become thin callers.\n- Behaviour-preserving only: no logic changes in this plan.\n\n## Implementation\n\n1. Create `src/lib/worker/urlTracking.js` and move the functions listed above, injecting storage and tab access.\n2. Update `service_worker.js` imports and the listener call sites (`onCreated`, `onUpdated`, `onActivated`).\n3. Move the `describe('urlUpdates')`, `describe('newUrl')` and `describe('tabUpdates')` blocks from `service_worker.test.js` into `src/lib/worker/urlTracking.test.js`, calling the functions directly instead of through the `new Function` harness.\n4. Remove the moved names from the harness parameter list in `service_worker.test.js`.\n\n## Reproduction Test\n\nNot a bug fix; the existing urlUpdates/newUrl tests (including `keeps a real title when the live tab reports its raw url`) must stay green after the move.",
+      "reason": "service_worker.js is 1871 lines; the url-* record write paths this fix touched are spread across it.",
+      "severity": 2,
+      "source": "session-review",
+      "category": "debt",
+      "status": "pending",
+      "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "kind": "tech-debt",
+      "rank": 1,
+      "sightings": 1
+    },
+    {
+      "id": "isolate-component-manifest-missing-in-a-fresh-checkout-breaks-every-component-capture",
+      "title": "Isolate component manifest missing in a fresh checkout breaks every component capture",
+      "mode": "backend",
+      "body": "## What happened\n\nIn this checkout `.codeyam/generated/components.ts` (gitignored, read by the `codeyam:components` virtual module) did not exist. Every `/?isolate=<Name>` scenario rendered `No such component \"<Name>\" — register it with codeyam-editor editor isolate <Name>`. `register` for a new scenario with an interaction only reported `preview-interact: no element matched selector \".Url\"` and `Candidate interactive labels: (none found on page)`, which pointed at the selector, not the missing manifest. `capture-state` was what finally showed the page text.\n\n`codeyam-editor editor isolate --all` refused: `--all found no props modules under .codeyam/isolation-props (stack: chrome-extension-react) ... name the components instead`. I had to reconstruct the component list by hand from `.codeyam/harness/isolate.jsx` top-level keys; that missed 9 components (Favorites, Labels, LoadMeter, LoadMeterCaption, LoadPerTabNote, LoadProcesses, Search, Tabs, Triage). The following `recapture-stale` (281 scenarios, ~14 min) then recaptured 30 scenarios as the 'No such component' page, overwriting good committed screenshots, and only the distinct-capture collision check (111 colliding pairs) revealed it. A second targeted recapture fixed them.\n\n## What would have helped\n\n- `isolate --all` on query-param isolation stacks should rebuild the manifest from the component names scenarios actually reference (`isolate=<Name>` in `.codeyam/scenarios/*.json`), or from the harness's props map.\n- The dev-server or capture pre-flight should detect a missing or incomplete manifest and regenerate it, since it is a derived, gitignored cache.\n- A capture whose page is the harness's 'No such component' placeholder should fail that slug, not be saved as its screenshot.\n- When an interaction finds no element and the page shows the placeholder, say so in the error instead of blaming the selector.",
+      "reason": "A missing gitignored manifest made every component scenario render 'No such component', and a recapture then overwrote good screenshots with that error page.",
+      "severity": 5,
+      "source": "codeyam-improvement",
+      "status": "pending",
+      "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "sightings": 1
+    },
+    {
+      "id": "scenarios-seeding-absolute-timestamps-silently-age-out-without-a-clock-pin",
+      "title": "Scenarios seeding absolute timestamps silently age out without a clock pin",
+      "mode": "backend",
+      "body": "## What happened\n\n`tabs-auto-closed-newest-first` and `tabs-auto-closed-newest-first-after-removal` seed `autoClosed` timestamps from 2026-10-02 and pin no `clock`. The app filters entries older than `MaxAutoClosedTime` against `Date.now()`, so by 2026-10-23 the Automatically Closed list rendered empty and the after-removal scenario's click target (`.Tabs-autoClosed .Url-removeBtn`) disappeared, failing its capture. `recapture-stale` listed them as `clock_drift_candidates` only after they had already been recaptured wrong, alongside 15 Favorites scenarios whose 'drift' was really the missing-manifest problem, so the signal was noisy. I pinned `\"clock\": {\"now\": \"2026-10-02T01:00:00Z\", \"frozen\": true}` on both by hand.\n\n## What would have helped\n\n- At `register` time, warn when a scenario's seeded data contains epoch-millisecond timestamps but no `clock` is pinned, and offer to pin `now` just after the newest seeded timestamp.\n- An audit check for the same condition across existing scenarios, before they rot.",
+      "reason": "Two Tabs auto-closed scenarios went empty three weeks after capture because nothing flagged their unpinned dates.",
+      "severity": 3,
+      "source": "codeyam-improvement",
+      "status": "pending",
+      "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "sightings": 1
+    },
+    {
+      "id": "the-plan-listed-five-demo-scenarios-one-row-scenario-was-captured-real-title-and-favicon-hovered-and-the-other-four-cases-are-covered-by-tests-instead-of-captures",
+      "title": "The plan listed five demo scenarios; one row scenario was captured (real title and favicon, hovered) and the other four cases are covered by tests instead of captures.",
+      "mode": "backend",
+      "body": "",
+      "reason": "Disclosed at the approval gate: the built work differs from the plan here.",
+      "source": "session-review",
+      "status": "pending",
+      "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "sightings": 1
+    },
+    {
+      "id": "the-live-tab-fill-in-newurl-also-requires-the-tab-to-still-be-on-the-same-url-which-is-narrower-than-the-plan-stated",
+      "title": "The live-tab fill in newUrl also requires the tab to still be on the same URL, which is narrower than the plan stated.",
+      "mode": "backend",
+      "body": "",
+      "reason": "Disclosed at the approval gate: the built work differs from the plan here.",
+      "source": "session-review",
+      "status": "pending",
+      "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "sightings": 1
+    },
+    {
+      "id": "outside-this-feature-the-local-isolated-component-list-was-missing-so-every-component-capture-rendered-no-such-component-it-was-regenerated-locally-not-committed",
+      "title": "Outside this feature: the local isolated-component list was missing, so every component capture rendered 'No such component'; it was regenerated locally (not committed).",
+      "mode": "backend",
+      "body": "",
+      "reason": "Disclosed at the approval gate: the built work differs from the plan here.",
+      "source": "session-review",
+      "status": "pending",
+      "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "sightings": 1
+    }
+  ],
+  "rounds": [
+    {
+      "at": "2026-10-23T12:46:53.954060499+00:00",
+      "feature": "Tab rows keep their real title and favicon",
+      "notes": "Bug-fix cycle on url-* record writes. The fix itself was straightforward; most of the time went to environment problems: a missing isolate component manifest broke all component captures and cost a full recapture plus a corrective one, and…",
+      "proposedIds": [
+        "split-tab-tracking-write-paths-out-of-service-worker-js",
+        "isolate-component-manifest-missing-in-a-fresh-checkout-breaks-every-component-capture",
+        "scenarios-seeding-absolute-timestamps-silently-age-out-without-a-clock-pin",
+        "the-plan-listed-five-demo-scenarios-one-row-scenario-was-captured-real-title-and-favicon-hovered-and-the-other-four-cases-are-covered-by-tests-instead-of-captures",
+        "the-live-tab-fill-in-newurl-also-requires-the-tab-to-still-be-on-the-same-url-which-is-narrower-than-the-plan-stated",
+        "outside-this-feature-the-local-isolated-component-list-was-missing-so-every-component-capture-rendered-no-such-component-it-was-regenerated-locally-not-committed"
+      ],
+      "rankedIds": [
+        "split-tab-tracking-write-paths-out-of-service-worker-js"
+      ]
+    }
+  ]
+}
