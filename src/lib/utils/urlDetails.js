@@ -32,7 +32,7 @@ export const buildUrlInfo = ({ title, url, favicon, notes }) => {
   return updatedUrlInfo;
 };
 
-// The UI-side twin of service_worker.js's `getUrlKey`: records are keyed as
+// The UI-side twin of the worker's `getUrlKey` (src/lib/worker/urlTracking.js): records are keyed as
 // `url-<url-without-#hash>` (see normalizeUrl.js). Codified here so the re-key
 // logic on Save mirrors the service worker's canonical keying rule.
 export const getUrlKey = (url) => `url-${String(url).split('#')[0]}`;

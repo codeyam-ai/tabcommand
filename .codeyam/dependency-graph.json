@@ -155,9 +155,7 @@
     "service_worker.js": {
       "imports": [
         "src/lib/utils/deriveSystemTotals.js",
-        "src/lib/utils/isTrackableUrl.js",
         "src/lib/utils/samePageKey.js",
-        "src/lib/utils/pruneDeletedUrls.js",
         "src/lib/utils/groupingLog.js",
         "src/lib/utils/healDriftedLabelSlot.js",
         "src/lib/utils/navigatedAwayFromRecordedSlot.js",
@@ -170,16 +168,15 @@
         "src/lib/utils/storageAreas.js",
         "src/lib/utils/storageAccess.js",
         "src/lib/utils/migrateLabelsToSync.js",
-        "src/lib/utils/urlRecordDisplay.js"
+        "src/lib/utils/urlRecordDisplay.js",
+        "src/lib/worker/urlTracking.js"
       ],
       "importedBy": []
     },
     "service_worker.test.js": {
       "imports": [
         "src/lib/utils/deriveSystemTotals.js",
-        "src/lib/utils/isTrackableUrl.js",
         "src/lib/utils/samePageKey.js",
-        "src/lib/utils/pruneDeletedUrls.js",
         "src/lib/utils/groupingLog.js",
         "src/lib/utils/healDriftedLabelSlot.js",
         "src/lib/utils/navigatedAwayFromRecordedSlot.js",
@@ -192,7 +189,8 @@
         "src/lib/utils/migrateLabelsToSync.js",
         "src/lib/utils/findLabelForUrlKey.js",
         "src/lib/utils/deletedLabelTitles.js",
-        "src/lib/utils/urlRecordDisplay.js"
+        "src/lib/utils/urlRecordDisplay.js",
+        "src/lib/worker/urlTracking.js"
       ],
       "importedBy": []
     },
@@ -3487,7 +3485,8 @@
       ],
       "importedBy": [
         "src/lib/utils/rankFavorites.js",
-        "src/lib/utils/isSearchEngineUrl.test.js"
+        "src/lib/utils/isSearchEngineUrl.test.js",
+        "src/lib/worker/urlTracking.js"
       ]
     },
     "src/lib/utils/isSearchEngineUrl.test.js": {
@@ -3514,8 +3513,7 @@
       "importedBy": [
         "src/lib/utils/isTrackableUrl.test.js",
         "src/lib/utils/rankFavorites.js",
-        "service_worker.test.js",
-        "service_worker.js"
+        "src/lib/worker/urlTracking.js"
       ]
     },
     "src/lib/utils/isTrackableUrl.test.js": {
@@ -3704,8 +3702,7 @@
       "imports": [],
       "importedBy": [
         "src/lib/utils/pruneDeletedUrls.test.js",
-        "service_worker.test.js",
-        "service_worker.js"
+        "src/lib/worker/urlTracking.js"
       ]
     },
     "src/lib/utils/pruneDeletedUrls.test.js": {
@@ -3870,7 +3867,8 @@
         "src/lib/utils/normalizeUrl.js",
         "src/lib/utils/hiddenSiteKeys.js",
         "src/lib/utils/rankFavorites.js",
-        "src/lib/utils/isSearchEngineUrl.js"
+        "src/lib/utils/isSearchEngineUrl.js",
+        "src/lib/worker/urlTracking.js"
       ]
     },
     "src/lib/utils/siteKey.test.js": {
@@ -3994,6 +3992,7 @@
       "imports": [],
       "importedBy": [
         "src/lib/utils/urlRecordDisplay.test.js",
+        "src/lib/worker/urlTracking.js",
         "src/lib/components/Url/Url.jsx",
         "service_worker.test.js",
         "service_worker.js"
@@ -4026,12 +4025,34 @@
       "importedBy": [
         "src/lib/utils/visitDecay.test.js",
         "src/lib/utils/rankFavorites.test.js",
-        "src/lib/utils/rankFavorites.js"
+        "src/lib/utils/rankFavorites.js",
+        "src/lib/worker/urlTracking.js"
       ]
     },
     "src/lib/utils/visitDecay.test.js": {
       "imports": [
         "src/lib/utils/visitDecay.js"
+      ],
+      "importedBy": []
+    },
+    "src/lib/worker/urlTracking.js": {
+      "imports": [
+        "src/lib/utils/isTrackableUrl.js",
+        "src/lib/utils/pruneDeletedUrls.js",
+        "src/lib/utils/siteKey.js",
+        "src/lib/utils/isSearchEngineUrl.js",
+        "src/lib/utils/visitDecay.js",
+        "src/lib/utils/urlRecordDisplay.js"
+      ],
+      "importedBy": [
+        "src/lib/worker/urlTracking.test.js",
+        "service_worker.test.js",
+        "service_worker.js"
+      ]
+    },
+    "src/lib/worker/urlTracking.test.js": {
+      "imports": [
+        "src/lib/worker/urlTracking.js"
       ],
       "importedBy": []
     },
@@ -4245,9 +4266,7 @@
       "name": "__file_root__",
       "imports": [
         "src/lib/utils/deriveSystemTotals.js::deriveSystemTotals",
-        "src/lib/utils/isTrackableUrl.js::isTrackableUrl",
         "src/lib/utils/samePageKey.js::samePageKey",
-        "src/lib/utils/pruneDeletedUrls.js::pruneDeletedUrls",
         "src/lib/utils/groupingLog.js::appendGroupingLog",
         "src/lib/utils/healDriftedLabelSlot.js::healDriftedLabelSlot",
         "src/lib/utils/navigatedAwayFromRecordedSlot.js::navigatedAwayFromRecordedSlot",
@@ -4266,9 +4285,11 @@
         "src/lib/utils/storageAccess.js::readByArea",
         "src/lib/utils/storageAccess.js::writeByArea",
         "src/lib/utils/migrateLabelsToSync.js::migrateLabelsToSync",
-        "src/lib/utils/urlRecordDisplay.js::fillDisplayFromLiveTab",
-        "src/lib/utils/urlRecordDisplay.js::isRawUrlTitle",
-        "src/lib/utils/urlRecordDisplay.js::mergeTrackingUpdates"
+        "src/lib/utils/urlRecordDisplay.js::mergeTrackingUpdates",
+        "src/lib/worker/urlTracking.js::getUrlKey",
+        "src/lib/worker/urlTracking.js::newUrl",
+        "src/lib/worker/urlTracking.js::recordAccess",
+        "src/lib/worker/urlTracking.js::tabUpdates"
       ],
       "importedBy": []
     },
@@ -4277,9 +4298,7 @@
       "name": "__file_root__",
       "imports": [
         "src/lib/utils/deriveSystemTotals.js::deriveSystemTotals",
-        "src/lib/utils/isTrackableUrl.js::isTrackableUrl",
         "src/lib/utils/samePageKey.js::samePageKey",
-        "src/lib/utils/pruneDeletedUrls.js::pruneDeletedUrls",
         "src/lib/utils/groupingLog.js::appendGroupingLog",
         "src/lib/utils/healDriftedLabelSlot.js::healDriftedLabelSlot",
         "src/lib/utils/navigatedAwayFromRecordedSlot.js::navigatedAwayFromRecordedSlot",
@@ -4298,9 +4317,11 @@
         "src/lib/utils/migrateLabelsToSync.js::migrateLabelsToSync",
         "src/lib/utils/findLabelForUrlKey.js::findLabelForUrlKey",
         "src/lib/utils/deletedLabelTitles.js::deletedLabelTitles",
-        "src/lib/utils/urlRecordDisplay.js::fillDisplayFromLiveTab",
-        "src/lib/utils/urlRecordDisplay.js::isRawUrlTitle",
-        "src/lib/utils/urlRecordDisplay.js::mergeTrackingUpdates"
+        "src/lib/utils/urlRecordDisplay.js::mergeTrackingUpdates",
+        "src/lib/worker/urlTracking.js::getUrlKey",
+        "src/lib/worker/urlTracking.js::newUrl",
+        "src/lib/worker/urlTracking.js::recordAccess",
+        "src/lib/worker/urlTracking.js::tabUpdates"
       ],
       "importedBy": []
     },
@@ -8800,7 +8821,8 @@
       "name": "isSearchEngineUrl",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/isSearchEngineUrl.test.js::__file_root__"
+        "src/lib/utils/isSearchEngineUrl.test.js::__file_root__",
+        "src/lib/worker/urlTracking.js::__file_root__"
       ]
     },
     "src/lib/utils/isSearchEngineUrl.test.js::__file_root__": {
@@ -8844,8 +8866,7 @@
       "importedBy": [
         "src/lib/utils/isTrackableUrl.test.js::__file_root__",
         "src/lib/utils/rankFavorites.js::__file_root__",
-        "service_worker.test.js::__file_root__",
-        "service_worker.js::__file_root__"
+        "src/lib/worker/urlTracking.js::__file_root__"
       ]
     },
     "src/lib/utils/isTrackableUrl.test.js::__file_root__": {
@@ -9117,8 +9138,7 @@
       "imports": [],
       "importedBy": [
         "src/lib/utils/pruneDeletedUrls.test.js::__file_root__",
-        "service_worker.test.js::__file_root__",
-        "service_worker.js::__file_root__"
+        "src/lib/worker/urlTracking.js::__file_root__"
       ]
     },
     "src/lib/utils/pruneDeletedUrls.test.js::__file_root__": {
@@ -9352,7 +9372,8 @@
       "name": "siteKey",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/isSearchEngineUrl.js::__file_root__"
+        "src/lib/utils/isSearchEngineUrl.js::__file_root__",
+        "src/lib/worker/urlTracking.js::__file_root__"
       ]
     },
     "src/lib/utils/siteKey.test.js::__file_root__": {
@@ -9637,8 +9658,7 @@
       "imports": [],
       "importedBy": [
         "src/lib/utils/urlRecordDisplay.test.js::__file_root__",
-        "service_worker.test.js::__file_root__",
-        "service_worker.js::__file_root__"
+        "src/lib/worker/urlTracking.js::__file_root__"
       ]
     },
     "src/lib/utils/urlRecordDisplay.js::isRawUrlTitle": {
@@ -9647,8 +9667,7 @@
       "imports": [],
       "importedBy": [
         "src/lib/utils/urlRecordDisplay.test.js::__file_root__",
-        "service_worker.test.js::__file_root__",
-        "service_worker.js::__file_root__"
+        "src/lib/worker/urlTracking.js::__file_root__"
       ]
     },
     "src/lib/utils/urlRecordDisplay.js::mergeTrackingUpdates": {
@@ -9727,7 +9746,8 @@
       "name": "pruneVisits",
       "imports": [],
       "importedBy": [
-        "src/lib/utils/rankFavorites.js::__file_root__"
+        "src/lib/utils/rankFavorites.js::__file_root__",
+        "src/lib/worker/urlTracking.js::__file_root__"
       ]
     },
     "src/lib/utils/visitDecay.js::seedVisitsFromCount": {
@@ -9759,6 +9779,83 @@
         "src/lib/components/SearchResults/SearchResults.jsx::__file_root__"
       ]
     },
+    "src/lib/worker/urlTracking.js::__file_root__": {
+      "filePath": "src/lib/worker/urlTracking.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/utils/isTrackableUrl.js::isTrackableUrl",
+        "src/lib/utils/pruneDeletedUrls.js::pruneDeletedUrls",
+        "src/lib/utils/siteKey.js::siteKey",
+        "src/lib/utils/isSearchEngineUrl.js::isSearchEngineUrl",
+        "src/lib/utils/visitDecay.js::pruneVisits",
+        "src/lib/utils/urlRecordDisplay.js::fillDisplayFromLiveTab",
+        "src/lib/utils/urlRecordDisplay.js::isRawUrlTitle"
+      ],
+      "importedBy": [
+        "src/lib/worker/urlTracking.test.js::__file_root__"
+      ]
+    },
+    "src/lib/worker/urlTracking.js::getUrlKey": {
+      "filePath": "src/lib/worker/urlTracking.js",
+      "name": "getUrlKey",
+      "imports": [],
+      "importedBy": [
+        "src/lib/worker/urlTracking.test.js::__file_root__",
+        "service_worker.test.js::__file_root__",
+        "service_worker.js::__file_root__"
+      ]
+    },
+    "src/lib/worker/urlTracking.js::newUrl": {
+      "filePath": "src/lib/worker/urlTracking.js",
+      "name": "newUrl",
+      "imports": [],
+      "importedBy": [
+        "src/lib/worker/urlTracking.test.js::__file_root__",
+        "service_worker.test.js::__file_root__",
+        "service_worker.js::__file_root__"
+      ]
+    },
+    "src/lib/worker/urlTracking.js::recordAccess": {
+      "filePath": "src/lib/worker/urlTracking.js",
+      "name": "recordAccess",
+      "imports": [],
+      "importedBy": [
+        "src/lib/worker/urlTracking.test.js::__file_root__",
+        "service_worker.test.js::__file_root__",
+        "service_worker.js::__file_root__"
+      ]
+    },
+    "src/lib/worker/urlTracking.js::tabUpdates": {
+      "filePath": "src/lib/worker/urlTracking.js",
+      "name": "tabUpdates",
+      "imports": [],
+      "importedBy": [
+        "src/lib/worker/urlTracking.test.js::__file_root__",
+        "service_worker.test.js::__file_root__",
+        "service_worker.js::__file_root__"
+      ]
+    },
+    "src/lib/worker/urlTracking.js::urlUpdates": {
+      "filePath": "src/lib/worker/urlTracking.js",
+      "name": "urlUpdates",
+      "imports": [],
+      "importedBy": [
+        "src/lib/worker/urlTracking.test.js::__file_root__"
+      ]
+    },
+    "src/lib/worker/urlTracking.test.js::__file_root__": {
+      "filePath": "src/lib/worker/urlTracking.test.js",
+      "name": "__file_root__",
+      "imports": [
+        "src/lib/worker/urlTracking.js::__file_root__",
+        "src/lib/worker/urlTracking.js::getUrlKey",
+        "src/lib/worker/urlTracking.js::newUrl",
+        "src/lib/worker/urlTracking.js::recordAccess",
+        "src/lib/worker/urlTracking.js::tabUpdates",
+        "src/lib/worker/urlTracking.js::urlUpdates"
+      ],
+      "importedBy": []
+    },
     "vite.config.mjs::__file_root__": {
       "filePath": "vite.config.mjs",
       "name": "__file_root__",
@@ -9769,5 +9866,5 @@
       "importedBy": []
     }
   },
-  "lastUpdated": "2026-10-23T12:44:06Z"
+  "lastUpdated": "2026-10-23T13:17:29Z"
 }

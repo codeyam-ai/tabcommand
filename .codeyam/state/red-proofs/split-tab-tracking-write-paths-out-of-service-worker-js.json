@@ -1,0 +1,58 @@
+{
+  "provenAt": "2026-10-23T13:04:27Z",
+  "slug": "split-tab-tracking-write-paths-out-of-service-worker-js",
+  "paths": [],
+  "runScope": [
+    "src/lib/worker/urlTracking.js",
+    "service_worker.js",
+    "service_worker.test.js"
+  ],
+  "neuters": [
+    {
+      "file": "src/lib/worker/urlTracking.js",
+      "find": "deps.removeRecord(removeUrlKey);",
+      "replace": "void removeUrlKey;"
+    },
+    {
+      "file": "src/lib/worker/urlTracking.js",
+      "find": "  deps.onVisit();",
+      "replace": "  void deps;"
+    },
+    {
+      "file": "service_worker.js",
+      "find": "validTab: (tab) => validTab(tab),",
+      "replace": "validTab: () => false,"
+    }
+  ],
+  "tests": {
+    "calls onVisit before recording": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    },
+    "fetches each task tab and merges its url updates": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    },
+    "removes evicted records that no label holds": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    }
+  },
+  "proof": {
+    "verdict": "proven",
+    "flipped": [
+      "removes evicted records that no label holds",
+      "calls onVisit before recording",
+      "fetches each task tab and merges its url updates"
+    ]
+  }
+}

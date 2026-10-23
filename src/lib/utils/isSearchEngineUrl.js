@@ -5,9 +5,9 @@ import { siteKey } from './siteKey';
 // otherwise every distinct `google.com/search?q=…` collapses onto one
 // `google.com` row (via siteKey) whose visit count climbs to the cap and pins it
 // at the top of Favorites. This is the single source of truth for that judgment,
-// shared by `rankFavorites` (renderer) and a byte-identical mirror in
-// service_worker.js (which cannot import ES modules), mirroring the pure,
-// storage/DOM-free style of `isTrackableUrl`.
+// shared by `rankFavorites` (renderer) and the worker's `newUrl`
+// (src/lib/worker/urlTracking.js), mirroring the pure, storage/DOM-free style
+// of `isTrackableUrl`.
 //
 // Matching is whole-HOST, by design: `siteVisits` is keyed only by host, so a
 // stored timestamp can't be traced back to a search vs. a homepage visit —
@@ -18,8 +18,7 @@ import { siteKey } from './siteKey';
 // is lost. For portal engines the SERP subdomain is targeted (`search.yahoo.com`,
 // `search.brave.com`) rather than the content-portal root (`yahoo.com`).
 //
-// Keep this host set alphabetized and byte-identical to the mirror in
-// service_worker.js (search for SEARCH_ENGINE_HOSTS there) so the two never drift.
+// Keep this host set alphabetized.
 const SEARCH_ENGINE_HOSTS = new Set([
   'ask.com',
   'baidu.com',

@@ -3,9 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
-import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
-import pruneDeletedUrls from './src/lib/utils/pruneDeletedUrls.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
 import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
 import navigatedAwayFromRecordedSlot from './src/lib/utils/navigatedAwayFromRecordedSlot.js';
@@ -33,7 +31,8 @@ import { readByArea, writeByArea } from './src/lib/utils/storageAccess.js';
 import { migrateLabelsToSync } from './src/lib/utils/migrateLabelsToSync.js';
 import findLabelForUrlKey from './src/lib/utils/findLabelForUrlKey.js';
 import deletedLabelTitles from './src/lib/utils/deletedLabelTitles.js';
-import { isRawUrlTitle, fillDisplayFromLiveTab, mergeTrackingUpdates } from './src/lib/utils/urlRecordDisplay.js';
+import { mergeTrackingUpdates } from './src/lib/utils/urlRecordDisplay.js';
+import { getUrlKey, newUrl, recordAccess, tabUpdates } from './src/lib/worker/urlTracking.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -110,9 +109,7 @@ function loadWorker(chrome) {
     'chrome',
     'console',
     'deriveSystemTotals',
-    'isTrackableUrl',
     'samePageKey',
-    'pruneDeletedUrls',
     'appendGroupingLog',
     'healDriftedLabelSlot',
     'navigatedAwayFromRecordedSlot',
@@ -137,20 +134,22 @@ function loadWorker(chrome) {
     'readByArea',
     'writeByArea',
     'migrateLabelsToSync',
-    'isRawUrlTitle',
-    'fillDisplayFromLiveTab',
     'mergeTrackingUpdates',
+    'getUrlKey',
+    'newUrl',
+    'recordAccess',
+    'tabUpdates',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
-             newUrl, recordAccess, closeUrl, processProcesses, updateTotals, associateProcess,
-             tabUpdates, urlUpdates, getUrlKey, validTab, getTabGroup, mapColors,
+             closeUrl, processProcesses, updateTotals, associateProcess,
+             validTab, getTabGroup, mapColors,
              getStorage, parseTabId, handleActiveTabsGroupChanges, groupTabs,
              initLoadSource, processesApiAvailable, systemApiAvailable,
              startSystemLoadPolling, stopSystemLoadPolling, pollSystemLoad,
              autoCloseSweep, isAutoCloseEligible, pruneAutoClosed,
              autoCloseThresholdMinutes, urlKeyIsMember, ejectAutoGroupedTab,
-             recordInGroupTab, debugGroup, pruneVisits, stampLabelMembership,
+             recordInGroupTab, debugGroup, stampLabelMembership,
              dissolveDeletedLabelGroups },
       state: {
         get groups() { return groups; },
@@ -162,7 +161,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey, deletedLabelTitles, areaForKey, readByArea, writeByArea, migrateLabelsToSync, isRawUrlTitle, fillDisplayFromLiveTab, mergeTrackingUpdates);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, samePageKey, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey, deletedLabelTitles, areaForKey, readByArea, writeByArea, migrateLabelsToSync, mergeTrackingUpdates, getUrlKey, newUrl, recordAccess, tabUpdates);
 }
 
 describe('service_worker.js', () => {
@@ -187,14 +186,6 @@ describe('service_worker.js', () => {
     expect(chrome.tabGroups.onCreated.addListener).toHaveBeenCalled();
     expect(chrome.storage.onChanged.addListener).toHaveBeenCalled();
     expect(chrome.processes.onUpdatedWithMemory.addListener).toHaveBeenCalled();
-  });
-
-  describe('getUrlKey', () => {
-    // builds a url- prefixed key, stripping any hash fragment
-    it('prefixes with url- and strips the fragment', () => {
-      expect(fns.getUrlKey('https://a.com/p')).toBe('url-https://a.com/p');
-      expect(fns.getUrlKey('https://a.com/p#section')).toBe('url-https://a.com/p');
-    });
   });
 
   describe('mapColors', () => {
@@ -323,86 +314,6 @@ describe('service_worker.js', () => {
       const updates = { processTotals: { cpu: 0, network: 0, privateMemory: 0, jsMemoryAllocated: 0, jsMemoryUsed: 0 } };
       const out = fns.updateTotals({}, updates);
       expect(out.processTotals.cpu).toBe(0);
-    });
-  });
-
-  describe('urlUpdates', () => {
-    // initializes a processes bucket and copies tab metadata
-    it('initializes processes and copies title/favicon/groupId', () => {
-      const out = fns.urlUpdates(
-        { url: 'https://a.com' },
-        { status: 'complete', title: 'A', favIconUrl: 'a.png', groupId: 5, url: 'https://a.com' }
-      );
-      expect(out.title).toBe('A');
-      expect(out.favicon).toBe('a.png');
-      expect(out.groupId).toBe(5);
-      expect(out.processes.samples).toBe(0);
-    });
-
-    // accumulates process stats and bumps the sample counter
-    it('accumulates process stats when a process is supplied', () => {
-      const out = fns.urlUpdates(
-        { url: 'https://b.com', title: 'B' },
-        { status: 'complete', title: 'B', url: 'https://b.com', groupId: -1 },
-        { cpu: 10, network: 2, privateMemory: 1, jsMemoryAllocated: 1, jsMemoryUsed: 1 }
-      );
-      expect(out.processes.samples).toBe(1);
-      expect(out.processes.cpu).toBe(10);
-    });
-
-    // falls back to the url as the title when the tab has none
-    it('uses the url as title when title is missing', () => {
-      const out = fns.urlUpdates({ url: 'https://c.com' }, { status: 'complete', url: 'https://c.com' });
-      expect(out.title).toBe('https://c.com');
-    });
-
-    // an edited record keeps its user title/favicon instead of taking the live tab's values
-    it('preserves an edited title and favicon', () => {
-      const out = fns.urlUpdates(
-        { url: 'https://a.com', title: 'My Title', favicon: 'mine.png', edited: true },
-        { status: 'complete', title: 'Live Title', favIconUrl: 'live.png', groupId: -1, url: 'https://a.com' }
-      );
-      expect(out.title).toBe('My Title');
-      expect(out.favicon).toBe('mine.png');
-    });
-
-    // a non-edited record still takes the live tab's title/favicon (guards the flag's scope)
-    it('still copies the live title and favicon when not edited', () => {
-      const out = fns.urlUpdates(
-        { url: 'https://a.com', title: 'Old', favicon: 'old.png' },
-        { status: 'complete', title: 'Live Title', favIconUrl: 'live.png', groupId: -1, url: 'https://a.com' }
-      );
-      expect(out.title).toBe('Live Title');
-      expect(out.favicon).toBe('live.png');
-    });
-
-    // a tab whose title is just its url must not overwrite a real stored title
-    it('keeps a real title when the live tab reports its raw url', () => {
-      const out = fns.urlUpdates(
-        { url: 'https://example.com/page', title: 'Example Page', favicon: 'ex.png' },
-        { status: 'complete', title: 'example.com/page', favIconUrl: '', groupId: 7, url: 'https://example.com/page' }
-      );
-      expect(out.title).toBe('Example Page');
-      expect(out.favicon).toBe('ex.png');
-    });
-
-    // the raw-url guard only blocks downgrades: a record still showing its url
-    // fallback is upgraded by the first real title the tab reports
-    it('upgrades a raw-url placeholder title to the real title', () => {
-      const out = fns.urlUpdates(
-        { url: 'https://example.com/page', title: 'https://example.com/page' },
-        { status: 'complete', title: 'Example Page', groupId: -1, url: 'https://example.com/page' }
-      );
-      expect(out.title).toBe('Example Page');
-    });
-
-    // a page with no <title> keeps its url fallback, since Chrome reports the url
-    it('keeps the url fallback for a page with no real title', () => {
-      const out = fns.urlUpdates(
-        { url: 'https://example.com/page' },
-        { status: 'complete', title: 'example.com/page', groupId: -1, url: 'https://example.com/page' }
-      );
-      expect(out.title).toBe('example.com/page');
     });
   });
 
@@ -566,344 +477,6 @@ describe('service_worker.js', () => {
       fns.closeUrl('url-c', done);
       expect(chrome.storage.local.set).toHaveBeenCalledWith({ allUrls: ['url-c', 'url-a', 'url-b'] });
       expect(done).toHaveBeenCalled();
-    });
-  });
-
-  describe('newUrl', () => {
-    // returns undefined when called without a tab id or url
-    it('returns early without tabId/url', async () => {
-      await expect(fns.newUrl(undefined, 'https://a.com')).resolves.toBeUndefined();
-      await expect(fns.newUrl(1, undefined)).resolves.toBeUndefined();
-    });
-
-    // a record rebuilt from a snapshot with no title/favicon takes them from the
-    // live tab, so a standalone newUrl write can't strip the row's display fields
-    it('fills a missing title and favicon from the live tab', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
-      chrome.tabs.get.mockResolvedValue({ id: 1, url: 'https://new.com', title: 'New Site', favIconUrl: 'n.png', status: 'complete' });
-      const updates = await fns.newUrl(1, 'https://new.com');
-      expect(updates['url-https://new.com'].title).toBe('New Site');
-      expect(updates['url-https://new.com'].favicon).toBe('n.png');
-    });
-
-    // a live tab that has navigated elsewhere must not lend its title to this url
-    it('ignores a live tab showing a different url', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
-      chrome.tabs.get.mockResolvedValue({ id: 1, url: 'https://other.com', title: 'Other', favIconUrl: 'o.png' });
-      const updates = await fns.newUrl(1, 'https://new.com');
-      expect(updates['url-https://new.com'].title).toBeUndefined();
-      expect(updates['url-https://new.com'].favicon).toBeUndefined();
-    });
-
-    // a closed tab makes chrome.tabs.get reject; the visit is still recorded
-    it('still records the visit when the live tab lookup fails', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
-      chrome.tabs.get.mockRejectedValue(new Error('No tab with id: 1'));
-      const updates = await fns.newUrl(1, 'https://new.com');
-      expect(updates['url-https://new.com'].visitCount).toBe(1);
-    });
-
-    // adds a brand-new url key to the front of allUrls
-    it('prepends an unseen url key to allUrls', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: ['url-old'], labels: {} }));
-      const updates = await fns.newUrl(1, 'https://new.com');
-      expect(updates.allUrls[0]).toBe('url-https://new.com');
-    });
-
-    // REGRESSION: a REVISIT must move the url key back to the front of allUrls.
-    // allUrls is the recency list the tracked-URL cap trims from the TAIL, so a
-    // key that never moves on revisit drifts out, gets evicted, and has its whole
-    // url-* record — visits and all — deleted. That is what reset a daily-visited
-    // site to "1 visit". Previously newUrl only inserted when the key was ABSENT,
-    // so for an already-present key it never touched allUrls at all.
-    it('moves a revisited url key to the front of allUrls', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({
-          allUrls: ['url-https://new.com', 'url-https://a.com', 'url-https://b.com'],
-          labels: {},
-        })
-      );
-      const updates = await fns.newUrl(1, 'https://b.com');
-      expect(updates.allUrls[0]).toBe('url-https://b.com');
-      expect(updates.allUrls).toHaveLength(3);
-    });
-
-    // Deleting from History means "forget this", not "block this" — a deliberate
-    // return to the page is the user asking for it back, so a real visit clears
-    // the tombstone and the key is re-added to allUrls as normal.
-    it('clears the deletedUrls tombstone when the page is revisited', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({ allUrls: [], labels: {}, deletedUrls: { 'url-https://b.com': Date.now() } })
-      );
-      const updates = await fns.newUrl(1, 'https://b.com');
-      expect(updates.deletedUrls['url-https://b.com']).toBeUndefined();
-      expect(updates.allUrls[0]).toBe('url-https://b.com');
-    });
-
-    // Tombstones are pruned on the same pass that already prunes allUrls, so the
-    // map is bounded by DELETED_URL_TTL_MS instead of growing one entry per
-    // page ever deleted. An unrelated FRESH tombstone must survive the prune.
-    it('prunes expired tombstones but keeps fresh ones', async () => {
-      const now = Date.now();
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({
-          allUrls: [],
-          labels: {},
-          deletedUrls: {
-            'url-https://stale.com': now - 2 * 60 * 60 * 1000,
-            'url-https://fresh.com': now - 1000,
-          },
-        })
-      );
-      const updates = await fns.newUrl(1, 'https://b.com');
-      expect(updates.deletedUrls['url-https://stale.com']).toBeUndefined();
-      expect(updates.deletedUrls['url-https://fresh.com']).toBe(now - 1000);
-    });
-
-    // The durable half of a visit: it accumulates under the site's HOST in
-    // siteVisits, which the eviction branch never touches.
-    it('records the visit under the site host in siteVisits', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
-      const before = Date.now();
-      const updates = await fns.newUrl(1, 'https://www.espn.com/nfl/story/id/1');
-      expect(updates.siteVisits['espn.com']).toHaveLength(1);
-      expect(updates.siteVisits['espn.com'][0]).toBeGreaterThanOrEqual(before);
-    });
-
-    // Every page of a content site credits the SITE, not its own orphan key: a
-    // second article on the same host appends to the same siteVisits bucket.
-    it('accumulates visits from different pages of one site under one host', async () => {
-      const earlier = Date.now() - 1000 * 60 * 60;
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({ allUrls: [], labels: {}, siteVisits: { 'espn.com': [earlier] } })
-      );
-      const updates = await fns.newUrl(1, 'https://espn.com/nba/standings');
-      expect(updates.siteVisits['espn.com']).toHaveLength(2);
-      expect(updates.siteVisits['espn.com'][0]).toBe(earlier);
-    });
-
-    // siteVisits must SURVIVE the eviction that deletes url-* records: the
-    // durable store is written even while the tracked-URL cap is trimming keys,
-    // so a site's stats outlive its record. This is the whole point of the store.
-    it('keeps siteVisits history for a site whose url record is evicted', async () => {
-      const history = [Date.now() - 1000 * 60 * 60 * 24 * 3, Date.now() - 1000 * 60 * 60];
-      // A full recency list, so this visit pushes the tail past the cap.
-      const allUrls = Array.from({ length: 500 }, (_, i) => `url-https://pad-${i}.com`);
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({ allUrls, labels: {}, siteVisits: { 'wikipedia.org': history } })
-      );
-      const updates = await fns.newUrl(1, 'https://wikipedia.org/wiki/Main_Page');
-      // Keys past the cap were evicted...
-      expect(updates.allUrls).toHaveLength(500);
-      // ...but the site's history is intact and grew by this visit.
-      expect(updates.siteVisits['wikipedia.org']).toHaveLength(history.length + 1);
-      expect(updates.siteVisits['wikipedia.org'].slice(0, 2)).toEqual(history);
-    });
-
-    // Search engines stay in history (allUrls + visitCount) but stop
-    // accumulating the Favorites scoring signal: no siteVisits[host] write and no
-    // per-record `visits` append, since rankFavorites discards search hosts anyway.
-    // Red if the isSearchEngine gate is removed: siteVisits['google.com'] appears.
-    it('records a search engine in history but not in the Favorites scoring stores', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
-      const url = 'https://www.google.com/search?q=weather';
-      const updates = await fns.newUrl(1, url);
-      const urlKey = fns.getUrlKey(url);
-      // Still in history: allUrls + visitCount.
-      expect(updates.allUrls).toContain(urlKey);
-      expect(updates[urlKey].visitCount).toBe(1);
-      // But NOT in the Favorites scoring stores.
-      expect(updates.siteVisits).toBeUndefined();
-      expect(updates[urlKey].visits).toEqual([]);
-    });
-
-    // A search engine with an existing siteVisits bucket does not grow it — the
-    // durable store stops accumulating search hosts going forward.
-    it('does not append to an existing siteVisits bucket for a search engine', async () => {
-      const earlier = Date.now() - 1000 * 60 * 60;
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({ allUrls: [], labels: {}, siteVisits: { 'google.com': [earlier] } })
-      );
-      const updates = await fns.newUrl(1, 'https://www.google.com/search?q=x');
-      // siteVisits is left untouched (no write into updates for this host).
-      expect(updates.siteVisits).toBeUndefined();
-    });
-
-    // Non-website navigations (about:blank, file://, chrome://, data:) are
-    // never recorded: newUrl returns before touching storage so they can't
-    // enter allUrls or bump visitCount.
-    it('does not record non-website URLs', async () => {
-      const get = vi.fn((_q, cb) => cb({ allUrls: [], labels: {} }));
-      chrome.storage.local.get.mockImplementation(get);
-      for (const url of [
-        'about:blank',
-        'file:///Users/x/doc.html',
-        'chrome://extensions',
-        'data:text/html,hi',
-      ]) {
-        await expect(fns.newUrl(1, url)).resolves.toBeUndefined();
-      }
-      expect(get).not.toHaveBeenCalled();
-      expect(chrome.storage.local.set).not.toHaveBeenCalled();
-    });
-
-    // A brand-new url records a first visit timestamp alongside visitCount 1, so
-    // Favorites can rank by a time-decayed sum of visits.
-    it('records a first visit timestamp and visitCount on a new url', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
-      const before = Date.now();
-      const updates = await fns.newUrl(1, 'https://new.com');
-      const record = updates['url-https://new.com'];
-      expect(record.visitCount).toBe(1);
-      expect(record.visits).toHaveLength(1);
-      expect(record.visits[0]).toBeGreaterThanOrEqual(before);
-    });
-
-    // Every visit stamps `lastVisit` on the url-* record. This is the recency
-    // signal the History page dates rows by; `autoClosed` alone only covers
-    // tabs the inactivity sweep closed, so a manually-closed or still-open page
-    // had no timestamp and fell into "Earlier this week".
-    it('stamps lastVisit on the url record for every visit', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
-      const before = Date.now();
-      const updates = await fns.newUrl(1, 'https://new.com');
-      const record = updates['url-https://new.com'];
-      expect(record.lastVisit).toBeGreaterThanOrEqual(before);
-      expect(record.lastVisit).toBeLessThanOrEqual(Date.now());
-    });
-
-    // The case that motivated putting `lastVisit` OUTSIDE the isSearchEngine
-    // gate: a search engine keeps an empty `visits` array (so it stays out of
-    // Favorites scoring) but must still be datable on the History page.
-    // Red if `lastVisit` is moved inside the gate.
-    it('stamps lastVisit on a search engine while leaving visits empty', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
-      const before = Date.now();
-      const url = 'https://www.google.com/search?q=weather';
-      const updates = await fns.newUrl(1, url);
-      const record = updates[fns.getUrlKey(url)];
-      expect(record.visits).toEqual([]);
-      expect(record.lastVisit).toBeGreaterThanOrEqual(before);
-    });
-
-    // A repeat visit appends a fresh timestamp and increments visitCount while
-    // preserving the prior visits and other url-* fields.
-    it('appends a visit timestamp on a repeat visit', async () => {
-      const oldTs = Date.now() - 1000 * 60 * 60; // an hour ago
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({
-          allUrls: ['url-https://a.com'],
-          labels: {},
-          'url-https://a.com': { url: 'https://a.com', title: 'A', visitCount: 2, visits: [oldTs] },
-        })
-      );
-      const updates = await fns.newUrl(1, 'https://a.com');
-      const record = updates['url-https://a.com'];
-      expect(record.title).toBe('A'); // existing fields preserved
-      expect(record.visitCount).toBe(3);
-      expect(record.visits).toHaveLength(2);
-      expect(record.visits[0]).toBe(oldTs);
-    });
-
-    // Visits older than the retention horizon are pruned on write, so per-site
-    // history stays bounded.
-    it('prunes visits older than the retention horizon on write', async () => {
-      const ancient = Date.now() - 1000 * 60 * 60 * 24 * 60; // 60 days ago
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({
-          allUrls: ['url-https://a.com'],
-          labels: {},
-          'url-https://a.com': { url: 'https://a.com', visitCount: 5, visits: [ancient] },
-        })
-      );
-      const updates = await fns.newUrl(1, 'https://a.com');
-      const record = updates['url-https://a.com'];
-      // The ancient visit is dropped; only the fresh one survives.
-      expect(record.visits).toHaveLength(1);
-      expect(record.visits).not.toContain(ancient);
-    });
-  });
-
-  describe('recordAccess', () => {
-    // Mirror of the worker's ACCESS_THROTTLE_MS (not exported through fns).
-    const ACCESS_THROTTLE_MS_TEST = 1000 * 60 * 30;
-    // Switching back to a tab whose last visit is older than the throttle
-    // window records a visit (delegating to newUrl), so a kept-open favorite
-    // you return to earns rank credit.
-    it('records a visit when the last visit is older than the throttle', async () => {
-      const stale = Date.now() - ACCESS_THROTTLE_MS_TEST - 1000; // just past the window
-      chrome.tabs.get.mockResolvedValue({ id: 7, url: 'https://a.com' });
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({
-          allUrls: ['url-https://a.com'],
-          labels: {},
-          'url-https://a.com': { url: 'https://a.com', title: 'A', visitCount: 2, visits: [stale] },
-        })
-      );
-      const updates = await fns.recordAccess(1);
-      const record = updates['url-https://a.com'];
-      expect(record.visitCount).toBe(3);
-      expect(record.visits).toHaveLength(2);
-    });
-
-    // Re-activating the same site within the throttle window records nothing, so
-    // rapid alt-tabbing and the open→activate sequence can't inflate a rank.
-    it('records nothing within the throttle window', async () => {
-      const recent = Date.now() - 1000 * 60; // a minute ago, well inside 30 min
-      chrome.tabs.get.mockResolvedValue({ id: 7, url: 'https://a.com' });
-      chrome.storage.local.get.mockImplementation((_q, cb) =>
-        cb({ 'url-https://a.com': { url: 'https://a.com', visitCount: 2, visits: [recent] } })
-      );
-      await expect(fns.recordAccess(1)).resolves.toBeUndefined();
-      expect(chrome.storage.local.set).not.toHaveBeenCalled();
-    });
-
-    // A missing tab (rejected get) or a non-trackable URL is ignored — no read,
-    // no write.
-    it('ignores missing tabs and non-trackable URLs', async () => {
-      chrome.tabs.get.mockRejectedValueOnce(new Error('No tab with id'));
-      await expect(fns.recordAccess(999)).resolves.toBeUndefined();
-
-      chrome.tabs.get.mockResolvedValueOnce({ id: 8, url: 'chrome://extensions' });
-      await expect(fns.recordAccess(8)).resolves.toBeUndefined();
-      expect(chrome.storage.local.set).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('pruneVisits', () => {
-    // A non-array or empty input yields an empty array, never a throw.
-    it('returns [] for non-array or empty input', () => {
-      const now = Date.now();
-      expect(fns.pruneVisits(undefined, now)).toEqual([]);
-      expect(fns.pruneVisits([], now)).toEqual([]);
-    });
-
-    // Visits older than the retention horizon are dropped.
-    it('drops visits older than the retention horizon', () => {
-      const now = Date.now();
-      const day = 1000 * 60 * 60 * 24;
-      const fresh = now - day;
-      const stale = now - 60 * day;
-      expect(fns.pruneVisits([stale, fresh], now)).toEqual([fresh]);
-    });
-
-    // The result is sorted ascending and drops non-finite entries.
-    it('sorts ascending and filters non-finite entries', () => {
-      const now = Date.now();
-      const day = 1000 * 60 * 60 * 24;
-      const a = now - 3 * day;
-      const b = now - 1 * day;
-      expect(fns.pruneVisits([b, a, NaN, 'x'], now)).toEqual([a, b]);
-    });
-
-    // More than 50 entries keep only the newest 50.
-    it('caps length to the newest 50 visits', () => {
-      const now = Date.now();
-      const many = [];
-      for (let i = 0; i < 60; i++) many.push(now - i * 1000);
-      const result = fns.pruneVisits(many, now);
-      expect(result).toHaveLength(50);
-      expect(result[result.length - 1]).toBe(now);
     });
   });
 
@@ -1117,20 +690,6 @@ describe('service_worker.js', () => {
         { processTotals: {} }
       );
       expect(chrome.tabs.get).toHaveBeenCalledWith(1);
-      expect(out['url-https://a.com']).toBeTruthy();
-    });
-  });
-
-  describe('tabUpdates', () => {
-    // resolves an empty object for tabs that fail the validity check
-    it('resolves {} for an invalid tab', async () => {
-      await expect(fns.tabUpdates({ url: 'chrome://settings' })).resolves.toEqual({});
-    });
-
-    // resolves keyed url updates for a valid tab
-    it('resolves keyed url updates for a valid tab', async () => {
-      chrome.storage.local.get.mockImplementation((_q, cb) => cb({}));
-      const out = await fns.tabUpdates({ url: 'https://a.com', status: 'complete', title: 'A', groupId: -1 });
       expect(out['url-https://a.com']).toBeTruthy();
     });
   });

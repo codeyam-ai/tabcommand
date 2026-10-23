@@ -1,0 +1,211 @@
+{
+  "timestamp": "2026-10-23T13:16:27Z",
+  "title": "Split tab-tracking write paths out of service_worker.js",
+  "type": "refactor",
+  "userRequest": "## Summary\n\n`service_worker.js` is 1871 production lines against a 500-line budget, and its three longest functions (`groupTabs` 172, `recordInGroupTab` 130, `handleActiveTabsGroupChanges` 119) are over the 150-line entity budget. The url-* record write paths (`tabUpdates`, `urlUpdates`, `newUrl`, `recordAccess`) that the raw-URL-title fix had to touch live inside this file, which made each fix site slow to find and hard to test in isolation; the worker test harness has to strip imports and inject every helper by name.\n\n## Key Decisions\n\n- Move the url-* record tracking (`tabUpdates`, `urlUpdates`, `newUrl`, `recordAccess`, `getUrlKey`, `pruneVisits`) into `src/lib/worker/urlTracking.js` as pure-ish functions taking `getStorage` / `chrome.tabs.get` as parameters, like `src/lib/utils/urlRecordDisplay.js` already does for the display rules.\n- Keep the chrome event listeners in `service_worker.js`; they become thin callers.\n- Behaviour-preserving only: no logic changes in this plan.\n\n## Implementation\n\n1. Create `src/lib/worker/urlTracking.js` and move the functions listed above, injecting storage and tab access.\n2. Update `service_worker.js` imports and the listener call sites (`onCreated`, `onUpdated`, `onActivated`).\n3. Move the `describe('urlUpdates')`, `describe('newUrl')` and `describe('tabUpdates')` blocks from `service_worker.test.js` into `src/lib/worker/urlTracking.test.js`, calling the functions directly instead of through the `new Function` harness.\n4. Remove the moved names from the harness parameter list in `service_worker.test.js`.\n\n## Reproduction Test\n\nNot a bug fix; the existing urlUpdates/newUrl tests (including `keeps a real title when the live tab reports its raw url`) must stay green after the move.",
+  "description": "Moved the url-* record write paths (getUrlKey, newUrl, recordAccess, tabUpdates, urlUpdates) from service_worker.js into src/lib/worker/urlTracking.js, taking storage, tab lookup, record removal, the tab-validity policy, the processes index and the activeTabs refresh as an injected deps object. service_worker.js builds one urlTrackingDeps object and passes it at its five call sites; it shrinks from 1870 to 1578 lines (still over the 500-line budget; groupTabs, recordInGroupTab and handleActiveTabsGroupChanges remain). The worker's byte-identical copies of pruneVisits, siteKey and isSearchEngineUrl were deleted in favor of the shared utils, a small deviation from the plan, which said to move pruneVisits. The moved tests now call the module directly with fake deps in urlTracking.test.js; new tests cover onVisit, eviction through removeRecord, per-sample process counting and in-batch records, and three are proven red against neutered wiring. No behavior change. Noted but not fixed: associateProcess assigns an undeclared tabId in its for-of loop. Scope verdict: this is a structural refactor with no deliverable-facing behavior; none of the 8 project deliverables changed status, and none was deferred by this cycle. All 8 are recorded delivered with decidedBy agent from earlier cycles, never user-confirmed.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/glossary.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/split-tab-tracking-write-paths-out-of-service-worker-js.md\t.codeyam/plans/completed/split-tab-tracking-write-paths-out-of-service-worker-js.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/591d03a4aa31807c131f93d5abf1a532f849e6f53e219dbbfb096f374dfab028.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/e231518e42c2d4094c6b1ae419ac64af24e916bce61e292e8cf5d5a81f1c76ea.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/isSearchEngineUrl.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/siteKey.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/urlDetails.js",
+      "status": "modified"
+    },
+    {
+      "path": "src/lib/utils/visitDecay.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/red-proofs/split-tab-tracking-write-paths-out-of-service-worker-js.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/84eb55d59054f3da46bc04baf1d0c39cda489c1a7e96ba8f4ebbd0e9cdcfdee1.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/9ce6a1b3919dc8f8ec0ae25772688439a813f99e9ec1ee40fd9abd870c47f7df.json",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/worker/urlTracking.js",
+      "status": "added"
+    },
+    {
+      "path": "src/lib/worker/urlTracking.test.js",
+      "status": "added"
+    }
+  ],
+  "scenarioScreenshots": [
+    {
+      "name": "Favorites - Google Doc Survives Search Exclusion",
+      "screenshotPath": "favorites-google-doc-survives-search-exclusion--desktop.png"
+    },
+    {
+      "name": "Favorites - Heavy Content Site Rolled Up",
+      "screenshotPath": "favorites-heavy-content-site-rolled-up--desktop.png"
+    },
+    {
+      "name": "Favorites - SERP Excluded Portal Kept",
+      "screenshotPath": "favorites-serp-excluded-portal-kept--desktop.png"
+    },
+    {
+      "name": "Favorites - Search Engines Excluded",
+      "screenshotPath": "favorites-search-engines-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Sidebar With View All Link",
+      "screenshotPath": "favorites-sidebar-with-view-all-link--desktop.png"
+    },
+    {
+      "name": "Favorites - Stats Survive URL Eviction",
+      "screenshotPath": "favorites-stats-survive-url-eviction--desktop.png"
+    },
+    {
+      "name": "URL Details - Edit",
+      "screenshotPath": "url-details-edit--desktop.png"
+    },
+    {
+      "name": "URL Details - Unlabeled",
+      "screenshotPath": "url-details-unlabeled--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Empty",
+      "screenshotPath": "viewallfavorites-empty--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Open Cue By Page Identity",
+      "screenshotPath": "viewallfavorites-open-cue-by-page-identity--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Removed Site Dimmed",
+      "screenshotPath": "viewallfavorites-removed-site-dimmed--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Rich",
+      "screenshotPath": "viewallfavorites-rich--desktop.png"
+    },
+    {
+      "name": "ViewAllFavorites - Site Restored By Bring Back",
+      "screenshotPath": "viewallfavorites-site-restored-by-bring-back--desktop.png"
+    },
+    {
+      "name": "Favorites - All Sites Removed",
+      "screenshotPath": "favorites-all-sites-removed--desktop.png"
+    },
+    {
+      "name": "Favorites - Duplicate URLs Collapsed",
+      "screenshotPath": "favorites-duplicate-urls-collapsed--desktop.png"
+    },
+    {
+      "name": "Favorites - Frequency Boost",
+      "screenshotPath": "favorites-frequency-boost--desktop.png"
+    },
+    {
+      "name": "Favorites - Google Doc Drift Open",
+      "screenshotPath": "favorites-google-doc-drift-open--desktop.png"
+    },
+    {
+      "name": "Favorites - Multi Page Site Removed",
+      "screenshotPath": "favorites-multi-page-site-removed--desktop.png"
+    },
+    {
+      "name": "Favorites - Non-Website Entries Filtered",
+      "screenshotPath": "favorites-non-website-entries-filtered--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Favorite Cued",
+      "screenshotPath": "favorites-open-favorite-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Open Tab Discounted",
+      "screenshotPath": "favorites-open-tab-discounted--desktop.png"
+    },
+    {
+      "name": "Favorites - Pinned Tab Excluded",
+      "screenshotPath": "favorites-pinned-tab-excluded--desktop.png"
+    },
+    {
+      "name": "Favorites - Populated",
+      "screenshotPath": "favorites-populated--desktop.png"
+    },
+    {
+      "name": "Favorites - Query Distinct Pages Rolled Up And Cued",
+      "screenshotPath": "favorites-query-distinct-pages-rolled-up-and-cued--desktop.png"
+    },
+    {
+      "name": "Favorites - Remove Control Revealed",
+      "screenshotPath": "favorites-remove-control-revealed--desktop.png"
+    },
+    {
+      "name": "Favorites - Removed Hidden",
+      "screenshotPath": "favorites-removed-hidden--desktop.png"
+    },
+    {
+      "name": "Favorites - Same Origin Different Path Uncued",
+      "screenshotPath": "favorites-same-origin-different-path-uncued--desktop.png"
+    },
+    {
+      "name": "Favorites - Single Favorite",
+      "screenshotPath": "favorites-single-favorite--desktop.png"
+    },
+    {
+      "name": "Favorites - Ten Justified",
+      "screenshotPath": "favorites-ten-justified--desktop.png"
+    }
+  ],
+  "testResults": {
+    "total": 341,
+    "passed": 341,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 341,
+        "passed": 341
+      }
+    ]
+  }
+}

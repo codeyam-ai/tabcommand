@@ -3,9 +3,8 @@
 // 1.0 and an older visit is worth less — so a site the user returns to weekly
 // outranks an old-but-once-heavily-visited one. Kept pure (no storage, no DOM)
 // so it is trivial to unit-test with an injected `now`, and shared by both
-// `rankFavorites` (scoring) and the migration seeding. The service worker
-// duplicates the prune constants/logic (it can't import this ES module), the
-// same way GAUGE / AUTO_CLOSE constants are mirrored there.
+// `rankFavorites` (scoring), the migration seeding, and the worker's visit
+// writes (`pruneVisits`, via src/lib/worker/urlTracking.js).
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 

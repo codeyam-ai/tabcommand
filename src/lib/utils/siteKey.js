@@ -1,6 +1,6 @@
 // The canonical SITE key for a URL: its host, lowercased, with a leading `www.`
 // stripped — no scheme, path, query or fragment. This is the key the durable
-// `siteVisits` store is written under (service_worker `newUrl`) and the grouping
+// `siteVisits` store is written under (the worker's `newUrl`) and the grouping
 // key `rankFavorites` rolls candidates up by.
 //
 // Visit stats are site-level, not page-level, on purpose. Keying them per-page

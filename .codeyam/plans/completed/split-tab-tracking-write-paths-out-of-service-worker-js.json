@@ -1,0 +1,36 @@
+{
+  "claimStartedAt": "2026-10-23T12:48:11Z",
+  "completedAt": "2026-10-23T13:16:27Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.16",
+    "currentStep": "backend-step15",
+    "machine": "codespaces-4f2c94",
+    "originId": "c0b6d12a-4b83-4072-84d0-daad67704369",
+    "pid": 3003,
+    "priority": 0,
+    "selectedPlan": "split-tab-tracking-write-paths-out-of-service-worker-js",
+    "sessionId": "d28f1617-175b-4119-bfea-decb3e27cac0",
+    "startedAt": "2026-10-23T12:48:11Z"
+  },
+  "createdAt": "2026-10-23T12:48:08Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/components/Url/Url.jsx",
+    "src/lib/components/Url/Url.test.jsx",
+    "src/lib/utils/isSearchEngineUrl.js",
+    "src/lib/utils/siteKey.js",
+    "src/lib/utils/urlDetails.js",
+    "src/lib/utils/urlRecordDisplay.js",
+    "src/lib/utils/urlRecordDisplay.test.js",
+    "src/lib/utils/visitDecay.js",
+    "src/lib/worker/urlTracking.js",
+    "src/lib/worker/urlTracking.test.js"
+  ],
+  "journalTimestamp": "2026-10-23T13:16:27Z",
+  "mode": "backend",
+  "planFile": "completed/split-tab-tracking-write-paths-out-of-service-worker-js.md",
+  "slug": "split-tab-tracking-write-paths-out-of-service-worker-js",
+  "title": "Split tab-tracking write paths out of service_worker.js"
+}

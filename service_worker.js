@@ -1,7 +1,5 @@
 import deriveSystemTotals from './src/lib/utils/deriveSystemTotals.js';
-import isTrackableUrl from './src/lib/utils/isTrackableUrl.js';
 import samePageKey from './src/lib/utils/samePageKey.js';
-import pruneDeletedUrls from './src/lib/utils/pruneDeletedUrls.js';
 import appendGroupingLog from './src/lib/utils/groupingLog.js';
 import healDriftedLabelSlot from './src/lib/utils/healDriftedLabelSlot.js';
 import navigatedAwayFromRecordedSlot from './src/lib/utils/navigatedAwayFromRecordedSlot.js';
@@ -14,7 +12,8 @@ import deletedLabelTitles from './src/lib/utils/deletedLabelTitles.js';
 import { areaForKey } from './src/lib/utils/storageAreas.js';
 import { readByArea, writeByArea } from './src/lib/utils/storageAccess.js';
 import { migrateLabelsToSync } from './src/lib/utils/migrateLabelsToSync.js';
-import { isRawUrlTitle, fillDisplayFromLiveTab, mergeTrackingUpdates } from './src/lib/utils/urlRecordDisplay.js';
+import { mergeTrackingUpdates } from './src/lib/utils/urlRecordDisplay.js';
+import { getUrlKey, newUrl, recordAccess, tabUpdates } from './src/lib/worker/urlTracking.js';
 
 let listening = true;
 let removing;
@@ -231,97 +230,6 @@ const AUTO_CLOSE_MINUTES = 120;
 const MAX_AUTO_CLOSED_TIME = 1000 * 60 * 60 * 24 * 5;
 const AUTO_CLOSE_ALARM = 'auto-close-sweep';
 
-// Per-visit history tunables, mirrored from src/lib/utils/visitDecay.js (the
-// service-worker runtime can't import that ES module, same as the GAUGE /
-// AUTO_CLOSE constants above). VISIT_RETENTION_MS: drop visit timestamps older
-// than this on write; MAX_VISITS: cap retained timestamps per site. Retention is
-// sized to the longest usage view the Favorites page draws (the 7-week
-// sparkline) plus a week of margin — 8 weeks; old visits contribute negligible
-// decayed weight to the rank but back the weekly usage-over-time view.
-const VISIT_RETENTION_MS = 1000 * 60 * 60 * 24 * 56;
-const MAX_VISITS = 50;
-
-// How many url-* keys the recency list (`allUrls`) tracks. Keys past this cap are
-// evicted from the tail and their records deleted. This is a DISPLAY/storage cap
-// for History and Search — it deliberately no longer bounds visit stats, which
-// live in the site-keyed `siteVisits` store below and are pruned only by
-// VISIT_RETENTION_MS / MAX_VISITS.
-const MAX_TRACKED_URLS = 500;
-
-// How long a `deletedUrls` tombstone is honored. A tombstone exists for exactly
-// one reason: to outlive an IN-FLIGHT `chrome.tabs.onRemoved` -> `closeUrl` that
-// already read a pre-delete `allUrls` snapshot and would otherwise write the
-// just-deleted key back at index 0. That window is milliseconds; an hour is
-// generous slack for a throttled/suspended service worker. It is NOT a blocklist
-// — `newUrl` clears the entry the moment the user deliberately visits the page
-// again, and prunes anything past this age so the map cannot grow without bound.
-const DELETED_URL_TTL_MS = 60 * 60 * 1000;
-
-// A tab you switch back to earns a visit too, not just an open/navigation — so
-// Favorites rewards sites you keep open and return to. But debounce it: rapid
-// alt-tabbing between the same two tabs, or the open→immediately-activate
-// sequence a brand-new tab produces, must not inflate a rank. At most one
-// access-driven visit per site per this window.
-const ACCESS_THROTTLE_MS = 1000 * 60 * 30;
-
-// Drop visits older than the retention horizon and cap to the newest MAX_VISITS.
-// Mirror of pruneVisits() in visitDecay.js; kept pure so it's obviously correct.
-function pruneVisits(visits, now) {
-  if (!Array.isArray(visits)) return [];
-  const cutoff = now - VISIT_RETENTION_MS;
-  const kept = visits
-    .map(Number)
-    .filter((ts) => Number.isFinite(ts) && ts > cutoff)
-    .sort((a, b) => a - b);
-  return kept.length > MAX_VISITS ? kept.slice(-MAX_VISITS) : kept;
-}
-
-// The canonical site key (host, lowercased, leading `www.` stripped) a URL's
-// visits accumulate under. Mirror of siteKey() in src/lib/utils/siteKey.js —
-// THAT FILE IS THE SOURCE OF TRUTH; this duplicate exists only because the
-// service-worker runtime can't import the ES module, same as pruneVisits above
-// and the GAUGE / AUTO_CLOSE constants. Keep the two in step.
-function siteKey(url) {
-  if (typeof url !== 'string') return '';
-  const raw = url.trim();
-  if (raw.length === 0) return '';
-  let parsed;
-  try {
-    parsed = new URL(raw);
-  } catch {
-    return '';
-  }
-  return parsed.host.toLowerCase().replace(/^www\./, '');
-}
-
-// Mirror of isSearchEngineUrl() in src/lib/utils/isSearchEngineUrl.js — THAT FILE
-// IS THE SOURCE OF TRUTH; this duplicate exists only because the service-worker
-// runtime can't import the ES module, same as siteKey / pruneVisits above. Keep
-// SEARCH_ENGINE_HOSTS byte-identical (alphabetized) to the canonical set so the
-// two don't drift. Used by newUrl to stop accumulating Favorites scoring signal
-// (per-record `visits` + the durable `siteVisits[host]`) for search engines,
-// which rankFavorites discards anyway.
-const SEARCH_ENGINE_HOSTS = new Set([
-  'ask.com',
-  'baidu.com',
-  'bing.com',
-  'duckduckgo.com',
-  'ecosia.org',
-  'kagi.com',
-  'qwant.com',
-  'search.brave.com',
-  'search.yahoo.com',
-  'startpage.com',
-  'yandex.com',
-  'yandex.ru',
-]);
-const GOOGLE_SEARCH_HOST = /^google\.[a-z.]+$/;
-function isSearchEngineUrl(url) {
-  const host = siteKey(url);
-  if (!host) return false;
-  return SEARCH_ENGINE_HOSTS.has(host) || GOOGLE_SEARCH_HOST.test(host);
-}
-
 let groups = {};
 function trackGroup(group) {
   groups[parseInt(group.id)] = group.title;
@@ -348,7 +256,7 @@ if (chrome.alarms) {
 }
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  let updates = await tabUpdates(tab);
+  let updates = await tabUpdates(urlTrackingDeps, tab);
   
   const checkRemoving = () => {
     if (removing === tabId) {
@@ -480,7 +388,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // validTab), so guard it so an incognito navigation never enters allUrls
     // or bumps visitCount. See validTab for the broader incognito policy.
     if (!tab.incognito) {
-      updates = mergeTrackingUpdates(updates, await newUrl(tabId, changeInfo.url));
+      updates = mergeTrackingUpdates(updates, await newUrl(urlTrackingDeps, tabId, changeInfo.url));
     }
   }
 
@@ -527,7 +435,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
 chrome.tabs.onActivated.addListener(async (tabInfo) => {
   updateActiveTabs();
-  const updates = await recordAccess(tabInfo.tabId);
+  const updates = await recordAccess(urlTrackingDeps, tabInfo.tabId);
   if (updates) update(updates);
 });
 
@@ -548,7 +456,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   if (!tab.pinned && tab.groupId != null && tab.groupId > -1) {
     autoGroupedTabs.add(tab.id);
   }
-  const updates = mergeTrackingUpdates(await tabUpdates(tab), await newUrl(tab.id, tab.url));
+  const updates = mergeTrackingUpdates(await tabUpdates(urlTrackingDeps, tab), await newUrl(urlTrackingDeps, tab.id, tab.url));
   update(updates);
 
   if (listening) return;
@@ -777,146 +685,6 @@ function update(updates) {
   writeByArea(outgoing);
 }
 
-async function newUrl(tabId, url) {
-  updateActiveTabs();
-  if (!tabId) return;
-  if (!url) return;
-  // Only real websites belong in history/Favorites. Gating here (rather than at
-  // each call site) means a non-http(s) navigation — about:blank, file://,
-  // chrome://, data:, etc. — never enters allUrls, never evicts older keys, and
-  // never bumps visitCount. Sits alongside the incognito/validTab policy:
-  // about:blank previously slipped through because newUrl never consulted them.
-  if (!isTrackableUrl(url)) return;
-  // The url-* record below is rebuilt from a storage snapshot that can predate
-  // the title/favicon write, so read the live tab to fill those display fields
-  // when the snapshot lacks them. Guarded like recordAccess: a gone tab is fine.
-  let liveTab;
-  try {
-    liveTab = await chrome.tabs.get(tabId);
-  } catch (e) {
-    liveTab = null;
-  }
-  return new Promise((resolve, reject) => {
-    const updates = {};
-    const urlKey = getUrlKey(url);
-    getStorage(['allUrls', 'labels', 'siteVisits', 'deletedUrls', urlKey], (result) => {
-      const allUrls = result.allUrls || [];
-
-      // A real visit UN-FORGETS the page. Deleting from History means "forget
-      // this", not "block this" — a deliberate return to the page is the user
-      // asking for it back, so the tombstone is cleared before the move-to-front
-      // below re-adds the key. Prune on the same pass (mirroring the allUrls
-      // eviction) so the map stays bounded by DELETED_URL_TTL_MS rather than
-      // accumulating one entry per page ever deleted.
-      const deletedUrls = pruneDeletedUrls(result.deletedUrls, Date.now(), DELETED_URL_TTL_MS);
-      delete deletedUrls[urlKey];
-      updates.deletedUrls = deletedUrls;
-      // MOVE-TO-FRONT on every visit, not just the first. `allUrls` is the
-      // recency list every consumer already treats it as — and the list the
-      // eviction below trims from the TAIL. Inserting only when absent ordered it
-      // by first-seen instead, so a site visited daily still drifted toward the
-      // tail as new URLs arrived, got evicted, and had its whole url-* record
-      // (visits and all) deleted — resurfacing later as "1 visit".
-      const existingIndex = allUrls.indexOf(urlKey);
-      if (existingIndex > -1) allUrls.splice(existingIndex, 1);
-      allUrls.unshift(urlKey);
-
-      if (allUrls.length >= MAX_TRACKED_URLS) {
-        let allLabelUrlKeys = [];
-        for (const label in result.labels) {
-          allLabelUrlKeys += result.labels[label].urlKeys;
-        }
-
-        const removeUrlKeys = allUrls.slice(MAX_TRACKED_URLS);
-        for (const removeUrlKey of removeUrlKeys) {
-          if (allLabelUrlKeys.indexOf(removeUrlKey) === -1) {
-            chrome.storage.local.remove(removeUrlKey);
-          }
-        }
-      }
-
-      updates.allUrls = allUrls.slice(0, MAX_TRACKED_URLS);
-
-      // Track WHEN and how often each site is visited so Favorites can rank by a
-      // time-decayed sum of visits. Append a fresh timestamp and prune the array
-      // (retention horizon + length cap) so per-site history stays bounded.
-      // Additive: existing url-* fields are preserved, visitCount keeps
-      // incrementing for backward-compat/display, and records without a `visits`
-      // array are seeded lazily downstream (see rankFavorites).
-      const now = Date.now();
-      // Search engines stay in history (allUrls + visitCount) but stop
-      // accumulating the Favorites scoring signal — the per-record `visits` and
-      // the durable `siteVisits[host]` below — since rankFavorites now discards
-      // search-engine hosts anyway. Gating here keeps those stores from growing
-      // wasteful (but now-invisible) entries going forward.
-      const isSearchEngine = isSearchEngineUrl(url);
-      const urlRecord = result[urlKey] || { url };
-      updates[urlKey] = {
-        ...urlRecord,
-        visitCount: (urlRecord.visitCount || 0) + 1,
-        // Display-recency only, and deliberately OUTSIDE the isSearchEngine
-        // gate below: the History page needs a date for every visited URL,
-        // including search engines, whose `visits` array stays empty by design.
-        // Nothing in rankFavorites reads `lastVisit` and nothing should start —
-        // scoring runs off `visits`/`siteVisits`, which is what keeps search
-        // engines out of Favorites.
-        lastVisit: now,
-        visits: isSearchEngine
-          ? urlRecord.visits || []
-          : pruneVisits([...(urlRecord.visits || []), now], now),
-      };
-      if (liveTab && liveTab.url && getUrlKey(liveTab.url) === urlKey) {
-        fillDisplayFromLiveTab(updates[urlKey], liveTab);
-      }
-
-      // The DURABLE half of the same visit: accumulate it under the site's host
-      // in `siteVisits`, which the eviction branch above never touches. Evicting
-      // a url-* key can therefore no longer destroy a site's stats — the advertised
-      // 56-day window is bounded only by retention, not by how many other URLs the
-      // user happened to browse. Keying by host also means every article on a
-      // content site credits the SITE rather than minting its own orphan record.
-      // Written into the same `updates` object, so the visit lands atomically with
-      // the url-* record in one chrome.storage.local.set.
-      const host = siteKey(url);
-      if (host && !isSearchEngine) {
-        const siteVisits = result.siteVisits || {};
-        siteVisits[host] = pruneVisits([...(siteVisits[host] || []), now], now);
-        updates.siteVisits = siteVisits;
-      }
-
-      resolve(updates)
-    });
-  });
-}
-
-// Record a visit when a tab is ACTIVATED (switched to), throttled per site.
-// Resolves the activated tab, ignores untrackable/missing tabs, and only counts
-// the access as a visit when the site's most recent visit is older than
-// ACCESS_THROTTLE_MS — otherwise the open→activate sequence and alt-tabbing
-// would double-count. Delegates the actual write to newUrl so access-visits and
-// open-visits stay identical in shape (allUrls maintenance, visits/visitCount,
-// pruning). Returns newUrl's updates object, or undefined when throttled/ineligible.
-async function recordAccess(tabId) {
-  let tab;
-  try {
-    tab = await chrome.tabs.get(tabId);
-  } catch (e) {
-    return; // tab gone / lastError — nothing to record
-  }
-  if (!tab || !tab.url || !isTrackableUrl(tab.url)) return;
-
-  const urlKey = getUrlKey(tab.url);
-  const result = await getStorage(urlKey);
-  const record = result[urlKey];
-  const visits = (record && record.visits) || [];
-  const lastVisit = visits.length ? Math.max(...visits.map(Number)) : 0;
-
-  const now = Date.now();
-  if (now - lastVisit < ACCESS_THROTTLE_MS) return; // within throttle window
-
-  return newUrl(tab.id, tab.url);
-}
-
 function closeUrl(urlKey, callback) {
   getStorage(['allUrls', 'deletedUrls'], (result) => {
     const allUrls = result.allUrls || [];
@@ -1036,6 +804,17 @@ async function pollSystemLoad() {
 
 let samples = 0;
 let processesIndex = { global: 0 };
+
+// What the url-* record write paths in urlTracking.js need from this worker.
+const urlTrackingDeps = {
+  getStorage: (query, callback) => getStorage(query, callback),
+  getTab: (tabId) => chrome.tabs.get(tabId),
+  removeRecord: (urlKey) => chrome.storage.local.remove(urlKey),
+  validTab: (tab) => validTab(tab),
+  processesIndex,
+  onVisit: () => updateActiveTabs(),
+};
+
 async function processProcesses(processes) {
   samples += 1;
   processesIndex.global += 1;
@@ -1096,83 +875,12 @@ async function associateProcess(process, updates) {
       const tab = await chrome.tabs.get(tabId);
       updates = {
         ...updates,
-        ...(await tabUpdates(tab, process, updates))
+        ...(await tabUpdates(urlTrackingDeps, tab, process, updates))
       };
     } catch (e) {
     }
   }
   return updates;
-}
-
-async function tabUpdates(tab, process, updates) {
-  return new Promise((resolve, reject) => {
-    if (!validTab(tab)) {
-      resolve({});
-    }
-
-    const urlKey = getUrlKey(tab.url);
-    if (updates && updates[urlKey]) {
-      resolve({ [urlKey]: urlUpdates(updates[urlKey], tab, process) });
-    }
-
-    getStorage(urlKey, (result) => {
-      const url = result[urlKey] || { url: tab.url };
-      resolve({ [urlKey]: urlUpdates(url, tab, process) });
-    });
-  });
-}
-
-function urlUpdates(url, tab, process) {
-  if (!url.processes || !url.processes.samples) {
-    url.processes = {
-      samples: 0,
-      cpu: 0,
-      network: 0,
-      privateMemory: 0,
-      jsMemoryAllocated: 0,
-      jsMemoryUsed: 0
-    }
-  }
-
-  // A user-edited record pins its title/favicon: skip the live-tab reassignment
-  // so a curated title/favicon isn't clobbered on the next tracking tick.
-  // A raw-URL title (Chrome reports the URL as the title before <title> lands,
-  // for unloaded tabs, and around group moves) only fills a record that has no
-  // real title yet; it never replaces one.
-  if (
-    !url.edited && tab.status !== "loading" && tab.title && tab.title.length > 0 &&
-    (!isRawUrlTitle(tab.title, tab.url) || isRawUrlTitle(url.title, url.url))
-  ) url.title = tab.title;
-  if (!url.title || !url.title.length) url.title = url.url;
-  if (!url.edited && tab.favIconUrl) url.favicon = tab.favIconUrl;
-  if (tab.groupId !== url.groupId) url.groupId = tab.groupId;
-
-  if (process) {
-    if (processesIndex[tab.url] !== processesIndex.global) {
-      processesIndex[tab.url] = processesIndex.global;
-      url.processes.samples += 1;
-
-      if (url.processes.samples > 100) {
-        url.processes.cpu = (url.processes.cpu / url.processes.samples)
-        url.processes.network = (url.processes.network / url.processes.samples)
-        url.processes.privateMemory = (url.processes.privateMemory / url.processes.samples)
-        url.processes.jsMemoryAllocated = (url.processes.jsMemoryAllocated / url.processes.samples)
-        url.processes.jsMemoryUsed = (url.processes.jsMemoryUsed / url.processes.samples)
-        url.processes.samples = 1;
-      }
-    }
-
-    url.processes.cpu += process.cpu || 0;
-    url.processes.network += process.network || 0;
-    url.processes.privateMemory += process.privateMemory || 0;
-    url.processes.jsMemoryAllocated += process.jsMemoryAllocated || 0;
-    url.processes.jsMemoryUsed += process.jsMemoryUsed || 0;
-  }
-  return url;
-}
-
-function getUrlKey(url) {
-  return `url-${url.split('#')[0]}`;
 }
 
 // Bidirectional Chrome group-color <-> hex map. Lifted to module scope so both
