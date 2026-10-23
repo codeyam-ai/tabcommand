@@ -90,11 +90,14 @@
       "severity": 4,
       "source": "session-review",
       "category": "fix",
-      "status": "pending",
+      "status": "written",
+      "planSlug": "fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record",
       "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
       "kind": "tech-debt",
       "rank": 1,
-      "sightings": 1
+      "sightings": 1,
+      "decidedAt": "2026-10-23T13:20:57Z",
+      "sightingsAtDecision": 1
     },
     {
       "id": "split-tab-grouping-paths-out-of-service-worker-js",
