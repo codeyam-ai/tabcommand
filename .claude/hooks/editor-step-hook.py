@@ -781,6 +781,17 @@ def main():
         _log_question_copy(project_dir, event_data)
         _record_audience_answer(project_dir, event_data)
 
+    # The user answered (or typed a new prompt, which also means they are
+    # back): the session is no longer parked on them. Removes the marker the
+    # pretool hook wrote when the question was raised.
+    if event_type == "user_prompt" or (
+        event_type == "post_tool_use" and event_data.get("tool_name") == "AskUserQuestion"
+    ):
+        try:
+            os.remove(os.path.join(project_dir, ".codeyam", "run", "awaiting-user.json"))
+        except OSError:
+            pass
+
     if not os.path.exists(state_path):
         # No editor-step.json — a stateless session entry. This is the exact
         # moment the routing decision gets made AND the request is in hand, so

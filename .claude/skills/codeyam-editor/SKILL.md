@@ -18,8 +18,8 @@ Two `/codeyam-editor` panes on one project corrupt each other's workflow state. 
   (`holder_session_id`/`holder_pid`/`holder_acquired_at`/`holder_transcript_path`)
   and tell the user to switch to that pane or wait, then stop.
 - **`held_by_other: true`, `holder_stale: true`** — a crashed/abandoned
-  session left a stale lock. Do NOT run `step 1`. Tell the user to run
-  `codeyam-editor editor session-reset` then re-invoke, then stop.
+  session left a stale lock. Run `codeyam-editor editor workflow-reclaim` yourself (keeps the
+  workflow position; no need to ask), then continue. Never `session-reset`: it erases the position.
 
 ## Project description is mandatory
 
@@ -44,7 +44,7 @@ You MUST follow a step-by-step workflow driven by `codeyam-editor editor step` c
 
 Steps 2+ include `━━━ TASK ━━━` directives with exact task titles and procedures. Follow what each directive says: create the task, do the work, mark it completed before advancing. Step 1 has no task.
 
-The advance gate reads `.codeyam/editor-task-tracking.json` (populated by the PostToolUse hook from your TaskCreate / TaskUpdate calls) and will `BLOCKED` if the current-step task is missing or not marked completed. Do NOT edit that JSON directly — go through TaskCreate/TaskUpdate so the hook records the state.
+The advance gate reads `.codeyam/editor-task-tracking.json` and will `BLOCKED` if the current-step task is missing or not marked completed. It is recorded from your harness's task tools (on Claude, TaskCreate / TaskUpdate) or, where those are absent, from `codeyam-editor editor track-step created|completed` — never edit that JSON directly.
 
 ## The Cycle
 

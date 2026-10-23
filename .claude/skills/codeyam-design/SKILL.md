@@ -385,9 +385,28 @@ The preview is already on the Mockups tab (it switched at the start of Step 3), 
 
 ## Step 5 — iterate when asked
 
-When the UI dispatches an Iterate trigger (an `Iterate:` keyword followed by a fenced JSON feedback bundle, or the no-feedback variant), **do not regenerate anything immediately**. First post a short message asking the user which design(s), if any, are close enough to keep and just tweak — and state clearly that every other design will be discarded and redesigned fresh from the feedback. **Wait for the user's reply before writing any mockup.** This is also where **cross-pollination** happens: if the user says "I like #5's layout but #2's palette," carry that explicitly into the refined slot.
+When the UI dispatches an Iterate trigger (an `Iterate:` keyword followed by a fenced JSON feedback bundle, or the no-feedback variant), **do not regenerate anything immediately**. First post a short message asking the user what should happen to each design in the next round. There are four choices per design:
 
-**An Iterate trigger is never a selection.** The user has not picked a design: ratings, notes and the Iterate button all mean "make another round". Do not POST `/api/editor-design-select`, and do not tell them they chose, picked or locked in a design, not even the top-rated one. In your question, name each design by its number and plain name and suggest which you would keep (usually the best-rated), so they can answer in a few words.
+- **Keep** — carry it into the next round untouched. Do not edit the file.
+- **Iterate** — refine it in place with its notes applied, same `NN-` prefix and tier.
+- **Multiple versions** (2–4) — make that many distinct variations of its direction. The first reuses the design's own `NN-` prefix; the rest take the next free numbers. Never overwrite a slot the user kept.
+- **Replace** — redesign that slot fresh from the feedback (the redesign rules below).
+
+**Wait for the user's reply before writing any mockup.** This is also where **cross-pollination** happens: if the user says "I like #5's layout but #2's palette," carry that explicitly into the refined slot.
+
+**An Iterate trigger is never a selection.** The user has not picked a design: ratings, notes and the Iterate button all mean "make another round". Do not POST `/api/editor-design-select`, and do not tell them they chose, picked or locked in a design, not even the top-rated one. In your question, name each design by its number and plain name and suggest a choice for each (usually Keep or Iterate for the best-rated), so they can answer in a few words.
+
+**End that question with your suggestion as a fenced `design-plan` block.** The chat reads it to pre-fill a per-design decision card and hides it from the user, so it must be the last thing in the message, valid JSON, keyed by mockup filename, one verb (`keep`, `iterate`, `versions`, `replace`) per design:
+
+````
+```design-plan
+{"01-keylime-mockup.html":"keep","02-paper-mockup.html":"iterate","03-offcatalog-mockup.html":"replace"}
+```
+````
+
+Designs left out of the block start on Replace, so include every design.
+
+**The user's reply may be a decision message** — it starts with `Design plan:`, lists one line per design, may carry `My note: …` with their own words, and ends with a `design-plan` block of `{"verb": …, "count": N}` per filename. Follow that JSON exactly: it is the user's choice for every design, and `count` is the number of versions. Their note still counts as feedback. A free-text reply works as before — read the choices out of it.
 
 Once the user answers, **switch the preview to the Mockups tab as the regeneration round begins** — before writing the first refreshed/placeholder card:
 
@@ -399,25 +418,27 @@ curl -X POST http://localhost:$PORT/api/editor-design-active-tab "${AUTH[@]}" \
 
 Best-effort, same caveats as Step 3 (resolve `$PORT` per Step 3's preamble — a dynamic per-project port, not necessarily `14199`; on `connection refused`, ask for the port — never guess; don't block on it). Then proceed:
 
-- **For each design they choose to keep:** refine it in place using its specific feedback, keeping the same numeric prefix and tier.
-- **For every other design:** redesign it fresh from the feedback. A slot keeps its tier unless the feedback implies moving it safer (toward anchored) or bolder (toward exploratory / off-catalog) — honor that drift when the feedback signals it.
+- **Keep:** leave the file exactly as it is.
+- **Iterate:** refine it in place using its specific feedback, keeping the same numeric prefix and tier.
+- **Multiple versions:** write N variations of that design's direction — each visibly different (layout, type treatment or palette emphasis), all resolving its notes. Slot 1 reuses its prefix; the others take the next free `NN-` numbers after the highest existing one.
+- **Replace:** redesign it fresh from the feedback. A slot keeps its tier unless the feedback implies moving it safer (toward anchored) or bolder (toward exploratory / off-catalog) — honor that drift when the feedback signals it.
 
-**Honor the feedback explicitly — it is non-negotiable signal.** Every card's comment is a concrete instruction and its rating is a strength signal. The refined or redesigned mockup must visibly resolve what the comment called out (e.g. "headline feels weak" → lead with a stronger headline treatment). A low rating means change direction further; a pointed comment means fix that exact thing. This applies to kept-and-tweaked designs and fresh redesigns alike.
+**Honor the feedback explicitly — it is non-negotiable signal.** Every card's comment is a concrete instruction and its rating is a strength signal. The refined or redesigned mockup must visibly resolve what the comment called out (e.g. "headline feels weak" → lead with a stronger headline treatment). A low rating means change direction further; a pointed comment means fix that exact thing. This applies to every design you change — iterated, versioned or replaced. Only a Keep is left alone.
 
 **Write the feedback checklist first, then check every new file against it.** Rounds have come back with a note ignored ("I don't like the grid background" and the grid was still there), so this is a procedure, not a suggestion:
 
-1. **Before editing any file, and again after the user answers which designs to keep, re-read the feedback** (the Iterate message lists it design by design, and names the archived `feedback.json` when there is one). Notes are in the user's own words and may be in any language.
+1. **Before editing any file, and again after the user answers what to do with each design, re-read the feedback** (the Iterate message lists it design by design, and names the archived `feedback.json` when there is one). Notes are in the user's own words and may be in any language.
 2. **Write the checklist in your working notes:** one line per design that has a note: the note, then the concrete change in the markup or CSS that resolves it. "No me gusta el fondo cuadriculado" becomes "remove the grid pattern from the page and every section background; use a plain surface or a different texture".
-3. **Kept designs get their notes applied too.** Keeping a design keeps its direction, never the thing its note rejected. A redesign that starts from the old file inherits everything the note complained about, so strip that element on purpose.
+3. **Iterated designs get their notes applied too.** Iterating on a design keeps its direction, never the thing its note rejected. (A design the user chose to **Keep** is the one exception: it stays untouched.) A redesign that starts from the old file inherits everything the note complained about, so strip that element on purpose.
 4. **A rating with no note is still signal:** 1 or 2 stars (rating 20 or 40) means change direction clearly (layout, palette and type), not a variation; 4 or 5 stars means keep what works and change little besides the notes.
 5. **After writing each file, re-open it and check every checklist line against the actual code.** For a rejected visual, search the CSS for every way it can be drawn (for a grid: `repeating-linear-gradient`, `linear-gradient` with a small `background-size`, SVG `<pattern>`, a `grid`/`dots`/`paper` class on a background). Anything still there is fixed before you move to the next design.
 6. **The closing message says, per design, what changed for each note**, in plain words: "#3: took out the grid background, it's a soft paper texture now."
 
-For **fresh redesign slots**, weigh the rating and comment to decide whether to keep the slot's current tier+system with a new layout, or switch tiers / pick a **different** system — avoid duplicating a system already used by a kept card.
+For **fresh redesign slots**, weigh the rating and comment to decide whether to keep the slot's current tier+system with a new layout, or switch tiers / pick a **different** system — avoid duplicating a system already used by a kept or iterated card.
 
 **Slot/file hygiene when swapping systems or tiers.** The numeric prefix (`NN-`) must stay so the card holds its slot, but the stem changes when the system changes (or becomes `offcatalog`). When you change a slot's system or tier, **delete the old `NN-*.html` before writing the new one** — the UI matches a slot by `NN-` prefix and would show two cards for one slot if both files exist.
 
-Keep all guidance about placeholder imagery, inline-only assets, and atomic writes — these apply to tweaked and redesigned mockups alike. After regenerating, post a short note summarizing what was kept/tweaked vs. redesigned, referencing the specific feedback it addressed. The preview is already on the Mockups tab, so no further tab-switch here.
+Keep all guidance about placeholder imagery, inline-only assets, and atomic writes — these apply to tweaked and redesigned mockups alike. After regenerating, post a short note saying, per design, what was done under its choice (kept, iterated, N versions as #x–#y, replaced), referencing the specific feedback it addressed. The preview is already on the Mockups tab, so no further tab-switch here.
 
 ## Step 5b: tweak when asked
 
