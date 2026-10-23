@@ -42,7 +42,6 @@
       "source": "codeyam-improvement",
       "status": "pending",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
-      "rank": 6,
       "sightings": 1
     },
     {
@@ -54,7 +53,7 @@
       "source": "session-review",
       "status": "pending",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
-      "rank": 5,
+      "rank": 3,
       "sightings": 1
     },
     {
@@ -66,7 +65,7 @@
       "source": "session-review",
       "status": "pending",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
-      "rank": 3,
+      "rank": 2,
       "sightings": 1
     },
     {
@@ -111,7 +110,7 @@
       "status": "pending",
       "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
       "kind": "tech-debt",
-      "rank": 2,
+      "rank": 1,
       "sightings": 1
     },
     {
@@ -124,7 +123,6 @@
       "source": "codeyam-improvement",
       "status": "pending",
       "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
-      "rank": 7,
       "sightings": 1
     },
     {
@@ -136,6 +134,7 @@
       "source": "session-review",
       "status": "pending",
       "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
+      "rank": 5,
       "sightings": 1
     },
     {
@@ -147,6 +146,31 @@
       "source": "session-review",
       "status": "pending",
       "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
+      "rank": 6,
+      "sightings": 1
+    },
+    {
+      "id": "review-gate-does-not-say-a-save-answer-must-be-recorded-before-advancing",
+      "title": "Review gate does not say a save answer must be recorded before advancing",
+      "mode": "backend",
+      "body": "## What happened\nAt the backend Review gate (step 14) the user picked \"Save my work — full check now\". The step text says to run `fast-commit-stop` and then advance. `advance` exited 2 with \"BLOCKED: this is the approval gate and no answer from the user is on record\" and named `save-approval --answer`. Nothing in the rendered Review step mentions `save-approval`, so every session pays one blocked advance to find it.\n\n## What would have helped\nThe Review step's \"If the user picks Save…\" line could name `codeyam-editor editor save-approval --answer \"<label>\"` as the first command, the way the Confirm Plan step names `check-in-keep-asking` / `check-in-grant` in its RUN THIS AFTERWARDS block.",
+      "reason": "Picking the save option and advancing was BLOCKED for want of a save-approval record the gate text never mentions.",
+      "severity": 3,
+      "source": "codeyam-improvement",
+      "status": "pending",
+      "proposedAt": "2026-10-23T13:44:45.040078904+00:00",
+      "sightings": 1
+    },
+    {
+      "id": "push-gate-silent-push-rule-contradicts-the-fixed-check-in-copy-that-promises-the-publish-check-in-always-asks",
+      "title": "Push gate silent-push rule contradicts the fixed check-in copy that promises the publish check-in always asks",
+      "mode": "backend",
+      "body": "## What happened\nThe Confirm Plan step's fixed option copy tells the user that on the main line \"the publish check-in always asks before the work goes where the rest of the team can see it.\" At the Push step, `commit-state` returned `remoteSetup.shouldRemind: false` on a `remote-configured` main branch, and the step text says to stay silent and run `push` without asking. I asked anyway to keep the promise the user had just been shown.\n\n## What would have helped\nEither have the push step force the question on the primary branch when the plan-gate copy promised it, or drop that promise from the plan-gate copy when the push will be silent.",
+      "reason": "Plan-gate copy tells the user pushing to main always asks, but the push step says to push silently when the remind flag is off.",
+      "severity": 2,
+      "source": "codeyam-improvement",
+      "status": "pending",
+      "proposedAt": "2026-10-23T13:44:45.040078904+00:00",
       "sightings": 1
     }
   ],
@@ -186,6 +210,23 @@
         "the-plan-listed-five-demo-scenarios-one-row-scenario-was-captured-real-title-and-favicon-hovered-and-the-other-four-cases-are-covered-by-tests-instead-of-captures",
         "scenarios-seeding-absolute-timestamps-silently-age-out-without-a-clock-pin",
         "reconcile-decide-delete-is-silently-not-applied-when-the-orphan-shares-its-name-with-a-live-entry"
+      ]
+    },
+    {
+      "at": "2026-10-23T13:44:45.040078904+00:00",
+      "feature": "Per-tab process stats save again",
+      "notes": "This cycle fixed the undeclared tabId in associateProcess, so the pending row 'Not fixed, out of scope: the worker's process-sampling loop assigns to an undeclared variable…' is now done and ranked last. It can be ignored. The worker harne…",
+      "proposedIds": [
+        "review-gate-does-not-say-a-save-answer-must-be-recorded-before-advancing",
+        "push-gate-silent-push-rule-contradicts-the-fixed-check-in-copy-that-promises-the-publish-check-in-always-asks"
+      ],
+      "rankedIds": [
+        "split-tab-grouping-paths-out-of-service-worker-js",
+        "the-live-tab-fill-in-newurl-also-requires-the-tab-to-still-be-on-the-same-url-which-is-narrower-than-the-plan-stated",
+        "the-plan-listed-five-demo-scenarios-one-row-scenario-was-captured-real-title-and-favicon-hovered-and-the-other-four-cases-are-covered-by-tests-instead-of-captures",
+        "outside-this-feature-the-local-isolated-component-list-was-missing-so-every-component-capture-rendered-no-such-component-it-was-regenerated-locally-not-committed",
+        "the-plan-said-to-move-the-worker-s-visit-pruning-helper-into-the-new-module-it-was-identical-to-the-shared-one-so-the-copy-was-deleted-and-the-shared-helper-with-its-existing-tests-is-used-instead",
+        "not-fixed-out-of-scope-the-worker-s-process-sampling-loop-assigns-to-an-undeclared-variable-which-would-throw-in-the-shipped-module-build"
       ]
     }
   ]
