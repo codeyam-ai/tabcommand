@@ -23,9 +23,11 @@
       "reason": "A missing gitignored manifest made every component scenario render 'No such component', and a recapture then overwrote good screenshots with that error page.",
       "severity": 5,
       "source": "codeyam-improvement",
-      "status": "pending",
+      "status": "copied",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
-      "sightings": 1
+      "sightings": 1,
+      "decidedAt": "2026-10-23T12:47:38Z",
+      "sightingsAtDecision": 1
     },
     {
       "id": "scenarios-seeding-absolute-timestamps-silently-age-out-without-a-clock-pin",
