@@ -1,0 +1,33 @@
+{
+  "provenAt": "2026-10-23T13:30:20Z",
+  "slug": "fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record",
+  "paths": [
+    "service_worker.js"
+  ],
+  "runScope": [
+    "service_worker.js"
+  ],
+  "tests": {
+    "fetches each task tab and merges its url updates": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    },
+    "persists per-tab url stats and totals for a process with a tab task": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    }
+  },
+  "proof": {
+    "verdict": "proven",
+    "flipped": [
+      "persists per-tab url stats and totals for a process with a tab task",
+      "fetches each task tab and merges its url updates"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "claimStartedAt": "2026-10-23T13:21:01Z",
+  "completedAt": "2026-10-23T13:35:31Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.16",
+    "currentStep": "backend-step15",
+    "machine": "codespaces-4f2c94",
+    "originId": "c0b6d12a-4b83-4072-84d0-daad67704369",
+    "pid": 3003,
+    "priority": 0,
+    "selectedPlan": "fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record",
+    "sessionId": "d28f1617-175b-4119-bfea-decb3e27cac0",
+    "startedAt": "2026-10-23T13:21:01Z"
+  },
+  "createdAt": "2026-10-23T13:20:57Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/components/Url/Url.jsx",
+    "src/lib/components/Url/Url.test.jsx",
+    "src/lib/utils/isSearchEngineUrl.js",
+    "src/lib/utils/siteKey.js",
+    "src/lib/utils/urlDetails.js",
+    "src/lib/utils/urlRecordDisplay.js",
+    "src/lib/utils/urlRecordDisplay.test.js",
+    "src/lib/utils/visitDecay.js",
+    "src/lib/worker/urlTracking.js",
+    "src/lib/worker/urlTracking.test.js"
+  ],
+  "journalTimestamp": "2026-10-23T13:35:31Z",
+  "mode": "backend",
+  "planFile": "completed/fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record.md",
+  "slug": "fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record",
+  "title": "Fix undeclared tabId in associateProcess so per-tab process stats record"
+}

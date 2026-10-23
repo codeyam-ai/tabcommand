@@ -86,9 +86,13 @@ function makeChrome() {
 
 // service_worker.js is shipped as an ES-module service worker (crxjs sets
 // `"type": "module"` at build), so it `import`s the pure deriveSystemTotals util.
-// The sloppy-mode Function wrapper here can't hold a top-level `import`, so we
-// strip the import line and inject the REAL util as a parameter — the worker
-// tests then exercise the same util that deriveSystemTotals.test.js covers.
+// The Function wrapper here can't hold a top-level `import`, so we strip the
+// import line and inject the REAL util as a parameter — the worker tests then
+// exercise the same util that deriveSystemTotals.test.js covers.
+//
+// ES modules are always strict, so the wrapper body opens with 'use strict'.
+// Without it an undeclared assignment such as `for (tabId of tabIds)` silently
+// creates a global here while throwing ReferenceError in the shipped worker.
 function loadWorker(chrome) {
   // The worker's `update` / `getStorage` delegate to the storageAccess module,
   // which is a REAL import here and therefore reads the ambient global `chrome`
@@ -139,7 +143,8 @@ function loadWorker(chrome) {
     'newUrl',
     'recordAccess',
     'tabUpdates',
-    `${code}
+    `'use strict';
+    ${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
              closeUrl, processProcesses, updateTotals, associateProcess,
@@ -677,6 +682,21 @@ describe('service_worker.js', () => {
       await fns.processProcesses({}); // no pids → totals only
       expect(state.samples).toBe(before + 1);
       expect(chrome.storage.local.set).toHaveBeenCalled();
+    });
+
+    // a process that owns a tab must persist both the totals and that tab's
+    // per-url stats — the write associateProcess used to abort before reaching
+    it('persists per-tab url stats and totals for a process with a tab task', async () => {
+      chrome.tabs.get.mockResolvedValue({ url: 'https://a.com', status: 'complete', title: 'A', groupId: -1 });
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({}));
+      chrome.storage.local.set.mockClear();
+
+      await fns.processProcesses({ 7: { tasks: [{ tabId: 1 }], cpu: 3 } });
+
+      const written = chrome.storage.local.set.mock.calls.map(([arg]) => arg);
+      const payload = written.find((arg) => arg.loadDataSource === 'processes');
+      expect(payload.processTotals.cpu).toBe(3);
+      expect(payload['url-https://a.com']).toBeTruthy();
     });
   });
 

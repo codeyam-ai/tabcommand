@@ -870,7 +870,7 @@ async function associateProcess(process, updates) {
     (tabId) => tabId !== undefined
   );
 
-  for (tabId of tabIds) {
+  for (const tabId of tabIds) {
     try {
       const tab = await chrome.tabs.get(tabId);
       updates = {

@@ -1,0 +1,73 @@
+{
+  "timestamp": "2026-10-23T13:35:31Z",
+  "title": "Fix undeclared tabId in associateProcess so per-tab process stats record",
+  "type": "fix",
+  "userRequest": "## Summary\n\n`associateProcess` in `service_worker.js` iterates with `for (tabId of tabIds)`, assigning to an undeclared `tabId`. The worker ships as an ES module (crxjs sets `\"type\": \"module\"`), which is strict mode, so this throws `ReferenceError: tabId is not defined` as soon as a process has a tab task. `processProcesses` then rejects before `update(updates)`, so neither per-tab process stats nor `processTotals` are persisted from the processes path. The test harness evaluates the worker in a sloppy-mode `new Function`, which hides the bug.\n\n## Key Decisions\n\n- Declare the loop variable: `for (const tabId of tabIds)`.\n- Add a regression test that runs `associateProcess` under strict semantics, for example by adding `'use strict'` to the harness wrapper or by extracting `associateProcess` into `src/lib/worker/` like the url-tracking split, so the test sees what production sees.\n\n## Implementation\n\n1. Change the loop header in `associateProcess` in `service_worker.js`.\n2. Make the `service_worker.test.js` harness strict, or move `associateProcess` and `updateTotals` into a worker module with injected `getTab` / `tabUpdates`, and test it there.\n3. Confirm `associateProcess › fetches each task tab and merges its url updates` fails under strict mode before the fix and passes after.",
+  "description": "associateProcess in service_worker.js looped with `for (tabId of tabIds)`, which assigns to an undeclared variable. The worker ships as an ES module, so it runs in strict mode and threw ReferenceError on the first process that had a tab task. processProcesses then rejected before update(), so per-tab url stats and processTotals were never saved from the processes path. The fix declares the variable with `for (const tabId of tabIds)`. The test harness (loadWorker in service_worker.test.js) wrapped the worker in a sloppy-mode `new Function`, which hid the bug; the wrapper body now opens with 'use strict' so tests match production. All 123 worker tests pass under strict mode. A new processProcesses regression test checks that both totals and per-tab url stats are saved. prove-red reports both it and the existing associateProcess test as fault-pinning. Scope verdict: this cycle restores the existing deliverable 'Users can see resource load information about their tabs' on the chrome.processes path (already marked delivered by the agent in an earlier cycle; this fix makes that claim true again). No deliverables were deferred, and all 8 are resolved.",
+  "modifiedFiles": [
+    {
+      "path": ".codeyam/dependency-graph.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/plans/fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record.md\t.codeyam/plans/completed/fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record.md",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache.json",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/84eb55d59054f3da46bc04baf1d0c39cda489c1a7e96ba8f4ebbd0e9cdcfdee1.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/9ce6a1b3919dc8f8ec0ae25772688439a813f99e9ec1ee40fd9abd870c47f7df.json",
+      "status": "deleted"
+    },
+    {
+      "path": ".codeyam/test-registry.json",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.js",
+      "status": "modified"
+    },
+    {
+      "path": "service_worker.test.js",
+      "status": "modified"
+    },
+    {
+      "path": ".codeyam/state/red-proofs/fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/61c75716ef1c154e167a3bcfae1a7be33ca8d0f81b4ee4444a68c560e9b55b9c.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/6a68dbb1b0c7600f6deef8b599b44081e19cd8c04c91a917464fb31519473bc2.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/6bd1ac6fbd87ed49d6a69b466ff74d9abcd1997c370d5f11378ac93e3cb50a40.json",
+      "status": "added"
+    },
+    {
+      "path": ".codeyam/test-cache/blobs/fdd81a40f81fb672d10b31ce171aa310f63b03b8d103e43815cc68c13f66e320.json",
+      "status": "added"
+    }
+  ],
+  "testResults": {
+    "total": 123,
+    "passed": 123,
+    "failed": 0,
+    "runners": [
+      {
+        "name": "tests",
+        "total": 123,
+        "passed": 123
+      }
+    ]
+  }
+}
