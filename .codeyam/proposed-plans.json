@@ -40,9 +40,11 @@
       "reason": "Two Tabs auto-closed scenarios went empty three weeks after capture because nothing flagged their unpinned dates.",
       "severity": 3,
       "source": "codeyam-improvement",
-      "status": "pending",
+      "status": "copied",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
-      "sightings": 1
+      "sightings": 1,
+      "decidedAt": "2026-10-23T13:46:11Z",
+      "sightingsAtDecision": 1
     },
     {
       "id": "the-plan-listed-five-demo-scenarios-one-row-scenario-was-captured-real-title-and-favicon-hovered-and-the-other-four-cases-are-covered-by-tests-instead-of-captures",
