@@ -9,11 +9,14 @@
       "severity": 2,
       "source": "session-review",
       "category": "debt",
-      "status": "pending",
+      "status": "written",
+      "planSlug": "split-tab-tracking-write-paths-out-of-service-worker-js",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
       "kind": "tech-debt",
       "rank": 1,
-      "sightings": 1
+      "sightings": 1,
+      "decidedAt": "2026-10-23T12:48:08Z",
+      "sightingsAtDecision": 1
     },
     {
       "id": "isolate-component-manifest-missing-in-a-fresh-checkout-breaks-every-component-capture",
