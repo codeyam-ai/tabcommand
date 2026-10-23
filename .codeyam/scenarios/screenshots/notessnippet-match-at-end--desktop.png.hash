@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:60422234d1632321b4d4915bea5be404","scenarioDefinitionHashV2":"sha256/32:5b6b17daa85a21986d9f42f1a845c4b8"}
+{"cssRuleMatches":{"src/lib/components/NotesSnippet/NotesSnippet.css":[".NotesSnippet",".NotesSnippet span"]},"renderInputHash":"sha256/32:97fcde4a570c31e3c7ee8e24798c2ce4","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:5b6b17daa85a21986d9f42f1a845c4b8"}

@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:91b07cb5ff1263206ad127432c36a2f6","scenarioDefinitionHashV2":"sha256/32:3b4a84b24e409b6b8adda46a638c339d"}
+{"cssRuleMatches":{"src/lib/components/FullSearchRow/FullSearchRow.css":[".FullSearch-badge",".FullSearch-row .NotesSnippet.FullSearch-row-notes",".FullSearch-row-edit",".FullSearch-row-edit:hover"]},"renderInputHash":"sha256/32:7225ec94ac7b3d4f1c4a95c10228a952","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:3b4a84b24e409b6b8adda46a638c339d"}

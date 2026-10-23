@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:16bb95a4c0b620bca32a59566aa24cbc","scenarioDefinitionHashV2":"sha256/32:39c529f6794a5fdfb2a5b1cbdb7528a6"}
+{"cssRuleMatches":{"src/lib/components/UsageSparkline/UsageSparkline.css":[".UsageSparkline",".UsageSparkline-bar",".UsageSparkline-bar--on",".UsageSparkline-bars",".UsageSparkline-group",".UsageSparkline-label"]},"renderInputHash":"sha256/32:bf72a8b96e35461820add0f72526b69a","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:39c529f6794a5fdfb2a5b1cbdb7528a6"}

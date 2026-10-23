@@ -33,6 +33,7 @@ import { readByArea, writeByArea } from './src/lib/utils/storageAccess.js';
 import { migrateLabelsToSync } from './src/lib/utils/migrateLabelsToSync.js';
 import findLabelForUrlKey from './src/lib/utils/findLabelForUrlKey.js';
 import deletedLabelTitles from './src/lib/utils/deletedLabelTitles.js';
+import { isRawUrlTitle, fillDisplayFromLiveTab, mergeTrackingUpdates } from './src/lib/utils/urlRecordDisplay.js';
 
 // service_worker.js is a vanilla (non-module) background script: it declares
 // top-level functions and immediately registers chrome.*
@@ -136,6 +137,9 @@ function loadWorker(chrome) {
     'readByArea',
     'writeByArea',
     'migrateLabelsToSync',
+    'isRawUrlTitle',
+    'fillDisplayFromLiveTab',
+    'mergeTrackingUpdates',
     `${code}
     ;return {
       fns: { trackGroup, listenToProcesses, updateActiveTabs, update,
@@ -158,7 +162,7 @@ function loadWorker(chrome) {
       }
     };`
   );
-  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey, deletedLabelTitles, areaForKey, readByArea, writeByArea, migrateLabelsToSync);
+  return factory(chrome, { log: vi.fn(), error: vi.fn() }, deriveSystemTotals, isTrackableUrl, samePageKey, pruneDeletedUrls, appendGroupingLog, healDriftedLabelSlot, navigatedAwayFromRecordedSlot, buildGroupRemovalEntry, GROUP_REMOVAL_LOG_KEY, GROUP_REMOVAL_LOG_CAP, RemovalSource, buildGroupAdditionEntry, GROUP_ADDITION_LOG_KEY, GROUP_ADDITION_LOG_CAP, AdditionSource, buildGroupMoveEntry, GROUP_MOVE_LOG_KEY, GROUP_MOVE_LOG_CAP, MoveSource, needsGroupCall, needsUngroupCall, bucketTabsByWindow, findLabelForUrlKey, deletedLabelTitles, areaForKey, readByArea, writeByArea, migrateLabelsToSync, isRawUrlTitle, fillDisplayFromLiveTab, mergeTrackingUpdates);
 }
 
 describe('service_worker.js', () => {
@@ -371,6 +375,35 @@ describe('service_worker.js', () => {
       expect(out.title).toBe('Live Title');
       expect(out.favicon).toBe('live.png');
     });
+
+    // a tab whose title is just its url must not overwrite a real stored title
+    it('keeps a real title when the live tab reports its raw url', () => {
+      const out = fns.urlUpdates(
+        { url: 'https://example.com/page', title: 'Example Page', favicon: 'ex.png' },
+        { status: 'complete', title: 'example.com/page', favIconUrl: '', groupId: 7, url: 'https://example.com/page' }
+      );
+      expect(out.title).toBe('Example Page');
+      expect(out.favicon).toBe('ex.png');
+    });
+
+    // the raw-url guard only blocks downgrades: a record still showing its url
+    // fallback is upgraded by the first real title the tab reports
+    it('upgrades a raw-url placeholder title to the real title', () => {
+      const out = fns.urlUpdates(
+        { url: 'https://example.com/page', title: 'https://example.com/page' },
+        { status: 'complete', title: 'Example Page', groupId: -1, url: 'https://example.com/page' }
+      );
+      expect(out.title).toBe('Example Page');
+    });
+
+    // a page with no <title> keeps its url fallback, since Chrome reports the url
+    it('keeps the url fallback for a page with no real title', () => {
+      const out = fns.urlUpdates(
+        { url: 'https://example.com/page' },
+        { status: 'complete', title: 'example.com/page', groupId: -1, url: 'https://example.com/page' }
+      );
+      expect(out.title).toBe('example.com/page');
+    });
   });
 
   describe('update', () => {
@@ -541,6 +574,33 @@ describe('service_worker.js', () => {
     it('returns early without tabId/url', async () => {
       await expect(fns.newUrl(undefined, 'https://a.com')).resolves.toBeUndefined();
       await expect(fns.newUrl(1, undefined)).resolves.toBeUndefined();
+    });
+
+    // a record rebuilt from a snapshot with no title/favicon takes them from the
+    // live tab, so a standalone newUrl write can't strip the row's display fields
+    it('fills a missing title and favicon from the live tab', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
+      chrome.tabs.get.mockResolvedValue({ id: 1, url: 'https://new.com', title: 'New Site', favIconUrl: 'n.png', status: 'complete' });
+      const updates = await fns.newUrl(1, 'https://new.com');
+      expect(updates['url-https://new.com'].title).toBe('New Site');
+      expect(updates['url-https://new.com'].favicon).toBe('n.png');
+    });
+
+    // a live tab that has navigated elsewhere must not lend its title to this url
+    it('ignores a live tab showing a different url', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
+      chrome.tabs.get.mockResolvedValue({ id: 1, url: 'https://other.com', title: 'Other', favIconUrl: 'o.png' });
+      const updates = await fns.newUrl(1, 'https://new.com');
+      expect(updates['url-https://new.com'].title).toBeUndefined();
+      expect(updates['url-https://new.com'].favicon).toBeUndefined();
+    });
+
+    // a closed tab makes chrome.tabs.get reject; the visit is still recorded
+    it('still records the visit when the live tab lookup fails', async () => {
+      chrome.storage.local.get.mockImplementation((_q, cb) => cb({ allUrls: [], labels: {} }));
+      chrome.tabs.get.mockRejectedValue(new Error('No tab with id: 1'));
+      const updates = await fns.newUrl(1, 'https://new.com');
+      expect(updates['url-https://new.com'].visitCount).toBe(1);
     });
 
     // adds a brand-new url key to the front of allUrls

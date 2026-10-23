@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:3a91d2037a5fb395202b9050c0844840","scenarioDefinitionHashV2":"sha256/32:406a583abdb74c841ab3331855ade6e0"}
+{"cssRuleMatches":{"src/lib/components/UrlLabel/UrlLabel.css":[".UrlLabel",".UrlLabel-dot",".UrlLabel-name",".UrlLabel-remove",".UrlLabel:hover",".UrlLabel:hover .UrlLabel-remove",".UrlLabel>*"]},"renderInputHash":"sha256/32:f262ad9904a65b85ebf0ebb5ef55092c","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:406a583abdb74c841ab3331855ade6e0"}

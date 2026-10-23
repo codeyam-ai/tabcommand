@@ -1,0 +1,71 @@
+{
+  "provenAt": "2026-10-23T12:15:32Z",
+  "slug": "never-replace-a-real-tab-title-with-a-raw-url",
+  "paths": [],
+  "runScope": [
+    "service_worker.js",
+    "src/lib/components/Url/Url.jsx",
+    "src/lib/utils/urlRecordDisplay.js"
+  ],
+  "neuters": [
+    {
+      "file": "service_worker.js",
+      "find": "(!isRawUrlTitle(tab.title, tab.url) || isRawUrlTitle(url.title, url.url))",
+      "replace": "true"
+    },
+    {
+      "file": "service_worker.js",
+      "find": "fillDisplayFromLiveTab(updates[urlKey], liveTab);",
+      "replace": "void liveTab;"
+    },
+    {
+      "file": "src/lib/components/Url/Url.jsx",
+      "find": "title: kept.title, favicon: kept.favicon",
+      "replace": "title: updates.title, favicon: updates.favicon"
+    },
+    {
+      "file": "src/lib/utils/urlRecordDisplay.js",
+      "find": "merged[key] = mergeUrlDisplay(base[key], incoming[key]);",
+      "replace": "merged[key] = incoming[key];"
+    }
+  ],
+  "tests": {
+    "fills a missing title and favicon from the live tab": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    },
+    "keeps a real title when the live tab reports its raw url": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    },
+    "keeps tabUpdates display fields over a stale newUrl snapshot": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    },
+    "keeps the real title and favicon when a raw-url write arrives": {
+      "withoutFix": "fail",
+      "withFix": "pass",
+      "established": {
+        "kind": "measured"
+      }
+    }
+  },
+  "proof": {
+    "verdict": "proven",
+    "flipped": [
+      "keeps a real title when the live tab reports its raw url",
+      "fills a missing title and favicon from the live tab",
+      "keeps the real title and favicon when a raw-url write arrives",
+      "keeps tabUpdates display fields over a stale newUrl snapshot"
+    ]
+  }
+}

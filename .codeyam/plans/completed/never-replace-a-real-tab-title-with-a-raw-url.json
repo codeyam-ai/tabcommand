@@ -1,0 +1,29 @@
+{
+  "claimStartedAt": "2026-10-23T12:04:59Z",
+  "completedAt": "2026-10-23T12:43:07Z",
+  "completedBy": {
+    "agentProvider": "claude",
+    "codeyamEditorVersion": "0.1.16",
+    "currentStep": "backend-step15",
+    "machine": "codespaces-4f2c94",
+    "pid": 3003,
+    "priority": 0,
+    "selectedPlan": "never-replace-a-real-tab-title-with-a-raw-url",
+    "sessionId": "d28f1617-175b-4119-bfea-decb3e27cac0",
+    "startedAt": "2026-10-23T12:04:59Z"
+  },
+  "createdAt": "2026-10-23T11:37:04Z",
+  "deliverables": [
+    "service_worker.js",
+    "service_worker.test.js",
+    "src/lib/components/Url/Url.jsx",
+    "src/lib/components/Url/Url.test.jsx",
+    "src/lib/utils/urlRecordDisplay.js",
+    "src/lib/utils/urlRecordDisplay.test.js"
+  ],
+  "journalTimestamp": "2026-10-23T12:43:07Z",
+  "mode": "backend",
+  "planFile": "completed/never-replace-a-real-tab-title-with-a-raw-url.md",
+  "slug": "never-replace-a-real-tab-title-with-a-raw-url",
+  "title": "Never Replace a Real Tab Title with a Raw URL"
+}

@@ -1051,6 +1051,15 @@
     "testFile": "src/lib/utils/faviconMonogram.test.js"
   },
   {
+    "description": "Fills a url-* record's missing real title and favicon in place from the live Chrome tab, skipping edited records. Used by newUrl, whose record is rebuilt from a storage snapshot that can predate the title and favicon write.",
+    "filePath": "src/lib/utils/urlRecordDisplay.js",
+    "name": "fillDisplayFromLiveTab",
+    "tags": [
+      "url-record-display"
+    ],
+    "testFile": "src/lib/utils/urlRecordDisplay.test.js"
+  },
+  {
     "description": "Resolves which label claims a urlKey, returning the first matching label title or null. The single source of truth for the question two callers ask and must not answer differently: groupTabs picking an ungrouped tab's destination group, and updateActiveTabs testing membership before ejecting a revisited auto-closed tab. Returning the FIRST match is the anti-flip-flop guarantee — the previous loop queued a tab into every label claiming its urlKey, so a URL filed under two labels was grouped twice in one pass, into group A and then group B, with the winner depending on async tabGroups.query ordering and therefore able to differ pass to pass. First-by-Object.keys order is an arbitrary choice of label but a stable one, and stability is the property that stops the alternation. Null-tolerant on both arguments and skips malformed label records so one bad entry cannot break grouping for the rest.",
     "filePath": "src/lib/utils/findLabelForUrlKey.js",
     "name": "findLabelForUrlKey",
@@ -1292,6 +1301,15 @@
     "testFile": "src/lib/utils/searchHitHref.test.js"
   },
   {
+    "description": "Decides whether a url-* record title carries nothing beyond its URL: missing, blank, or the URL itself after stripping scheme, a leading www., a trailing slash and the hash. The shared rule every tracking write path uses to keep a raw-URL title from replacing a real one.",
+    "filePath": "src/lib/utils/urlRecordDisplay.js",
+    "name": "isRawUrlTitle",
+    "tags": [
+      "url-record-display"
+    ],
+    "testFile": "src/lib/utils/urlRecordDisplay.test.js"
+  },
+  {
     "description": "Service-worker mirror of the src/lib/utils/isSearchEngineUrl predicate: returns true when a URL host (via the local siteKey mirror) is a known search engine - a curated exact-host set plus a google.<tld> ccTLD rule. Used by newUrl to skip the Favorites scoring writes (per-record visits + the durable siteVisits host bucket) for search engines, which rankFavorites discards anyway. Duplicated here because the service-worker runtime cannot import the ES module, matching the siteKey and pruneVisits mirroring convention; SEARCH_ENGINE_HOSTS is kept byte-identical to the canonical set.",
     "filePath": "service_worker.js",
     "name": "isSearchEngineUrl",
@@ -1417,6 +1435,24 @@
     "testFile": "src/lib/utils/deriveSystemTotals.test.js"
   },
   {
+    "description": "Combines the tabUpdates update object with newUrl's in onCreated and onUpdated. Non-url keys spread with newUrl winning as before; url-* records keep the better title and favicon of the two so a stale snapshot cannot strip them.",
+    "filePath": "src/lib/utils/urlRecordDisplay.js",
+    "name": "mergeTrackingUpdates",
+    "tags": [
+      "url-record-display"
+    ],
+    "testFile": "src/lib/utils/urlRecordDisplay.test.js"
+  },
+  {
+    "description": "Returns the incoming url-* record with title and favicon taken from the stored record whenever the incoming value is raw or empty and the stored one is real. Never mutates its inputs. Backs the worker merges and the Url row display guard.",
+    "filePath": "src/lib/utils/urlRecordDisplay.js",
+    "name": "mergeUrlDisplay",
+    "tags": [
+      "url-record-display"
+    ],
+    "testFile": "src/lib/utils/urlRecordDisplay.test.js"
+  },
+  {
     "description": "Reads both storage areas, applies decideMigration, performs the copy when owed, and hands back the resolved labels. Runs on service-worker boot AND on app boot — MV3 recycles the worker constantly, so a not-yet-migrated user who opened the full-page app first would read labels from an empty sync area and see zero groups. Idempotent, so both entry points running it is safe. Deliberately one-way-safe: the local value is LEFT IN PLACE as a read-only fallback, never deleted, so a sync failure degrades to the old behavior instead of losing data.",
     "filePath": "src/lib/utils/migrateLabelsToSync.js",
     "name": "migrateLabelsToSync",
@@ -1456,6 +1492,15 @@
       "storage"
     ],
     "testFile": "service_worker.test.js"
+  },
+  {
+    "description": "Private normalizer behind isRawUrlTitle: strips the hash, http or https scheme, a leading www. and trailing slashes, then lowercases, so a title and a URL compare equal when the title is just the URL.",
+    "filePath": "src/lib/utils/urlRecordDisplay.js",
+    "name": "normalizeForTitle",
+    "tags": [
+      "url-record-display"
+    ],
+    "testFile": "src/lib/utils/urlRecordDisplay.test.js"
   },
   {
     "description": "Normalizes a tab's group id so a missing or null value reads as Chrome's TAB_GROUP_ID_NONE. Shared by needsGroupCall and needsUngroupCall so both placement predicates agree on what no group means. Its real job is what it deliberately does NOT do: collapse 0 into no group. Group id 0 is falsy but a perfectly valid Chrome group id, and the service worker's older `activeTab.groupId && activeTab.groupId > -1` test mishandles exactly that case — a tab in group 0 would be re-grouped on every pass, or refuse to be ungrouped. Comparing against -1 explicitly instead of by truthiness is what keeps the guards correct at that edge.",

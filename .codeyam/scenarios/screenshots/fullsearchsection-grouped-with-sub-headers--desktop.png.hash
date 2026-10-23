@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:f1e1096e6736b2271eeb9a4b78f43026","scenarioDefinitionHashV2":"sha256/32:23d4bd2eb48f55ee75b3737e2c3aec8f"}
+{"cssRuleMatches":{"src/lib/components/FullSearchSection/FullSearchSection.css":[".FullSearch-group",".FullSearch-group-header",".FullSearch-group-title",".FullSearch-section-count",".FullSearch-section-title"]},"renderInputHash":"sha256/32:268f4ff0aff57a9ac9cdeab74171d096","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:23d4bd2eb48f55ee75b3737e2c3aec8f"}

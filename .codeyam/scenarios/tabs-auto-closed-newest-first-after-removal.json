@@ -6,17 +6,21 @@
     "Desktop"
   ],
   "mocks": {},
+  "clock": {
+    "now": "2026-10-02T01:00:00Z",
+    "frozen": true
+  },
   "browserState": {
     "localStorage": {
       "url-https://github.com/codeyam/tabcommand": "{\"title\": \"codeyam/tabcommand \\u2014 GitHub\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
-      "url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms": "{\"title\": \"chrome.alarms not firing in MV3 service worker - Stack Overflow\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
-      "labels": "{\"Work\": {\"title\": \"Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\"]}}",
-      "url-https://en.wikipedia.org/wiki/Tab_(interface)": "{\"title\": \"Tab (interface) - Wikipedia\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
-      "autoClosed": "{\"url-https://developer.chrome.com/docs/extensions/reference/api/storage\":1790902315511,\"url-https://en.wikipedia.org/wiki/Tab_(interface)\":1790900935511,\"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\":1790891635511,\"url-https://www.figma.com/file/tabcommand\":1790808835511}",
       "url-https://developer.chrome.com/docs/extensions/reference/api/storage": "{\"title\": \"chrome.storage API \\u2013 Chrome for Developers\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://www.figma.com/file/tabcommand": "{\"title\": \"TabCommand UI \\u2013 Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "autoClosed": "{\"url-https://developer.chrome.com/docs/extensions/reference/api/storage\":1790902315511,\"url-https://en.wikipedia.org/wiki/Tab_(interface)\":1790900935511,\"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\":1790891635511,\"url-https://www.figma.com/file/tabcommand\":1790808835511}",
       "activeTabs": "[{\"urlKey\": \"url-https://github.com/codeyam/tabcommand\", \"tabKey\": \"tab-401\", \"pinned\": false}]",
       "allUrls": "[\"url-https://developer.chrome.com/docs/extensions/reference/api/storage\", \"url-https://en.wikipedia.org/wiki/Tab_(interface)\", \"url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms\", \"url-https://www.figma.com/file/tabcommand\", \"url-https://github.com/codeyam/tabcommand\"]",
-      "url-https://www.figma.com/file/tabcommand": "{\"title\": \"TabCommand UI \\u2013 Figma\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}"
+      "labels": "{\"Work\": {\"title\": \"Work\", \"backgroundColor\": \"#1873E4\", \"position\": 0, \"urlKeys\": [\"url-https://github.com/codeyam/tabcommand\", \"url-https://www.figma.com/file/tabcommand\"]}}",
+      "url-https://en.wikipedia.org/wiki/Tab_(interface)": "{\"title\": \"Tab (interface) - Wikipedia\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}",
+      "url-https://stackoverflow.com/questions/chrome-extension-mv3-alarms": "{\"title\": \"chrome.alarms not firing in MV3 service worker - Stack Overflow\", \"favicon\": \"\", \"processes\": {\"samples\": 0}}"
     }
   },
   "componentName": "Tabs",

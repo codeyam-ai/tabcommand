@@ -154,3 +154,46 @@ describe('Url', () => {
     expect(container.querySelector('[data-tool-tip="Edit/Annotate"]')).toBeInTheDocument();
   });
 });
+
+// Backstop for the "row flips to the raw url + monogram" bug: a storage write
+// that carries a raw-url title or drops the favicon must not replace the real
+// title/favicon the row already shows, while a real title change still lands.
+describe('Url display backstop', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    delete globalThis.chrome;
+  });
+
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  const write = (obj) => new Promise((resolve) => chrome.storage.local.set(obj, resolve));
+
+  // a raw-url title and empty favicon arriving after load leave the real ones shown
+  it('keeps the real title and favicon when a raw-url write arrives', async () => {
+    seed('url-https://example.com/page', { title: 'Example Page', favicon: 'https://example.com/f.ico' });
+    installChromeShim();
+    const { container } = render(<Url urlKey="url-https://example.com/page" />);
+    await screen.findByText('Example Page');
+
+    await write({ 'url-https://example.com/page': { url: 'https://example.com/page', title: 'example.com/page', favicon: '' } });
+
+    await waitFor(() => expect(screen.getByText('Example Page')).toBeInTheDocument());
+    expect(screen.queryByText('example.com/page')).not.toBeInTheDocument();
+    expect(container.querySelector('.Url-title img')).toBeInTheDocument();
+    expect(container.querySelector('.Url-favFallback')).not.toBeInTheDocument();
+  });
+
+  // a real title change on the site still updates the row
+  it('updates the row when a real new title arrives', async () => {
+    seed('url-https://mail.example.com', { title: 'Inbox', favicon: 'https://mail.example.com/f.ico' });
+    installChromeShim();
+    render(<Url urlKey="url-https://mail.example.com" />);
+    await screen.findByText('Inbox');
+
+    await write({ 'url-https://mail.example.com': { url: 'https://mail.example.com', title: '3 Inbox', favicon: 'https://mail.example.com/f.ico' } });
+
+    expect(await screen.findByText('3 Inbox')).toBeInTheDocument();
+  });
+});

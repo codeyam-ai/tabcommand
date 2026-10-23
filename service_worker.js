@@ -14,6 +14,7 @@ import deletedLabelTitles from './src/lib/utils/deletedLabelTitles.js';
 import { areaForKey } from './src/lib/utils/storageAreas.js';
 import { readByArea, writeByArea } from './src/lib/utils/storageAccess.js';
 import { migrateLabelsToSync } from './src/lib/utils/migrateLabelsToSync.js';
+import { isRawUrlTitle, fillDisplayFromLiveTab, mergeTrackingUpdates } from './src/lib/utils/urlRecordDisplay.js';
 
 let listening = true;
 let removing;
@@ -479,10 +480,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // validTab), so guard it so an incognito navigation never enters allUrls
     // or bumps visitCount. See validTab for the broader incognito policy.
     if (!tab.incognito) {
-      updates = {
-        ...updates,
-        ...(await newUrl(tabId, changeInfo.url))
-      };
+      updates = mergeTrackingUpdates(updates, await newUrl(tabId, changeInfo.url));
     }
   }
 
@@ -550,10 +548,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   if (!tab.pinned && tab.groupId != null && tab.groupId > -1) {
     autoGroupedTabs.add(tab.id);
   }
-  const updates = {
-    ...(await tabUpdates(tab)),
-    ...(await newUrl(tab.id, tab.url))
-  }
+  const updates = mergeTrackingUpdates(await tabUpdates(tab), await newUrl(tab.id, tab.url));
   update(updates);
 
   if (listening) return;
@@ -792,6 +787,15 @@ async function newUrl(tabId, url) {
   // never bumps visitCount. Sits alongside the incognito/validTab policy:
   // about:blank previously slipped through because newUrl never consulted them.
   if (!isTrackableUrl(url)) return;
+  // The url-* record below is rebuilt from a storage snapshot that can predate
+  // the title/favicon write, so read the live tab to fill those display fields
+  // when the snapshot lacks them. Guarded like recordAccess: a gone tab is fine.
+  let liveTab;
+  try {
+    liveTab = await chrome.tabs.get(tabId);
+  } catch (e) {
+    liveTab = null;
+  }
   return new Promise((resolve, reject) => {
     const updates = {};
     const urlKey = getUrlKey(url);
@@ -861,6 +865,9 @@ async function newUrl(tabId, url) {
           ? urlRecord.visits || []
           : pruneVisits([...(urlRecord.visits || []), now], now),
       };
+      if (liveTab && liveTab.url && getUrlKey(liveTab.url) === urlKey) {
+        fillDisplayFromLiveTab(updates[urlKey], liveTab);
+      }
 
       // The DURABLE half of the same visit: accumulate it under the site's host
       // in `siteVisits`, which the eviction branch above never touches. Evicting
@@ -1129,7 +1136,13 @@ function urlUpdates(url, tab, process) {
 
   // A user-edited record pins its title/favicon: skip the live-tab reassignment
   // so a curated title/favicon isn't clobbered on the next tracking tick.
-  if (!url.edited && tab.status !== "loading" && tab.title && tab.title.length > 0) url.title = tab.title;
+  // A raw-URL title (Chrome reports the URL as the title before <title> lands,
+  // for unloaded tabs, and around group moves) only fills a record that has no
+  // real title yet; it never replaces one.
+  if (
+    !url.edited && tab.status !== "loading" && tab.title && tab.title.length > 0 &&
+    (!isRawUrlTitle(tab.title, tab.url) || isRawUrlTitle(url.title, url.url))
+  ) url.title = tab.title;
   if (!url.title || !url.title.length) url.title = url.url;
   if (!url.edited && tab.favIconUrl) url.favicon = tab.favIconUrl;
   if (tab.groupId !== url.groupId) url.groupId = tab.groupId;

@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:56bf16bfb9afab0e0f7f06d30106eddb","scenarioDefinitionHashV2":"sha256/32:ee4fb119600017b287ae3d307bbd421c"}
+{"cssRuleMatches":{"src/lib/components/Triage/Triage.css":[".Triage",".Triage-body",".Triage-dot",".Triage-head",".Triage-low .Triage-dot",".Triage-low .Triage-title",".Triage-title"]},"renderInputHash":"sha256/32:dc589eaded0bde6279cc7bc914759b7f","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:ee4fb119600017b287ae3d307bbd421c"}

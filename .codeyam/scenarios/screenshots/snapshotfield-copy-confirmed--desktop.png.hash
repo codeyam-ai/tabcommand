@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:e945986abf43780f3663b63b62044e38","scenarioDefinitionHashV2":"sha256/32:71e08db8d174f8fd6065386394ee00f7"}
+{"cssRuleMatches":{"src/lib/components/SnapshotField/SnapshotField.css":[".SnapshotField",".SnapshotField .SnapshotBox",".SnapshotField-copy",".SnapshotField-copy:hover"]},"renderInputHash":"sha256/32:146082d5f21943e1a409a62a3f756ac0","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:71e08db8d174f8fd6065386394ee00f7"}

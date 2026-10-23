@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:682f4055f79d3d234c76b48a3c838711","scenarioDefinitionHashV2":"sha256/32:738a6a513857346b63288aa1960f68db"}
+{"cssRuleMatches":{"src/lib/components/HistoryRowActions/HistoryRowActions.css":[".HistoryRowActions-delete",".HistoryRowActions-delete:hover",".HistoryRowActions-reopen",".HistoryRowActions-reopen:hover"]},"renderInputHash":"sha256/32:4c747090bd73db87b2c43fb622da2445","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:738a6a513857346b63288aa1960f68db"}

@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:e4fdd3c6e41e398acaa452d6fb5ee884","scenarioDefinitionHashV2":"sha256/32:40485aef43ba55214bcf71f4e091bbbf"}
+{"cssRuleMatches":{"src/lib/components/AppBrand/AppBrand.css":[".App-brand",".App-brand-command",".App-brand-mark",".App-brand-tab",".App-brand-text"]},"renderInputHash":"sha256/32:c9d5e54dcab856ff4fc5e98abc2f0478","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:40485aef43ba55214bcf71f4e091bbbf"}

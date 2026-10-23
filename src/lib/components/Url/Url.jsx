@@ -8,6 +8,7 @@ import { Chrome } from '../../utils/Chrome';
 import { summarizeProcessLoad } from '../../utils/processLoad';
 import { deleteUrlFromHistory } from '../../utils/deleteUrlFromHistory';
 import Favicon from '../Favicon/Favicon';
+import { mergeUrlDisplay } from '../../utils/urlRecordDisplay';
 
 const Url = ({
   dragRef,
@@ -99,7 +100,19 @@ const Url = ({
           ...handleUrl(changes[urlKey].newValue)
         };
       }
-      setPartialState(updates);
+      if (!changes[urlKey] || !changes[urlKey].newValue) {
+        setPartialState(updates);
+        return;
+      }
+      // Backstop for any write path that still stores a raw-URL title or drops
+      // the favicon: keep the real title/favicon the row already shows.
+      setState(prevState => {
+        const kept = mergeUrlDisplay(
+          { url: url(), title: prevState.title, favicon: prevState.favicon },
+          { url: url(), title: updates.title, favicon: updates.favicon }
+        );
+        return { ...prevState, ...updates, title: kept.title, favicon: kept.favicon };
+      });
     };
 
     chrome.storage.onChanged.addListener(handleChange);

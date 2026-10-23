@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:cead34d1e70b33bf7746fe9bb46dec65","scenarioDefinitionHashV2":"sha256/32:624949da6f72b3f947463351c80821d9"}
+{"cssRuleMatches":{"src/lib/components/SearchResults/SearchResults.css":[".SearchResults",".SearchResults-section",".SearchResults-section .SearchResults-section-title",".SearchResults-section:last-of-type"]},"renderInputHash":"sha256/32:26d11a6aefcc8736d6a1740470686355","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:624949da6f72b3f947463351c80821d9"}

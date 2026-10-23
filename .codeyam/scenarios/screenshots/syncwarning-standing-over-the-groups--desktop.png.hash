@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:447e859eea284a9d91484b3121b3e514","scenarioDefinitionHashV2":"sha256/32:14a4156c9837cf018d1d347f9e5b6499"}
+{"cssRuleMatches":{"src/lib/components/SyncWarning/SyncWarning.css":[".SyncWarning",".SyncWarning svg",".SyncWarning-action",".SyncWarning-action:hover",".SyncWarning-body",".SyncWarning-dismiss",".SyncWarning-dismiss svg",".SyncWarning-dismiss:hover"]},"renderInputHash":"sha256/32:e5bc89453bc3405114ab67fe17f866b6","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:14a4156c9837cf018d1d347f9e5b6499"}

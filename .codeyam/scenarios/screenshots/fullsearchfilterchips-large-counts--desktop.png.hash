@@ -1,1 +1,1 @@
-{"renderInputHash":"sha256/32:08f81a9348217cc49bfe13b2755b9957","scenarioDefinitionHashV2":"sha256/32:480c44d6ffe212216a52bcfbb5f530dd"}
+{"cssRuleMatches":{"src/lib/components/FullSearchFilterChips/FullSearchFilterChips.css":[".FullSearch-chip",".FullSearch-chip-active",".FullSearch-chip-count",".FullSearch-chip:hover",".FullSearch-chips"]},"renderInputHash":"sha256/32:0954a6c4fec54691cee5e94877ae299a","renderInputScheme":"tokens-v1","scenarioDefinitionHashV2":"sha256/32:480c44d6ffe212216a52bcfbb5f530dd"}
