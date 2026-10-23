@@ -42,6 +42,7 @@
       "source": "codeyam-improvement",
       "status": "pending",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "rank": 6,
       "sightings": 1
     },
     {
@@ -53,6 +54,7 @@
       "source": "session-review",
       "status": "pending",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "rank": 5,
       "sightings": 1
     },
     {
@@ -64,6 +66,7 @@
       "source": "session-review",
       "status": "pending",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "rank": 3,
       "sightings": 1
     },
     {
@@ -75,6 +78,72 @@
       "source": "session-review",
       "status": "pending",
       "proposedAt": "2026-10-23T12:46:53.954060499+00:00",
+      "rank": 4,
+      "sightings": 1
+    },
+    {
+      "id": "fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record",
+      "title": "Fix undeclared tabId in associateProcess so per-tab process stats record",
+      "mode": "backend",
+      "body": "## Summary\n\n`associateProcess` in `service_worker.js` iterates with `for (tabId of tabIds)`, assigning to an undeclared `tabId`. The worker ships as an ES module (crxjs sets `\"type\": \"module\"`), which is strict mode, so this throws `ReferenceError: tabId is not defined` as soon as a process has a tab task. `processProcesses` then rejects before `update(updates)`, so neither per-tab process stats nor `processTotals` are persisted from the processes path. The test harness evaluates the worker in a sloppy-mode `new Function`, which hides the bug.\n\n## Key Decisions\n\n- Declare the loop variable: `for (const tabId of tabIds)`.\n- Add a regression test that runs `associateProcess` under strict semantics, for example by adding `'use strict'` to the harness wrapper or by extracting `associateProcess` into `src/lib/worker/` like the url-tracking split, so the test sees what production sees.\n\n## Implementation\n\n1. Change the loop header in `associateProcess` in `service_worker.js`.\n2. Make the `service_worker.test.js` harness strict, or move `associateProcess` and `updateTotals` into a worker module with injected `getTab` / `tabUpdates`, and test it there.\n3. Confirm `associateProcess › fetches each task tab and merges its url updates` fails under strict mode before the fix and passes after.",
+      "reason": "In the shipped module build this loop throws on every process sample, so per-tab CPU and memory stats are never saved.",
+      "severity": 4,
+      "source": "session-review",
+      "category": "fix",
+      "status": "pending",
+      "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
+      "kind": "tech-debt",
+      "rank": 1,
+      "sightings": 1
+    },
+    {
+      "id": "split-tab-grouping-paths-out-of-service-worker-js",
+      "title": "Split tab-grouping paths out of service_worker.js",
+      "mode": "backend",
+      "body": "## Summary\n\nAfter the url-tracking split, `service_worker.js` is 1578 lines. The tab-grouping logic (`groupTabs`, `recordInGroupTab`, `handleActiveTabsGroupChanges`, `ejectAutoGroupedTab`, `dissolveDeletedLabelGroups`, `stampLabelMembership`, `urlKeyIsMember`, `mapColors`) is the largest remaining concern, and its tests still go through the `new Function` harness.\n\n## Key Decisions\n\n- Follow the `src/lib/worker/urlTracking.js` pattern: move the functions into `src/lib/worker/grouping.js`, pass chrome.tabs / tabGroups / storage and the worker Sets (`pendingUngroups`, `autoGroupedTabs`, `userDeletedLabels`) in as deps, and keep the listeners in the worker as thin callers.\n- Behavior-preserving only.\n\n## Implementation\n\n1. Create `src/lib/worker/grouping.js` with the functions above and a deps object.\n2. Build a `groupingDeps` object in `service_worker.js` and update the call sites.\n3. Move the matching describe blocks from `service_worker.test.js` into `src/lib/worker/grouping.test.js`, and remove the moved names from the harness.",
+      "reason": "service_worker.js is still 1578 lines against a 500-line budget; groupTabs, recordInGroupTab and handleActiveTabsGroupChanges are each over 100 lines.",
+      "severity": 2,
+      "source": "session-review",
+      "category": "debt",
+      "status": "pending",
+      "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
+      "kind": "tech-debt",
+      "rank": 2,
+      "sightings": 1
+    },
+    {
+      "id": "reconcile-decide-delete-is-silently-not-applied-when-the-orphan-shares-its-name-with-a-live-entry",
+      "title": "reconcile-decide delete is silently not applied when the orphan shares its name with a live entry",
+      "mode": "backend",
+      "body": "## What happened\n\nI deleted the worker's duplicates of `siteKey`, `pruneVisits` and `isSearchEngineUrl`, whose glossary rows lived at `service_worker.js`. Rows with the same names exist at their canonical util files. `advance` reported 3 ambiguous orphans. `reconcile-decide --batch` with `\"action\":\"delete\"` reported `Recorded 3 decision(s)`, but the next `advance` re-raised the same 3 cases word for word, and `.pending-decisions.json` still held the deletes. I had to fall back to `glossary-remove <name> --file service_worker.js` for each one and delete the pending-decisions file by hand. `relocate-entities` then hit a related wall: it refused to move `getUrlKey` because a distinct same-named function exists in `urlDetails.js`, which also needed a manual remove-and-re-add with `collisionDisposition`.\n\n## What would have helped\n\nDecisions keyed by `(name, filePath)` instead of name alone, so a delete for the orphan at `service_worker.js` applies to that row. Or, failing that, a refusal at `reconcile-decide` time that says the name is ambiguous and prints the `glossary-remove --file` command, rather than recording a decision that can never apply.",
+      "reason": "Recorded delete decisions for three same-named mirror entries, but the next advance re-raised the identical ambiguity.",
+      "severity": 3,
+      "source": "codeyam-improvement",
+      "status": "pending",
+      "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
+      "rank": 7,
+      "sightings": 1
+    },
+    {
+      "id": "the-plan-said-to-move-the-worker-s-visit-pruning-helper-into-the-new-module-it-was-identical-to-the-shared-one-so-the-copy-was-deleted-and-the-shared-helper-with-its-existing-tests-is-used-instead",
+      "title": "The plan said to move the worker's visit-pruning helper into the new module; it was identical to the shared one, so the copy was deleted and the shared helper (with its existing tests) is used instead.",
+      "mode": "backend",
+      "body": "",
+      "reason": "Disclosed at the approval gate: the built work differs from the plan here.",
+      "source": "session-review",
+      "status": "pending",
+      "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
+      "sightings": 1
+    },
+    {
+      "id": "not-fixed-out-of-scope-the-worker-s-process-sampling-loop-assigns-to-an-undeclared-variable-which-would-throw-in-the-shipped-module-build",
+      "title": "Not fixed, out of scope: the worker's process-sampling loop assigns to an undeclared variable, which would throw in the shipped module build.",
+      "mode": "backend",
+      "body": "",
+      "reason": "Disclosed at the approval gate: the built work differs from the plan here.",
+      "source": "session-review",
+      "status": "pending",
+      "proposedAt": "2026-10-23T13:20:01.214184472+00:00",
       "sightings": 1
     }
   ],
@@ -93,6 +162,27 @@
       ],
       "rankedIds": [
         "split-tab-tracking-write-paths-out-of-service-worker-js"
+      ]
+    },
+    {
+      "at": "2026-10-23T13:20:01.214184472+00:00",
+      "feature": "Tab-tracking code split out of the background worker",
+      "notes": "Behavior-preserving refactor of the worker's url-tracking paths. While reading associateProcess I found an undeclared loop variable that throws in strict (module) mode but is masked by the sloppy-mode test harness. It is ranked first becau…",
+      "proposedIds": [
+        "fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record",
+        "split-tab-grouping-paths-out-of-service-worker-js",
+        "reconcile-decide-delete-is-silently-not-applied-when-the-orphan-shares-its-name-with-a-live-entry",
+        "the-plan-said-to-move-the-worker-s-visit-pruning-helper-into-the-new-module-it-was-identical-to-the-shared-one-so-the-copy-was-deleted-and-the-shared-helper-with-its-existing-tests-is-used-instead",
+        "not-fixed-out-of-scope-the-worker-s-process-sampling-loop-assigns-to-an-undeclared-variable-which-would-throw-in-the-shipped-module-build"
+      ],
+      "rankedIds": [
+        "fix-undeclared-tabid-in-associateprocess-so-per-tab-process-stats-record",
+        "split-tab-grouping-paths-out-of-service-worker-js",
+        "the-live-tab-fill-in-newurl-also-requires-the-tab-to-still-be-on-the-same-url-which-is-narrower-than-the-plan-stated",
+        "outside-this-feature-the-local-isolated-component-list-was-missing-so-every-component-capture-rendered-no-such-component-it-was-regenerated-locally-not-committed",
+        "the-plan-listed-five-demo-scenarios-one-row-scenario-was-captured-real-title-and-favicon-hovered-and-the-other-four-cases-are-covered-by-tests-instead-of-captures",
+        "scenarios-seeding-absolute-timestamps-silently-age-out-without-a-clock-pin",
+        "reconcile-decide-delete-is-silently-not-applied-when-the-orphan-shares-its-name-with-a-live-entry"
       ]
     }
   ]
